@@ -29,7 +29,6 @@ public class Object_Plugins : ModuleRules
                 "CoreUObject",
                 "Engine",
                 "InputCore",
-                "EnhancedInput",
                 "LevelSequence",
                 "MovieScene",
                 "UMG"

@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "Components/SceneComponent.h"
 #include "InteractableComponent.generated.h"
 
 
 UCLASS( ClassGroup=(Interaction), meta=(BlueprintSpawnableComponent) )
-class OBJECT_PLUGINS_API UInteractableComponent : public UActorComponent
+class OBJECT_PLUGINS_API UInteractableComponent : public USceneComponent
 {
 	GENERATED_BODY()
 

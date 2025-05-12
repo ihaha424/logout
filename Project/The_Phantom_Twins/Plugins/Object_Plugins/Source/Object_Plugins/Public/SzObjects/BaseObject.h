@@ -21,10 +21,10 @@ protected:
 public:
 	virtual void OnInteract_Implementation(APawn* Interactor) override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UStaticMeshComponent> MeshComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UInteractableComponent> InteractComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
