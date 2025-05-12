@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "SzComponents/HideComponent.h"
@@ -6,7 +6,11 @@
 #include "Components/BoxComponent.h"
 #include "GameFramework/Pawn.h"
 #include "Components/StaticMeshComponent.h"
-#include "Engine/StaticMesh.h" 
+#include "Engine/StaticMesh.h"
+#include "GameFramework/PlayerController.h" // 플레이어 컨트롤러 헤더 추가
+#include "Kismet/GameplayStatics.h" // 게임플레이 스태틱스 헤더 추가
+#include "Camera/CameraComponent.h" // 카메라 컴포넌트 헤더 추가
+#include "Engine/World.h"
 
 // Sets default values for this component's properties
 UHideComponent::UHideComponent()
@@ -54,6 +58,75 @@ void UHideComponent::Execute(APawn* Interactor)
 {
 	UE_LOG(LogTemp, Log, TEXT("UHideComponent::Execute"));
 
+
+    // 플레이어 컨트롤러 가져오기
+    APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+    if (!PlayerController)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PlayerController is null in HideComponent::Execute"));
+        return;
+    }
+
+    // 오너 액터 가져오기 (BP_HideCamChange)
+    AActor* OwnerActor = GetOwner();
+    if (!OwnerActor)
+    {
+        UE_LOG(LogTemp, Error, TEXT("OwnerActor is null in HideComponent::Execute"));
+        return;
+    }
+
+    // 카메라 컴포넌트 찾기 (처음 실행 시)
+    if (bUseCamera && !HideCamera)
+    {
+
+        HideCamera = OwnerActor->FindComponentByClass<UCameraComponent>();
+        if (!HideCamera)
+        {
+            UE_LOG(LogTemp, Error, TEXT("No CameraComponent found in owner actor: %s"), *OwnerActor->GetName());
+            return;
+        }
+    }
+    
+    if (bUseCamera && HideCamera)
+    {
+        // 카메라 전환 로직
+        if (!bIsInHideView)
+        {
+            // 현재 뷰 타겟 저장
+            PreviousViewTarget = PlayerController->GetViewTarget();
+
+            // 오너 액터(BP_HideCamChange)의 카메라로 전환
+            PlayerController->SetViewTargetWithBlend(OwnerActor, CameraBlendTime);
+            UE_LOG(LogTemp, Log, TEXT("Switched to hide camera view"));
+
+            // 상태 변경
+            bIsInHideView = true;
+        }
+        else
+        {
+            // 이전 뷰 타겟(BP_ThirdPersonCharacter)으로 돌아가기
+            if (PreviousViewTarget)
+            {
+                PlayerController->SetViewTargetWithBlend(PreviousViewTarget, CameraBlendTime);
+                UE_LOG(LogTemp, Log, TEXT("Switched back to character camera view"));
+            }
+            else
+            {
+                // 이전 뷰 타겟이 없으면 플레이어의 Pawn을 사용
+                PlayerController->SetViewTargetWithBlend(Interactor, CameraBlendTime);
+                UE_LOG(LogTemp, Log, TEXT("Switched back to player pawn view"));
+            }
+
+            // 상태 변경
+            bIsInHideView = false;
+        }
+    }
+    else
+    {
+        // 카메라 없는 경우 기본 숨기 동작
+        UE_LOG(LogTemp, Log, TEXT("Performing basic hide action"));
+        // 여기에 추가적인 숨기 로직 작성 (예: 캐릭터 비활성화)
+    }
 
 }
 
