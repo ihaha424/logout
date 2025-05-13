@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "SzObjects/BaseObject.h"
@@ -35,6 +35,23 @@ void ABaseObject::BeginPlay()
     }
 }
 
+#if WITH_EDITOR
+void ABaseObject::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+    Super::PostEditChangeProperty(PropertyChangedEvent);
+
+    const FName PropertyName = PropertyChangedEvent.Property ? PropertyChangedEvent.Property->GetFName() : NAME_None;
+
+    if (PropertyName == GET_MEMBER_NAME_CHECKED(ABaseObject, ObjectType))
+    {
+        bIsInventoryObject =
+            (ObjectType == EObjectType::Item ||
+                ObjectType == EObjectType::Text ||
+                ObjectType == EObjectType::Tool);
+    }
+}
+#endif
+
 void ABaseObject::OnInteract_Implementation(APawn* Interactor)
 {
 	UE_LOG(LogTemp, Log, TEXT("ABaseObject::OnInteract"));
@@ -42,6 +59,12 @@ void ABaseObject::OnInteract_Implementation(APawn* Interactor)
     if (InteractComp)
     {
         InteractComp->Execute(Interactor);
+
+        // 인벤토리 오브젝트라면 픽업 상태 설정
+        if (ObjectType == EObjectType::Item || ObjectType == EObjectType::Text || ObjectType == EObjectType::Tool)
+        {
+            bIsPickedUp = true;
+        }
 
         if (bDestory)
         {
