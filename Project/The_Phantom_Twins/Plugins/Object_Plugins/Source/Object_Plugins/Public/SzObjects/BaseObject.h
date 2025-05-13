@@ -53,6 +53,18 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction", meta = (EditCondition = "bIsInventoryObject", EditConditionHides))
 	bool bIsPickedUp = false;
 
+	// UI 사용 여부
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+	bool bUseUI = false;
+
+	// UI 위젯 컴포넌트 (UI 사용 시에만 활성화)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI", meta = (EditCondition = "bUseUI", EditConditionHides))
+	TObjectPtr<class UWidgetComponent> WidgetComponent;
+
+	// UI 클래스 설정 (UI 사용 시에만 노출)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI", meta = (EditCondition = "bUseUI", EditConditionHides))
+	TSubclassOf<class UUserWidget> WidgetClass;
+
 private:
 	// 내부용: bIsPickedUp 노출 조건
 	UPROPERTY()

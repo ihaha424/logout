@@ -3,6 +3,8 @@
 
 #include "SzObjects/BaseObject.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/WidgetComponent.h"
+#include "Blueprint/UserWidget.h"
 #include "SzComponents/InteractableComponent.h"
 
 
@@ -12,22 +14,48 @@ ABaseObject::ABaseObject()
 	UE_LOG(LogTemp, Log, TEXT("ABaseObject::ABaseObject()"));
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
-	MeshComponent->SetupAttachment(RootComponent);
+    SetRootComponent(MeshComponent);
 	MeshComponent->SetCollisionProfileName(TEXT("OverlapAll"));
 
+
+    // 위젯 컴포넌트는 항상 생성하지만, 사용 여부에 따라 설정/표시 여부 제어
+    WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("ObjectWidget"));
+    WidgetComponent->SetupAttachment(RootComponent);
+    WidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+    WidgetComponent->SetDrawSize(FVector2D(10, 10));
+    WidgetComponent->SetRelativeLocation(FVector(0, 0, 100));
+    WidgetComponent->SetVisibility(false); // 기본은 비활성화
 }
 
 void ABaseObject::BeginPlay()
 {
     Super::BeginPlay();
 
-    // If InteractComp is not set (e.g., not assigned via Blueprint)
+    // 위젯 설정 (필요할 때만)
+    if (bUseUI && WidgetComponent)
+    {
+        if (WidgetClass)
+        {
+            WidgetComponent->SetWidgetClass(WidgetClass);
+            WidgetComponent->SetVisibility(true);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("WidgetClass is not set for %s"), *GetName());
+        }
+    }
+    else
+    {
+        if (WidgetComponent)
+        {
+            WidgetComponent->SetVisibility(false);
+        }
+    }
+
+    // 인터랙션 컴포넌트 확인
     if (!InteractComp)
     {
-        // Try to find the first component of type UInteractableComponent attached to this Actor
         InteractComp = FindComponentByClass<UInteractableComponent>();
-
-        // Log a warning if no such component was found
         if (!InteractComp)
         {
             UE_LOG(LogTemp, Warning, TEXT("No InteractableComponent found on %s"), *GetName());
