@@ -14,6 +14,7 @@
 
 APC_SzTest::APC_SzTest()
 {
+    UE_LOG(LogTemp, Warning, TEXT("Enhanced Input X"));
 	PrimaryActorTick.bCanEverTick = true;
 }
 
