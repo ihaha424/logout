@@ -20,6 +20,7 @@
 
 APlayerCharacter::APlayerCharacter()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Asdasfs"));
 	// Create SpringArm Component & Setting
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
