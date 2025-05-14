@@ -21,7 +21,6 @@
 APlayerCharacter::APlayerCharacter()
 {
 	// Create SpringArm Component & Setting
-	UE_LOG(LogTemp, Warning, TEXT("Test"));
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->TargetArmLength = 300.0f;
