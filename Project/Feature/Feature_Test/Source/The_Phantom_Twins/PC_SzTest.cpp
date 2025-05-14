@@ -15,6 +15,7 @@
 APC_SzTest::APC_SzTest()
 {
 	PrimaryActorTick.bCanEverTick = true;
+    UE_LOG(LogTemp, Warning, TEXT("TTTTTTTTTTTTTTTTTEst"));
 }
 
 void APC_SzTest::SetupInputComponent()
