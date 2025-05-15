@@ -9,12 +9,15 @@ public class The_Phantom_Twins : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
 		PublicDependencyModuleNames.AddRange(new string[]
-		{ "Core",
+		{ 
+			"Core",
 			"CoreUObject",
 			"Engine",
 			"InputCore",
 			"EnhancedInput",
-			"Object_Plugins"
+            "AIModule",
+            "UMG",
+            "Object_Plugins"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

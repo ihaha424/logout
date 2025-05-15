@@ -24,10 +24,6 @@
 		{
 			"Name": "Object_Plugins",
 			"Enabled": true
-		},
-		{
-			"Name": "PlayerPlugin",
-			"Enabled": true
 		}
 	]
 }
