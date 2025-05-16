@@ -38,7 +38,10 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Story")
     TObjectPtr<class ULevelSequence> SequenceToPlay;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Story")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Story|UI")
     TSubclassOf<class UUserWidget> WidgetToShow;
+	
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Story|UI")
+    float WidgetDuration = 2.0f;
 	
 };
