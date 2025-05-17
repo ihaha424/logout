@@ -11,8 +11,6 @@
 // Sets default values
 ABaseObject::ABaseObject()
 {
-	UE_LOG(LogTemp, Log, TEXT("ABaseObject::ABaseObject()"));
-
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
     SetRootComponent(MeshComponent);
 	MeshComponent->SetCollisionProfileName(TEXT("OverlapAll"));
@@ -25,6 +23,9 @@ ABaseObject::ABaseObject()
     WidgetComponent->SetDrawSize(FVector2D(10, 10));
     WidgetComponent->SetRelativeLocation(FVector(0, 0, 100));
     WidgetComponent->SetVisibility(false); // 기본은 비활성화
+
+    // NetWork
+    bReplicates = true;
 }
 
 void ABaseObject::BeginPlay()
@@ -82,8 +83,6 @@ void ABaseObject::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedE
 
 void ABaseObject::OnInteract_Implementation(APawn* Interactor)
 {
-	UE_LOG(LogTemp, Log, TEXT("ABaseObject::OnInteract"));
-
     if (InteractComp)
     {
         InteractComp->Execute(Interactor);
