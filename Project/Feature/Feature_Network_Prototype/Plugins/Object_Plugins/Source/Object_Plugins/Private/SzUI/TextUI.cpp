@@ -25,7 +25,6 @@ void UTextUI::NativeConstruct()
         if (Row)
         {
             TextTextN->SetText(Row->Message);
-            UE_LOG(LogTemp, Display, TEXT("Found Row! Message: %s"), *Row->Message.ToString());
         }
         else
         {

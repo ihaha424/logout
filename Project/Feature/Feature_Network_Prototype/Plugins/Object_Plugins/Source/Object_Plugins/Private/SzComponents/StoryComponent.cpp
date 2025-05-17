@@ -9,23 +9,17 @@
 
 UStoryComponent::UStoryComponent()
 {
-    UE_LOG(LogTemp, Log, TEXT("UStoryComponent::UStoryComponent()"));
-
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
 void UStoryComponent::BeginPlay()
 {
-    UE_LOG(LogTemp, Log, TEXT("UStoryComponent::BeginPlay()"));
-
 	Super::BeginPlay();
 
 }
 
 void UStoryComponent::Execute(APawn* Interactor)
 {
-    UE_LOG(LogTemp, Log, TEXT("UStoryComponent::Execute"));
-
     if (StoryActionType == EStoryActionType::PlaySequence && SequenceToPlay)
     {
         FMovieSceneSequencePlaybackSettings PlaybackSettings;

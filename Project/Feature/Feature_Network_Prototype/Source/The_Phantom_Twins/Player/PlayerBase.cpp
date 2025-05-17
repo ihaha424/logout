@@ -27,6 +27,10 @@
 // Object Plugin
 #include "SzComponents/Interaction.h"
 
+// TODO: Delete Debug Library
+#include "Kismet/KismetSystemLibrary.h"
+
+
 // Sets default values
 APlayerBase::APlayerBase()
 {
@@ -80,7 +84,7 @@ void APlayerBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	if (PlayerController)
 	{
 		if (ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer())
@@ -90,6 +94,10 @@ void APlayerBase::BeginPlay()
 				SubSystem->AddMappingContext(InputMappingContext, 0);
 			}
 		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PlayerController is not allocation."), true, true, FLinearColor(0.0f, 0.66f, 1.0f), 5);
 	}
 
 	// Widget Setting
@@ -115,8 +123,8 @@ void APlayerBase::Tick(float DeltaTime)
 
 	// 현재 퍼셉션 컴포넌트에 인지된 오브젝트 리스트를 가져옴
 	TArray<AActor*> PerceptionActors;
-	PlayerController->Perception->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), PerceptionActors);
-
+	PerceptionActors = PlayerController->PerceptionActors;
+	
 	// 화면상에서 가까운 오브젝트 판별
 	FVector Start = Camera->GetComponentLocation();
 	FVector Direction = Camera->GetForwardVector();
@@ -128,6 +136,7 @@ void APlayerBase::Tick(float DeltaTime)
 	// 가장 가까운 오브젝트를 찾고 지정해줌
 	for (AActor* Actor : PerceptionActors)
 	{
+
 		//UObject* InteractiveObject = Cast<UObject>(Actor);
 		//if (!InteractiveObject) continue; // 없으면 넘김
 
@@ -154,6 +163,7 @@ void APlayerBase::Tick(float DeltaTime)
 
 	if (NearestInteractiveObject)
 	{
+
 		//NearestInteractiveObject->WidgetComponent->SetWorldScale3D(FVector(2.0f));
 	}
 }
@@ -178,7 +188,7 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	// Look Action
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerBase::Look);
 	// Run Action
-	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &APlayerBase::Run);
+	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &APlayerBase::Run);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &APlayerBase::StopRun);
 	// Crouch Action
 	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &APlayerBase::PlayerCrouch);
@@ -196,7 +206,6 @@ void APlayerBase::SetGroggy()
 	GroggyWidget->SetVisibility(true);
 	// 이동속도 0으로 설정
 	GetCharacterMovement()->MaxWalkSpeed = 0.f;
-	UE_LOG(LogTemp, Warning, TEXT("Character is Groggy!"));
 }
 
 void APlayerBase::TakeDamage(float Damage)
@@ -216,36 +225,48 @@ void APlayerBase::SetupCharacterWidget(UMyPlayerUserWidget* UserWidget)
 
 void APlayerBase::Move(const FInputActionValue& Value)
 {
-	FVector2D MovementVector = Value.Get<FVector2D>();
+	if (Controller != nullptr)
+	{
+		FVector2D MovementVector = Value.Get<FVector2D>();
 
-	const FRotator Rotation = Controller->GetControlRotation();
-	const FRotator YawRotation(0, Rotation.Yaw, 0);
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-	AddMovementInput(ForwardDirection, MovementVector.Y);
-	AddMovementInput(RightDirection, MovementVector.X);
+		AddMovementInput(ForwardDirection, MovementVector.Y);
+		AddMovementInput(RightDirection, MovementVector.X);
+	}
 }
 
 void APlayerBase::Look(const FInputActionValue& Value)
 {
-	FVector2D LookAxisVector = Value.Get<FVector2D>();
+	if (Controller != nullptr)
+	{
+		FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-	AddControllerYawInput(LookAxisVector.X);
-	AddControllerPitchInput(LookAxisVector.Y);
+		AddControllerYawInput(LookAxisVector.X);
+		AddControllerPitchInput(LookAxisVector.Y);
+	}
 }
 
 void APlayerBase::Run(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Log, TEXT("Run"));
-	GetCharacterMovement()->MaxWalkSpeed = 800.f; // 기본 걷기보다 빠르게 설정
+	if (!HasAuthority())
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 800.f;
+	}
+	C2S_SetMaxWalkSpeed(800.f);
 }
 
 void APlayerBase::StopRun(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Log, TEXT("Walk"));
-	GetCharacterMovement()->MaxWalkSpeed = 200.f; // 걷기 속도로 복구
+	if (!HasAuthority())
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 200.f;
+	}
+	C2S_SetMaxWalkSpeed(200.f);
 }
 
 void APlayerBase::PlayerCrouch(const FInputActionValue& Value)
@@ -253,12 +274,10 @@ void APlayerBase::PlayerCrouch(const FInputActionValue& Value)
 	if (bIsCrouched)
 	{
 		UnCrouch();
-		UE_LOG(LogTemp, Log, TEXT("UnCrouch"));
 	}
 	else
 	{
 		Crouch();
-		UE_LOG(LogTemp, Log, TEXT("Crouch"));
 	}
 }
 
@@ -269,12 +288,20 @@ void APlayerBase::Hacking(const FInputActionValue& Value)
 
 void APlayerBase::Interactive(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Log, TEXT("Interactive Object"));
 	if (NearestInteractiveObject)
 	{
-		// 상호작용 된 오브젝트 로직 실행
-		IInteraction::Execute_OnInteract(NearestInteractiveObject, this);
+		C2S_Interactive_Implementation(NearestInteractiveObject);
 	}
+}
+
+void APlayerBase::C2S_Interactive_Implementation(UObject* interact)
+{
+	IInteraction::Execute_OnInteract(NearestInteractiveObject, this);
+}
+
+void APlayerBase::C2S_SetMaxWalkSpeed_Implementation(float Speed)
+{
+	GetCharacterMovement()->MaxWalkSpeed = Speed;
 }
 
 void APlayerBase::ReferenceSetting()

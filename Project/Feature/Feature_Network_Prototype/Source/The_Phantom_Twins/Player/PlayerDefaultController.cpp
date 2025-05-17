@@ -53,9 +53,29 @@ APlayerDefaultController::APlayerDefaultController()
 
 void APlayerDefaultController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	if (UWidgetComponent* Widget = Actor->FindComponentByClass<UWidgetComponent>())
+    if (HasAuthority()) 
     {
-        // 인지한 오브젝트 모두 위젯 활성화
-        Widget->SetVisibility(Stimulus.WasSuccessfullySensed());
+        S2C_UpdatePerceivedActor(Actor, Stimulus.WasSuccessfullySensed());
+    }
+}
+
+void APlayerDefaultController::S2C_UpdatePerceivedActor_Implementation(AActor* Actor, bool bVisible)
+{
+    if (nullptr == Actor)
+        return;
+
+    // Add/Delete Object Array
+    if (bVisible)
+    {
+        PerceptionActors.AddUnique(Actor);
+    }
+    else
+    {
+        PerceptionActors.Remove(Actor);
+    }
+    // Set Object UI
+    if (UWidgetComponent* Widget = Actor->FindComponentByClass<UWidgetComponent>())
+    {
+        Widget->SetVisibility(bVisible);
     }
 }
