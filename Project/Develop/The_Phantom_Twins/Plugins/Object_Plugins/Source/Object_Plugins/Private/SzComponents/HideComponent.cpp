@@ -53,12 +53,16 @@ void UHideComponent::BeginPlay()
 void UHideComponent::Execute(APawn* Interactor)
 {
     // 플레이어 컨트롤러 가져오기
-    APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+    APlayerController* PlayerController = Cast<APlayerController>(Interactor->GetController());// UGameplayStatics::GetPlayerController(GetWorld(), 0);
     if (!PlayerController)
     {
         UE_LOG(LogTemp, Error, TEXT("PlayerController is null in HideComponent::Execute"));
         return;
     }
+
+    if (nullptr != HidePlayer && HidePlayer != PlayerController)
+        return;
+
 
     // 오너 액터 가져오기 (BP_HideCamChange)
     AActor* OwnerActor = GetOwner();
@@ -93,6 +97,7 @@ void UHideComponent::Execute(APawn* Interactor)
 
             // 상태 변경
             bIsInHideView = true;
+            HidePlayer = PlayerController;
         }
         else
         {
@@ -109,6 +114,7 @@ void UHideComponent::Execute(APawn* Interactor)
 
             // 상태 변경
             bIsInHideView = false;
+            PlayerController = HidePlayer;
         }
     }
     else
