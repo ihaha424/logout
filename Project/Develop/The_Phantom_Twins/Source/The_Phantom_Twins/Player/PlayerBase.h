@@ -109,6 +109,16 @@ public:
 	void PlayerCrouch(const FInputActionValue& Value);
 	void Hacking(const FInputActionValue& Value);
 	void Interactive(const FInputActionValue& Value);
+
+	// NetWork
+	UFUNCTION(Server, Reliable)
+	void C2S_Interactive(UObject* interact);
+	void C2S_Interactive_Implementation(UObject* interact);
+
+	UFUNCTION(Server, Reliable)
+	void C2S_SetMaxWalkSpeed(float Speed);
+	void C2S_SetMaxWalkSpeed_Implementation(float Speed);
+
 	//void OpenInventory(const FInputActionValue& Value);
 
 };
