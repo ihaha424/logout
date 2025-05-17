@@ -42,6 +42,7 @@ void UInteractableComponent::DeleteLogic()
 	// MaxInteractionCount destroy
 	if (InteractionCount >= MaxInteractionCount)
 	{
+
 		Owner->Destroy(true);
 	}
 }

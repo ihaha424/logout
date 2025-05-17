@@ -290,13 +290,20 @@ void APlayerBase::Interactive(const FInputActionValue& Value)
 {
 	if (NearestInteractiveObject)
 	{
-		C2S_Interactive_Implementation(NearestInteractiveObject);
+		C2S_Interactive(NearestInteractiveObject);
 	}
 }
 
 void APlayerBase::C2S_Interactive_Implementation(UObject* interact)
 {
-	IInteraction::Execute_OnInteract(NearestInteractiveObject, this);
+	if (nullptr == interact)
+	{
+		UKismetSystemLibrary::PrintString(this, TEXT("ABaseObject Interact is nullptr"));
+		return;
+	}
+	
+	if (interact->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
+		IInteraction::Execute_OnInteract(interact, this);
 }
 
 void APlayerBase::C2S_SetMaxWalkSpeed_Implementation(float Speed)
