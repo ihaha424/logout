@@ -114,7 +114,7 @@ void UHideComponent::Execute(APawn* Interactor)
 
             // 상태 변경
             bIsInHideView = false;
-            PlayerController = HidePlayer;
+            HidePlayer = nullptr;
         }
     }
     else

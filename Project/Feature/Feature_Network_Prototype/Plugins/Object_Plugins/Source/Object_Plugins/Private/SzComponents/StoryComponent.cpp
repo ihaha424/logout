@@ -6,6 +6,7 @@
 #include "LevelSequencePlayer.h"
 #include "LevelSequenceActor.h"
 #include "Blueprint/UserWidget.h"
+#include "TimerManager.h"
 
 UStoryComponent::UStoryComponent()
 {
@@ -44,9 +45,24 @@ void UStoryComponent::Execute(APawn* Interactor)
     else if (StoryActionType == EStoryActionType::ShowUI && WidgetToShow)
     {
         UUserWidget* Widget = CreateWidget<UUserWidget>(GetWorld(), WidgetToShow);
+
         if (Widget)
         {
             Widget->AddToViewport();
+
+            FTimerHandle TimerHandle;
+            GetWorld()->GetTimerManager().SetTimer(
+                TimerHandle,
+                FTimerDelegate::CreateLambda([Widget]()
+                    {
+                        if (Widget && Widget->IsInViewport())
+                        {
+                            Widget->RemoveFromParent();
+                        }
+                    }),
+                WidgetDuration,
+                false
+            );
         }
         else
         {
