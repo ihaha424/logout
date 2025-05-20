@@ -15,8 +15,6 @@
 // Sets default values for this component's properties
 UHideComponent::UHideComponent()
 {
-	UE_LOG(LogTemp, Log, TEXT("UHideComponent::UHideComponent()"));
-
 	PrimaryComponentTick.bCanEverTick = false;
 
 	TriggerComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxTriggerComponent"));
@@ -29,8 +27,6 @@ UHideComponent::UHideComponent()
 // Called when the game starts
 void UHideComponent::BeginPlay()
 {
-	UE_LOG(LogTemp, Log, TEXT("UHideComponent::BeginPlay()"));
-
 	Super::BeginPlay();
 
 	if (!TriggerComponent)
@@ -56,16 +52,17 @@ void UHideComponent::BeginPlay()
 
 void UHideComponent::Execute(APawn* Interactor)
 {
-	UE_LOG(LogTemp, Log, TEXT("UHideComponent::Execute"));
-
-
     // 플레이어 컨트롤러 가져오기
-    APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+    APlayerController* PlayerController = Cast<APlayerController>(Interactor->GetController());// UGameplayStatics::GetPlayerController(GetWorld(), 0);
     if (!PlayerController)
     {
         UE_LOG(LogTemp, Error, TEXT("PlayerController is null in HideComponent::Execute"));
         return;
     }
+
+    if (nullptr != HidePlayer && HidePlayer != PlayerController)
+        return;
+
 
     // 오너 액터 가져오기 (BP_HideCamChange)
     AActor* OwnerActor = GetOwner();
@@ -97,10 +94,10 @@ void UHideComponent::Execute(APawn* Interactor)
 
             // 오너 액터(BP_HideCamChange)의 카메라로 전환
             PlayerController->SetViewTargetWithBlend(OwnerActor, CameraBlendTime);
-            UE_LOG(LogTemp, Log, TEXT("Switched to hide camera view"));
 
             // 상태 변경
             bIsInHideView = true;
+            HidePlayer = PlayerController;
         }
         else
         {
@@ -108,17 +105,16 @@ void UHideComponent::Execute(APawn* Interactor)
             if (PreviousViewTarget)
             {
                 PlayerController->SetViewTargetWithBlend(PreviousViewTarget, CameraBlendTime);
-                UE_LOG(LogTemp, Log, TEXT("Switched back to character camera view"));
             }
             else
             {
                 // 이전 뷰 타겟이 없으면 플레이어의 Pawn을 사용
                 PlayerController->SetViewTargetWithBlend(Interactor, CameraBlendTime);
-                UE_LOG(LogTemp, Log, TEXT("Switched back to player pawn view"));
             }
 
             // 상태 변경
             bIsInHideView = false;
+            HidePlayer = nullptr;
         }
     }
     else
@@ -132,24 +128,18 @@ void UHideComponent::Execute(APawn* Interactor)
 
 void UHideComponent::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Log, TEXT("Entered TriggerComponent: %s"), *OtherActor->GetName());
-
 	APawn* Pawn = Cast<APawn>(OtherActor);
 	if (Pawn)
 	{
 		bHasPlayer = true;
-		UE_LOG(LogTemp, Log, TEXT("Player %s entered hiding spot."), *Pawn->GetName());
 	}
 }
 
 void UHideComponent::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	UE_LOG(LogTemp, Log, TEXT("Exited TriggerComponent: %s"), *OtherActor->GetName());
-
 	APawn* Pawn = Cast<APawn>(OtherActor);
 	if (Pawn)
 	{
 		bHasPlayer = false;
-		UE_LOG(LogTemp, Log, TEXT("Player %s exited hiding spot."), *Pawn->GetName());
 	}
 }

@@ -56,7 +56,6 @@ bool UUIDataTableHelper::SetTextBlockFromDataTable(UDataTable* DataTable, FName 
     {
         // Row를 찾았으면 메시지를 TextBlock에 세팅
         TextBlock->SetText(Row->Message);
-        UE_LOG(LogTemp, Display, TEXT("Text set to: %s"), *Row->Message.ToString());
         return true;
     }
 

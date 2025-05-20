@@ -31,6 +31,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
 	TObjectPtr<UAISenseConfig_Hearing> HearingConfig;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
+	TArray<AActor*> PerceptionActors;
+
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 };

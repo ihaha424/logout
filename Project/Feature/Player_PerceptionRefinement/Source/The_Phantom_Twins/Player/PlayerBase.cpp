@@ -75,6 +75,50 @@ APlayerBase::APlayerBase()
 	GroggyWidget->SetupAttachment(GetMesh());
 }
 
+void APlayerBase::NearestObjectCheck()
+{
+	APlayerDefaultController* PlayerController = Cast<APlayerDefaultController>(GetController());
+
+	if (!PlayerController)
+		return;
+
+	// 현재 퍼셉션 컴포넌트에 인지된 오브젝트 리스트를 가져옴
+	TArray<AActor*> Objects = PlayerController->PerceptionActors;
+
+	// 화면상에서 가까운 오브젝트 판별
+	FVector Start = Camera->GetComponentLocation();
+	FVector Direction = Camera->GetForwardVector();
+	Direction.Normalize();
+
+	// 최소거리 설정
+	float MinDistance = PlayerController->SightConfig->SightRadius - 100.f;
+
+	// 가장 가까운 오브젝트를 찾고 지정해줌
+	for (AActor* Actor : Objects)
+	{
+		if (!Cast<IInteraction>(Actor))
+			continue;
+
+		FVector ToPoint = Actor->GetActorLocation() - Start;
+
+		// 직선과 점 사이의 거리: |Dir x VecToPoint| / |Dir|
+		float DistanceFromLine = FVector::CrossProduct(Direction, ToPoint).Size();
+
+		if (DistanceFromLine < MinDistance)
+		{
+			if (NearestInteractiveObject)
+			{
+				// NearestInteractiveObject
+			}
+
+			// 가까운 오브젝트가 있을 때
+			MinDistance = DistanceFromLine;
+			NearestInteractiveObject = Actor;
+			// NearestInteractiveObject->WidgetComponent->SetWorldScale3D(FVector(2.0f));
+		}
+	}
+}
+
 // Called when the game starts or when spawned
 void APlayerBase::BeginPlay()
 {
@@ -89,6 +133,17 @@ void APlayerBase::BeginPlay()
 			{
 				SubSystem->AddMappingContext(InputMappingContext, 0);
 			}
+		}
+	}
+
+	if (InvenWidgetClass)
+	{
+		InvenWidget = CreateWidget<UUserWidget>(PlayerController, InvenWidgetClass);
+
+		if (InvenWidget)
+		{
+			InvenWidget->AddToViewport();
+			InvenWidget->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
 
@@ -108,54 +163,7 @@ void APlayerBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	APlayerDefaultController* PlayerController = Cast<APlayerDefaultController>(GetController());
-
-	if (!PlayerController || !PlayerController->Perception)
-		return;
-
-	// 현재 퍼셉션 컴포넌트에 인지된 오브젝트 리스트를 가져옴
-	TArray<AActor*> PerceptionActors;
-	PlayerController->Perception->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), PerceptionActors);
-
-	// 화면상에서 가까운 오브젝트 판별
-	FVector Start = Camera->GetComponentLocation();
-	FVector Direction = Camera->GetForwardVector();
-	Direction.Normalize();
-
-	// 최소거리 설정
-	float MinDistance = PlayerController->SightConfig->SightRadius - 100.f;
-
-	// 가장 가까운 오브젝트를 찾고 지정해줌
-	for (AActor* Actor : PerceptionActors)
-	{
-		//UObject* InteractiveObject = Cast<UObject>(Actor);
-		//if (!InteractiveObject) continue; // 없으면 넘김
-
-		FVector ToPoint = Actor->GetActorLocation() - Start;
-
-		// 직선과 점 사이의 거리: |Dir x VecToPoint| / |Dir|
-		float DistanceFromLine = FVector::CrossProduct(Direction, ToPoint).Size();
-
-		if (DistanceFromLine < MinDistance)
-		{
-			/*if (NearestInteractiveObject)
-			{
-				if (NearestInteractiveObject != Actor)
-				{
-					NearestInteractiveObject->WidgetComponent->SetWorldScale3D(FVector(2.0f));
-				}
-			}*/
-
-			// 가까운 오브젝트가 있을 때
-			MinDistance = DistanceFromLine;
-			NearestInteractiveObject = Actor;
-		}
-	}
-
-	if (NearestInteractiveObject)
-	{
-		//NearestInteractiveObject->WidgetComponent->SetWorldScale3D(FVector(2.0f));
-	}
+	NearestObjectCheck();
 }
 
 void APlayerBase::PostInitializeComponents()
@@ -187,7 +195,7 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	// Interactive Action
 	EnhancedInputComponent->BindAction(InteractiveAction, ETriggerEvent::Triggered, this, &APlayerBase::Interactive);
 	// Inventory Action
-	//EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Triggered, this, &APlayerCharacter::OpenInventory);
+	EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Triggered, this, &APlayerBase::OpenInventory);
 }
 
 void APlayerBase::SetGroggy()
@@ -211,6 +219,65 @@ void APlayerBase::SetupCharacterWidget(UMyPlayerUserWidget* UserWidget)
 	if (PlayerHpBar)
 	{
 		PlayerHpBar->SetMaxHp(Stat->GetMaxHp());
+	}
+}
+
+void APlayerBase::ReferenceSetting()
+{
+	// Set the default input mapping context
+	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputMappingContextRef(TEXT("/Game/Project_TPT/Assets/Input/Player/IMC_PlayerIMC.IMC_PlayerIMC"));
+	if (InputMappingContextRef.Object)
+	{
+		InputMappingContext = InputMappingContextRef.Object;
+	}
+
+	// Set the default values for the input actions
+	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT("/Game/Project_TPT/Assets/Input/Player/Actions/IA_Move.IA_Move"));
+	if (MoveActionRef.Object)
+	{
+		MoveAction = MoveActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> LookActionRef(TEXT("/Game/Project_TPT/Assets/Input/Player/Actions/IA_Look.IA_Look"));
+	if (LookActionRef.Object)
+	{
+		LookAction = LookActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> RunActionRef(TEXT("/Game/Project_TPT/Assets/Input/Player/Actions/IA_Run.IA_Run"));
+	if (RunActionRef.Object)
+	{
+		RunAction = RunActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> CrouchActionRef(TEXT("/Game/Project_TPT/Assets/Input/Player/Actions/IA_Crouch.IA_Crouch"));
+	if (CrouchActionRef.Object)
+	{
+		CrouchAction = CrouchActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> HackingActionRef(TEXT("/Game/Project_TPT/Assets/Input/Player/Actions/IA_Hacking.IA_Hacking"));
+	if (HackingActionRef.Object)
+	{
+		HackingAction = HackingActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> InteractiveActionRef(TEXT("/Game/Project_TPT/Assets/Input/Player/Actions/IA_Interactive.IA_Interactive"));
+	if (InteractiveActionRef.Object)
+	{
+		InteractiveAction = InteractiveActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> InventoryActionRef(TEXT("/Game/Project_TPT/Assets/Input/Player/Actions/IA_Inven.IA_Inven"));
+	if (InventoryActionRef.Object)
+	{
+		InventoryAction = InventoryActionRef.Object;
+	}
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> InvenWidgetRef(TEXT("/Game/Project_TPT/Assets/Blueprints/Player/WB_Inventory.WB_Inventory_C"));
+	if (InvenWidgetRef.Class)
+	{
+		InvenWidgetClass = InvenWidgetRef.Class;
 	}
 }
 
@@ -264,6 +331,7 @@ void APlayerBase::PlayerCrouch(const FInputActionValue& Value)
 
 void APlayerBase::Hacking(const FInputActionValue& Value)
 {
+
 	UE_LOG(LogTemp, Log, TEXT("Hacking Start"));
 }
 
@@ -274,58 +342,45 @@ void APlayerBase::Interactive(const FInputActionValue& Value)
 	{
 		// 상호작용 된 오브젝트 로직 실행
 		IInteraction::Execute_OnInteract(NearestInteractiveObject, this);
+
+		if (IInteraction::Execute_GetPickedUp(NearestInteractiveObject))
+		{
+			InventoryObjects.Add(NearestInteractiveObject);
+			AddItemToUI();
+		}
 	}
 }
 
-void APlayerBase::ReferenceSetting()
+void APlayerBase::OpenInventory(const FInputActionValue& Value)
 {
-	// Set the default input mapping context
-	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputMappingContextRef(TEXT("/Game/Project_TPT/Assets/Input/Player/IMC_PlayerIMC.IMC_PlayerIMC"));
-	if (InputMappingContextRef.Object)
-	{
-		InputMappingContext = InputMappingContextRef.Object;
-	}
+	APlayerController* PC = CastChecked<APlayerController>(GetController());
+	
+	if (!PC || !InvenWidget) return;
 
-	// Set the default values for the input actions
-	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionRef(TEXT("/Game/Project_TPT/Assets/Input/Player/Actions/IA_Move.IA_Move"));
-	if (MoveActionRef.Object)
-	{
-		MoveAction = MoveActionRef.Object;
-	}
+	bIsInventoryVisible = !bIsInventoryVisible;
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> LookActionRef(TEXT("/Game/Project_TPT/Assets/Input/Player/Actions/IA_Look.IA_Look"));
-	if (LookActionRef.Object)
+	if (bIsInventoryVisible)
 	{
-		LookAction = LookActionRef.Object;
-	}
+		UE_LOG(LogTemp, Log, TEXT("OpenInventory"));
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> RunActionRef(TEXT("/Game/Project_TPT/Assets/Input/Player/Actions/IA_Run.IA_Run"));
-	if (RunActionRef.Object)
+		InvenWidget->SetVisibility(ESlateVisibility::Visible);
+
+		FInputModeGameAndUI InputMode;
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		InputMode.SetHideCursorDuringCapture(false);
+		PC->SetInputMode(InputMode);
+
+		PC->bShowMouseCursor = true;
+	}
+	else
 	{
-		RunAction = RunActionRef.Object;
-	}
+		UE_LOG(LogTemp, Log, TEXT("CloseInventory"));
+		InvenWidget->SetVisibility(ESlateVisibility::Hidden);
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> CrouchActionRef(TEXT("/Game/Project_TPT/Assets/Input/Player/Actions/IA_Crouch.IA_Crouch"));
-	if (CrouchActionRef.Object)
-	{
-		CrouchAction = CrouchActionRef.Object;
-	}
+		FInputModeGameOnly InputMode;
+		PC->SetInputMode(InputMode);
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> HackingActionRef(TEXT("/Game/Project_TPT/Assets/Input/Player/Actions/IA_Hacking.IA_Hacking"));
-	if (HackingActionRef.Object)
-	{
-		HackingAction = HackingActionRef.Object;
+		PC->bShowMouseCursor = false;
 	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> InteractiveActionRef(TEXT("/Game/Project_TPT/Assets/Input/Player/Actions/IA_Interactive.IA_Interactive"));
-	if (InteractiveActionRef.Object)
-	{
-		InteractiveAction = InteractiveActionRef.Object;
-	}
-
-	//static ConstructorHelpers::FObjectFinder<UInputAction> InventoryActionRef(TEXT("/Game/Project_TPT/Assets/Input/Player/Actions/IA_Inventory.IA_Inventory"));
-	//if (InventoryActionRef.Object)
-	//{
-	//	InventoryAction = InventoryActionRef.Object;
-	//}
 }
+

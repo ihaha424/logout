@@ -6,26 +6,21 @@
 #include "LevelSequencePlayer.h"
 #include "LevelSequenceActor.h"
 #include "Blueprint/UserWidget.h"
+#include "TimerManager.h"
 
 UStoryComponent::UStoryComponent()
 {
-    UE_LOG(LogTemp, Log, TEXT("UStoryComponent::UStoryComponent()"));
-
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
 void UStoryComponent::BeginPlay()
 {
-    UE_LOG(LogTemp, Log, TEXT("UStoryComponent::BeginPlay()"));
-
 	Super::BeginPlay();
 
 }
 
 void UStoryComponent::Execute(APawn* Interactor)
 {
-    UE_LOG(LogTemp, Log, TEXT("UStoryComponent::Execute"));
-
     if (StoryActionType == EStoryActionType::PlaySequence && SequenceToPlay)
     {
         FMovieSceneSequencePlaybackSettings PlaybackSettings;
@@ -50,9 +45,24 @@ void UStoryComponent::Execute(APawn* Interactor)
     else if (StoryActionType == EStoryActionType::ShowUI && WidgetToShow)
     {
         UUserWidget* Widget = CreateWidget<UUserWidget>(GetWorld(), WidgetToShow);
+
         if (Widget)
         {
             Widget->AddToViewport();
+
+            FTimerHandle TimerHandle;
+            GetWorld()->GetTimerManager().SetTimer(
+                TimerHandle,
+                FTimerDelegate::CreateLambda([Widget]()
+                    {
+                        if (Widget && Widget->IsInViewport())
+                        {
+                            Widget->RemoveFromParent();
+                        }
+                    }),
+                WidgetDuration,
+                false
+            );
         }
         else
         {

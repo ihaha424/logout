@@ -24,4 +24,10 @@ class OBJECT_PLUGINS_API IInteraction
 public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
 	void OnInteract(APawn* Interactor);
+
+    UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
+    bool CanInteract(const APawn* Interactor) const;
+	
+	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
+	bool GetPickedUp();
 };
