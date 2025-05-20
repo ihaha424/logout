@@ -50,7 +50,7 @@ void UHideComponent::BeginPlay()
 	TriggerComponent->OnComponentEndOverlap.AddDynamic(this, &UHideComponent::OnTriggerEndOverlap);
 }
 
-void UHideComponent::Execute(APawn* Interactor)
+void UHideComponent::ExecuteSever(APawn* Interactor)
 {
     // 플레이어 컨트롤러 가져오기
     APlayerController* PlayerController = Cast<APlayerController>(Interactor->GetController());// UGameplayStatics::GetPlayerController(GetWorld(), 0);

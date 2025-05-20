@@ -13,7 +13,7 @@ void UItemComponent::BeginPlay()
 	UActorComponent::BeginPlay();
 }
 
-void UItemComponent::Execute(APawn* Interactor)
+void UItemComponent::ExecuteSever(APawn* Interactor)
 {
 	UE_LOG(LogTemp, Log, TEXT("UItemComponent::Execute"));
 }
