@@ -291,6 +291,8 @@ void APlayerBase::Interactive(const FInputActionValue& Value)
 	if (NearestInteractiveObject)
 	{
 		C2S_Interactive(NearestInteractiveObject);
+		if (NearestInteractiveObject->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
+			IInteraction::IInteraction::Execute_OnInteractClient(NearestInteractiveObject, this);
 	}
 }
 
@@ -303,7 +305,7 @@ void APlayerBase::C2S_Interactive_Implementation(UObject* interact)
 	}
 	
 	if (interact->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
-		IInteraction::Execute_OnInteract(interact, this);
+		IInteraction::Execute_OnInteractSever(interact, this);
 }
 
 void APlayerBase::C2S_SetMaxWalkSpeed_Implementation(float Speed)
