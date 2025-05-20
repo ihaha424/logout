@@ -17,7 +17,16 @@ AHackableObject::AHackableObject()
 void AHackableObject::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	// 인터랙션 컴포넌트 확인
+	if (!HackingComp)
+	{
+		HackingComp = FindComponentByClass<UHackableComponent>();
+		if (!HackingComp)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("No HackingComp found on %s"), *GetName());
+		}
+	}
 }
 
 void AHackableObject::StartHacking_Implementation()
@@ -25,21 +34,34 @@ void AHackableObject::StartHacking_Implementation()
 	UE_LOG(LogTemp, Log, TEXT("StartHacking"));
 
 	if (bIsHacked) return;
+	if (RequiredEnergy <= 0) return;
 
 	// RequiredTime 동안 E키를 눌렀으면 bIsHacked = true
 	// RequiredTime이 되기 전에 E키를 뗐으면 bIsHacked = false
+	// RequiredTime 이 되는 동안 게이지 참
+
+	
 	//GetWorldTimerManager.SetTimer(HackingTimer, )
+	bIsHacked = true;
+
+	if (bIsHacked)
+	{
+		FinishHacking_Implementation();
+	}
 }
 
 void AHackableObject::FinishHacking_Implementation()
 {
 	UE_LOG(LogTemp, Log, TEXT("FinishHacking"));
+	RequiredEnergy--;
 
 	// 해킹 컴포넌트 확인
 	if (HackingComp)
 	{
 		HackingComp->Execute();
 	}
+
+
 
 	//// HackedDuration 시간이 지나면 다시 해킹 전 상태(bIsHacked = false)로 바꿈
 	//GetWorldTimerManager.SetTimer(HackedTimer, )

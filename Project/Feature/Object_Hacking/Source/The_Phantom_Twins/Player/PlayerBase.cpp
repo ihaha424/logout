@@ -26,6 +26,7 @@
 
 // Object Plugin
 #include "SzComponents/Interaction.h"
+#include "SzInterface/Hacking.h"
 
 // TODO: Delete Debug Library
 #include "Kismet/KismetSystemLibrary.h"
@@ -284,6 +285,12 @@ void APlayerBase::PlayerCrouch(const FInputActionValue& Value)
 void APlayerBase::Hacking(const FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Log, TEXT("Hacking Start"));
+
+	if (NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+	{
+		IHacking::Execute_StartHacking(NearestInteractiveObject);
+	}
+	
 }
 
 void APlayerBase::Interactive(const FInputActionValue& Value)
