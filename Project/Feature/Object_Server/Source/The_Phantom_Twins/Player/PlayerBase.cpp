@@ -25,7 +25,8 @@
 #include "DrawDebugHelpers.h"
 
 // Object Plugin
-#include "SzComponents/Interaction.h"
+#include "SzInterface/Interaction.h"
+#include "SzInterface/Hacking.h"
 
 // TODO: Delete Debug Library
 #include "Kismet/KismetSystemLibrary.h"

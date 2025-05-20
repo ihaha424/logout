@@ -7,7 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h"
 #include "GameFramework/Pawn.h"
-#include "SZComponents/Interaction.h"
+#include "SzInterface/Interaction.h"
 #include "SZComponents/InteractableComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
