@@ -35,6 +35,8 @@ protected:
 
 public:
 	virtual void OnInteract_Implementation(APawn* Interactor) override;
+	virtual bool CanInteract_Implementation(const APawn* Interactor) const override;
+	virtual bool GetPickedUp_Implementation() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UStaticMeshComponent> MeshComponent;
@@ -44,6 +46,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	bool bDestory = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
+	bool bCanInteract = true;
 
 	// 오브젝트 타입 (아이템, 텍스트, 도구 등)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")

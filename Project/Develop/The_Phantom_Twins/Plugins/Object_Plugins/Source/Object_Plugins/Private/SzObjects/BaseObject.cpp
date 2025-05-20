@@ -107,3 +107,14 @@ void ABaseObject::OnInteract_Implementation(APawn* Interactor)
         UE_LOG(LogTemp, Warning, TEXT("InteractComp is nullptr!"));
     }
 }
+
+
+bool ABaseObject::CanInteract_Implementation(const APawn* Interactor) const
+{
+    return bCanInteract;
+}
+
+bool ABaseObject::GetPickedUp_Implementation()
+{
+    return bIsPickedUp;
+}
