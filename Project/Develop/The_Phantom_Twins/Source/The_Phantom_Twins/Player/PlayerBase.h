@@ -131,6 +131,10 @@ public:
 	void C2S_Interactive_Implementation(UObject* interact);
 
 	UFUNCTION(Server, Reliable)
+	void C2S_Hacking(UObject* interact);
+	void C2S_Hacking_Implementation(UObject* interact);
+
+	UFUNCTION(Server, Reliable)
 	void C2S_SetMaxWalkSpeed(float Speed);
 	void C2S_SetMaxWalkSpeed_Implementation(float Speed);
 };

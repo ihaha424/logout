@@ -26,6 +26,7 @@
 
 // Object Plugin
 #include "SzComponents/Interaction.h"
+#include "SzInterface/Hacking.h"
 
 // Sets default values
 APlayerBase::APlayerBase()
@@ -96,7 +97,7 @@ void APlayerBase::NearestObjectCheck()
 	// 가장 가까운 오브젝트를 찾고 지정해줌
 	for (AActor* Actor : Objects)
 	{
-		if (!Cast<IInteraction>(Actor))
+		if (!(Cast<IInteraction>(Actor) || Cast<IHacking>(Actor)))
 			continue;
 
 		FVector ToPoint = Actor->GetActorLocation() - Start;
@@ -344,37 +345,36 @@ void APlayerBase::Hacking(const FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Log, TEXT("Hacking Start"));
 
-	//if (NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
-	//{
-	//	IHacking::Execute_OnHackingStarted(NearestInteractiveObject);
-	//}
+	if (NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+	{
+		C2S_Hacking(NearestInteractiveObject);
+	}
 
 }
 
 void APlayerBase::StopHacking(const FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Log, TEXT("Hacking Stop"));
-	// 
-	//if (NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
-	//{
-	//	IHacking::Execute_OnHackingCompleted(NearestInteractiveObject);
-	//}
+	 
+	if (NearestInteractiveObject 
+		&& NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+	{
+		IHacking::Execute_OnHackingCompleted(NearestInteractiveObject);
+	}
 }
 
 void APlayerBase::Interactive(const FInputActionValue& Value)
 {
-	if (NearestInteractiveObject)
+	if (NearestInteractiveObject 
+		&& NearestInteractiveObject->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
 	{
-		if (NearestInteractiveObject->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
-		{
-			C2S_Interactive(NearestInteractiveObject);
-			IInteraction::Execute_OnInteractClient(NearestInteractiveObject, this);
+		C2S_Interactive(NearestInteractiveObject);
+		IInteraction::Execute_OnInteractClient(NearestInteractiveObject, this);
 
-			if (IInteraction::Execute_GetPickedUp(NearestInteractiveObject))
-			{
-				InventoryObjects.Add(NearestInteractiveObject);
-				AddItemToUI();
-			}
+		if (IInteraction::Execute_GetPickedUp(NearestInteractiveObject))
+		{
+			InventoryObjects.Add(NearestInteractiveObject);
+			AddItemToUI();
 		}
 	}
 }
@@ -385,9 +385,20 @@ void APlayerBase::C2S_Interactive_Implementation(UObject* interact)
 	{
 		return;
 	}
-	
+
 	if (interact->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
 		IInteraction::Execute_OnInteractSever(interact, this);
+}
+
+void APlayerBase::C2S_Hacking_Implementation(UObject* interact)
+{
+	if (nullptr == interact)
+	{
+		return;
+	}
+
+	if (interact->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+		IHacking::Execute_OnHackingStarted(interact);
 }
 
 void APlayerBase::C2S_SetMaxWalkSpeed_Implementation(float Speed)
@@ -398,7 +409,7 @@ void APlayerBase::C2S_SetMaxWalkSpeed_Implementation(float Speed)
 void APlayerBase::OpenInventory(const FInputActionValue& Value)
 {
 	APlayerController* PC = CastChecked<APlayerController>(GetController());
-	
+
 	if (!PC || !InvenWidget) return;
 
 	bIsInventoryVisible = !bIsInventoryVisible;
