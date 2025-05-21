@@ -23,17 +23,13 @@ class OBJECT_PLUGINS_API IHacking
 public:
 	// 해킹 실행 (E키 홀딩)
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Hacking")
-	void StartHacking();
+	void OnHackingStarted();
 
 	// 해킹 완료 후 로직 (CCTV 보임, 적 무력화 등)
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Hacking")
-	void FinishHacking();
+	void OnHackingCompleted();
 
 	// 해킹 가능 여부 체크 (false => 해킹 완료 / true => 해킹 전)
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Hacking")
 	bool CanBeHacked() const;
-
-	// 클리어
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Hacking")
-	void ClearHoldingTimer() const;
 };

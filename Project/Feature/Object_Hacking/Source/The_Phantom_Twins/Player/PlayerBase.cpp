@@ -288,7 +288,7 @@ void APlayerBase::Hacking(const FInputActionValue& Value)
 
 	if (NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
 	{
-		IHacking::Execute_StartHacking(NearestInteractiveObject);
+		IHacking::Execute_OnHackingStarted(NearestInteractiveObject);
 	}
 	
 }
