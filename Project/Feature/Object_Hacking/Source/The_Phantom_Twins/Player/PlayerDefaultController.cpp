@@ -53,6 +53,9 @@ APlayerDefaultController::APlayerDefaultController()
 
 void APlayerDefaultController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
+	if (!Actor->ActorHasTag("Object"))
+		return;
+
     if (HasAuthority()) 
     {
         S2C_UpdatePerceivedActor(Actor, Stimulus.WasSuccessfullySensed());
@@ -73,9 +76,11 @@ void APlayerDefaultController::S2C_UpdatePerceivedActor_Implementation(AActor* A
     {
         PerceptionActors.Remove(Actor);
     }
+
     // Set Object UI
     if (UWidgetComponent* Widget = Actor->FindComponentByClass<UWidgetComponent>())
     {
+        UE_LOG(LogTemp, Log, TEXT("Widget On"));
         Widget->SetVisibility(bVisible);
     }
 }

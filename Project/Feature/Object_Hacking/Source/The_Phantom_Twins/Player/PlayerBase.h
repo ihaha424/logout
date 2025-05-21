@@ -27,6 +27,11 @@ public:
 	// Sets default values for this character's properties
 	APlayerBase();
 
+	void NearestObjectCheck();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Inventory")
+	void AddItemToUI();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -52,8 +57,6 @@ public:
 protected:
 	void ReferenceSetting();
 
-
-
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<UCameraComponent> Camera;
@@ -61,11 +64,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SpringArm")
 	TObjectPtr<USpringArmComponent> SpringArm;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Object")
 	TObjectPtr<UObject> NearestInteractiveObject;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TObjectPtr<UStaticMesh> InteractiveMesh;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+	TArray<UObject*> InventoryObjects;
 
 	// Stat Section
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat)
@@ -75,7 +81,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Widget)
 	TObjectPtr<UWidgetComponent> GroggyWidget;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Widget)
+	TObjectPtr<UUserWidget> InvenWidget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)
+	TSubclassOf<UUserWidget> InvenWidgetClass;
+
 public:
+	bool bIsInventoryVisible = false;
 
 	// Input Section
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -99,8 +112,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> HackingAction;
 
-	/*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<UInputAction> InventoryAction;*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> InventoryAction;
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -108,8 +121,9 @@ public:
 	void StopRun(const FInputActionValue& Value);
 	void PlayerCrouch(const FInputActionValue& Value);
 	void Hacking(const FInputActionValue& Value);
-	void CompletedHacking(const FInputActionValue& Value);
+	void StopHacking(const FInputActionValue& Value);
 	void Interactive(const FInputActionValue& Value);
+	void OpenInventory(const FInputActionValue& Value);
 
 	// NetWork
 	UFUNCTION(Server, Reliable)
@@ -117,9 +131,10 @@ public:
 	void C2S_Interactive_Implementation(UObject* interact);
 
 	UFUNCTION(Server, Reliable)
+	void C2S_Hacking(UObject* interact);
+	void C2S_Hacking_Implementation(UObject* interact);
+
+	UFUNCTION(Server, Reliable)
 	void C2S_SetMaxWalkSpeed(float Speed);
 	void C2S_SetMaxWalkSpeed_Implementation(float Speed);
-
-	//void OpenInventory(const FInputActionValue& Value);
-
 };

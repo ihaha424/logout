@@ -32,6 +32,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
 	TObjectPtr<UAISenseConfig_Hearing> HearingConfig;
 
+	TArray<AActor*> PerceptionActors;
+
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
@@ -39,6 +41,4 @@ public:
 	UFUNCTION(Client, Reliable)
 	void S2C_UpdatePerceivedActor(AActor* Actor, bool bVisible);
 	void S2C_UpdatePerceivedActor_Implementation(AActor* Actort, bool bVisible);
-
-	TArray<AActor*> PerceptionActors;
 };

@@ -73,7 +73,7 @@ void APC_SzTest::HandleInteractionInput()
             APawn* playerPawn = GetPawn();
             check(playerPawn);
 
-            IInteraction::Execute_OnInteract(NearestInteractableActor, playerPawn);
+            IInteraction::Execute_OnInteractSever(NearestInteractableActor, playerPawn);
         }
     }
 }
