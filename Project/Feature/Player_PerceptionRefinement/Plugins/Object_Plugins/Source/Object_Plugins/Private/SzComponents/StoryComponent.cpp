@@ -19,7 +19,7 @@ void UStoryComponent::BeginPlay()
 
 }
 
-void UStoryComponent::Execute(APawn* Interactor)
+void UStoryComponent::ExecuteSever(APawn* Interactor)
 {
     if (StoryActionType == EStoryActionType::PlaySequence && SequenceToPlay)
     {
@@ -42,7 +42,42 @@ void UStoryComponent::Execute(APawn* Interactor)
             UE_LOG(LogTemp, Error, TEXT("Unable to create level sequence player"));
         }
     }
-    else if (StoryActionType == EStoryActionType::ShowUI && WidgetToShow)
+    //else if (StoryActionType == EStoryActionType::ShowUI && WidgetToShow)
+    //{
+    //    UUserWidget* Widget = CreateWidget<UUserWidget>(GetWorld(), WidgetToShow);
+
+    //    if (Widget)
+    //    {
+    //        Widget->AddToViewport();
+
+    //        FTimerHandle TimerHandle;
+    //        GetWorld()->GetTimerManager().SetTimer(
+    //            TimerHandle,
+    //            FTimerDelegate::CreateLambda([Widget]()
+    //                {
+    //                    if (Widget && Widget->IsInViewport())
+    //                    {
+    //                        Widget->RemoveFromParent();
+    //                    }
+    //                }),
+    //            WidgetDuration,
+    //            false
+    //        );
+    //    }
+    //    else
+    //    {
+    //        UE_LOG(LogTemp, Error, TEXT("Unable to create widget"));
+    //    }
+    //}
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("No valid action selected or asset not assigned!"));
+    }
+}
+
+void UStoryComponent::ExecuteClient(APawn* Interactor)
+{
+    if (StoryActionType == EStoryActionType::ShowUI && WidgetToShow)
     {
         UUserWidget* Widget = CreateWidget<UUserWidget>(GetWorld(), WidgetToShow);
 
@@ -68,9 +103,5 @@ void UStoryComponent::Execute(APawn* Interactor)
         {
             UE_LOG(LogTemp, Error, TEXT("Unable to create widget"));
         }
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("No valid action selected or asset not assigned!"));
     }
 }

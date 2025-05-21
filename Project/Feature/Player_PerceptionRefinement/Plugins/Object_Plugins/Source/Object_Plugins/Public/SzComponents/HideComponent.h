@@ -21,7 +21,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual void Execute(APawn* Interactor) override;
+	virtual void ExecuteSever(APawn* Interactor) override;
 	
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hide")

@@ -85,11 +85,11 @@ void ABaseObject::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedE
 }
 #endif
 
-void ABaseObject::OnInteract_Implementation(APawn* Interactor)
+void ABaseObject::OnInteractSever_Implementation(APawn* Interactor)
 {
     if (InteractComp)
     {
-        InteractComp->Execute(Interactor);
+        InteractComp->ExecuteSever(Interactor);
 
         // 인벤토리 오브젝트라면 픽업 상태 설정
         if (ObjectType == EObjectType::Item || ObjectType == EObjectType::Text || ObjectType == EObjectType::Tool)
@@ -101,6 +101,18 @@ void ABaseObject::OnInteract_Implementation(APawn* Interactor)
         {
             InteractComp->DeleteLogic();
         }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("InteractComp is nullptr!"));
+    }
+}
+
+void ABaseObject::OnInteractClient_Implementation(APawn* Interactor)
+{
+    if (InteractComp)
+    {
+        InteractComp->ExecuteClient(Interactor);
     }
     else
     {
