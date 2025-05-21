@@ -21,6 +21,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Interaction")
     void UpdateHoldTime(float Time);
 
+    UFUNCTION(BlueprintCallable, Category = "Interaction")
+    void ShowCompletedMessage();
+
 protected:
 	UPROPERTY(meta = (BindWidget))
     TObjectPtr<class UTextBlock> TimeText;

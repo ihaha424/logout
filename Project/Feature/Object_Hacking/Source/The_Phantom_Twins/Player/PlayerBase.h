@@ -108,6 +108,7 @@ public:
 	void StopRun(const FInputActionValue& Value);
 	void PlayerCrouch(const FInputActionValue& Value);
 	void Hacking(const FInputActionValue& Value);
+	void CompletedHacking(const FInputActionValue& Value);
 	void Interactive(const FInputActionValue& Value);
 
 	// NetWork

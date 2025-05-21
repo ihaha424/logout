@@ -194,7 +194,8 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	// Crouch Action
 	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &APlayerBase::PlayerCrouch);
 	// Hacking Action
-	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Triggered, this, &APlayerBase::Hacking);
+	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Started, this, &APlayerBase::Hacking);
+	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Completed, this, &APlayerBase::CompletedHacking);
 	// Interactive Action
 	EnhancedInputComponent->BindAction(InteractiveAction, ETriggerEvent::Triggered, this, &APlayerBase::Interactive);
 	// Inventory Action
@@ -291,6 +292,16 @@ void APlayerBase::Hacking(const FInputActionValue& Value)
 		IHacking::Execute_OnHackingStarted(NearestInteractiveObject);
 	}
 	
+}
+
+void APlayerBase::CompletedHacking(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Log, TEXT("Hacking Completed"));
+
+	if (NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+	{
+		IHacking::Execute_OnHackingCompleted(NearestInteractiveObject);
+	}
 }
 
 void APlayerBase::Interactive(const FInputActionValue& Value)

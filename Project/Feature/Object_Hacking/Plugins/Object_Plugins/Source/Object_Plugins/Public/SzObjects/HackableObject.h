@@ -29,6 +29,18 @@ public:
 	// 해킹 가능 여부 체크 (false => 해킹 전 / true => 해킹 완료)
 	virtual bool CanBeHacked_Implementation() const override;
 
+private:
+	// Tick에서 호출: 해킹 진행 상태 업데이트
+	void UpdateHackingProgress(float CurrentTime);
+
+	// HeldTime이 조건을 만족하면 해킹 완료 처리
+	void TryCompleteHacking(float HeldDuration, float CurrentTime);
+
+	// 해킹 성공 후 일정 시간이 지나면 다시 해킹 가능 상태로 초기화
+	void CheckHackReset(float CurrentTime);
+
+	// 해킹 실패 처리
+	void CancelHacking();
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Hacking")
@@ -59,6 +71,7 @@ protected:
 
 private:
 	float HackingStartTime = 0.0f;
+	bool bAutoHackingCompleted = false;
 };
 
 // 코어 에너지 사용 부분은 player에서 담당

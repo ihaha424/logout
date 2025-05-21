@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "SzUI/HackingGauge.h"
@@ -22,4 +22,9 @@ void UHackingGauge::UpdateHoldTime(float Time)
     TimeText->SetText(FText::FromString(Formatted));
 }
 
+void UHackingGauge::ShowCompletedMessage()
+{
+    if (!TimeText) return;
+    TimeText->SetText(FText::FromString(TEXT("해킹 완료")));
+}
 
