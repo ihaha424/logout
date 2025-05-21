@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "SzComponents/InteractableComponent.h"
@@ -47,8 +47,8 @@ void UInteractableComponent::DeleteLogic()
 	// MaxInteractionCount destroy
 	if (InteractionCount >= MaxInteractionCount)
 	{
-
-		Owner->Destroy(true);
+		Owner->SetActorHiddenInGame(true);  // 화면에서 안 보임
+		Owner->SetActorEnableCollision(false); // 충돌도 막음
 	}
 }
 
