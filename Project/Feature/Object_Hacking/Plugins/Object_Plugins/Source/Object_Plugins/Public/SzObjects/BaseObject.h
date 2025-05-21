@@ -69,6 +69,10 @@ public:
 	// UI 클래스 설정 (UI 사용 시에만 노출)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI", meta = (EditCondition = "bUseUI", EditConditionHides))
 	TSubclassOf<class UUserWidget> WidgetClass;
+	
+    // AI percrption
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
+    TObjectPtr<class UAIPerceptionStimuliSourceComponent> StimuliSource;
 
 private:
 	// 내부용: bIsPickedUp 노출 조건
