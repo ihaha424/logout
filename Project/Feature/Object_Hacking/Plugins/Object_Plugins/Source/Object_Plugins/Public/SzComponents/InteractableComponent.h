@@ -22,7 +22,9 @@ protected:
 
 public:	
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	virtual void Execute(APawn* Interactor);
+	virtual void ExecuteSever(APawn* Interactor);
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
+	virtual void ExecuteClient(APawn* Interactor);
 	virtual void DeleteLogic();
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")

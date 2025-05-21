@@ -21,7 +21,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual void OnInteract_Implementation(APawn* Interactor) override;
+    virtual void OnInteractSever_Implementation(APawn* Interactor) override;
 	virtual bool CanInteract_Implementation(const APawn* Interactor) const override;
 
 protected:
@@ -34,6 +34,9 @@ protected:
     // 블루프린트에서 문을 여는 동작을 구현할 수 있도록 선언
     UFUNCTION(BlueprintImplementableEvent, Category = "Door")
     void OpenDoor();
+
+    UFUNCTION(NetMulticast, Reliable)
+    void S2A_OpenDoor();
 
 protected:
     // 문이 열리기 위해 필요한 Actor 목록 (예: 해킹 트리거)

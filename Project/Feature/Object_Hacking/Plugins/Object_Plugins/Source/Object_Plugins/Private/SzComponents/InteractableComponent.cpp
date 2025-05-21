@@ -20,9 +20,9 @@ void UInteractableComponent::BeginPlay()
 }
 
 
-void UInteractableComponent::Execute(APawn* Interactor)
+void UInteractableComponent::ExecuteSever(APawn* Interactor)
 {
-	UE_LOG(LogTemp, Log, TEXT("UInteractableComponent::Execute: Please Ovrride."));
+	UE_LOG(LogTemp, Log, TEXT("UInteractableComponent::ExecuteSever: Please Ovrride."));
 	//ABaseObject* Owner = Cast<ABaseObject>(GetOwner());
 	//if (!Owner) return;
 
@@ -30,6 +30,11 @@ void UInteractableComponent::Execute(APawn* Interactor)
 	//{
 	//	DeleteLogic();
 	//}
+}
+
+void UInteractableComponent::ExecuteClient(APawn* Interactor)
+{
+	UE_LOG(LogTemp, Log, TEXT("UInteractableComponent::ExecuteClient: No Logic For Clinet."));
 }
 
 void UInteractableComponent::DeleteLogic()

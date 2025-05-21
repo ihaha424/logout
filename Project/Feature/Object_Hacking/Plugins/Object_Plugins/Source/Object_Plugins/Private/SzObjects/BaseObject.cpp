@@ -44,6 +44,9 @@ ABaseObject::ABaseObject()
     //StimuliSource에 감지할 감각을 등록
     StimuliSource->RegisterForSense(UAISense_Sight::StaticClass());
     StimuliSource->RegisterForSense(UAISense_Hearing::StaticClass());
+
+    // "Object" 태그 추가
+    Tags.Add(FName("Object"));
 }
 
 void ABaseObject::BeginPlay()
@@ -99,11 +102,11 @@ void ABaseObject::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedE
 }
 #endif
 
-void ABaseObject::OnInteract_Implementation(APawn* Interactor)
+void ABaseObject::OnInteractSever_Implementation(APawn* Interactor)
 {
     if (InteractComp)
     {
-        InteractComp->Execute(Interactor);
+        InteractComp->ExecuteSever(Interactor);
 
         // 인벤토리 오브젝트라면 픽업 상태 설정
         if (ObjectType == EObjectType::Item || ObjectType == EObjectType::Text || ObjectType == EObjectType::Tool)
@@ -113,8 +116,20 @@ void ABaseObject::OnInteract_Implementation(APawn* Interactor)
 
         if (bDestory)
         {
-            InteractComp->DeleteLogic();
+            //InteractComp->DeleteLogic();
         }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("InteractComp is nullptr!"));
+    }
+}
+
+void ABaseObject::OnInteractClient_Implementation(APawn* Interactor)
+{
+    if (InteractComp)
+    {
+        InteractComp->ExecuteClient(Interactor);
     }
     else
     {
@@ -128,7 +143,7 @@ bool ABaseObject::CanInteract_Implementation(const APawn* Interactor) const
     return bCanInteract;
 }
 
-bool ABaseObject::GetPickedUp_Implementation()
+bool ABaseObject::GetPickedUp_Implementation() const
 {
     return bIsPickedUp;
 }

@@ -16,6 +16,9 @@ AHackableObject::AHackableObject()
 	HackingStartTime = 0.0f;
 	GuageUI = nullptr;
 	bAutoHackingCompleted = false;
+
+	// "Object" 태그 추가
+	Tags.Add(FName("Object"));
 }
 
 // Called when the game starts or when spawned
@@ -45,16 +48,15 @@ void AHackableObject::Tick(float DeltaTime)
 
 void AHackableObject::OnHackingStarted_Implementation()
 {
-
 	// 해킹 되어있거나 해킹 중이면 return
 	if (bIsHacked || bIsHacking) return;
 	
 	UE_LOG(LogTemp, Log, TEXT("Hacking : Started"));
 
 	// 현재 시간을 저장 (시작 시간)
-	HackingStartTime = GetWorld()->GetTimeSeconds();
 	bIsHacking = true;
 	bAutoHackingCompleted = false;
+	HackingStartTime = GetWorld()->GetTimeSeconds();
 
 	// 이미 UI가 있으면 제거
 	if (GuageUI)
@@ -73,6 +75,7 @@ void AHackableObject::OnHackingStarted_Implementation()
 		}
 	}
 }
+
 
 void AHackableObject::OnHackingCompleted_Implementation()
 {

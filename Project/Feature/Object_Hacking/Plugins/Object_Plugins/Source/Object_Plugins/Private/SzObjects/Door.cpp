@@ -20,23 +20,23 @@ void ADoor::BeginPlay()
 	}
 }
 
-void ADoor::OnInteract_Implementation(APawn* Interactor)
+void ADoor::OnInteractSever_Implementation(APawn* Interactor)
 {
-	Super::OnInteract_Implementation(Interactor);
-
 	UE_LOG(LogTemp, Warning, TEXT("ADoor::OnInteract"));
 
 	if (CanInteract_Implementation(Interactor))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("ADoor::OnInteract3"));
 		bIsOpened = true;
 
 		// 이후 동작은 블루프린트에서 구현
-		OpenDoor();
+		S2A_OpenDoor();
 	}
 }
 
 bool ADoor::CanInteract_Implementation(const APawn* Interactor) const
 {
+	UE_LOG(LogTemp, Warning, TEXT("ADoor::OnInteract2"));
 	// 트리거가 모두 활성화되고, 열쇠가 있으면 상호작용 가능
 	return AreAllObjActived() && HasKey(Interactor);
 }
@@ -67,4 +67,9 @@ bool ADoor::HasKey(const APawn* Interactor) const
 {
 	// 현재 key 확인이 불가능하니 테스트용으로 무조건 열쇠가 있다고 가정.
 	return true;
+}
+
+void ADoor::S2A_OpenDoor_Implementation()
+{
+	OpenDoor();
 }
