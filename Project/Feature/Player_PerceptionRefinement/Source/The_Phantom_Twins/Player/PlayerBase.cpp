@@ -353,7 +353,7 @@ void APlayerBase::Interactive(const FInputActionValue& Value)
 	{
 		C2S_Interactive(NearestInteractiveObject);
 		if (NearestInteractiveObject->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
-			IInteraction::IInteraction::Execute_OnInteractClient(NearestInteractiveObject, this);
+			IInteraction::Execute_OnInteractClient(NearestInteractiveObject, this);
 
 		int32 PickedUpState;
 		if (ABaseObject* Obj = Cast<ABaseObject>(NearestInteractiveObject))
