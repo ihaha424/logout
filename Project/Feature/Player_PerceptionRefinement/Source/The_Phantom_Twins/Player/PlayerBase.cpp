@@ -190,7 +190,8 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	// Crouch Action
 	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &APlayerBase::PlayerCrouch);
 	// Hacking Action
-	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Triggered, this, &APlayerBase::Hacking);
+	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Started, this, &APlayerBase::Hacking);
+	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Completed, this, &APlayerBase::StopHacking);
 	// Interactive Action
 	EnhancedInputComponent->BindAction(InteractiveAction, ETriggerEvent::Triggered, this, &APlayerBase::Interactive);
 	// Inventory Action
@@ -341,35 +342,38 @@ void APlayerBase::PlayerCrouch(const FInputActionValue& Value)
 
 void APlayerBase::Hacking(const FInputActionValue& Value)
 {
+	UE_LOG(LogTemp, Log, TEXT("Hacking Start"));
 
-	//UE_LOG(LogTemp, Log, TEXT("Hacking Start"));
+	//if (NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+	//{
+	//	IHacking::Execute_OnHackingStarted(NearestInteractiveObject);
+	//}
+
 }
 
-//TODO: Interface로 변경해야됨
-#include "SzObjects/BaseObject.h"
+void APlayerBase::StopHacking(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Log, TEXT("Hacking Stop"));
+	// 
+	//if (NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+	//{
+	//	IHacking::Execute_OnHackingCompleted(NearestInteractiveObject);
+	//}
+}
+
 void APlayerBase::Interactive(const FInputActionValue& Value)
 {
 	if (NearestInteractiveObject)
 	{
-		C2S_Interactive(NearestInteractiveObject);
 		if (NearestInteractiveObject->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
+		{
 			IInteraction::Execute_OnInteractClient(NearestInteractiveObject, this);
 
-		int32 PickedUpState;
-		if (ABaseObject* Obj = Cast<ABaseObject>(NearestInteractiveObject))
-		{
-			PickedUpState = Obj->GetPickedUp_Implementation();
-		}
-
-		/*int32 temp = IInteraction::Execute_GetPickedUp(NearestInteractiveObject);
-		temp = IInteraction::Execute_CanInteract(NearestInteractiveObject, this);
-		UE_LOG(LogTemp, Log, TEXT("APlayerBase temp: %d"), temp);*/
-
-		if (PickedUpState)
-		{
-			// UE_LOG(LogTemp, Log, TEXT("APlayerBase if djWJf"));
-			InventoryObjects.Add(NearestInteractiveObject);
-			AddItemToUI();
+			if (IInteraction::Execute_GetPickedUp(NearestInteractiveObject))
+			{
+				InventoryObjects.Add(NearestInteractiveObject);
+				AddItemToUI();
+			}
 		}
 	}
 }

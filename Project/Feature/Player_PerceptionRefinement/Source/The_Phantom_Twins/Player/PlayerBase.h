@@ -121,6 +121,7 @@ public:
 	void StopRun(const FInputActionValue& Value);
 	void PlayerCrouch(const FInputActionValue& Value);
 	void Hacking(const FInputActionValue& Value);
+	void StopHacking(const FInputActionValue& Value);
 	void Interactive(const FInputActionValue& Value);
 	void OpenInventory(const FInputActionValue& Value);
 
