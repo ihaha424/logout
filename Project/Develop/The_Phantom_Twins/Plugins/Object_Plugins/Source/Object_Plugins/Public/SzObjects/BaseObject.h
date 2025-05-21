@@ -37,7 +37,7 @@ public:
 	virtual void OnInteractSever_Implementation(APawn* Interactor) override;
 	virtual void OnInteractClient_Implementation(APawn* Interactor) override;
 	virtual bool CanInteract_Implementation(const APawn* Interactor) const override;
-	virtual bool GetPickedUp_Implementation() override;
+	virtual bool GetPickedUp_Implementation() const override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UStaticMeshComponent> MeshComponent;
