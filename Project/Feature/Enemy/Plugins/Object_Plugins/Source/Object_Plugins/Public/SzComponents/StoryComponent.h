@@ -33,6 +33,10 @@ public:
 	virtual void ExecuteSever(APawn* Interactor) override;
     virtual void ExecuteClient(APawn* Interactor) override;
 
+    UFUNCTION(NetMulticast, Reliable)
+    void S2A_LevelSequencePlay();
+
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Story")
     EStoryActionType StoryActionType = EStoryActionType::PlaySequence;
 
