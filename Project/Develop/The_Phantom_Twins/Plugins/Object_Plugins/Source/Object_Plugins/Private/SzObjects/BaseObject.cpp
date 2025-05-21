@@ -10,6 +10,12 @@
 // TODO: Delete Debug Library
 #include "Kismet/KismetSystemLibrary.h"
 
+//AI Perception
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Sight.h"
+#include "Perception/AISenseConfig_Sight.h"
+#include "Perception/AISense_Hearing.h"
+#include "Perception/AISenseConfig_Hearing.h"
 
 
 // Sets default values
@@ -30,6 +36,17 @@ ABaseObject::ABaseObject()
 
     // NetWork
     bReplicates = true;
+
+    // AI Perception
+    StimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource"));
+    StimuliSource->bAutoRegister = true;
+
+    //StimuliSource에 감지할 감각을 등록
+    StimuliSource->RegisterForSense(UAISense_Sight::StaticClass());
+    StimuliSource->RegisterForSense(UAISense_Hearing::StaticClass());
+
+    // "Object" 태그 추가
+    Tags.Add(FName("Object"));
 }
 
 void ABaseObject::BeginPlay()
