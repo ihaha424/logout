@@ -126,7 +126,7 @@ bool ABaseObject::CanInteract_Implementation(const APawn* Interactor) const
     return bCanInteract;
 }
 
-bool ABaseObject::GetPickedUp_Implementation()
+bool ABaseObject::GetPickedUp_Implementation() const
 {
     return bIsPickedUp;
 }

@@ -7,8 +7,8 @@
 #include "Interaction.generated.h"
 
 // This class does not need to be modified.
-UINTERFACE(MinimalAPI)
-class UInteraction : public UInterface
+UINTERFACE()
+class OBJECT_PLUGINS_API UInteraction : public UInterface
 {
 	GENERATED_BODY()
 };
