@@ -99,7 +99,7 @@ void ABaseObject::OnInteractSever_Implementation(APawn* Interactor)
 
         if (bDestory)
         {
-            InteractComp->DeleteLogic();
+            //InteractComp->DeleteLogic();
         }
     }
     else
