@@ -66,8 +66,6 @@ void APC_SzTest::Tick(float DeltaTime)
 
 void APC_SzTest::HandleInteractionInput()
 {
-    UE_LOG(LogTemp, Log, TEXT("E"));
-
     if (NearestInteractableActor)
     {
         if (NearestInteractableActor->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
@@ -75,7 +73,7 @@ void APC_SzTest::HandleInteractionInput()
             APawn* playerPawn = GetPawn();
             check(playerPawn);
 
-            IInteraction::Execute_OnInteract(NearestInteractableActor, playerPawn);
+            IInteraction::Execute_OnInteractSever(NearestInteractableActor, playerPawn);
         }
     }
 }

@@ -10,6 +10,7 @@
 class UAIPerceptionComponent;
 class UAISenseConfig_Sight;
 class UAISenseConfig_Hearing;
+class UWidgetComponent;
 
 /**
  * 
@@ -36,4 +37,11 @@ public:
 
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+
+	// Network
+	UFUNCTION(Client, Reliable)
+	void S2C_UpdatePerceivedActor(AActor* Actor, bool bVisible);
+	void S2C_UpdatePerceivedActor_Implementation(AActor* Actort, bool bVisible);
+
+	TArray<AActor*> PerceptionActors;
 };

@@ -56,18 +56,31 @@ void APlayerDefaultController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimu
 	if (!Actor->ActorHasTag("Object"))
 		return;
 
-	if (Stimulus.WasSuccessfullySensed())
-	{
-		if (!PerceptionActors.Contains(Actor))
-		{
-			PerceptionActors.Add(Actor);
-		}
-	}
-	else
-	{
-		if (PerceptionActors.Contains(Actor))
-		{
-			PerceptionActors.Remove(Actor);
-		}
-	}
+    if (HasAuthority()) 
+    {
+        S2C_UpdatePerceivedActor(Actor, Stimulus.WasSuccessfullySensed());
+    }
+
+}
+
+void APlayerDefaultController::S2C_UpdatePerceivedActor_Implementation(AActor* Actor, bool bVisible)
+{
+    if (nullptr == Actor)
+        return;
+
+    // Add/Delete Object Array
+    if (bVisible)
+    {
+        PerceptionActors.AddUnique(Actor);
+    }
+    else
+    {
+        PerceptionActors.Remove(Actor);
+    }
+
+    // Set Object UI
+    if (UWidgetComponent* Widget = Actor->FindComponentByClass<UWidgetComponent>())
+    {
+        Widget->SetVisibility(bVisible);
+    }
 }

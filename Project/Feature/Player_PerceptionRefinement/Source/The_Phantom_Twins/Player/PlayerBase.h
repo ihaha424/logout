@@ -124,4 +124,12 @@ public:
 	void Interactive(const FInputActionValue& Value);
 	void OpenInventory(const FInputActionValue& Value);
 
+	// NetWork
+	UFUNCTION(Server, Reliable)
+	void C2S_Interactive(UObject* interact);
+	void C2S_Interactive_Implementation(UObject* interact);
+
+	UFUNCTION(Server, Reliable)
+	void C2S_SetMaxWalkSpeed(float Speed);
+	void C2S_SetMaxWalkSpeed_Implementation(float Speed);
 };

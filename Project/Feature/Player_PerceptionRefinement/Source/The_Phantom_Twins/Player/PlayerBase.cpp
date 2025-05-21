@@ -108,13 +108,12 @@ void APlayerBase::NearestObjectCheck()
 		{
 			if (NearestInteractiveObject)
 			{
-				// NearestInteractiveObject
+
 			}
 
 			// 가까운 오브젝트가 있을 때
 			MinDistance = DistanceFromLine;
 			NearestInteractiveObject = Actor;
-			// NearestInteractiveObject->WidgetComponent->SetWorldScale3D(FVector(2.0f));
 		}
 	}
 }
@@ -186,7 +185,7 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	// Look Action
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerBase::Look);
 	// Run Action
-	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &APlayerBase::Run);
+	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Started, this, &APlayerBase::Run);
 	EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Completed, this, &APlayerBase::StopRun);
 	// Crouch Action
 	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &APlayerBase::PlayerCrouch);
@@ -204,7 +203,6 @@ void APlayerBase::SetGroggy()
 	GroggyWidget->SetVisibility(true);
 	// 이동속도 0으로 설정
 	GetCharacterMovement()->MaxWalkSpeed = 0.f;
-	UE_LOG(LogTemp, Warning, TEXT("Character is Groggy!"));
 }
 
 void APlayerBase::TakeDamage(float Damage)
@@ -283,36 +281,50 @@ void APlayerBase::ReferenceSetting()
 
 void APlayerBase::Move(const FInputActionValue& Value)
 {
-	FVector2D MovementVector = Value.Get<FVector2D>();
+	if (Controller != nullptr)
+	{
+		FVector2D MovementVector = Value.Get<FVector2D>();
 
-	const FRotator Rotation = Controller->GetControlRotation();
-	const FRotator YawRotation(0, Rotation.Yaw, 0);
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-	AddMovementInput(ForwardDirection, MovementVector.Y);
-	AddMovementInput(RightDirection, MovementVector.X);
+		AddMovementInput(ForwardDirection, MovementVector.Y);
+		AddMovementInput(RightDirection, MovementVector.X);
+	}
 }
 
 void APlayerBase::Look(const FInputActionValue& Value)
 {
-	FVector2D LookAxisVector = Value.Get<FVector2D>();
+	if (Controller != nullptr)
+	{
+		FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-	AddControllerYawInput(LookAxisVector.X);
-	AddControllerPitchInput(LookAxisVector.Y);
+		AddControllerYawInput(LookAxisVector.X);
+		AddControllerPitchInput(LookAxisVector.Y);
+	}
 }
 
 void APlayerBase::Run(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Log, TEXT("Run"));
 	GetCharacterMovement()->MaxWalkSpeed = 800.f; // 기본 걷기보다 빠르게 설정
+	if (!HasAuthority())
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 800.f;
+	}
+	C2S_SetMaxWalkSpeed(800.f);
 }
 
 void APlayerBase::StopRun(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Log, TEXT("Walk"));
 	GetCharacterMovement()->MaxWalkSpeed = 200.f; // 걷기 속도로 복구
+	if (!HasAuthority())
+	{
+		GetCharacterMovement()->MaxWalkSpeed = 200.f;
+	}
+	C2S_SetMaxWalkSpeed(200.f);
 }
 
 void APlayerBase::PlayerCrouch(const FInputActionValue& Value)
@@ -320,35 +332,62 @@ void APlayerBase::PlayerCrouch(const FInputActionValue& Value)
 	if (bIsCrouched)
 	{
 		UnCrouch();
-		UE_LOG(LogTemp, Log, TEXT("UnCrouch"));
 	}
 	else
 	{
 		Crouch();
-		UE_LOG(LogTemp, Log, TEXT("Crouch"));
 	}
 }
 
 void APlayerBase::Hacking(const FInputActionValue& Value)
 {
 
-	UE_LOG(LogTemp, Log, TEXT("Hacking Start"));
+	//UE_LOG(LogTemp, Log, TEXT("Hacking Start"));
 }
 
+//TODO: Interface로 변경해야됨
+#include "SzObjects/BaseObject.h"
 void APlayerBase::Interactive(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Log, TEXT("Interactive Object"));
 	if (NearestInteractiveObject)
 	{
-		// 상호작용 된 오브젝트 로직 실행
-		IInteraction::Execute_OnInteract(NearestInteractiveObject, this);
+		C2S_Interactive(NearestInteractiveObject);
+		if (NearestInteractiveObject->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
+			IInteraction::IInteraction::Execute_OnInteractClient(NearestInteractiveObject, this);
 
-		if (IInteraction::Execute_GetPickedUp(NearestInteractiveObject))
+		int32 PickedUpState;
+		if (ABaseObject* Obj = Cast<ABaseObject>(NearestInteractiveObject))
 		{
+			PickedUpState = Obj->GetPickedUp_Implementation();
+		}
+
+		/*int32 temp = IInteraction::Execute_GetPickedUp(NearestInteractiveObject);
+		temp = IInteraction::Execute_CanInteract(NearestInteractiveObject, this);
+		UE_LOG(LogTemp, Log, TEXT("APlayerBase temp: %d"), temp);*/
+
+		if (PickedUpState)
+		{
+			// UE_LOG(LogTemp, Log, TEXT("APlayerBase if djWJf"));
 			InventoryObjects.Add(NearestInteractiveObject);
 			AddItemToUI();
 		}
 	}
+}
+
+void APlayerBase::C2S_Interactive_Implementation(UObject* interact)
+{
+	if (nullptr == interact)
+	{
+		return;
+	}
+	
+	if (interact->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
+		IInteraction::Execute_OnInteractSever(interact, this);
+}
+
+void APlayerBase::C2S_SetMaxWalkSpeed_Implementation(float Speed)
+{
+	GetCharacterMovement()->MaxWalkSpeed = Speed;
 }
 
 void APlayerBase::OpenInventory(const FInputActionValue& Value)
@@ -361,8 +400,7 @@ void APlayerBase::OpenInventory(const FInputActionValue& Value)
 
 	if (bIsInventoryVisible)
 	{
-		UE_LOG(LogTemp, Log, TEXT("OpenInventory"));
-
+		//UE_LOG(LogTemp, Log, TEXT("OpenInventory"));
 		InvenWidget->SetVisibility(ESlateVisibility::Visible);
 
 		FInputModeGameAndUI InputMode;
@@ -374,7 +412,7 @@ void APlayerBase::OpenInventory(const FInputActionValue& Value)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Log, TEXT("CloseInventory"));
+		//UE_LOG(LogTemp, Log, TEXT("CloseInventory"));
 		InvenWidget->SetVisibility(ESlateVisibility::Hidden);
 
 		FInputModeGameOnly InputMode;
