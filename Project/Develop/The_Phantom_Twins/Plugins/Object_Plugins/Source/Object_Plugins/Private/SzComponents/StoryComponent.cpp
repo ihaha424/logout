@@ -23,24 +23,7 @@ void UStoryComponent::ExecuteSever(APawn* Interactor)
 {
     if (StoryActionType == EStoryActionType::PlaySequence && SequenceToPlay)
     {
-        FMovieSceneSequencePlaybackSettings PlaybackSettings;
-        ALevelSequenceActor* OutActor = nullptr;
-
-        ULevelSequencePlayer* SequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(
-            GetWorld(),
-            SequenceToPlay,
-            PlaybackSettings,
-            OutActor
-        );
-
-        if (SequencePlayer)
-        {
-            SequencePlayer->Play();
-        }
-        else
-        {
-            UE_LOG(LogTemp, Error, TEXT("Unable to create level sequence player"));
-        }
+        S2A_LevelSequencePlay();
     }
     //else if (StoryActionType == EStoryActionType::ShowUI && WidgetToShow)
     //{
@@ -103,5 +86,27 @@ void UStoryComponent::ExecuteClient(APawn* Interactor)
         {
             UE_LOG(LogTemp, Error, TEXT("Unable to create widget"));
         }
+    }
+}
+
+void UStoryComponent::S2A_LevelSequencePlay_Implementation()
+{
+    FMovieSceneSequencePlaybackSettings PlaybackSettings;
+    ALevelSequenceActor* OutActor = nullptr;
+
+    ULevelSequencePlayer* SequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(
+        GetWorld(),
+        SequenceToPlay,
+        PlaybackSettings,
+        OutActor
+    );
+
+    if (SequencePlayer)
+    {
+        SequencePlayer->Play();
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("Unable to create level sequence player"));
     }
 }
