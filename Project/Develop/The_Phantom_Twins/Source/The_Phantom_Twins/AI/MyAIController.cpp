@@ -10,17 +10,16 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Hearing.h"
-#include "GameFramework/Character.h"
-#include "Kismet/GameplayStatics.h"
+
 
 AMyAIController::AMyAIController()
 {
-	static ConstructorHelpers::FObjectFinder<UBlackboardData> BBAIRef(TEXT("/Script/AIModule.BlackboardData'/Game/ThirdPerson/AI/BB_AI.BB_AI'"));
+	static ConstructorHelpers::FObjectFinder<UBlackboardData> BBAIRef(TEXT("/Script/AIModule.BlackboardData'/Game/Temp/BB_AI.BB_AI'"));
 	if (BBAIRef.Object != nullptr)
 	{
 		BBAI = BBAIRef.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UBehaviorTree> BTAIRef(TEXT("/Script/AIModule.BehaviorTree'/Game/ThirdPerson/AI/BT_AI.BT_AI'"));
+	static ConstructorHelpers::FObjectFinder<UBehaviorTree> BTAIRef(TEXT("/Script/AIModule.BehaviorTree'/Game/Temp/BT_AI.BT_AI'"));
 	if (BTAIRef.Object != nullptr)
 	{
 		BTAI = BTAIRef.Object;
