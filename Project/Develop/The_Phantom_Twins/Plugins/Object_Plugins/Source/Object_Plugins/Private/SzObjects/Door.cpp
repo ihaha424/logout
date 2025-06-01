@@ -26,6 +26,8 @@ void ADoor::OnInteractSever_Implementation(APawn* Interactor)
 
 	//if (CanInteract_Implementation(Interactor))
 	//{
+		if (bIsOpened && OpenNum == 1) return;
+
 		UE_LOG(LogTemp, Warning, TEXT("ADoor::OnInteract3"));
 		bIsOpened = true;
 
