@@ -24,14 +24,14 @@ void ADoor::OnInteractSever_Implementation(APawn* Interactor)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ADoor::OnInteract"));
 
-	if (CanInteract_Implementation(Interactor))
-	{
+	//if (CanInteract_Implementation(Interactor))
+	//{
 		UE_LOG(LogTemp, Warning, TEXT("ADoor::OnInteract3"));
 		bIsOpened = true;
 
 		// 이후 동작은 블루프린트에서 구현
 		S2A_OpenDoor();
-	}
+	//}
 }
 
 bool ADoor::CanInteract_Implementation(const APawn* Interactor) const
@@ -65,7 +65,7 @@ bool ADoor::AreAllObjActived() const
 
 bool ADoor::HasKey(const APawn* Interactor) const
 {
-	// 현재 key 확인이 불가능하니 테스트용으로 무조건 열쇠가 있다고 가정.
+	// 현재 key 확인이 불가능하니 테스트용으로 무조건 플레이어한테 열쇠가 있다고 가정.
 	return true;
 }
 

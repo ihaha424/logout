@@ -89,6 +89,10 @@ void UHideComponent::ExecuteSever(APawn* Interactor)
         // 카메라 전환 로직
         if (!bIsInHideView)
         {
+            // 전환 전 입력 비활성화
+            PlayerController->SetIgnoreMoveInput(true);
+            PlayerController->SetIgnoreLookInput(true);
+
             // 현재 뷰 타겟 저장
             PreviousViewTarget = PlayerController->GetViewTarget();
 
@@ -111,6 +115,10 @@ void UHideComponent::ExecuteSever(APawn* Interactor)
                 // 이전 뷰 타겟이 없으면 플레이어의 Pawn을 사용
                 PlayerController->SetViewTargetWithBlend(Interactor, CameraBlendTime);
             }
+
+            // 입력 다시 활성화
+            PlayerController->SetIgnoreMoveInput(false);
+            PlayerController->SetIgnoreLookInput(false);
 
             // 상태 변경
             bIsInHideView = false;
