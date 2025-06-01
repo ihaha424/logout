@@ -140,6 +140,7 @@ void UHideComponent::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedCompon
 	if (Pawn)
 	{
 		bHasPlayer = true;
+        UE_LOG(LogTemp, Log, TEXT("Begin"));
 	}
 }
 
@@ -149,5 +150,6 @@ void UHideComponent::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponen
 	if (Pawn)
 	{
 		bHasPlayer = false;
+        UE_LOG(LogTemp, Log, TEXT("End"));
 	}
 }
