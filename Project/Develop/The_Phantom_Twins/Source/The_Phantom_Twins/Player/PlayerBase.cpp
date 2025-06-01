@@ -369,8 +369,11 @@ void APlayerBase::Interactive(const FInputActionValue& Value)
 	if (NearestInteractiveObject 
 		&& NearestInteractiveObject->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
 	{
-		C2S_Interactive(NearestInteractiveObject);
-		IInteraction::Execute_OnInteractClient(NearestInteractiveObject, this);
+		if (IInteraction::Execute_CanInteract(NearestInteractiveObject, this))
+		{
+			C2S_Interactive(NearestInteractiveObject);
+			IInteraction::Execute_OnInteractClient(NearestInteractiveObject, this);
+		}
 
 		if (IInteraction::Execute_GetPickedUp(NearestInteractiveObject))
 		{

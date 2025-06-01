@@ -89,6 +89,10 @@ void UHideComponent::ExecuteSever(APawn* Interactor)
         // 카메라 전환 로직
         if (!bIsInHideView)
         {
+            // 전환 전 입력 비활성화
+            PlayerController->SetIgnoreMoveInput(true);
+            PlayerController->SetIgnoreLookInput(true);
+
             // 현재 뷰 타겟 저장
             PreviousViewTarget = PlayerController->GetViewTarget();
 
@@ -112,6 +116,10 @@ void UHideComponent::ExecuteSever(APawn* Interactor)
                 PlayerController->SetViewTargetWithBlend(Interactor, CameraBlendTime);
             }
 
+            // 입력 다시 활성화
+            PlayerController->SetIgnoreMoveInput(false);
+            PlayerController->SetIgnoreLookInput(false);
+
             // 상태 변경
             bIsInHideView = false;
             HidePlayer = nullptr;
@@ -132,6 +140,7 @@ void UHideComponent::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedCompon
 	if (Pawn)
 	{
 		bHasPlayer = true;
+        UE_LOG(LogTemp, Log, TEXT("Begin"));
 	}
 }
 
@@ -141,5 +150,6 @@ void UHideComponent::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponen
 	if (Pawn)
 	{
 		bHasPlayer = false;
+        UE_LOG(LogTemp, Log, TEXT("End"));
 	}
 }
