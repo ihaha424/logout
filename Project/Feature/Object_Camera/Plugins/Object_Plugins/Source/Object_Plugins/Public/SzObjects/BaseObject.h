@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "GameFramework/Pawn.h"
 #include "SzComponents/Interaction.h"
 #include "BaseObject.generated.h"
 
@@ -19,7 +19,7 @@ enum class EObjectType : uint8
 };
 
 UCLASS()
-class OBJECT_PLUGINS_API ABaseObject : public AActor, public IInteraction
+class OBJECT_PLUGINS_API ABaseObject : public APawn, public IInteraction
 {
 	GENERATED_BODY()
 	
