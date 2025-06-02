@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "MyAIController.h"
@@ -10,7 +10,7 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Hearing.h"
-
+#include "The_Phantom_Twins/Player/PlayerBase.h"
 
 AMyAIController::AMyAIController()
 {
@@ -28,7 +28,7 @@ AMyAIController::AMyAIController()
 	AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
 
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
-	SightConfig->SightRadius = 1000.f;
+	SightConfig->SightRadius = 1200.f;
 	SightConfig->LoseSightRadius = 1200.f;
 	SightConfig->PeripheralVisionAngleDegrees = 90.f;
 	SightConfig->SetMaxAge(5.f);
@@ -89,17 +89,101 @@ void AMyAIController::StopAI()
 
 }
 
-void AMyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
+void AMyAIController::Tick(float DeltaTime)
 {
-	if (Stimulus.WasSuccessfullySensed())
+	Super::Tick(DeltaTime);
+
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
+
+	// 오래된 자극 제거
+	for (int32 i = HearingStimulus.Num() - 1; i >= 0; --i)
 	{
-		Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Combat));
-		Blackboard->SetValueAsObject(TEXT("Player"), Actor);
+		if (CurrentTime - HearingStimulus[i].Timestamp > ExpireTime)
+		{
+			AccumulatedHearingStrength -= HearingStimulus[i].Strength;
+			HearingStimulus.RemoveAt(i);
+			//UE_LOG(LogTemp, Error, TEXT("Delete Delete Delete Delete: %f"), AccumulatedHearingStrength);
+		}
 	}
-	else
+
+	// 시야 기반 상태 전이 유지
+	if (!bSeeingPlayer || !Blackboard) return;
+
+	const float SeenDuration = CurrentTime - LastSightStartTime;
+	if (SeenDuration >= 1.1f)
 	{
-		Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
-		Blackboard->ClearValue(TEXT("Player"));
+		uint8 CurrentState = Blackboard->GetValueAsEnum("AIState");
+		if (CurrentState != static_cast<uint8>(EMyAIState::Combat))
+		{
+			Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Combat));
+		}
 	}
 }
 
+void AMyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
+{
+	// 플레이어 감지가 아니면 무시
+	APlayerBase* Target = Cast<APlayerBase>(Actor);
+	if (!Target)
+	{
+		return;
+	}
+	if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
+	{
+		if (Stimulus.WasSuccessfullySensed())
+		{
+			bSeeingPlayer = true;
+
+			Blackboard->SetValueAsVector(TEXT("LastStimulusLocation"), Stimulus.StimulusLocation);
+			Blackboard->SetValueAsObject(TEXT("TargetPlayer"), Target); // 이걸 Combat 진입에 사용
+
+			if (LastSightStartTime < 0.0f)
+			{
+				LastSightStartTime = GetWorld()->GetTimeSeconds();
+			}
+		}
+		else
+		{
+			bSeeingPlayer = false;
+			LastSightStartTime = -1.0f;
+
+			Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Suspicion));
+		}
+	}
+	// --- 소리 감지 처리 ---
+	else if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
+	{
+		if (Stimulus.WasSuccessfullySensed())
+		{
+			const float CurrentTime = GetWorld()->GetTimeSeconds();
+			const float Strength = Stimulus.Strength;
+
+			// 구조체로 저장
+			HearingStimulus.Add(FAuditoryStimulus(CurrentTime, Strength));
+			AccumulatedHearingStrength += Strength;
+
+			//UE_LOG(LogTemp, Warning, TEXT("Hearing Stimulus: %f"), AccumulatedHearingStrength);
+
+			if (AccumulatedHearingStrength >= 100.f)
+			{
+				Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Combat));
+				Blackboard->SetValueAsObject("TargetPlayer", Target);
+			}
+		}
+	}
+	// 감지 해제 시 초기화
+	/*TArray<AActor*> SightActors;
+	TArray<AActor*> HearingActors;
+	AIPerception->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), SightActors);
+	AIPerception->GetCurrentlyPerceivedActors(UAISense_Hearing::StaticClass(), HearingActors);
+
+	if (SightActors.Contains(Actor)|| HearingActors.Contains(Actor))
+	{
+		bSeeingPlayer = false;
+		LastSightStartTime = -1.0f;
+		Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
+		Blackboard->ClearValue(TEXT("TargetPlayer"));
+		HearingStimulus.Empty();
+		AccumulatedHearingStrength = 0.f;
+	}*/
+}
