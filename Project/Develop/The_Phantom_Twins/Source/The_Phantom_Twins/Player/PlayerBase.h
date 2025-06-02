@@ -17,6 +17,7 @@ class UInputMappingContext;
 class UInputAction;
 class ABaseObject;
 class UUserWidget;
+class USphereComponent;
 
 UCLASS()
 class THE_PHANTOM_TWINS_API APlayerBase : public ACharacter, public IPlayerWidgetInterface
@@ -47,12 +48,27 @@ public:
 
 public:
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision")
+	TObjectPtr<USphereComponent> SphereComponent;
+
+	TArray<AActor*> InteractiveableObjects;
+
+	virtual void NotifyActorBeginOverlap(AActor* Actor) override;
+	virtual void NotifyActorEndOverlap(AActor* Actor) override;
+
+public:
 	void SetGroggy();
 
 	UFUNCTION(BlueprintCallable, Category = "Stats")
 	void TakeDamage(float Damage);
 
 	virtual void SetupCharacterWidget(UMyPlayerUserWidget* UserWidget) override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Noise")
+	float RunNoise = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Noise")
+	float WalkNoise = 1.0f;
 
 protected:
 	void ReferenceSetting();
@@ -137,4 +153,10 @@ public:
 	UFUNCTION(Server, Reliable)
 	void C2S_SetMaxWalkSpeed(float Speed);
 	void C2S_SetMaxWalkSpeed_Implementation(float Speed);
+
+	// Network
+	UFUNCTION(Client, Reliable)
+	void S2C_UpdatePerceivedActor(AActor* Actor, bool bVisible);
+	void S2C_UpdatePerceivedActor_Implementation(AActor* Actort, bool bVisible);
+
 };
