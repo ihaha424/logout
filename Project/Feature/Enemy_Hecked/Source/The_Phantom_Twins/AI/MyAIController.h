@@ -24,6 +24,7 @@ public:
 
 	void RunAI();
 	void StopAI();
+	virtual void Tick(float DeltaTime);
 
 protected:
 	virtual void BeginPlay() override;
@@ -49,4 +50,8 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UBlackboardData> BBAI;
+
+	float LastSightStartTime = -1.0f;
+	float AccumulatedHearingStrength = 0.0f;
+	bool bSeeingPlayer = false;
 };

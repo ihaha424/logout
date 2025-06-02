@@ -5,8 +5,9 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Pawn.h"
-#include "AIController.h"
 #include "AIInterface.h"
+#include "MyAICharacter.h"
+#include "MyAIController.h"
 
 UBTS_TooCloseToPlayer::UBTS_TooCloseToPlayer()
 {
@@ -17,14 +18,14 @@ UBTS_TooCloseToPlayer::UBTS_TooCloseToPlayer()
 void UBTS_TooCloseToPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
-    AAIController* AIController = OwnerComp.GetAIOwner();
-    if (AIController == nullptr)
+    AMyAIController* AIController = Cast<AMyAIController>(OwnerComp.GetAIOwner());
+    if (!AIController)
     {
         return;
     }
 
-    APawn* AIPawn = AIController->GetPawn();
-    if (AIPawn == nullptr)
+    AMyAICharacter* AIPawn = Cast<AMyAICharacter>(AIController->GetPawn());
+    if (!AIPawn)
     {
         return;
     }
@@ -70,7 +71,7 @@ void UBTS_TooCloseToPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
     {
         // 상태변화 시키기.
         BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Combat));
-        BlackboardComp->SetValueAsObject("Player", ClosestPlayerPawn);
+        BlackboardComp->SetValueAsObject("TargetPlayer", ClosestPlayerPawn);
     }
 
 }
