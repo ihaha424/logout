@@ -57,4 +57,11 @@ protected:
     // 필요 활성화 수 (0이면 Triggers의 전체 수가 기본값)
     UPROPERTY(EditAnywhere, Category = "Door")
     int32 NeededActive = 0;
+
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
+    int32 SecurityLevel = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
+    bool IsActive = false;
 };
