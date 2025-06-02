@@ -115,7 +115,7 @@ void AMyAIController::Tick(float DeltaTime)
 		{
 			AccumulatedHearingStrength -= HearingStimulus[i].Strength;
 			HearingStimulus.RemoveAt(i);
-			UE_LOG(LogTemp, Error, TEXT("Delete Delete Delete Delete: %f"), AccumulatedHearingStrength);
+			//UE_LOG(LogTemp, Error, TEXT("Delete Delete Delete Delete: %f"), AccumulatedHearingStrength);
 		}
 	}
 
