@@ -12,7 +12,6 @@
 #include "Perception/AISenseConfig_Hearing.h"
 #include "The_Phantom_Twins/Player/PlayerBase.h"
 
-
 AMyAIController::AMyAIController()
 {
 	static ConstructorHelpers::FObjectFinder<UBlackboardData> BBAIRef(TEXT("/Script/AIModule.BlackboardData'/Game/Temp/BB_AI.BB_AI'"));
@@ -94,12 +93,23 @@ void AMyAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
+
+	// 오래된 자극 제거
+	for (int32 i = HearingStimulus.Num() - 1; i >= 0; --i)
+	{
+		if (CurrentTime - HearingStimulus[i].Timestamp > ExpireTime)
+		{
+			AccumulatedHearingStrength -= HearingStimulus[i].Strength;
+			HearingStimulus.RemoveAt(i);
+			//UE_LOG(LogTemp, Error, TEXT("Delete Delete Delete Delete: %f"), AccumulatedHearingStrength);
+		}
+	}
+
+	// 시야 기반 상태 전이 유지
 	if (!bSeeingPlayer || !Blackboard) return;
 
-	const float CurrentTime = GetWorld()->GetTimeSeconds();
 	const float SeenDuration = CurrentTime - LastSightStartTime;
-
-	// 상태 전이 체크
 	if (SeenDuration >= 1.1f)
 	{
 		uint8 CurrentState = Blackboard->GetValueAsEnum("AIState");
@@ -118,7 +128,6 @@ void AMyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimu
 	{
 		return;
 	}
-
 	if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
 	{
 		if (Stimulus.WasSuccessfullySensed())
@@ -146,7 +155,14 @@ void AMyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimu
 	{
 		if (Stimulus.WasSuccessfullySensed())
 		{
-			AccumulatedHearingStrength += Stimulus.Strength;
+			const float CurrentTime = GetWorld()->GetTimeSeconds();
+			const float Strength = Stimulus.Strength;
+
+			// 구조체로 저장
+			HearingStimulus.Add(FAuditoryStimulus(CurrentTime, Strength));
+			AccumulatedHearingStrength += Strength;
+
+			//UE_LOG(LogTemp, Warning, TEXT("Hearing Stimulus: %f"), AccumulatedHearingStrength);
 
 			if (AccumulatedHearingStrength >= 100.f)
 			{
@@ -156,14 +172,18 @@ void AMyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimu
 		}
 	}
 	// 감지 해제 시 초기화
-	TArray<AActor*> PerceivedActors;
-	AIPerception->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), PerceivedActors);
+	/*TArray<AActor*> SightActors;
+	TArray<AActor*> HearingActors;
+	AIPerception->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), SightActors);
+	AIPerception->GetCurrentlyPerceivedActors(UAISense_Hearing::StaticClass(), HearingActors);
 
-	if (!PerceivedActors.Contains(Actor))
+	if (SightActors.Contains(Actor)|| HearingActors.Contains(Actor))
 	{
 		bSeeingPlayer = false;
 		LastSightStartTime = -1.0f;
 		Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
 		Blackboard->ClearValue(TEXT("TargetPlayer"));
-	}
+		HearingStimulus.Empty();
+		AccumulatedHearingStrength = 0.f;
+	}*/
 }

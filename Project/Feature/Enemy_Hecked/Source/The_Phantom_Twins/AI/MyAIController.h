@@ -7,6 +7,7 @@
 #include "Perception/AIPerceptionTypes.h"
 #include "MyAIController.generated.h"
 
+struct FAuditoryStimulus;
 class UAIPerceptionComponent;
 class UAISenseConfig_Sight;
 class UAISenseConfig_Hearing;
@@ -16,6 +17,7 @@ class UBlackboardData;
  * 
  */
 UCLASS()
+
 class THE_PHANTOM_TWINS_API AMyAIController : public AAIController
 {
 	GENERATED_BODY()
@@ -25,7 +27,8 @@ public:
 	void RunAI();
 	void StopAI();
 	virtual void Tick(float DeltaTime);
-
+	//TODO:: private 으로 변경학...
+	float LastSightStartTime = -1.0f;
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
@@ -51,7 +54,15 @@ private:
 	UPROPERTY()
 	TObjectPtr<UBlackboardData> BBAI;
 
-	float LastSightStartTime = -1.0f;
-	float AccumulatedHearingStrength = 0.0f;
+	UPROPERTY()
+
+
 	bool bSeeingPlayer = false;
+
+	UPROPERTY()
+	TArray<FAuditoryStimulus> HearingStimulus;
+	UPROPERTY(EditAnywhere)
+	float ExpireTime = 10.f;
+
+	float AccumulatedHearingStrength = 0.f;
 };
