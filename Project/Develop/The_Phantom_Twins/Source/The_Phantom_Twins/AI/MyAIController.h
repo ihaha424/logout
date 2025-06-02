@@ -65,4 +65,10 @@ private:
 	float ExpireTime = 10.f;
 
 	float AccumulatedHearingStrength = 0.f;
+
+
+	float LastSeenTime = -1.0f;
+	float LastHeardTime = -1.0f;
+	float ForgetTime = 3.0f; // 감지 해제 후 몇 초 뒤에 잊을지 설정
+
 };
