@@ -2,8 +2,12 @@
 
 
 #include "MyAICharacter.h"
+
+#include "AIInterface.h"
+#include "MyAIController.h"
 #include "Kismet/GameplayStatics.h"
 #include "SplinePathActor.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
@@ -16,6 +20,22 @@ AMyAICharacter::AMyAICharacter()
 	{
 		GetCharacterMovement()->bOrientRotationToMovement = false;
 	}
+}
+
+void AMyAICharacter::OnHackingStarted_Implementation()
+{
+	AMyAIController* AIController = Cast<AMyAIController>(GetController());
+	if (!AIController)
+	{
+		return;
+	}
+	UBlackboardComponent* BlackboardComp = AIController->GetBlackboardComponent();
+	if (!BlackboardComp)
+	{
+		return;
+	}
+	BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Hacked));
+
 }
 
 // Called when the game starts or when spawned

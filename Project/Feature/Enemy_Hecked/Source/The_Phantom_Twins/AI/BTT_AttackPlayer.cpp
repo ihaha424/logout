@@ -47,8 +47,8 @@ EBTNodeResult::Type UBTT_AttackPlayer::ExecuteTask(UBehaviorTreeComponent& Owner
 		UDamageType::StaticClass() // 기본 데미지 타입
 	);
 
-	UE_LOG(LogTemp, Warning, TEXT("[BTTask] %s 이(가) %s 에게 %.1f 데미지를 가함"),
-		*AIPawn->GetName(), *Target->GetName(), DamageAmount);
+	/*UE_LOG(LogTemp, Warning, TEXT("[BTTask] %s 이(가) %s 에게 %.1f 데미지를 가함"),
+		*AIPawn->GetName(), *Target->GetName(), DamageAmount);*/
 
 	// 일단 여기에 임시로 상태를 변경해줘보기.
 	BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
