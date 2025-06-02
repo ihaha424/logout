@@ -41,3 +41,20 @@ enum class EMyAIState : uint8
 	Combat		UMETA(DisplayName = "Combat"),
 	Hacked		UMETA(DisplayName = "Hacked")
 };
+
+USTRUCT(BlueprintType)
+struct FAuditoryStimulus
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	float Timestamp;
+
+	UPROPERTY()
+	float Strength;
+
+	FAuditoryStimulus() : Timestamp(0.f), Strength(0.f) {}
+	FAuditoryStimulus(float InTimestamp, float InStrength)
+		: Timestamp(InTimestamp), Strength(InStrength) {
+	}
+};
