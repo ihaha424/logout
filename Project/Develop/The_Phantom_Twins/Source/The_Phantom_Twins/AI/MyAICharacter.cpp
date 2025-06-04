@@ -26,7 +26,7 @@ AMyAICharacter::AMyAICharacter()
 	Tags.Add(FName("Object"));
 }
 
-void AMyAICharacter::OnHackingStarted_Implementation()
+void AMyAICharacter::OnHackingStarted_Implementation(APawn* Interactor)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("A22222222222222222222222222I Is Hacked Task Executed"));
 	AMyAIController* AIController = Cast<AMyAIController>(GetController());
