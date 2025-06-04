@@ -34,6 +34,7 @@ public:
 	bool CanBeHacked() const;
 
 	// 해킹 초기화
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Hacking")
 	void ClearHacking();
 
 };
