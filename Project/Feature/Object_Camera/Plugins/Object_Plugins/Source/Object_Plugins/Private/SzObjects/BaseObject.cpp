@@ -35,10 +35,11 @@ ABaseObject::ABaseObject()
     WidgetComponent->SetRelativeLocation(FVector(0, 0, 100));
     WidgetComponent->SetVisibility(false); // 기본은 비활성화
 
-    //
+    // AIPerception과 player안의 sphere만 감지하는 Object
     SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
     SphereCollisionComp->SetupAttachment(RootComponent);
-    
+    SphereCollisionComp->ComponentTags.Add(FName("Object"));
+    SphereCollisionComp->SetSphereRadius(10.0f);
 
     // NetWork
     bReplicates = true;

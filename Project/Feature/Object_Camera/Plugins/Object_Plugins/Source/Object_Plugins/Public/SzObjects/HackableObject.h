@@ -44,6 +44,12 @@ private:
 
 
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<class UStaticMeshComponent> MeshComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<class USphereComponent> SphereCollisionComp;
+
 	UPROPERTY(EditAnywhere, Category = "Hacking")
 	TObjectPtr<class UHackableComponent> HackingComp;
 

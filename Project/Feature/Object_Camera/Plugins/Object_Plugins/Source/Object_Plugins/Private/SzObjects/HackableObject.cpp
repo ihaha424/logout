@@ -4,6 +4,8 @@
 #include "SzObjects/HackableObject.h"
 #include "Blueprint/UserWidget.h"
 #include "SzComponents/HackableComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/SphereComponent.h"
 #include "SzUI/HackingGauge.h"
 
 // Sets default values
@@ -19,6 +21,15 @@ AHackableObject::AHackableObject()
 
 	// "Object" 태그 추가
 	Tags.Add(FName("Object"));
+
+	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
+	SetRootComponent(MeshComponent);
+
+	// AIPerception과 player안의 sphere만 감지하는 Object
+	SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
+	SphereCollisionComp->SetupAttachment(RootComponent);
+	SphereCollisionComp->ComponentTags.Add(FName("Object"));
+	SphereCollisionComp->SetSphereRadius(10.0f);
 }
 
 // Called when the game starts or when spawned
