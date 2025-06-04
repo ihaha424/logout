@@ -7,6 +7,9 @@
 #include "SplinePathActor.h"
 #include "AIController.h"
 #include "MyAICharacter.h"
+#include "MyAIController.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "The_Phantom_Twins/Player/PlayerBase.h"
 
 UBTT_PatrolSplineRoute::UBTT_PatrolSplineRoute()
 {
@@ -15,38 +18,42 @@ UBTT_PatrolSplineRoute::UBTT_PatrolSplineRoute()
 
 EBTNodeResult::Type UBTT_PatrolSplineRoute::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
-	if (!BlackboardComp) return EBTNodeResult::Failed;
-	UE_LOG(LogTemp, Warning, TEXT("1"));
-
-	AAIController* AIController = OwnerComp.GetAIOwner();
-	if (!AIController) return EBTNodeResult::Failed;
-	UE_LOG(LogTemp, Warning, TEXT("2"));
-
-	APawn* AIPawn = AIController->GetPawn();
-	if (!AIPawn) return EBTNodeResult::Failed;
-	UE_LOG(LogTemp, Warning, TEXT("3"));
-
-	AMyAICharacter* MyAICharacter = Cast<AMyAICharacter>(AIPawn);
-	if (!MyAICharacter || !MyAICharacter->SplinePath) return EBTNodeResult::Failed;
-	UE_LOG(LogTemp, Warning, TEXT("4"));
-	USplineComponent* SplineRoute = MyAICharacter->SplinePath->SplineComponent;
-	if (!SplineRoute) return EBTNodeResult::Failed;
-	UE_LOG(LogTemp, Warning, TEXT("5"));
-	MaxIndex = SplineRoute->GetNumberOfSplinePoints();
-	FVector PatrolPoint = SplineRoute->GetLocationAtSplinePoint(Index, ESplineCoordinateSpace::World);
-	UE_LOG(LogTemp, Warning, TEXT("Dist: %f"), FVector::Dist(MyAICharacter->GetActorLocation(), PatrolPoint));
-	UE_LOG(LogTemp, Warning, TEXT("ActorLocation: %s, PatrolPoint: %s, Index: %d"), *MyAICharacter->GetActorLocation().ToString(), *PatrolPoint.ToString(), Index);
-	if (FVector::Dist(MyAICharacter->GetActorLocation(), PatrolPoint) < 150.f)
+	AMyAIController* AIController = Cast<AMyAIController>(OwnerComp.GetAIOwner());
+	if (!AIController)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("6"));
+		return EBTNodeResult::Failed;
+	}
+
+	AMyAICharacter* AIPawn = Cast<AMyAICharacter>(AIController->GetPawn());
+	if (!AIPawn || !AIPawn->SplinePath)
+	{
+		return EBTNodeResult::Failed;
+	}
+
+	UBlackboardComponent* BlackboardComp = AIController->GetBlackboardComponent();
+	if (!BlackboardComp)
+	{
+		return EBTNodeResult::Failed;
+	}
+	
+	USplineComponent* SplineRoute = AIPawn->SplinePath->SplineComponent;
+	if (!SplineRoute)
+	{
+		return EBTNodeResult::Failed;
+	}
+
+	MaxIndex = SplineRoute->GetNumberOfSplinePoints();
+	AIPawn->GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
+	FVector PatrolPoint = SplineRoute->GetLocationAtSplinePoint(Index, ESplineCoordinateSpace::World);
+
+	if (FVector::Dist(AIPawn->GetActorLocation(), PatrolPoint) < 150.f)
+	{
 		Index = (1 + Index) % MaxIndex;
 		FVector NextPoint = SplineRoute->GetLocationAtSplinePoint(Index, ESplineCoordinateSpace::World);
 		BlackboardComp->SetValueAsVector(TEXT("PatrolLocation"), NextPoint);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("7"));
 		BlackboardComp->SetValueAsVector(TEXT("PatrolLocation"), PatrolPoint);
 	}
 

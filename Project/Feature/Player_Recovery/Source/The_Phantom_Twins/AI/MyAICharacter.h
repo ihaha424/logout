@@ -5,16 +5,19 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "SplinePathActor.h"
+#include "SzInterface/Hacking.h"
 #include "MyAICharacter.generated.h"
 
 UCLASS()
-class THE_PHANTOM_TWINS_API AMyAICharacter : public ACharacter
+class THE_PHANTOM_TWINS_API AMyAICharacter : public ACharacter, public IHacking
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
 	AMyAICharacter();
+
+	virtual void OnHackingStarted_Implementation() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Spline")
 	ASplinePathActor* SplinePath;
