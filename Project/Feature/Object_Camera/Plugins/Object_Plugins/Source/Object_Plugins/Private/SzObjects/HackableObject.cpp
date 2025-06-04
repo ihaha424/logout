@@ -93,7 +93,7 @@ void AHackableObject::OnHackingCompleted_Implementation()
 	{
 		// 실패 처리
 		UE_LOG(LogTemp, Warning, TEXT("Hacking Failed: %.2f / %.2f"), HeldDuration, RequiredTime);
-		CancelHacking();
+		ClearHacking_Implementation();
 	}
 }
 
@@ -107,8 +107,13 @@ void AHackableObject::ClearHacking_Implementation()
 	bIsHacking = false;
 	bIsHacked = false;
 	HackingStartTime = 0.0f;
-	GuageUI = nullptr;
 	bAutoHackingCompleted = false;
+
+	if (GuageUI)
+	{
+		GuageUI->RemoveFromParent();
+		GuageUI = nullptr;
+	}
 }
 
 // 해킹 UI 업데이트 및 자동 해킹 체크
@@ -167,19 +172,5 @@ void AHackableObject::CheckHackReset(float CurrentTime)
 		}
 
 		UE_LOG(LogTemp, Log, TEXT("해킹 상태 초기화 완료"));
-	}
-}
-
-void AHackableObject::CancelHacking()
-{
-	bIsHacking = false;
-	bIsHacked = false;
-	HackingStartTime = 0.0f;
-	bAutoHackingCompleted = false;
-
-	if (GuageUI)
-	{
-		GuageUI->RemoveFromParent();
-		GuageUI = nullptr;
 	}
 }
