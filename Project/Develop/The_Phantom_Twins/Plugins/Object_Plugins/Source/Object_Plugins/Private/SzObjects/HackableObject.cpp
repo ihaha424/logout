@@ -102,6 +102,15 @@ bool AHackableObject::CanBeHacked_Implementation() const
 	return !bIsHacked;	// 해킹된 상태랑 해킹할 수 있는 상태는 반대.
 }
 
+void AHackableObject::ClearHacking_Implementation()
+{
+	bIsHacking = false;
+	bIsHacked = false;
+	HackingStartTime = 0.0f;
+	GuageUI = nullptr;
+	bAutoHackingCompleted = false;
+}
+
 // 해킹 UI 업데이트 및 자동 해킹 체크
 void AHackableObject::UpdateHackingProgress(float CurrentTime)
 {

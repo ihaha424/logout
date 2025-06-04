@@ -29,6 +29,9 @@ public:
 	// 해킹 가능 여부 체크 (false => 해킹 전 / true => 해킹 완료)
 	virtual bool CanBeHacked_Implementation() const override;
 
+	// 해킹 초기화(해킹 안된 상태로 만들기)
+	virtual void ClearHacking_Implementation() override;
+
 private:
 	// Tick에서 호출: 해킹 진행 상태 업데이트
 	void UpdateHackingProgress(float CurrentTime);
