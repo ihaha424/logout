@@ -18,7 +18,7 @@ UBTT_AIIsHacked::UBTT_AIIsHacked()
 
 EBTNodeResult::Type UBTT_AIIsHacked::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AI Is Hacked Task Executed"));
+	//UE_LOG(LogTemp, Warning, TEXT("AI Is Hacked Task Executed"));
     AMyAIController* AIController = Cast<AMyAIController>(OwnerComp.GetAIOwner());
     if (!AIController)
     {
@@ -30,7 +30,7 @@ EBTNodeResult::Type UBTT_AIIsHacked::ExecuteTask(UBehaviorTreeComponent& OwnerCo
     {
         return EBTNodeResult::Failed;
     }
-    UE_LOG(LogTemp, Warning, TEXT("AI Is Hacked Task Executed222222222222"));
+    //UE_LOG(LogTemp, Warning, TEXT("AI Is Hacked Task Executed222222222222"));
     // 1. ÀÌµ¿ ¸ØÃß±â
     AICharacter->GetCharacterMovement()->StopMovementImmediately();
     AIController->StopMovement();

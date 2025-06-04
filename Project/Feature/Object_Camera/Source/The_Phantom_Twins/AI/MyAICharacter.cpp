@@ -28,7 +28,7 @@ AMyAICharacter::AMyAICharacter()
 
 void AMyAICharacter::OnHackingStarted_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("A22222222222222222222222222I Is Hacked Task Executed"));
+	//UE_LOG(LogTemp, Warning, TEXT("A22222222222222222222222222I Is Hacked Task Executed"));
 	AMyAIController* AIController = Cast<AMyAIController>(GetController());
 	if (!AIController)
 	{
@@ -39,7 +39,7 @@ void AMyAICharacter::OnHackingStarted_Implementation()
 	{
 		return;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("A222222222222222222222I Is Hacked Task Executed222222222222222222222"));
+	//UE_LOG(LogTemp, Warning, TEXT("A222222222222222222222I Is Hacked Task Executed222222222222222222222"));
 	BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Hacked));
 	// Perception 비활성화
 	if (UAIPerceptionComponent* Perception = AIController->FindComponentByClass<UAIPerceptionComponent>())
