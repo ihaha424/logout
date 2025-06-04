@@ -3,6 +3,7 @@
 
 #include "SzObjects/BaseObject.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "SzComponents/InteractableComponent.h"
@@ -33,6 +34,11 @@ ABaseObject::ABaseObject()
     WidgetComponent->SetDrawSize(FVector2D(10, 10));
     WidgetComponent->SetRelativeLocation(FVector(0, 0, 100));
     WidgetComponent->SetVisibility(false); // 기본은 비활성화
+
+    //
+    SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
+    SphereCollisionComp->SetupAttachment(RootComponent);
+    
 
     // NetWork
     bReplicates = true;

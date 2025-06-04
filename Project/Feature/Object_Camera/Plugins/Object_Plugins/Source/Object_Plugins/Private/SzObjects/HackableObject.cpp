@@ -46,7 +46,7 @@ void AHackableObject::Tick(float DeltaTime)
 	CheckHackReset(CurrentTime);
 }
 
-void AHackableObject::OnHackingStarted_Implementation()
+void AHackableObject::OnHackingStarted_Implementation(APawn* Interactor)
 {
 	// 해킹 되어있거나 해킹 중이면 return
 	if (bIsHacked || bIsHacking) return;
@@ -77,7 +77,7 @@ void AHackableObject::OnHackingStarted_Implementation()
 }
 
 
-void AHackableObject::OnHackingCompleted_Implementation()
+void AHackableObject::OnHackingCompleted_Implementation(APawn* Interactor)
 {
 	if (!bIsHacking || bAutoHackingCompleted) return;
 
