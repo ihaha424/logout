@@ -48,6 +48,7 @@ APlayerBase::APlayerBase()
 	SphereComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	// Object들과 Player까지 오버랩 이벤트 발생하도록
 	SphereComponent->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+	SphereComponent->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Overlap);
 	// 이 컴포넌트에서 Overlap 이벤트 호출 활성화
 	SphereComponent->SetGenerateOverlapEvents(true);
 
@@ -229,6 +230,27 @@ void APlayerBase::Tick(float DeltaTime)
 		NoiseTimer = 0.f;
 	}
 
+	FVector InputVector = GetLastMovementInputVector();
+
+	if (InputVector.IsNearlyZero())
+		bIsMove = false;
+
+	if (bIsCrouched)
+	{
+		CurrentNoise = 0.0f;
+	}
+	else
+	{
+		if (bIsMove)
+		{
+			CurrentNoise = MoveNoise;
+		}
+		else
+		{
+			CurrentNoise = 0.0f;
+		}
+	}
+
 	// Tick 또는 디버그용 함수 안에서
 	FVector SphereLocation = SphereComponent->GetComponentLocation();
 	float SphereRadius = SphereComponent->GetScaledSphereRadius();
@@ -407,6 +429,8 @@ void APlayerBase::Move(const FInputActionValue& Value)
 	if (bIsGroggy)
 		return;
 
+	bIsMove = true;
+
 	if (Controller != nullptr)
 	{
 		FVector2D MovementVector = Value.Get<FVector2D>();
@@ -419,22 +443,6 @@ void APlayerBase::Move(const FInputActionValue& Value)
 
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
-	}
-	
-	if (bIsCrouched)
-	{
-		CurrentNoise = 0.f;
-	}
-	else
-	{
-		if (bIsRunning)
-		{
-			CurrentNoise = RunNoise;
-		}
-		else
-		{
-			CurrentNoise = WalkNoise;
-		}
 	}
 }
 
@@ -454,7 +462,7 @@ void APlayerBase::Run(const FInputActionValue& Value)
 	if (bIsGroggy) 
 		return;
 
-	bIsRunning = true;
+	MoveNoise = RunNoise;
 
 	GetCharacterMovement()->MaxWalkSpeed = 800.f; // 기본 걷기보다 빠르게 설정
 	if (!HasAuthority())
@@ -466,10 +474,10 @@ void APlayerBase::Run(const FInputActionValue& Value)
 
 void APlayerBase::StopRun(const FInputActionValue& Value)
 {
+	MoveNoise = WalkNoise;
+
 	if (bIsGroggy)
 		return;
-
-	bIsRunning = false;
 
 	GetCharacterMovement()->MaxWalkSpeed = 200.f; // 걷기 속도로 복구
 	if (!HasAuthority())
@@ -477,8 +485,6 @@ void APlayerBase::StopRun(const FInputActionValue& Value)
 		GetCharacterMovement()->MaxWalkSpeed = 200.f;
 	}
 	C2S_SetMaxWalkSpeed(200.f);
-
-	CurrentNoise = 0.f;
 }
 
 void APlayerBase::PlayerCrouch(const FInputActionValue& Value)
@@ -492,6 +498,7 @@ void APlayerBase::PlayerCrouch(const FInputActionValue& Value)
 	}
 	else
 	{
+		CurrentNoise = 0.0f;
 		Crouch();
 	}
 }
@@ -501,14 +508,14 @@ void APlayerBase::Hacking(const FInputActionValue& Value)
 	if (bIsGroggy)
 		return;
 
+	bIsMove = false;
+
 	UE_LOG(LogTemp, Log, TEXT("Hacking Start"));
 
 	if (NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
 	{
 		C2S_Hacking(NearestInteractiveObject);
 	}
-
-	CurrentNoise = 0.f;
 }
 
 void APlayerBase::StopHacking(const FInputActionValue& Value)
@@ -546,7 +553,7 @@ void APlayerBase::Interactive(const FInputActionValue& Value)
 		}
 	}
 
-	CurrentNoise = 0.f;
+	bIsMove = false;
 }
 
 void APlayerBase::C2S_Interactive_Implementation(UObject* interact)
@@ -603,7 +610,7 @@ void APlayerBase::OpenInventory(const FInputActionValue& Value)
 	if (bIsGroggy)
 		return;
 
-	CurrentNoise = 0.f;
+	bIsMove = false;
 
 	APlayerController* PC = CastChecked<APlayerController>(GetController());
 

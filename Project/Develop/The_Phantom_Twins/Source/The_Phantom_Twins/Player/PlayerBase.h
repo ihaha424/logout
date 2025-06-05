@@ -115,10 +115,14 @@ protected:
 public:
 	bool bIsInventoryVisible = false;
 	bool bIsGroggy = false;
-	bool bIsRunning = false;
+	bool bIsMove = false;
 
 	float NoiseTimer = 0.f;
+	float MoveNoise = 100.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Noise")
 	float NoiseInterval = 3.f;
+
 	float CurrentNoise = 100.f;
 
 	// Input Section
