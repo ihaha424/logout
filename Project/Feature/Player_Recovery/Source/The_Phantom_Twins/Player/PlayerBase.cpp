@@ -307,8 +307,8 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &APlayerBase::PlayerCrouch);
 	// Hacking Action
 	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Started, this, &APlayerBase::Hacking);
-	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Completed, this, &APlayerBase::StopHacking);
-	//EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Canceled, this, &APlayerBase::StopHacking);
+	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Completed, this, &APlayerBase::Hacking);
+	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Canceled, this, &APlayerBase::StopHacking);
 	// Interactive Action
 	EnhancedInputComponent->BindAction(InteractiveAction, ETriggerEvent::Triggered, this, &APlayerBase::Interactive);
 	// Inventory Action
@@ -562,14 +562,12 @@ void APlayerBase::C2S_Interactive_Implementation(UObject* interact)
 
 void APlayerBase::C2S_Hacking_Implementation(UObject* interact)
 {
-	UE_LOG(LogTemp, Warning, TEXT("A3333333333333333333333333333322222222222222222222222222I Is Hacked Task Executed"));
 	if (nullptr == interact)
 	{
 		return;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("33333333333333333333333A22222222222222222222222222I Is Hacked Task Executed"));
 	if (interact->GetClass()->ImplementsInterface(UHacking::StaticClass()))
-		IHacking::Execute_OnHackingStarted(interact, this);
+	IHacking::Execute_OnHackingStarted(interact, this);
 }
 
 void APlayerBase::C2S_SetMaxWalkSpeed_Implementation(float Speed)

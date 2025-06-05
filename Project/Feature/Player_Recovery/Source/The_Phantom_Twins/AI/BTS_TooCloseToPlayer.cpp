@@ -72,6 +72,7 @@ void UBTS_TooCloseToPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
         // 상태변화 시키기.
         BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Combat));
         BlackboardComp->SetValueAsObject("TargetPlayer", ClosestPlayerPawn);
+		AIPawn->UpdateAIStateWidget(EAIStateWidget::ExclamationMark);
     }
 
 }
