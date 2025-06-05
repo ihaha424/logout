@@ -409,7 +409,7 @@ void APlayerBase::StopHacking(const FInputActionValue& Value)
 	if (NearestInteractiveObject 
 		&& NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
 	{
-		IHacking::Execute_OnHackingCompleted(NearestInteractiveObject);
+		IHacking::Execute_OnHackingCompleted(NearestInteractiveObject, this);
 	}
 }
 
@@ -445,14 +445,12 @@ void APlayerBase::C2S_Interactive_Implementation(UObject* interact)
 
 void APlayerBase::C2S_Hacking_Implementation(UObject* interact)
 {
-	UE_LOG(LogTemp, Warning, TEXT("A3333333333333333333333333333322222222222222222222222222I Is Hacked Task Executed"));
 	if (nullptr == interact)
 	{
 		return;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("33333333333333333333333A22222222222222222222222222I Is Hacked Task Executed"));
 	if (interact->GetClass()->ImplementsInterface(UHacking::StaticClass()))
-		IHacking::Execute_OnHackingStarted(interact);
+	IHacking::Execute_OnHackingStarted(interact, this);
 }
 
 void APlayerBase::C2S_SetMaxWalkSpeed_Implementation(float Speed)

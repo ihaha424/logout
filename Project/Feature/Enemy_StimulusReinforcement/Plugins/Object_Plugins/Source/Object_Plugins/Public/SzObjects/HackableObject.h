@@ -21,10 +21,10 @@ protected:
 
 public:
 	// 해킹 실행 (E키 홀딩)
-    virtual void OnHackingStarted_Implementation() override;
+    virtual void OnHackingStarted_Implementation(APawn* Interactor) override;
 
 	// 해킹 완료 후 로직 (CCTV 보임, 적 무력화 등)
-	virtual void OnHackingCompleted_Implementation() override;
+	virtual void OnHackingCompleted_Implementation(APawn* Interactor) override;
     
 	// 해킹 가능 여부 체크 (false => 해킹 전 / true => 해킹 완료)
 	virtual bool CanBeHacked_Implementation() const override;
