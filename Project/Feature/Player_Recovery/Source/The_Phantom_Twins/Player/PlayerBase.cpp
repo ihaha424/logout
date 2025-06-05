@@ -102,11 +102,15 @@ bool APlayerBase::CheckActorInFront(AActor* TargetActor)
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this); // 자기 자신은 무시
 
-	bool bHit = GetWorld()->LineTraceSingleByChannel(
+	FCollisionObjectQueryParams ObjParams;
+	ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	ObjParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+
+	bool bHit = GetWorld()->LineTraceSingleByObjectType(
 		Hit,
 		Start,
 		End,
-		ECC_Visibility,
+		ObjParams,
 		Params
 	);
 
