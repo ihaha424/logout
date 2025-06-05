@@ -39,11 +39,8 @@ ABaseObject::ABaseObject()
     SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
     SphereCollisionComp->SetupAttachment(RootComponent);
     SphereCollisionComp->ComponentTags.Add(FName("Object"));
-    SphereCollisionComp->SetSphereRadius(50.0f);
-    SphereCollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-    SphereCollisionComp->SetCollisionResponseToAllChannels(ECR_Overlap);
-    SphereCollisionComp->SetCollisionObjectType(ECC_WorldDynamic); // Object Type 설정
-    SphereCollisionComp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block); // 레이 트레이스가 맞닿게
+	SphereCollisionComp->SetSphereRadius(50.0f);
+	SphereCollisionComp->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
 
     // NetWork
     bReplicates = true;
