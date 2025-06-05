@@ -91,8 +91,12 @@ bool APlayerBase::CheckActorInFront(AActor* TargetActor)
 {
 	if (!TargetActor) return false;
 
+	USphereComponent* Sphere = TargetActor->FindComponentByClass<USphereComponent>();
+
+	if (!Sphere) return false;
+
 	FVector Start = GetActorLocation();
-	FVector End = TargetActor->GetActorLocation();
+	FVector End = Sphere->GetComponentLocation();
 
 	FHitResult Hit;
 	FCollisionQueryParams Params;
@@ -102,12 +106,12 @@ bool APlayerBase::CheckActorInFront(AActor* TargetActor)
 		Hit,
 		Start,
 		End,
-		ECC_WorldDynamic,
+		ECC_Visibility,
 		Params
 	);
 
 #if WITH_EDITOR
-	DrawDebugLine(GetWorld(), Start, End, bHit ? FColor::Blue : FColor::Silver, false, 1.0f, 0, 0.3f);
+	DrawDebugLine(GetWorld(), Start, End, Hit.GetActor() == TargetActor ? FColor::Blue : FColor::Silver, false, 1.0f, 0, 0.3f);
 #endif
 
 	// Ray가 정확히 TargetActor에 부딪혔는지 확인
@@ -135,7 +139,7 @@ void APlayerBase::NearestObjectCheck()
 			// Set Object UI
 			if (UWidgetComponent* Widget = Actor->FindComponentByClass<UWidgetComponent>())
 			{
-				UE_LOG(LogTemp, Log, TEXT("Widget On"));
+				//UE_LOG(LogTemp, Log, TEXT("Widget On"));
 				Widget->SetVisibility(true);
 			}
 		}
@@ -144,7 +148,7 @@ void APlayerBase::NearestObjectCheck()
 			// Set Object UI
 			if (UWidgetComponent* Widget = Actor->FindComponentByClass<UWidgetComponent>())
 			{
-				UE_LOG(LogTemp, Log, TEXT("Widget Off"));
+				//UE_LOG(LogTemp, Log, TEXT("Widget Off"));
 				Widget->SetVisibility(false);
 			}
 			continue;
