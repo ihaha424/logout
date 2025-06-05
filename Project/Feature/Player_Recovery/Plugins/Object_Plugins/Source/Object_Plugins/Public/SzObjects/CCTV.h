@@ -82,4 +82,11 @@ public:
 
 	UPROPERTY()
 	FRotator BaseControlRotation;
+
+	// CardKey
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
+    int32 SecurityLevel = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
+    bool IsActive = false;
 };
