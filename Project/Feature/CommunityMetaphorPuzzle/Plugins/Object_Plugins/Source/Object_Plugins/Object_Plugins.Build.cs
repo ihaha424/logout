@@ -32,7 +32,8 @@ public class Object_Plugins : ModuleRules
                 "LevelSequence",
                 "MovieScene",
                 "UMG",
-                "AIModule"
+                "AIModule",
+                "EnhancedInput"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

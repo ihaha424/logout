@@ -4,6 +4,8 @@
 #include "SzObjects/HackableObject.h"
 #include "Blueprint/UserWidget.h"
 #include "SzComponents/HackableComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/SphereComponent.h"
 #include "SzUI/HackingGauge.h"
 
 // Sets default values
@@ -19,6 +21,15 @@ AHackableObject::AHackableObject()
 
 	// "Object" 태그 추가
 	Tags.Add(FName("Object"));
+
+	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
+	SetRootComponent(MeshComponent);
+
+	// AIPerception과 player안의 sphere만 감지하는 Object
+	SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
+	SphereCollisionComp->SetupAttachment(RootComponent);
+	SphereCollisionComp->ComponentTags.Add(FName("Object"));
+	SphereCollisionComp->SetSphereRadius(10.0f);
 }
 
 // Called when the game starts or when spawned
@@ -46,7 +57,7 @@ void AHackableObject::Tick(float DeltaTime)
 	CheckHackReset(CurrentTime);
 }
 
-void AHackableObject::OnHackingStarted_Implementation()
+void AHackableObject::OnHackingStarted_Implementation(APawn* Interactor)
 {
 	// 해킹 되어있거나 해킹 중이면 return
 	if (bIsHacked || bIsHacking) return;
@@ -77,7 +88,7 @@ void AHackableObject::OnHackingStarted_Implementation()
 }
 
 
-void AHackableObject::OnHackingCompleted_Implementation()
+void AHackableObject::OnHackingCompleted_Implementation(APawn* Interactor)
 {
 	if (!bIsHacking || bAutoHackingCompleted) return;
 
@@ -93,13 +104,28 @@ void AHackableObject::OnHackingCompleted_Implementation()
 	{
 		// 실패 처리
 		UE_LOG(LogTemp, Warning, TEXT("Hacking Failed: %.2f / %.2f"), HeldDuration, RequiredTime);
-		CancelHacking();
+		ClearHacking_Implementation();
 	}
 }
 
 bool AHackableObject::CanBeHacked_Implementation() const
 {
 	return !bIsHacked;	// 해킹된 상태랑 해킹할 수 있는 상태는 반대.
+}
+
+
+void AHackableObject::ClearHacking_Implementation()
+{
+	bIsHacking = false;
+	bIsHacked = false;
+	HackingStartTime = 0.0f;
+	bAutoHackingCompleted = false;
+
+	if (GuageUI)
+	{
+		GuageUI->RemoveFromParent();
+		GuageUI = nullptr;
+	}
 }
 
 // 해킹 UI 업데이트 및 자동 해킹 체크
@@ -158,19 +184,5 @@ void AHackableObject::CheckHackReset(float CurrentTime)
 		}
 
 		UE_LOG(LogTemp, Log, TEXT("해킹 상태 초기화 완료"));
-	}
-}
-
-void AHackableObject::CancelHacking()
-{
-	bIsHacking = false;
-	bIsHacked = false;
-	HackingStartTime = 0.0f;
-	bAutoHackingCompleted = false;
-
-	if (GuageUI)
-	{
-		GuageUI->RemoveFromParent();
-		GuageUI = nullptr;
 	}
 }

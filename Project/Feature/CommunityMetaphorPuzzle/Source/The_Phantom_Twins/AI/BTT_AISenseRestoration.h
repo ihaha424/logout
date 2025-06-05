@@ -4,21 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
-#include "BTT_AttackPlayer.generated.h"
+#include "BTT_AISenseRestoration.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class THE_PHANTOM_TWINS_API UBTT_AttackPlayer : public UBTTaskNode
+class THE_PHANTOM_TWINS_API UBTT_AISenseRestoration : public UBTTaskNode
 {
 	GENERATED_BODY()
 public:
-	UBTT_AttackPlayer();
-protected:
+	UBTT_AISenseRestoration();
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-
-	UPROPERTY(EditAnywhere)
-	float DamageAmount = 20.f;
-
 };

@@ -3,7 +3,10 @@
 
 #include "BTD_IsAttackRange.h"
 #include "AIController.h"
+#include "MyAICharacter.h"
+#include "MyAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "The_Phantom_Twins/Player/PlayerBase.h"
 
 UBTD_IsAttackRange::UBTD_IsAttackRange()
 {
@@ -13,16 +16,28 @@ UBTD_IsAttackRange::UBTD_IsAttackRange()
 bool UBTD_IsAttackRange::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
 {
 	Super::CalculateRawConditionValue(OwnerComp, NodeMemory);
-	APawn* AIPawn = OwnerComp.GetAIOwner()->GetPawn();
-	if (nullptr == AIPawn)
+	AMyAIController* AIController = Cast<AMyAIController>(OwnerComp.GetAIOwner());
+	if (!AIController)
 	{
-		return false;
+		return EBTNodeResult::Failed;
 	}
-	APawn* Target = Cast<APawn>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(TEXT("Player")));
-	if (nullptr == Target)
+
+	AMyAICharacter* AIPawn = Cast<AMyAICharacter>(AIController->GetPawn());
+	if (!AIPawn)
 	{
-		return false;
+		return EBTNodeResult::Failed;
 	}
+	UBlackboardComponent* BlackboardComp = AIController->GetBlackboardComponent();
+	if (!BlackboardComp)
+	{
+		return EBTNodeResult::Failed;
+	}
+	APlayerBase* Target = Cast<APlayerBase>(BlackboardComp->GetValueAsObject(TEXT("TargetPlayer")));
+	if (!Target)
+	{
+		return EBTNodeResult::Failed;
+	}
+
 	float DistanceToTarget = AIPawn->GetDistanceTo(Target);
 	float AttackRangeWithRadius = 200;
 	bool bResult = DistanceToTarget <= AttackRangeWithRadius;
