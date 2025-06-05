@@ -3,6 +3,7 @@
 
 #include "SzObjects/BaseObject.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "SzComponents/InteractableComponent.h"
@@ -33,6 +34,16 @@ ABaseObject::ABaseObject()
     WidgetComponent->SetDrawSize(FVector2D(10, 10));
     WidgetComponent->SetRelativeLocation(FVector(0, 0, 100));
     WidgetComponent->SetVisibility(false); // 기본은 비활성화
+
+    // AIPerception과 player안의 sphere만 감지하는 Object
+    SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
+    SphereCollisionComp->SetupAttachment(RootComponent);
+    SphereCollisionComp->ComponentTags.Add(FName("Object"));
+    SphereCollisionComp->SetSphereRadius(50.0f);
+    SphereCollisionComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    SphereCollisionComp->SetCollisionResponseToAllChannels(ECR_Overlap);
+    SphereCollisionComp->SetCollisionObjectType(ECC_WorldDynamic); // Object Type 설정
+    SphereCollisionComp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block); // 레이 트레이스가 맞닿게
 
     // NetWork
     bReplicates = true;

@@ -67,7 +67,10 @@ void ACCTV::OnInteractSever_Implementation(APawn* Interactor)
 	APlayerController* PlayerController = Cast<APlayerController>(Interactor->GetController());
 	if (!PlayerController || !CameraComp) return;
 
-	bIsInCCTVView ? ExitCCTVView(PlayerController) : EnterCCTVView(PlayerController);
+	if (IsActive)
+	{
+		bIsInCCTVView ? ExitCCTVView(PlayerController) : EnterCCTVView(PlayerController);
+	}
 }
 
 bool ACCTV::CanInteract_Implementation(const APawn* Interactor) const
