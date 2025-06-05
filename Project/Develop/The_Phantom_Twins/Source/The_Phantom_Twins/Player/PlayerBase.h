@@ -28,6 +28,8 @@ public:
 	// Sets default values for this character's properties
 	APlayerBase();
 
+	bool CheckActorInFront(AActor* TargetActor);
+
 	void NearestObjectCheck();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Inventory")
@@ -60,7 +62,14 @@ public:
 	void SetGroggy();
 
 	UFUNCTION(BlueprintCallable, Category = "Stats")
-	void TakeDamage(float Damage);
+	
+	virtual float TakeDamage
+	(
+		float DamageAmount,
+		struct FDamageEvent const& DamageEvent,
+		class AController* EventInstigator,
+		AActor* DamageCauser
+	) override;
 
 	virtual void SetupCharacterWidget(UMyPlayerUserWidget* UserWidget) override;
 
@@ -105,6 +114,12 @@ protected:
 
 public:
 	bool bIsInventoryVisible = false;
+	bool bIsGroggy = false;
+	bool bIsRunning = false;
+
+	float NoiseTimer = 0.f;
+	float NoiseInterval = 3.f;
+	float CurrentNoise = 100.f;
 
 	// Input Section
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
