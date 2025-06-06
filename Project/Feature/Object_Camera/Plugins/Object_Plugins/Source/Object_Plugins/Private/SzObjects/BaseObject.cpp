@@ -39,7 +39,8 @@ ABaseObject::ABaseObject()
     SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
     SphereCollisionComp->SetupAttachment(RootComponent);
     SphereCollisionComp->ComponentTags.Add(FName("Object"));
-    SphereCollisionComp->SetSphereRadius(10.0f);
+	SphereCollisionComp->SetSphereRadius(50.0f);
+	SphereCollisionComp->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
 
     // NetWork
     bReplicates = true;
