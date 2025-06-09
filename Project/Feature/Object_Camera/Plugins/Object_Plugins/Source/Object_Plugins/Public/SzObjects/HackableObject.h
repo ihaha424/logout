@@ -32,16 +32,6 @@ public:
 	// 해킹 초기화(해킹 안 된 상태로 만들기)
 	virtual void ClearHacking_Implementation() override;
 
-private:
-	// Tick에서 호출: 해킹 진행 상태 업데이트
-	void UpdateHackingProgress(float CurrentTime);
-
-	// HeldTime이 조건을 만족하면 해킹 완료 처리
-	void TryCompleteHacking(float HeldDuration, float CurrentTime);
-
-	// 해킹 성공 후 일정 시간이 지나면 다시 해킹 가능 상태로 초기화
-	void CheckHackReset();
-
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
@@ -52,34 +42,4 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Hacking")
 	TObjectPtr<class UHackableComponent> HackingComp;
-
-    UPROPERTY(EditDefaultsOnly, Category = "Hacking")
-    TSubclassOf<class UUserWidget> HackingGaugeWidget;
-
-	// 해킹 게이지 위젯
-	UPROPERTY()
-	TObjectPtr<class UUserWidget> GuageUI;
-
-	// 해킹 완료 후 유지 시간
-	UPROPERTY(EditAnywhere, Category = "Hacking")
-	float HackedDuration = 5.0f;
-
-	// 해킹 키 홀딩 시간
-	UPROPERTY(EditAnywhere, Category = "Hacking")
-	float RequiredTime = 2.0f;
-
-	// 해킹 키를 누르고 있는지
-	UPROPERTY(BlueprintReadOnly)
-	bool bIsHacking = false;
-
-	// 해킹 상태
-	UPROPERTY(BlueprintReadOnly)
-	bool bIsHacked = false;
-
-private:
-	float HackingStartTime = 0.0f;
-	bool bAutoHackingCompleted = false;
 };
-
-// 코어 에너지 사용 부분은 player에서 담당
-// RequiredTime 이랑 IA_Hacking의 HoldTimeThreshold랑 같아야 함
