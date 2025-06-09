@@ -10,10 +10,11 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
 #include "InputAction.h"
+#include "SzComponents/HackableComponent.h"
 
 ACCTV::ACCTV()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
@@ -49,6 +50,31 @@ ACCTV::ACCTV()
 void ACCTV::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (!HackingComp)
+	{
+		HackingComp = FindComponentByClass<UHackableComponent>();
+		if (!HackingComp)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("No HackingComp found on %s"), *GetName());
+		}
+	}
+}
+
+void ACCTV::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
+
+	HackingComp->UpdateHackingProgress(CurrentTime);
+
+	// 해킹 된 상태에서 해킹지속시간이 끝나면
+	if (HackingComp->bIsHacked && (CurrentTime - HackingComp->HackingStartTime >= HackingComp->HackedDuration))
+	{
+		// 초기화 해라
+		HackingComp->CheckHackReset();
+	}
 }
 
 void ACCTV::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -67,7 +93,7 @@ void ACCTV::OnInteractSever_Implementation(APawn* Interactor)
 	APlayerController* PlayerController = Cast<APlayerController>(Interactor->GetController());
 	if (!PlayerController || !CameraComp) return;
 
-	if (IsActive)
+	if (IsActive && HackingComp->bIsHacked)	// 해킹comp
 	{
 		bIsInCCTVView ? ExitCCTVView(PlayerController) : EnterCCTVView(PlayerController);
 	}
@@ -76,6 +102,27 @@ void ACCTV::OnInteractSever_Implementation(APawn* Interactor)
 bool ACCTV::CanInteract_Implementation(const APawn* Interactor) const
 {
 	return bHasKey;
+}
+
+void ACCTV::OnHackingStarted_Implementation(APawn* Interactor)
+{
+	HackingComp->HackingStarted();
+}
+
+void ACCTV::OnHackingCompleted_Implementation(APawn* Interactor)
+{
+	HackingComp->HackingCompleted();
+}
+
+bool ACCTV::CanBeHacked_Implementation() const
+{
+	return !(HackingComp->bIsHacked);	// 해킹된 상태랑 해킹할 수 있는 상태는 반대.
+}
+
+void ACCTV::ClearHacking_Implementation()
+{
+	// 해킹 초기화
+	HackingComp->CheckHackReset();
 }
 
 void ACCTV::Turn(const FInputActionValue& Value)
