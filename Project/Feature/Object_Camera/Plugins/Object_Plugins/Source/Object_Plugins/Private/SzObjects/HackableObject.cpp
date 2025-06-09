@@ -3,6 +3,7 @@
 
 #include "SzObjects/HackableObject.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/WidgetComponent.h"
 #include "SzComponents/HackableComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
@@ -18,6 +19,14 @@ AHackableObject::AHackableObject()
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	SetRootComponent(MeshComponent);
+
+	// WidgetComponent
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("ObjectWidget"));
+	WidgetComponent->SetupAttachment(RootComponent);
+	WidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	WidgetComponent->SetDrawSize(FVector2D(10, 10));
+	WidgetComponent->SetRelativeLocation(FVector(0, 0, 100));
+	WidgetComponent->SetVisibility(false); // 기본은 비활성화
 
 	// AIPerception과 player안의 sphere만 감지하는 Object
 	SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
@@ -38,6 +47,12 @@ void AHackableObject::BeginPlay()
 		{
 			UE_LOG(LogTemp, Warning, TEXT("No HackingComp found on %s"), *GetName());
 		}
+	}
+
+	if (WidgetClass)
+	{
+		WidgetComponent->SetWidgetClass(WidgetClass);
+		WidgetComponent->SetVisibility(true);
 	}
 }
 
@@ -78,4 +93,9 @@ void AHackableObject::ClearHacking_Implementation()
 {
 	// 해킹 초기화
 	HackingComp->CheckHackReset();
+}
+
+void AHackableObject::SetWidgetVisibility_Implementation(bool Visible)
+{
+	WidgetComponent->SetVisibility(Visible);
 }
