@@ -17,6 +17,7 @@ class UInputMappingContext;
 class UInputAction;
 class ABaseObject;
 class UUserWidget;
+class USphereComponent;
 
 UCLASS()
 class THE_PHANTOM_TWINS_API APlayerBase : public ACharacter, public IPlayerWidgetInterface
@@ -26,6 +27,8 @@ class THE_PHANTOM_TWINS_API APlayerBase : public ACharacter, public IPlayerWidge
 public:
 	// Sets default values for this character's properties
 	APlayerBase();
+
+	bool CheckActorInFront(AActor* TargetActor);
 
 	void NearestObjectCheck();
 
@@ -47,12 +50,34 @@ public:
 
 public:
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision")
+	TObjectPtr<USphereComponent> SphereComponent;
+
+	TArray<AActor*> InteractiveableObjects;
+
+	virtual void NotifyActorBeginOverlap(AActor* Actor) override;
+	virtual void NotifyActorEndOverlap(AActor* Actor) override;
+
+public:
 	void SetGroggy();
 
 	UFUNCTION(BlueprintCallable, Category = "Stats")
-	void TakeDamage(float Damage);
+	
+	virtual float TakeDamage
+	(
+		float DamageAmount,
+		struct FDamageEvent const& DamageEvent,
+		class AController* EventInstigator,
+		AActor* DamageCauser
+	) override;
 
 	virtual void SetupCharacterWidget(UMyPlayerUserWidget* UserWidget) override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Noise")
+	float RunNoise = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Noise")
+	float WalkNoise = 1.0f;
 
 protected:
 	void ReferenceSetting();
@@ -89,6 +114,16 @@ protected:
 
 public:
 	bool bIsInventoryVisible = false;
+	bool bIsGroggy = false;
+	bool bIsMove = false;
+
+	float NoiseTimer = 0.f;
+	float MoveNoise = 100.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Noise")
+	float NoiseInterval = 3.f;
+
+	float CurrentNoise = 100.f;
 
 	// Input Section
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -137,4 +172,10 @@ public:
 	UFUNCTION(Server, Reliable)
 	void C2S_SetMaxWalkSpeed(float Speed);
 	void C2S_SetMaxWalkSpeed_Implementation(float Speed);
+
+	// Network
+	UFUNCTION(Client, Reliable)
+	void S2C_UpdatePerceivedActor(AActor* Actor, bool bVisible);
+	void S2C_UpdatePerceivedActor_Implementation(AActor* Actort, bool bVisible);
+
 };

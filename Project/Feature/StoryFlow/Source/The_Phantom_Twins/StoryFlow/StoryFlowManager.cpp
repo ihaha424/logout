@@ -8,6 +8,11 @@ DEFINE_LOG_CATEGORY(LogStoryFlow);
 
 void UStoryFlowManager::RegisterData(FName DataName, UObject* Data)
 {
+    if (nullptr == Data)
+    {
+        UE_LOG(LogStoryFlow, Error, TEXT("Data is invalid or nullptr"));
+        return;
+    }
     DataMap.Add(DataName, Data);
 }
 

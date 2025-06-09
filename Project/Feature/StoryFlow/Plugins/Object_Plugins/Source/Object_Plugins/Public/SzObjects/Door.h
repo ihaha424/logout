@@ -38,6 +38,10 @@ protected:
     UFUNCTION(NetMulticast, Reliable)
     void S2A_OpenDoor();
 
+    // 문 여는 횟수 제한(임시 : 지울거임)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
+    int32 OpenNum = 0;
+
 protected:
     // 문이 열리기 위해 필요한 Actor 목록 (예: 해킹 트리거)
     UPROPERTY(EditAnywhere, Category = "Door")
@@ -53,4 +57,11 @@ protected:
     // 필요 활성화 수 (0이면 Triggers의 전체 수가 기본값)
     UPROPERTY(EditAnywhere, Category = "Door")
     int32 NeededActive = 0;
+
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
+    int32 SecurityLevel = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
+    bool IsActive = false;
 };

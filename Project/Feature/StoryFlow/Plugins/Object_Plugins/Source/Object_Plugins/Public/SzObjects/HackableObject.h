@@ -21,13 +21,16 @@ protected:
 
 public:
 	// 해킹 실행 (E키 홀딩)
-    virtual void OnHackingStarted_Implementation() override;
+    virtual void OnHackingStarted_Implementation(APawn* Interactor) override;
 
 	// 해킹 완료 후 로직 (CCTV 보임, 적 무력화 등)
-	virtual void OnHackingCompleted_Implementation() override;
+	virtual void OnHackingCompleted_Implementation(APawn* Interactor) override;
     
 	// 해킹 가능 여부 체크 (false => 해킹 전 / true => 해킹 완료)
 	virtual bool CanBeHacked_Implementation() const override;
+
+	// 해킹 초기화(해킹 안 된 상태로 만들기)
+	virtual void ClearHacking_Implementation() override;
 
 private:
 	// Tick에서 호출: 해킹 진행 상태 업데이트
@@ -39,10 +42,14 @@ private:
 	// 해킹 성공 후 일정 시간이 지나면 다시 해킹 가능 상태로 초기화
 	void CheckHackReset(float CurrentTime);
 
-	// 해킹 실패 처리
-	void CancelHacking();
 
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<class UStaticMeshComponent> MeshComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<class USphereComponent> SphereCollisionComp;
+
 	UPROPERTY(EditAnywhere, Category = "Hacking")
 	TObjectPtr<class UHackableComponent> HackingComp;
 
