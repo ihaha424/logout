@@ -11,6 +11,33 @@ void UStoryFlowManager::RegisterData(FName DataName, UObject* Data)
     DataMap.Add(DataName, Data);
 }
 
+void UStoryFlowManager::UnregisterData(FName DataName)
+{
+    DataMap.Remove(DataName);
+    Subscribers.Remove(DataName);
+
+    // Remove any matching delegates from BPDelegateMap
+    TArray<FGuid> ToRemove;
+    for (const auto& Pair : BPDelegateMap)
+    {
+        const FGuid& ID = Pair.Key;
+        if (Subscribers.Contains(DataName))
+        {
+            const auto& List = Subscribers[DataName];
+            if (List.ContainsByPredicate([&](const TPair<FGuid, FCallback>& SubPair) { return SubPair.Key == ID; }))
+            {
+                ToRemove.Add(ID);
+            }
+        }
+    }
+    for (const FGuid& ID : ToRemove)
+    {
+        BPDelegateMap.Remove(ID);
+    }
+
+    CoreDataSet.Remove(DataName);
+}
+
 void UStoryFlowManager::SetData(FName DataName, UObject* NewValue)
 {
     if (DataMap.Contains(DataName))
@@ -61,6 +88,31 @@ void UStoryFlowManager::Unsubscribe(FName DataName, FGuid CallbackId)
             });
     }
     BPDelegateMap.Remove(CallbackId);
+}
+
+void UStoryFlowManager::ClearAllData(bool bRemoveCoreData)
+{
+    TArray<FName> KeysToRemove;
+    for (const auto& Pair : DataMap)
+    {
+        if (bRemoveCoreData || !CoreDataSet.Contains(Pair.Key))
+        {
+            KeysToRemove.Add(Pair.Key);
+        }
+    }
+
+    for (const FName& Key : KeysToRemove)
+    {
+        UnregisterData(Key);
+    }
+}
+
+void UStoryFlowManager::MarkAsCoreData(FName DataName, bool bCoreData)
+{
+    if(bCoreData)
+        CoreDataSet.Add(DataName);
+    else
+        CoreDataSet.Remove(DataName);
 }
 
 void UStoryFlowManager::NotifySubscribers(FName DataName)
