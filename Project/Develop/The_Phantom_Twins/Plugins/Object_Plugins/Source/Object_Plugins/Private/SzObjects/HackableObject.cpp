@@ -29,7 +29,8 @@ AHackableObject::AHackableObject()
 	SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
 	SphereCollisionComp->SetupAttachment(RootComponent);
 	SphereCollisionComp->ComponentTags.Add(FName("Object"));
-	SphereCollisionComp->SetSphereRadius(10.0f);
+	SphereCollisionComp->SetSphereRadius(50.0f);
+	SphereCollisionComp->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
 }
 
 // Called when the game starts or when spawned
