@@ -117,7 +117,7 @@ bool APlayerBase::CheckActorInFront(AActor* TargetActor)
 	);
 
 #if WITH_EDITOR
-	DrawDebugLine(GetWorld(), Start, End, Hit.GetActor() == TargetActor ? FColor::Blue : FColor::Silver, false, 1.0f, 0, 0.3f);
+	//DrawDebugLine(GetWorld(), Start, End, Hit.GetActor() == TargetActor ? FColor::Blue : FColor::Silver, false, 1.0f, 0, 0.3f);
 #endif
 
 	// Ray가 정확히 TargetActor에 부딪혔는지 확인
@@ -150,7 +150,6 @@ void APlayerBase::NearestObjectCheck()
 			// Set Object UI
 			if (UWidgetComponent* Widget = Actor->FindComponentByClass<UWidgetComponent>())
 			{
-				//UE_LOG(LogTemp, Log, TEXT("Widget On"));
 				Widget->SetVisibility(true);
 			}
 		}
@@ -159,7 +158,6 @@ void APlayerBase::NearestObjectCheck()
 			// Set Object UI
 			if (UWidgetComponent* Widget = Actor->FindComponentByClass<UWidgetComponent>())
 			{
-				//UE_LOG(LogTemp, Log, TEXT("Widget Off"));
 				Widget->SetVisibility(false);
 			}
 			continue;
@@ -259,20 +257,20 @@ void APlayerBase::Tick(float DeltaTime)
 	}
 
 	// Tick 또는 디버그용 함수 안에서
-	FVector SphereLocation = SphereComponent->GetComponentLocation();
-	float SphereRadius = SphereComponent->GetScaledSphereRadius();
-
-	DrawDebugSphere(
-		GetWorld(),
-		SphereLocation,
-		SphereRadius,
-		32,
-		FColor::Green,
-		false,
-		-1.f,
-		0,
-		2.f
-	);
+	//FVector SphereLocation = SphereComponent->GetComponentLocation();
+	//float SphereRadius = SphereComponent->GetScaledSphereRadius();
+	//
+	//DrawDebugSphere(
+	//	GetWorld(),
+	//	SphereLocation,
+	//	SphereRadius,
+	//	32,
+	//	FColor::Green,
+	//	false,
+	//	-1.f,
+	//	0,
+	//	2.f
+	//);
 
 	NearestObjectCheck();
 }
@@ -337,8 +335,7 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &APlayerBase::PlayerCrouch);
 	// Hacking Action
 	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Started, this, &APlayerBase::Hacking);
-	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Completed, this, &APlayerBase::Hacking);
-	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Canceled, this, &APlayerBase::StopHacking);
+	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Completed, this, &APlayerBase::StopHacking);
 	// Interactive Action
 	EnhancedInputComponent->BindAction(InteractiveAction, ETriggerEvent::Triggered, this, &APlayerBase::Interactive);
 	// Inventory Action
@@ -612,7 +609,6 @@ void APlayerBase::S2C_UpdatePerceivedActor_Implementation(AActor* Actor, bool bV
 		// Set Object UI
 		if (UWidgetComponent* Widget = Actor->FindComponentByClass<UWidgetComponent>())
 		{
-			UE_LOG(LogTemp, Log, TEXT("Widget Off"));
 			Widget->SetVisibility(false);
 		}
 	}
