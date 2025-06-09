@@ -4,8 +4,6 @@
 #include "MyAIController.h"
 
 #include "AIInterface.h"
-#include "MyAICharacter.h"
-#include "Components/WidgetComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/BlackboardData.h"
 #include "BehaviorTree/BehaviorTree.h"
@@ -153,18 +151,13 @@ void AMyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimu
 	// 플레이어 감지가 아니면 무시
 	APlayerBase* Target = Cast<APlayerBase>(Actor);
 	if (!Target) return;
-	AMyAICharacter* MyCharacter = Cast<AMyAICharacter>(GetPawn());
-	if (!MyCharacter || !MyCharacter->AIStateWidget)
-	{
-		return;
-	}
+
 	const float CurrentTime = GetWorld()->GetTimeSeconds();
 
 	if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
 	{
 		if (Stimulus.WasSuccessfullySensed())
 		{
-			MyCharacter->UpdateAIStateWidget(EAIStateWidget::QuestionMark);
 			if (LastSightStartTime < 0.f)
 				LastSeenTime = CurrentTime;
 
@@ -178,7 +171,6 @@ void AMyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimu
 	{
 		if (Stimulus.WasSuccessfullySensed())
 		{
-			MyCharacter->UpdateAIStateWidget(EAIStateWidget::ExclamationMark);
 			LastHeardTime = CurrentTime;
 
 			HearingStimulus.Add(FAuditoryStimulus(CurrentTime, Stimulus.Strength));

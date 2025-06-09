@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AIInterface.h"
 #include "GameFramework/Character.h"
+#include "SplinePathActor.h"
 #include "SzInterface/Hacking.h"
 #include "MyAICharacter.generated.h"
 
@@ -20,13 +20,7 @@ public:
 	virtual void OnHackingStarted_Implementation(APawn* Interactor) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Spline")
-	class ASplinePathActor* SplinePath;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
-	class UWidgetComponent* AIStateWidget;
-
-	UFUNCTION()
-	void UpdateAIStateWidget(EAIStateWidget State);
+	ASplinePathActor* SplinePath;
 
 	float DistanceAlongSpline = 0.f;
 	bool bMovingForward = true;
@@ -47,5 +41,5 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	class ASplinePathActor* GetSplinePath() const { return SplinePath; }
+	ASplinePathActor* GetSplinePath() const { return SplinePath; }
 };

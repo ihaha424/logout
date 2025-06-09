@@ -54,7 +54,13 @@ void AHackableObject::Tick(float DeltaTime)
 	const float CurrentTime = GetWorld()->GetTimeSeconds();
 
 	UpdateHackingProgress(CurrentTime);
-	CheckHackReset(CurrentTime);
+
+	// 해킹 된 상태에서 해킹지속시간이 끝나면
+	if (bIsHacked && (CurrentTime - HackingStartTime >= HackedDuration))
+	{
+		// 초기화 해라
+		CheckHackReset();
+	}
 }
 
 void AHackableObject::OnHackingStarted_Implementation(APawn* Interactor)
@@ -116,16 +122,8 @@ bool AHackableObject::CanBeHacked_Implementation() const
 
 void AHackableObject::ClearHacking_Implementation()
 {
-	bIsHacking = false;
-	bIsHacked = false;
-	HackingStartTime = 0.0f;
-	bAutoHackingCompleted = false;
-
-	if (GuageUI)
-	{
-		GuageUI->RemoveFromParent();
-		GuageUI = nullptr;
-	}
+	// 나중에는 HackingComp->CheckHackReset(); 로 변경 예정
+	CheckHackReset();
 }
 
 // 해킹 UI 업데이트 및 자동 해킹 체크
@@ -171,18 +169,19 @@ void AHackableObject::TryCompleteHacking(float HeldDuration, float CurrentTime)
 	}
 }
 
-void AHackableObject::CheckHackReset(float CurrentTime)
+// UHackableComponent로 이사 갈 예정
+void AHackableObject::CheckHackReset()
 {
-	if (bIsHacked && (CurrentTime - HackingStartTime >= HackedDuration))
+	bIsHacking = false;
+	bIsHacked = false;
+	HackingStartTime = 0.0f;
+	bAutoHackingCompleted = false;
+
+	if (GuageUI)
 	{
-		bIsHacked = false;
-
-		if (GuageUI)
-		{
-			GuageUI->RemoveFromParent();
-			GuageUI = nullptr;
-		}
-
-		UE_LOG(LogTemp, Log, TEXT("해킹 상태 초기화 완료"));
+		GuageUI->RemoveFromParent();
+		GuageUI = nullptr;
 	}
+
+	UE_LOG(LogTemp, Log, TEXT("해킹 상태 초기화 완료"));
 }

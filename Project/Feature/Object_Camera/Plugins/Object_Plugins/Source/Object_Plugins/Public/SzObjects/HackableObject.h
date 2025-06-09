@@ -40,7 +40,7 @@ private:
 	void TryCompleteHacking(float HeldDuration, float CurrentTime);
 
 	// 해킹 성공 후 일정 시간이 지나면 다시 해킹 가능 상태로 초기화
-	void CheckHackReset(float CurrentTime);
+	void CheckHackReset();
 
 
 protected:

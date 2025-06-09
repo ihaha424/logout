@@ -58,11 +58,3 @@ struct FAuditoryStimulus
 		: Timestamp(InTimestamp), Strength(InStrength) {
 	}
 };
-
-UENUM(BlueprintType)
-enum class EAIStateWidget : uint8
-{
-	QuestionMark		UMETA(DisplayName = "QuestionMark"),
-	ExclamationMark		UMETA(DisplayName = "ExclamationMark"),
-	NoneMark		UMETA(DisplayName = "NoneMark")
-};

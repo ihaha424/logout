@@ -21,6 +21,6 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	UFUNCTION(BlueprintCallable, Category = "Haking")
+	UFUNCTION(BlueprintCallable, Category = "Hacking")
 	virtual void Execute();
 };
