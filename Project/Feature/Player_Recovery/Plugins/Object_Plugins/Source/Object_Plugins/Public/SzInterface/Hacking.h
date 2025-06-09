@@ -37,4 +37,6 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Hacking")
 	void ClearHacking();
 
+	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
+	void SetWidgetVisibility(bool Visible);
 };

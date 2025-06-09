@@ -155,3 +155,9 @@ bool ABaseObject::GetPickedUp_Implementation() const
 {
     return bIsPickedUp;
 }
+
+
+void ABaseObject::SetWidgetVisibility_Implementation(bool Visible)
+{
+    WidgetComponent->SetVisibility(Visible);
+}
