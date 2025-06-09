@@ -37,6 +37,10 @@ public:
 	UPROPERTY()
 	TObjectPtr<class UUserWidget> GuageUI;
 
+	// 해킹 유지 여부 (true면 무한 해킹 유지)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hacking")
+	bool bKeepHacked = false;
+
 	// 해킹 완료 후 유지 시간
 	UPROPERTY(EditAnywhere, Category = "Hacking")
 	float HackedDuration = 5.0f;

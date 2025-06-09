@@ -49,10 +49,10 @@ void AHackableObject::Tick(float DeltaTime)
 
 	HackingComp->UpdateHackingProgress(CurrentTime);
 
-	// 해킹 된 상태에서 해킹지속시간이 끝나면
-	if (HackingComp->bIsHacked && (CurrentTime - HackingComp->HackingStartTime >= HackingComp->HackedDuration))
+	// 해킹된 상태에서 유지 시간이 지나면 초기화 (단, bKeepHacked가 false일 때만)
+	if (HackingComp->bIsHacked && !HackingComp->bKeepHacked &&
+		(CurrentTime - HackingComp->HackingStartTime >= HackingComp->HackedDuration))
 	{
-		// 초기화 해라
 		HackingComp->CheckHackReset();
 	}
 }
