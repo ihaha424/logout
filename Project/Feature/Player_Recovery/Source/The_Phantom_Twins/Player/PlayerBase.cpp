@@ -19,6 +19,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "PlayerDefaultController.h"
 #include "DrawDebugHelpers.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Object Plugin
 #include "SzComponents/Interaction.h"
@@ -136,8 +137,13 @@ void APlayerBase::NearestObjectCheck()
 	// 가장 가까운 오브젝트를 찾고 지정해줌
 	for (AActor* Actor : InteractiveableObjects)
 	{
-		if (!(Cast<IInteraction>(Actor) || Cast<IHacking>(Actor)))
-			continue;
+		if ((Cast<IInteraction>(Actor)) == nullptr)
+		{
+			if ((Cast<IHacking>(Actor)) == nullptr)
+			{
+				continue;
+			}
+		}
 
 		if (CheckActorInFront(Actor))
 		{
@@ -225,8 +231,9 @@ void APlayerBase::Tick(float DeltaTime)
 	NoiseTimer += DeltaTime;
 	if (NoiseTimer >= NoiseInterval)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Noise : %.2f"), CurrentNoise);
-		MakeNoise(CurrentNoise, this, GetActorLocation());
+		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Noise : %.2f"), CurrentNoise));
+		//UE_LOG(LogTemp, Log, TEXT("Noise : %.2f"), CurrentNoise);
+		C2S_MakeNoise(CurrentNoise);
 		NoiseTimer = 0.f;
 	}
 
@@ -290,7 +297,7 @@ void APlayerBase::NotifyActorBeginOverlap(AActor* Actor)
 	if (!Actor->ActorHasTag("Object"))
 		return;
 
-	UE_LOG(LogTemp, Warning, TEXT("Begin overlap"));
+	UE_LOG(LogTemp, Warning, TEXT("Begin overlap %s"), *Actor->GetName());
 	
 	if (HasAuthority())
 	{
@@ -304,6 +311,7 @@ void APlayerBase::NotifyActorEndOverlap(AActor* Actor)
 
 	if (!Actor->ActorHasTag("Object"))
 		return;
+
 	UE_LOG(LogTemp, Warning, TEXT("End overlap"));
 	if (HasAuthority())
 	{
@@ -582,6 +590,11 @@ void APlayerBase::C2S_SetMaxWalkSpeed_Implementation(float Speed)
 	GetCharacterMovement()->MaxWalkSpeed = Speed;
 }
 
+void APlayerBase::C2S_MakeNoise_Implementation(float Noise)
+{
+	MakeNoise(Noise, this, GetActorLocation());
+}
+
 void APlayerBase::S2C_UpdatePerceivedActor_Implementation(AActor* Actor, bool bVisible)
 {
 	if (nullptr == Actor)
@@ -620,7 +633,6 @@ void APlayerBase::OpenInventory(const FInputActionValue& Value)
 
 	if (bIsInventoryVisible)
 	{
-		//UE_LOG(LogTemp, Log, TEXT("OpenInventory"));
 		InvenWidget->SetVisibility(ESlateVisibility::Visible);
 
 		FInputModeGameAndUI InputMode;
@@ -632,7 +644,6 @@ void APlayerBase::OpenInventory(const FInputActionValue& Value)
 	}
 	else
 	{
-		//UE_LOG(LogTemp, Log, TEXT("CloseInventory"));
 		InvenWidget->SetVisibility(ESlateVisibility::Hidden);
 
 		FInputModeGameOnly InputMode;

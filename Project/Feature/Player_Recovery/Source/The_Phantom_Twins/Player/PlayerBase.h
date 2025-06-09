@@ -173,6 +173,10 @@ public:
 	void C2S_SetMaxWalkSpeed(float Speed);
 	void C2S_SetMaxWalkSpeed_Implementation(float Speed);
 
+		UFUNCTION(Server, Reliable)
+	void C2S_MakeNoise(float Noise);
+	void C2S_MakeNoise_Implementation(float Noise);
+
 	// Network
 	UFUNCTION(Client, Reliable)
 	void S2C_UpdatePerceivedActor(AActor* Actor, bool bVisible);
