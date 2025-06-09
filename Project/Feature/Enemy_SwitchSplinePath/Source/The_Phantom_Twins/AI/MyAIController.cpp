@@ -164,7 +164,7 @@ void AMyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimu
 	{
 		if (Stimulus.WasSuccessfullySensed())
 		{
-			MyCharacter->UpdateAIStateWidget(EAIStateWidget::QuestionMark);
+			MyCharacter->S2A_UpdateAIStateWidget(EAIStateWidget::QuestionMark);
 			if (LastSightStartTime < 0.f)
 				LastSeenTime = CurrentTime;
 
@@ -178,7 +178,7 @@ void AMyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimu
 	{
 		if (Stimulus.WasSuccessfullySensed())
 		{
-			MyCharacter->UpdateAIStateWidget(EAIStateWidget::ExclamationMark);
+			MyCharacter->S2A_UpdateAIStateWidget(EAIStateWidget::ExclamationMark);
 			LastHeardTime = CurrentTime;
 
 			HearingStimulus.Add(FAuditoryStimulus(CurrentTime, Stimulus.Strength));

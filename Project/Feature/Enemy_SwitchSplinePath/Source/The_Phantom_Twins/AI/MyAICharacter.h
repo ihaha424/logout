@@ -25,8 +25,14 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	class UWidgetComponent* AIStateWidget;
 
-	UFUNCTION()
-	void UpdateAIStateWidget(EAIStateWidget State);
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_UpdateAIStateWidget(EAIStateWidget State);
+	void S2A_UpdateAIStateWidget_Implementation(EAIStateWidget State);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_UpdateWidgetDirection(FRotator Rotate);
+	void S2A_UpdateWidgetDirection_Implementation(FRotator Rotate);
+
 
 	float DistanceAlongSpline = 0.f;
 	bool bMovingForward = true;
@@ -48,4 +54,5 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	class ASplinePathActor* GetSplinePath() const { return SplinePath; }
+	
 };

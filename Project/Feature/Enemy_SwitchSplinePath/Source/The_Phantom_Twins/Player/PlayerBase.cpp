@@ -350,7 +350,7 @@ float APlayerBase::TakeDamage(float DamageAmount, struct FDamageEvent const& Dam
 {
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	Stat->ApplyDamage(DamageAmount);
+	//Stat->ApplyDamage(DamageAmount);
 
 	return 0.f;
 }
