@@ -137,30 +137,36 @@ void APlayerBase::NearestObjectCheck()
 	// 가장 가까운 오브젝트를 찾고 지정해줌
 	for (AActor* Actor : InteractiveableObjects)
 	{
-		if ((Cast<IInteraction>(Actor)) == nullptr)
+		if (!Actor->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
 		{
-			if ((Cast<IHacking>(Actor)) == nullptr)
+			if (!Actor->GetClass()->ImplementsInterface(UHacking::StaticClass()))
 			{
 				continue;
 			}
-		}
-
-		if (CheckActorInFront(Actor))
-		{
-			// Set Object UI
-			if (UWidgetComponent* Widget = Actor->FindComponentByClass<UWidgetComponent>())
+			else
 			{
-				Widget->SetVisibility(true);
+				if (CheckActorInFront(Actor))
+				{
+					IHacking::Execute_SetWidgetVisibility(Actor, true);
+				}
+				else
+				{
+					IHacking::Execute_SetWidgetVisibility(Actor, false);
+					continue;
+				}
 			}
 		}
 		else
 		{
-			// Set Object UI
-			if (UWidgetComponent* Widget = Actor->FindComponentByClass<UWidgetComponent>())
+			if (CheckActorInFront(Actor))
 			{
-				Widget->SetVisibility(false);
+				IInteraction::Execute_SetWidgetVisibility(Actor, true);
 			}
-			continue;
+			else
+			{
+				IInteraction::Execute_SetWidgetVisibility(Actor, false);
+				continue;
+			}
 		}
 
 		FVector ToPoint = Actor->GetActorLocation() - Start;
