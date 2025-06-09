@@ -38,6 +38,8 @@ public:
 	virtual void OnInteractClient_Implementation(APawn* Interactor) override;
 	virtual bool CanInteract_Implementation(const APawn* Interactor) const override;
 	virtual bool GetPickedUp_Implementation() const override;
+	virtual void SetWidgetVisibility_Implementation(bool Visible) override;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UStaticMeshComponent> MeshComponent;

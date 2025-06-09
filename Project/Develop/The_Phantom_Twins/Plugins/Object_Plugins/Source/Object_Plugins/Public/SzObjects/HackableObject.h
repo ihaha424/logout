@@ -32,6 +32,8 @@ public:
 	// 해킹 초기화(해킹 안 된 상태로 만들기)
 	virtual void ClearHacking_Implementation() override;
 
+	virtual void SetWidgetVisibility_Implementation(bool Visible) override;
+
 private:
 	// Tick에서 호출: 해킹 진행 상태 업데이트
 	void UpdateHackingProgress(float CurrentTime);
@@ -44,6 +46,14 @@ private:
 
 
 protected:
+	// 위젯
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<class UUserWidget> WidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<class UWidgetComponent> WidgetComponent;
+
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UStaticMeshComponent> MeshComponent;
 
