@@ -19,6 +19,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "PlayerDefaultController.h"
 #include "DrawDebugHelpers.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Object Plugin
 #include "SzComponents/Interaction.h"
@@ -116,7 +117,7 @@ bool APlayerBase::CheckActorInFront(AActor* TargetActor)
 	);
 
 #if WITH_EDITOR
-	DrawDebugLine(GetWorld(), Start, End, Hit.GetActor() == TargetActor ? FColor::Blue : FColor::Silver, false, 1.0f, 0, 0.3f);
+	//DrawDebugLine(GetWorld(), Start, End, Hit.GetActor() == TargetActor ? FColor::Blue : FColor::Silver, false, 1.0f, 0, 0.3f);
 #endif
 
 	// Ray가 정확히 TargetActor에 부딪혔는지 확인
@@ -136,15 +137,19 @@ void APlayerBase::NearestObjectCheck()
 	// 가장 가까운 오브젝트를 찾고 지정해줌
 	for (AActor* Actor : InteractiveableObjects)
 	{
-		if (!(Cast<IInteraction>(Actor) || Cast<IHacking>(Actor)))
-			continue;
+		if ((Cast<IInteraction>(Actor)) == nullptr)
+		{
+			if ((Cast<IHacking>(Actor)) == nullptr)
+			{
+				continue;
+			}
+		}
 
 		if (CheckActorInFront(Actor))
 		{
 			// Set Object UI
 			if (UWidgetComponent* Widget = Actor->FindComponentByClass<UWidgetComponent>())
 			{
-				//UE_LOG(LogTemp, Log, TEXT("Widget On"));
 				Widget->SetVisibility(true);
 			}
 		}
@@ -153,7 +158,6 @@ void APlayerBase::NearestObjectCheck()
 			// Set Object UI
 			if (UWidgetComponent* Widget = Actor->FindComponentByClass<UWidgetComponent>())
 			{
-				//UE_LOG(LogTemp, Log, TEXT("Widget Off"));
 				Widget->SetVisibility(false);
 			}
 			continue;
@@ -225,8 +229,9 @@ void APlayerBase::Tick(float DeltaTime)
 	NoiseTimer += DeltaTime;
 	if (NoiseTimer >= NoiseInterval)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Noise : %.2f"), CurrentNoise);
-		MakeNoise(CurrentNoise, this, GetActorLocation());
+		UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Noise : %.2f"), CurrentNoise));
+		//UE_LOG(LogTemp, Log, TEXT("Noise : %.2f"), CurrentNoise);
+		C2S_MakeNoise(CurrentNoise);
 		NoiseTimer = 0.f;
 	}
 
@@ -252,20 +257,20 @@ void APlayerBase::Tick(float DeltaTime)
 	}
 
 	// Tick 또는 디버그용 함수 안에서
-	FVector SphereLocation = SphereComponent->GetComponentLocation();
-	float SphereRadius = SphereComponent->GetScaledSphereRadius();
-
-	DrawDebugSphere(
-		GetWorld(),
-		SphereLocation,
-		SphereRadius,
-		32,
-		FColor::Green,
-		false,
-		-1.f,
-		0,
-		2.f
-	);
+	//FVector SphereLocation = SphereComponent->GetComponentLocation();
+	//float SphereRadius = SphereComponent->GetScaledSphereRadius();
+	//
+	//DrawDebugSphere(
+	//	GetWorld(),
+	//	SphereLocation,
+	//	SphereRadius,
+	//	32,
+	//	FColor::Green,
+	//	false,
+	//	-1.f,
+	//	0,
+	//	2.f
+	//);
 
 	NearestObjectCheck();
 }
@@ -290,7 +295,7 @@ void APlayerBase::NotifyActorBeginOverlap(AActor* Actor)
 	if (!Actor->ActorHasTag("Object"))
 		return;
 
-	UE_LOG(LogTemp, Warning, TEXT("Begin overlap"));
+	UE_LOG(LogTemp, Warning, TEXT("Begin overlap %s"), *Actor->GetName());
 	
 	if (HasAuthority())
 	{
@@ -304,6 +309,7 @@ void APlayerBase::NotifyActorEndOverlap(AActor* Actor)
 
 	if (!Actor->ActorHasTag("Object"))
 		return;
+
 	UE_LOG(LogTemp, Warning, TEXT("End overlap"));
 	if (HasAuthority())
 	{
@@ -329,8 +335,7 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &APlayerBase::PlayerCrouch);
 	// Hacking Action
 	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Started, this, &APlayerBase::Hacking);
-	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Completed, this, &APlayerBase::Hacking);
-	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Canceled, this, &APlayerBase::StopHacking);
+	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Completed, this, &APlayerBase::StopHacking);
 	// Interactive Action
 	EnhancedInputComponent->BindAction(InteractiveAction, ETriggerEvent::Triggered, this, &APlayerBase::Interactive);
 	// Inventory Action
@@ -582,6 +587,11 @@ void APlayerBase::C2S_SetMaxWalkSpeed_Implementation(float Speed)
 	GetCharacterMovement()->MaxWalkSpeed = Speed;
 }
 
+void APlayerBase::C2S_MakeNoise_Implementation(float Noise)
+{
+	MakeNoise(Noise, this, GetActorLocation());
+}
+
 void APlayerBase::S2C_UpdatePerceivedActor_Implementation(AActor* Actor, bool bVisible)
 {
 	if (nullptr == Actor)
@@ -599,7 +609,6 @@ void APlayerBase::S2C_UpdatePerceivedActor_Implementation(AActor* Actor, bool bV
 		// Set Object UI
 		if (UWidgetComponent* Widget = Actor->FindComponentByClass<UWidgetComponent>())
 		{
-			UE_LOG(LogTemp, Log, TEXT("Widget Off"));
 			Widget->SetVisibility(false);
 		}
 	}
@@ -620,7 +629,6 @@ void APlayerBase::OpenInventory(const FInputActionValue& Value)
 
 	if (bIsInventoryVisible)
 	{
-		//UE_LOG(LogTemp, Log, TEXT("OpenInventory"));
 		InvenWidget->SetVisibility(ESlateVisibility::Visible);
 
 		FInputModeGameAndUI InputMode;
@@ -632,7 +640,6 @@ void APlayerBase::OpenInventory(const FInputActionValue& Value)
 	}
 	else
 	{
-		//UE_LOG(LogTemp, Log, TEXT("CloseInventory"));
 		InvenWidget->SetVisibility(ESlateVisibility::Hidden);
 
 		FInputModeGameOnly InputMode;
