@@ -11,6 +11,7 @@
 #include "InputMappingContext.h"
 #include "InputAction.h"
 #include "SzComponents/HackableComponent.h"
+#include "SzComponents/NoiseComponent.h"
 
 ACCTV::ACCTV()
 {
@@ -59,6 +60,15 @@ void ACCTV::BeginPlay()
 			UE_LOG(LogTemp, Warning, TEXT("No HackingComp found on %s"), *GetName());
 		}
 	}
+
+	if (!NoiseComp)
+	{
+		NoiseComp = FindComponentByClass<UNoiseComponent>();
+		if (!NoiseComp)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("No NoiseComp found on %s"), *GetName());
+		}
+	}
 }
 
 void ACCTV::Tick(float DeltaTime)
@@ -68,6 +78,7 @@ void ACCTV::Tick(float DeltaTime)
 	const float CurrentTime = GetWorld()->GetTimeSeconds();
 
 	HackingComp->UpdateHackingProgress(CurrentTime);
+	NoiseComp->UpdateHackingProgress(CurrentTime);
 
 	// 해킹된 상태에서 유지 시간이 지나면 초기화 (단, bKeepHacked가 false일 때만)
 	if (HackingComp->bIsHacked && !HackingComp->bKeepHacked &&
@@ -113,11 +124,13 @@ void ACCTV::SetWidgetVisibility_Implementation(bool Visible)
 void ACCTV::OnHackingStarted_Implementation(APawn* Interactor)
 {
 	HackingComp->HackingStarted();
+	NoiseComp->HackingStarted();
 }
 
 void ACCTV::OnHackingCompleted_Implementation(APawn* Interactor)
 {
 	HackingComp->HackingCompleted();
+	NoiseComp->HackingCompleted();
 }
 
 bool ACCTV::CanBeHacked_Implementation() const
@@ -129,6 +142,7 @@ void ACCTV::ClearHacking_Implementation()
 {
 	// 해킹 초기화
 	HackingComp->CheckHackReset();
+	NoiseComp->CheckHackReset();
 }
 
 void ACCTV::Turn(const FInputActionValue& Value)
