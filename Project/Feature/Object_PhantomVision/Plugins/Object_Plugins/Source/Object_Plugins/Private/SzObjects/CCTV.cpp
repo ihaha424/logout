@@ -108,7 +108,6 @@ void ACCTV::SetWidgetVisibility_Implementation(bool Visible)
 {
 	ABaseObject::SetWidgetVisibility_Implementation(Visible);
 
-	UE_LOG(LogTemp, Warning, TEXT("ACCTV::SetWidgetVisibility_Implementation"));
 }
 
 void ACCTV::OnHackingStarted_Implementation(APawn* Interactor)

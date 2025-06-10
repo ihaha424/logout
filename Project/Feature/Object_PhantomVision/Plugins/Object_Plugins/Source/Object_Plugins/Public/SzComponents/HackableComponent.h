@@ -23,11 +23,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Hacking")
 	virtual void HackingCompleted();
 
-	void UpdateHackingProgress(float CurrentTime);
-	void TryCompleteHacking(float HeldDuration, float CurrentTime);
+	virtual void UpdateHackingProgress(float CurrentTime);
+	virtual void TryCompleteHacking(float HeldDuration, float CurrentTime);
 
 	// 해킹 성공 후 일정 시간이 지나면 다시 해킹 가능 상태로 초기화
-	void CheckHackReset();
+	virtual void CheckHackReset();
 
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Hacking")
