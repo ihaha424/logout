@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "SzObjects/BaseObject.h"
+#include "SzInterface/Hacking.h"
 #include "InputActionValue.h"
 #include "CCTV.generated.h"
 
@@ -11,7 +12,7 @@
  * 
  */
 UCLASS()
-class OBJECT_PLUGINS_API ACCTV : public ABaseObject
+class OBJECT_PLUGINS_API ACCTV : public ABaseObject, public IHacking
 {
 	GENERATED_BODY()
 
@@ -20,11 +21,20 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
 	virtual void OnInteractSever_Implementation(APawn* Interactor) override;
 	virtual bool CanInteract_Implementation(const APawn* Interactor) const override;
+	virtual void SetWidgetVisibility_Implementation(bool Visible) override;
+
+
+	// 해킹
+	virtual void OnHackingStarted_Implementation(APawn* Interactor) override;
+	virtual void OnHackingCompleted_Implementation(APawn* Interactor) override;
+	virtual bool CanBeHacked_Implementation() const override;
+	virtual void ClearHacking_Implementation() override;
 
 	// Input 콜백
 	void Turn(const FInputActionValue& Value);
@@ -89,4 +99,8 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
     bool IsActive = false;
+
+	// 해킹
+	UPROPERTY(EditAnywhere, Category = "CCTV | Hacking")
+	TObjectPtr<class UHackableComponent> HackingComp;
 };
