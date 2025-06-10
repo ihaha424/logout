@@ -65,12 +65,12 @@ void UNoiseComponent::GenerateNoise()
 		return;
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("UNoiseComponent::GenerateNoise - Making noise at location."));
-
 	OwnerPawn->MakeNoise(
 		static_cast<float>(noisePoint),
 		OwnerPawn,
 		OwnerPawn->GetActorLocation(),
 		noiseRange
 	);
+
+	UE_LOG(LogTemp, Log, TEXT("UNoiseComponent::GenerateNoise - Making noise at location."));
 }

@@ -103,4 +103,7 @@ public:
 	// 해킹
 	UPROPERTY(EditAnywhere, Category = "CCTV | Hacking")
 	TObjectPtr<class UHackableComponent> HackingComp;
+
+	UPROPERTY(EditAnywhere, Category = "CCTV | Hacking")
+	TObjectPtr<class UNoiseComponent> NoiseComp;
 };
