@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "GameFramework/Pawn.h"
 #include "SzInterface/Hacking.h"
 #include "HackableObject.generated.h"
 
 UCLASS()
-class OBJECT_PLUGINS_API AHackableObject : public AActor, public IHacking
+class OBJECT_PLUGINS_API AHackableObject : public APawn, public IHacking
 {
 	GENERATED_BODY()
 	
