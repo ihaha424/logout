@@ -123,7 +123,7 @@ bool APlayerBase::CheckActorInFront(AActor* TargetActor)
 	);
 
 #if WITH_EDITOR
-	DrawDebugLine(GetWorld(), Start, End, Hit.GetActor() == TargetActor ? FColor::Blue : FColor::Silver, false, 1.0f, 0, 0.3f);
+	//DrawDebugLine(GetWorld(), Start, End, Hit.GetActor() == TargetActor ? FColor::Blue : FColor::Silver, false, 1.0f, 0, 0.3f);
 #endif
 
 	// Ray가 정확히 TargetActor에 부딪혔는지 확인
@@ -316,8 +316,8 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	EnhancedInputComponent->BindAction(InteractiveAction, ETriggerEvent::Triggered, this, &APlayerBase::Interactive);
 	// Inventory Action
 	EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Triggered, this, &APlayerBase::OpenInventory);
-	// Pantom Action
-	EnhancedInputComponent->BindAction(PhantomAction, ETriggerEvent::Triggered, this, &APlayerBase::OpenInventory);
+	// Phantom Action
+	EnhancedInputComponent->BindAction(PhantomAction, ETriggerEvent::Triggered, this, &APlayerBase::PhantomVision);
 }
 
 void APlayerBase::OnInteractSever_Implementation(APawn* Player)
@@ -368,8 +368,6 @@ void APlayerBase::NotifyActorEndOverlap(AActor* Actor)
 
 	if (!Actor->ActorHasTag("Object"))
 		return;
-
-	//UE_LOG(LogTemp, Warning, TEXT("End overlap"));
 
 	if (HasAuthority())
 	{
@@ -509,14 +507,11 @@ void APlayerBase::Interactive(const FInputActionValue& Value)
 		return;
 
 	if (!NearestInteractiveObject) return;
-	UKismetSystemLibrary::PrintString(this, TEXT("Interactive"));
 
 	if (NearestInteractiveObject->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
 	{
-		UKismetSystemLibrary::PrintString(this, TEXT("Interactive Interactive"));
 		if (IInteraction::Execute_CanInteract(NearestInteractiveObject, this))
 		{
-			UKismetSystemLibrary::PrintString(this, TEXT("Interactive Interactive Interactive"));
 			C2S_Interactive(NearestInteractiveObject);
 			IInteraction::Execute_OnInteractClient(NearestInteractiveObject, this);
 		}
@@ -620,9 +615,10 @@ void APlayerBase::S2A_SetGroggy_Implementation()
 
 void APlayerBase::S2A_SetRecovery_Implementation()
 {
-	UKismetSystemLibrary::PrintString(this, TEXT("Recovery"));
+	//UKismetSystemLibrary::PrintString(this, TEXT("Recovery"));
 	Stat->SetHp(Stat->GetMaxHp());
 	bIsGroggy = false;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
 void APlayerBase::S2C_UpdatePerceivedActor_Implementation(AActor* Actor, bool bVisible)
