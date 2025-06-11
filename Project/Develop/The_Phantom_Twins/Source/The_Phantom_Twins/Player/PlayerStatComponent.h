@@ -31,10 +31,9 @@ public:
 
 	float ApplyDamage(float Damage);
 
+	void SetHp(float NewHp);
 
 protected:
-	void SetHp(float NewHp);
-	
 
 	UPROPERTY(Transient, VisibleInstanceOnly, Category = Stat)
 	float MaxHp;
