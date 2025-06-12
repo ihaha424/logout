@@ -63,7 +63,7 @@ APlayerBase::APlayerBase()
 	GetCharacterMovement()->RotationRate = FRotator(0, 500, 0);
 	GetCharacterMovement()->JumpZVelocity = 500.f;
 	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 0.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
@@ -195,6 +195,8 @@ void APlayerBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
+
 	RecoverySphere->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
 
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
@@ -338,13 +340,15 @@ bool APlayerBase::CanInteract_Implementation(const APawn* Player) const
 
 void APlayerBase::SetWidgetVisibility_Implementation(bool Visible)
 {
-	if (!bIsGroggy)
+	if (bIsGroggy)
+	{
+		UKismetSystemLibrary::PrintString(this, TEXT("SetGroggyWidget"));
+		GroggyWidget->SetVisibility(Visible);
+	}
+	else
 	{
 		GroggyWidget->SetVisibility(false);
-		return;
 	}
-
-	GroggyWidget->SetVisibility(Visible);
 }
 
 void APlayerBase::NotifyActorBeginOverlap(AActor* Actor)
@@ -434,7 +438,6 @@ void APlayerBase::Run(const FInputActionValue& Value)
 
 	MoveNoise = RunNoise;
 
-	GetCharacterMovement()->MaxWalkSpeed = RunSpeed; // 기본 걷기보다 빠르게 설정
 	if (!HasAuthority())
 	{
 		GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
@@ -599,9 +602,10 @@ void APlayerBase::C2S_MakeNoise_Implementation(float Noise)
 
 void APlayerBase::SetGroggy()
 {
+	UKismetSystemLibrary::PrintString(this, TEXT("Groggy"));
 	S2A_SetGroggy();
-
 	GroggyWidget->SetVisibility(true);
+
 	bIsGroggy = true;
 	GetCharacterMovement()->MaxWalkSpeed = 0.f;
 }
@@ -618,6 +622,7 @@ void APlayerBase::S2A_SetRecovery_Implementation()
 	//UKismetSystemLibrary::PrintString(this, TEXT("Recovery"));
 	Stat->SetHp(Stat->GetMaxHp());
 	bIsGroggy = false;
+	GroggyWidget->SetVisibility(false);
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
