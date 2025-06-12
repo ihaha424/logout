@@ -16,6 +16,7 @@ UBTT_AISenseRestoration::UBTT_AISenseRestoration()
 
 EBTNodeResult::Type UBTT_AISenseRestoration::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
+    Super::ExecuteTask(OwnerComp, NodeMemory);
     AMyAIController* AIController = Cast<AMyAIController>(OwnerComp.GetAIOwner());
     if (!AIController)
     {

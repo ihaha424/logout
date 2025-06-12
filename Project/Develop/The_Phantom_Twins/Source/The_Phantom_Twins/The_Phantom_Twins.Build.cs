@@ -17,8 +17,9 @@ public class The_Phantom_Twins : ModuleRules
 			"EnhancedInput",
             "AIModule",
             "UMG",
-            "Object_Plugins"
-		});
+            "Object_Plugins",
+			"NavigationSystem"
+        });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
