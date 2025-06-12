@@ -42,6 +42,18 @@ enum class EMyAIState : uint8
 	Hacked		UMETA(DisplayName = "Hacked")
 };
 
+UENUM(BlueprintType)
+enum class EMyAIStimulus : uint8
+{
+	Sight			UMETA(DisplayName = "Sight"),
+	AllyCombat		UMETA(DisplayName = "AllyCombat"),
+	PlayerRun		UMETA(DisplayName = "PlayerRun"),
+	AllySuspicion	UMETA(DisplayName = "AllySuspicion"),
+	PlayerWalk		UMETA(DisplayName = "PlayerWalk"),
+	HackedObject	UMETA(DisplayName = "HackedObject"),
+	None			UMETA(DisplayName = "None")
+};
+
 USTRUCT(BlueprintType)
 struct FAuditoryStimulus
 {
@@ -64,5 +76,5 @@ enum class EAIStateWidget : uint8
 {
 	QuestionMark		UMETA(DisplayName = "QuestionMark"),
 	ExclamationMark		UMETA(DisplayName = "ExclamationMark"),
-	NoneMark		UMETA(DisplayName = "NoneMark")
+	NoneMark			UMETA(DisplayName = "NoneMark")
 };

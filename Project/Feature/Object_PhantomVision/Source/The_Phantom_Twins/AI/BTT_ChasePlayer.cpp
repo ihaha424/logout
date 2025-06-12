@@ -52,6 +52,5 @@ EBTNodeResult::Type UBTT_ChasePlayer::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	FNavPathSharedPtr NavPath;
 	AIController->MoveTo(MoveRequest, &NavPath);
 
-
 	return EBTNodeResult::Succeeded;
 }
