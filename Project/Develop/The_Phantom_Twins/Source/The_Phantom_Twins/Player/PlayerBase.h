@@ -124,6 +124,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)
 	TSubclassOf<UUserWidget> InvenWidgetClass;
 
+	// for using CCTV 
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Widget)
+	//TObjectPtr<class UCCTVUserComponent> CCTVUserComp;
+
 public:
 	bool bIsInventoryVisible = false;
 	bool bIsGroggy = false;

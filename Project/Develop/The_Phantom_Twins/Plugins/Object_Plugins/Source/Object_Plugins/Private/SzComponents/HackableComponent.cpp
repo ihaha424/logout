@@ -95,8 +95,8 @@ void UHackableComponent::TryCompleteHacking(float HeldDuration, float CurrentTim
 
 	UE_LOG(LogTemp, Log, TEXT("Hacking Success! %.2f / %.2f"), HeldDuration, RequiredTime);
 
-	bIsHacked = true;
 	bIsHacking = false;
+	bIsHacked = true;
 	HackingStartTime = CurrentTime;
 
 	if (UHackingGauge* Widget = Cast<UHackingGauge>(GuageUI))

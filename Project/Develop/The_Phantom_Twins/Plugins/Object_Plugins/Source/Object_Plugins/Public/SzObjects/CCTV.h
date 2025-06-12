@@ -40,19 +40,14 @@ public:
 	void Turn(const FInputActionValue& Value);
 	void Exit(const FInputActionValue& Value);
 
+	int32 GetID() { return CCTVID; }
+
 private:
 	// 상태 관리 함수
 	void EnterCCTVView(APlayerController* PlayerController);
 	void ExitCCTVView(APlayerController* PlayerController);
 
 public:
-	// CCTV 설정
-	UPROPERTY(EditAnywhere, Category = "CCTV")
-	TObjectPtr<AActor> RequiredKey;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
-	bool bHasKey = false;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
 	TObjectPtr<class USpringArmComponent> SpringArm;
 
@@ -106,4 +101,8 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "CCTV | Hacking")
 	TObjectPtr<class UNoiseComponent> NoiseComp;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
+	int32 CCTVID = 0;
 };
