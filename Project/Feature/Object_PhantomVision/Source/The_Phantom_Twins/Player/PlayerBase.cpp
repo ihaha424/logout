@@ -92,6 +92,10 @@ APlayerBase::APlayerBase()
 	// UI Widget
 	GroggyWidget = CreateDefaultSubobject<UPlayerWidgetComponent>(TEXT("Widget"));
 	GroggyWidget->SetupAttachment(RootComponent);
+
+	// CCTV
+	//CCTVUserComp = CreateDefaultSubobject<UCCTVUserComponent>(TEXT("CCTVUserComponent"));
+
 }
 
 bool APlayerBase::CheckActorInFront(AActor* TargetActor)
