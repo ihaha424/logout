@@ -48,13 +48,6 @@ private:
 	void ExitCCTVView(APlayerController* PlayerController);
 
 public:
-	// CCTV 설정
-	//UPROPERTY(EditAnywhere, Category = "CCTV")
-	//TObjectPtr<AActor> RequiredKey;
-
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
-	//bool bHasKey = false;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
 	TObjectPtr<class USpringArmComponent> SpringArm;
 
