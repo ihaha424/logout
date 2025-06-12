@@ -38,6 +38,7 @@ public:
 	void AddHackedCCTV(int32 CCTVId);
 	void RemoveHackedCCTV(int32 CCTVId);
 	bool HasHackedCCTV() const;								// 해킹된 CCTV가 있는지 확인하는 함수
+	ACCTV* GetFirstHackedCCTV() const;						// HackedIDSet 을 sorting 했을 때 가장 첫번째 CCTV를 반환
 	ACCTV* GetPrevHackedCCTV(int32 CurrentCCTVId) const;	// 현재 CCTV의 이전 CCTV를 반환해주는 함수
 	ACCTV* GetNextHackedCCTV(int32 CurrentCCTVId) const;	// 현재 CCTV의 이후 CCTV를 반환해주는 함수	
 	
@@ -52,6 +53,8 @@ public:
 		}
 		return nullptr;
 	}
+
+
 		
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")

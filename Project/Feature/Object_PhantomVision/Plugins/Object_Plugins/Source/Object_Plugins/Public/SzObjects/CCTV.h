@@ -39,13 +39,15 @@ public:
 	// Input 콜백
 	void Turn(const FInputActionValue& Value);
 	void Exit(const FInputActionValue& Value);
+	void Prev(const FInputActionValue& Value);
+	void Next(const FInputActionValue& Value);
 
 	int32 GetID() { return CCTVID; }
 
-private:
 	// 상태 관리 함수
 	void EnterCCTVView(APlayerController* PlayerController);
 	void ExitCCTVView(APlayerController* PlayerController);
+
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
@@ -83,6 +85,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<class UInputAction> IA_Exit;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<class UInputAction> IA_Prev;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<class UInputAction> IA_Next;
+
 	TObjectPtr<class UEnhancedInputLocalPlayerSubsystem> InputSubsystem;
 
 	UPROPERTY()
@@ -105,4 +113,10 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
 	int32 CCTVID = 0;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class UUserWidget> PhantomVisionWidget;
+	
+	UPROPERTY()
+	TObjectPtr<class UUserWidget> PhantomVisionUI;
 };
