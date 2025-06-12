@@ -6,6 +6,34 @@
 
 DEFINE_LOG_CATEGORY(LogStoryFlow);
 
+void UStoryFlowManager::Initialize(FSubsystemCollectionBase& Collection)
+{
+    Super::Initialize(Collection);
+
+    FCoreUObjectDelegates::PostLoadMapWithWorld.AddStatic(&UStoryFlowManager::OnPostLoadMap);
+}
+
+void UStoryFlowManager::Deinitialize()
+{
+    Super::Deinitialize();
+
+    FCoreUObjectDelegates::PostLoadMapWithWorld.RemoveAll(this);
+}
+
+void UStoryFlowManager::OnPostLoadMap(UWorld* LoadedWorld)
+{
+    if (LoadedWorld && LoadedWorld->IsGameWorld())
+    {
+        if (UGameInstance* GI = LoadedWorld->GetGameInstance())
+        {
+            if (UStoryFlowManager* Subsystem = GI->GetSubsystem<UStoryFlowManager>())
+            {
+                Subsystem->ClearAllData();
+            }
+        }
+    }
+}
+
 void UStoryFlowManager::RegisterData(FName DataName, UObject* Data)
 {
     if (nullptr == Data)

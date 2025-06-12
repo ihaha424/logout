@@ -19,6 +19,11 @@ public:
     using FCallback = TFunction<void(FName, const UObject*)>;
     using FCallbackID = FGuid;
 
+    virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+    virtual void Deinitialize() override;
+
+    static void OnPostLoadMap(UWorld* LoadedWorld);
+
     /**
      * @brief   : Blueprint-accessible functions
      * @param DataName 

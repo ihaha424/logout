@@ -15,5 +15,4 @@ class THE_PHANTOM_TWINS_API UPhantomTwinsInstance : public UGameInstance
 
 	UFUNCTION(BlueprintCallable, Category = "Story")
 	UStoryFlowManager* GetStoryFlowManager();
-	
 };
