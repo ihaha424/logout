@@ -30,12 +30,12 @@ AMyAICharacter::AMyAICharacter()
 	{
 		GetCharacterMovement()->bOrientRotationToMovement = false;
 	}
+	// 위젯컴포넌트에 대한 설정
 	AIStateWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("AIStateWidget"));
 	AIStateWidget->SetupAttachment(RootComponent);
 	AIStateWidget->SetRelativeLocation(FVector(0.f, 0.f, 200));
 	AIStateWidget->SetWidgetSpace(EWidgetSpace::World);
 	AIStateWidget->SetDrawAtDesiredSize(true);
-
 	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClass(TEXT("/Game/Project_TPT/Assets/UI/WB_AIWidget"));
 	if (WidgetClass.Succeeded())
 	{
@@ -57,7 +57,7 @@ void AMyAICharacter::OnHackingStarted_Implementation(APawn* Interactor)
 	{
 		return;
 	}
-	APlayerBase* Target = Cast<APlayerBase>(BlackboardComp->GetValueAsObject(TEXT("TargetPlayer")));
+	APlayerBase* Target = Cast<APlayerBase>(BlackboardComp->GetValueAsObject(TEXT("ChasingPlayer")));
 	if (Target == nullptr || Target != Interactor)
 	{
 		// AI 상태를 해킹 상태로 변경
@@ -69,7 +69,7 @@ void AMyAICharacter::OnHackingStarted_Implementation(APawn* Interactor)
 			Perception->SetSenseEnabled(UAISense_Hearing::StaticClass(), false);
 			Perception->ForgetAll();
 		}
-		AIController->LastSightStartTime = 0.f;
+		AIController->ResetStimulus();
 	}
 	
 }
@@ -96,13 +96,6 @@ void AMyAICharacter::S2A_UpdateWidgetDirection_Implementation(FRotator Rotate)
 void AMyAICharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	//if (AIStateWidget && WidgetClass)
-	//{
-	//	AIStateWidget->SetWidgetClass(WidgetClass);
-	//	AIStateWidget->SetRelativeLocation(FVector(0.f, 0.f, 200));
-	//	AIStateWidget->SetWidgetSpace(EWidgetSpace::World);
-	//	AIStateWidget->SetDrawAtDesiredSize(true);
-	//}
 }
 
 // Called every frame

@@ -43,6 +43,5 @@ EBTNodeResult::Type UBTT_LookAtStimulusLocation::ExecuteTask(UBehaviorTreeCompon
 		FRotator LookRotation = Direction.Rotation();
 		AIPawn->SetActorRotation(LookRotation);
 	}
-	BlackboardComp->SetValueAsEnum(TEXT("AIState"), static_cast<uint8>(EMyAIState::Default));
 	return EBTNodeResult::Succeeded;
 }

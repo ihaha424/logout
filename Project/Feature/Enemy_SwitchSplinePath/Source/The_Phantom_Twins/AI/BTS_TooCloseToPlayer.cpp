@@ -8,6 +8,8 @@
 #include "AIInterface.h"
 #include "MyAICharacter.h"
 #include "MyAIController.h"
+#include "The_Phantom_Twins/Player/PlayerDefaultController.h"
+#include "The_Phantom_Twins/Player/PlayerBase.h"
 
 UBTS_TooCloseToPlayer::UBTS_TooCloseToPlayer()
 {
@@ -17,62 +19,43 @@ UBTS_TooCloseToPlayer::UBTS_TooCloseToPlayer()
 
 void UBTS_TooCloseToPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
+    Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
+
     AMyAIController* AIController = Cast<AMyAIController>(OwnerComp.GetAIOwner());
-    if (!AIController)
-    {
-        return;
-    }
+    if (!AIController) return;
 
     AMyAICharacter* AIPawn = Cast<AMyAICharacter>(AIController->GetPawn());
-    if (!AIPawn)
-    {
-        return;
-    }
+    if (!AIPawn) return;
 
     UWorld* World = AIPawn->GetWorld();
-    if (World == nullptr)
-    {
-        return;
-    }
+    if (!World) return;
 
     APawn* ClosestPlayerPawn = nullptr;
     float ClosestDistance = MaxDistance;
 
     for (FConstPlayerControllerIterator Iterator = World->GetPlayerControllerIterator(); Iterator; ++Iterator)
     {
-        APlayerController* PlayerController = Iterator->Get();
-        if (PlayerController == nullptr)
-        {
-            continue;
-        }
+        APlayerDefaultController* PC = Cast<APlayerDefaultController>(Iterator->Get());
+        if (!PC) continue;
 
-        APawn* PlayerPawn = PlayerController->GetPawn();
-        if (PlayerPawn == nullptr || PlayerPawn == AIPawn)
-        {
-            continue;
-        }
+        APlayerBase* Player = Cast<APlayerBase>(PC->GetPawn());
+        if (!Player) continue;
 
-        float Distance = FVector::Dist(AIPawn->GetActorLocation(), PlayerPawn->GetActorLocation());
+        float Distance = FVector::Dist(AIPawn->GetActorLocation(), Player->GetActorLocation());
         if (Distance < ClosestDistance)
         {
-            ClosestPlayerPawn = PlayerPawn;
             ClosestDistance = Distance;
+            ClosestPlayerPawn = Player;
         }
     }
 
-    UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
-    if (BlackboardComp == nullptr)
-    {
-        return;
-    }
+    UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
+    if (!BB) return;
 
-    if (ClosestPlayerPawn != nullptr)
+    if (ClosestPlayerPawn && ClosestDistance <= MaxDistance)
     {
-        // 상태변화 시키기.
-        BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Combat));
-        BlackboardComp->SetValueAsObject("TargetPlayer", ClosestPlayerPawn);
-		AIPawn->S2A_UpdateAIStateWidget(EAIStateWidget::ExclamationMark);
+    	BB->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Combat));
+    	AIPawn->S2A_UpdateAIStateWidget(EAIStateWidget::ExclamationMark);
+        BB->SetValueAsObject("ChasingPlayer", ClosestPlayerPawn);
     }
-
 }

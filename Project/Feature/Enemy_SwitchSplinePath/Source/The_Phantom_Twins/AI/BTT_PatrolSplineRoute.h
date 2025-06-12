@@ -19,8 +19,6 @@ public:
 	
 private:
 	UPROPERTY(EditAnywhere, Category = "AI|Spline")
-	int CurrentPatrolIndex = 0;
-	UPROPERTY(EditAnywhere, Category = "AI|Spline")
 	float MoveSpeed = 200.f;
 	UPROPERTY(EditAnywhere, Category = "AI|Spline")
 	bool bIsFollowingSpline = false;

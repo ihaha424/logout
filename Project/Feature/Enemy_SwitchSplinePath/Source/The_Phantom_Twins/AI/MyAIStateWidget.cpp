@@ -18,7 +18,9 @@ void UMyAIStateWidget::SetState(EAIStateWidget AIState)
 {
     if (!QuestionMark || !ExclamationMark) return;
 
-	
+    QuestionMark->SetVisibility(ESlateVisibility::Hidden);
+    ExclamationMark->SetVisibility(ESlateVisibility::Hidden);
+
     UKismetSystemLibrary::PrintString(this, TEXT("SetState"));
     switch (AIState)
     {

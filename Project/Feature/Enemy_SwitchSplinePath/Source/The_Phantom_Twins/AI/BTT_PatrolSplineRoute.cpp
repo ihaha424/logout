@@ -25,7 +25,7 @@ EBTNodeResult::Type UBTT_PatrolSplineRoute::ExecuteTask(UBehaviorTreeComponent& 
 	}
 
 	AMyAICharacter* AIPawn = Cast<AMyAICharacter>(AIController->GetPawn());
-	if (!AIPawn || !AIPawn->SplinePath)
+	if (!AIPawn || !AIPawn->BaseSplinePath)
 	{
 		return EBTNodeResult::Failed;
 	}
@@ -36,7 +36,7 @@ EBTNodeResult::Type UBTT_PatrolSplineRoute::ExecuteTask(UBehaviorTreeComponent& 
 		return EBTNodeResult::Failed;
 	}
 	
-	USplineComponent* SplineRoute = AIPawn->SplinePath->SplineComponent;
+	USplineComponent* SplineRoute = AIPawn->BaseSplinePath->SplineComponent;
 	if (!SplineRoute)
 	{
 		return EBTNodeResult::Failed;
