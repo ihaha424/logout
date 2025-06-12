@@ -18,16 +18,15 @@ class OBJECT_PLUGINS_API APhantomTwinsGameState : public AGameStateBase
 public:
 	APhantomTwinsGameState();
 
-protected:
-	virtual void PostInitializeComponents() override;
-	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
-
+//protected:
+//	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "CCTV")
 	UCCTVManager* GetCCTVManager() const { return CCTVManager; }
 
 protected:
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
+	//UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
 	TObjectPtr<UCCTVManager> CCTVManager;
 };
