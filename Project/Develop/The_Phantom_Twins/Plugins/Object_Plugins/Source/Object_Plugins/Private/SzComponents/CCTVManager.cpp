@@ -53,6 +53,19 @@ bool UCCTVManager::HasHackedCCTV() const
 	return HackedIDSet.Num() > 0;
 }
 
+ACCTV* UCCTVManager::GetFirstHackedCCTV() const
+{
+	if (HackedIDSet.Num() == 0) return nullptr;
+
+	TArray<int32> SortedIDs = HackedIDSet.Array();
+	SortedIDs.Sort();
+
+	int32 cctvID = SortedIDs[0];
+
+	const TObjectPtr<ACCTV>* firstHackedCCTV = CCTVMap.Find(cctvID);
+	return firstHackedCCTV ? firstHackedCCTV->Get() : nullptr;
+}
+
 ACCTV* UCCTVManager::GetPrevHackedCCTV(int32 CurrentCCTVId) const
 {
 	if (HackedIDSet.Num() == 0) return nullptr;
