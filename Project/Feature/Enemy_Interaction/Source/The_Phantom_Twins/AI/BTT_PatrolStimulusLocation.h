@@ -6,6 +6,7 @@
 #include "BehaviorTree/BTTaskNode.h"
 #include "BTT_PatrolStimulusLocation.generated.h"
 
+class USplineComponent;
 /**
  * 
  */
@@ -25,7 +26,4 @@ public:
 	float AcceptanceRadius = 5.f;
 
 private:
-	int32 CurrentIndex = 0;
-	int32 MaxIndex = 0;
-	FVector TargetLocation;
 };

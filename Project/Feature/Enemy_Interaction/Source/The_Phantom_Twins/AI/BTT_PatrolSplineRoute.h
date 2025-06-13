@@ -16,7 +16,8 @@ class THE_PHANTOM_TWINS_API UBTT_PatrolSplineRoute : public UBTTaskNode
 public:
 	UBTT_PatrolSplineRoute();
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-	
+	void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds);
+
 private:
 	UPROPERTY(EditAnywhere, Category = "AI|Spline")
 	float MoveSpeed = 200.f;
