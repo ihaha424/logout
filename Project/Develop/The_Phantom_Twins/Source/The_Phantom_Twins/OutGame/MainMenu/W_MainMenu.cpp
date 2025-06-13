@@ -19,6 +19,9 @@ void UW_MainMenu::StartLobby(const FName LevelName)
 
 void UW_MainMenu::ConnectLobby(const FName LevelName)
 {
-	if (LevelName.IsValid())
-		UGameplayStatics::OpenLevel(GetWorld(), LevelName);
+    if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+    {
+        FString URL = LevelName.ToString();
+        PC->ClientTravel(URL, ETravelType::TRAVEL_Absolute);
+    }
 }
