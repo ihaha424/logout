@@ -17,7 +17,7 @@ public:
 	// Sets default values for this character's properties
 	AMyAICharacter();
 
-	virtual void OnHackingStarted_Implementation(APawn* Interactor) override;
+	virtual void OnHackingStartedServer_Implementation(APawn* Interactor) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Spline")
 	class ASplinePathActor* BaseSplinePath;
