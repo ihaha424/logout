@@ -6,5 +6,5 @@
 
 UStoryFlowManager* UPhantomTwinsInstance::GetStoryFlowManager()
 {
-	return GetSubsystem<UStoryFlowManager>();
+	return GetSubsystem<UStoryFlowManager>(); // GameInstanceSubSystem
 }
