@@ -52,7 +52,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class USphereComponent> SphereCollisionComp;
 
-	UPROPERTY(EditAnywhere, Category = "Hacking")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hacking")
 	TObjectPtr<class UHackableComponent> HackingComp;
 
 	// Outline
