@@ -26,13 +26,13 @@ public:
     TObjectPtr<UMaterialInterface> OverlayMaterial;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Outline")
-    FLinearColor OutlineColor = FLinearColor(3,0,0,1);
+    FLinearColor OutlineColor = FLinearColor(0,0,3,1);
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Outline")
     float LineScale = 5.0f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Outline")
-    float MaxDrawDistance = 2000.0f;
+    float MaxDrawDistance = 5000.0f;
 
 private:
     TObjectPtr<UMaterialInstanceDynamic> OverlayMID;
