@@ -16,6 +16,7 @@
 #include "PhantomTwinsGameState.h"
 #include "Blueprint/UserWidget.h"
 #include "SzUI/PhantomVisionWidget.h"
+#include "SzComponents/OutlineComponent.h"
 
 
 ACCTV::ACCTV()
@@ -304,6 +305,8 @@ void ACCTV::EnterCCTVView(APlayerController* PlayerController)
 			}
 		}
 	}
+
+	SetActorsOutlines(true);
 }
 
 void ACCTV::ExitCCTVView(APlayerController* PlayerController)
@@ -329,5 +332,29 @@ void ACCTV::ExitCCTVView(APlayerController* PlayerController)
 	{
 		PhantomVisionUI->RemoveFromParent();
 		PhantomVisionUI = nullptr;
+	}
+
+	SetActorsOutlines(false);
+}
+
+void ACCTV::SetActorsOutlines(bool bActive)
+{
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	// 레벨에 존재하는 모든 액터 가져오기
+	TArray<AActor*> AllActors;
+	UGameplayStatics::GetAllActorsOfClass(World, AActor::StaticClass(), AllActors);
+
+	for (AActor* Actor : AllActors)
+	{
+		if (!IsValid(Actor)) continue; // Actor nullptr 및 유효성 체크
+
+		// 액터에 UOutlineComponent가 붙어 있는지 확인
+		UOutlineComponent* FoundOutlineComp = Actor->FindComponentByClass<UOutlineComponent>();
+		if (IsValid(FoundOutlineComp))
+		{
+			FoundOutlineComp->SetOutline(bActive);
+		}
 	}
 }

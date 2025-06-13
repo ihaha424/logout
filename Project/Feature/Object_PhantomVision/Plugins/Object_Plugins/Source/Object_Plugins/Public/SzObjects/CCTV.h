@@ -48,6 +48,9 @@ public:
 	void EnterCCTVView(APlayerController* PlayerController);
 	void ExitCCTVView(APlayerController* PlayerController);
 
+private:
+	void SetActorsOutlines(bool bActive);
+
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")

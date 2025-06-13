@@ -7,6 +7,7 @@
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "SzComponents/InteractableComponent.h"
+#include "SzComponents/OutlineComponent.h"
 
 // TODO: Delete Debug Library
 #include "Kismet/KismetSystemLibrary.h"
@@ -22,6 +23,9 @@
 // Sets default values
 ABaseObject::ABaseObject()
 {
+    // NetWork
+    bReplicates = true;
+
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
     SetRootComponent(MeshComponent);
 	MeshComponent->SetCollisionProfileName(TEXT("OverlapAll"));
@@ -42,8 +46,9 @@ ABaseObject::ABaseObject()
 	SphereCollisionComp->SetSphereRadius(50.0f);
 	SphereCollisionComp->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
 
-    // NetWork
-    bReplicates = true;
+    // Outline
+    OutlineComp = CreateDefaultSubobject<UOutlineComponent>(TEXT("OutlineComponent"));
+
 
     // AI Perception
     StimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource"));
@@ -55,15 +60,6 @@ ABaseObject::ABaseObject()
 
     // "Object" 태그 추가
     Tags.Add(FName("Object"));
-
-    // Outline
-    static ConstructorHelpers::FObjectFinder<UMaterialInterface> MaterialFinder(
-        TEXT("/Game/Project_TPT/Assets/Materials/M_Outline.M_Outline")
-    );
-    if (MaterialFinder.Succeeded())
-    {
-        OverlayMaterial = MaterialFinder.Object;
-    }
 }
 
 void ABaseObject::BeginPlay()
@@ -101,23 +97,10 @@ void ABaseObject::BeginPlay()
         }
     }
 
-    // Outline
-    if (MeshComponent && OverlayMaterial)
+    if (OutlineComp)
     {
-        // 동적 머티리얼 인스턴스 생성 및 OverlayMaterial로 적용
-        OverlayMID = UMaterialInstanceDynamic::Create(OverlayMaterial, this);
-        MeshComponent->OverlayMaterialMaxDrawDistance = MaxDrawDistance;
-
-        // 파라미터 값 적용
-        if (OverlayMID)
-        {
-            OverlayMID->SetVectorParameterValue(FName("OutlineColor"), OutlineColor);
-            OverlayMID->SetScalarParameterValue(FName("LineScale"), LineScale);
-        }
-
-        //SetOutline(true);     // outline 테스트용 코드(지워야함)
+        OutlineComp->SetOutline(false);
     }
-
 }
 
 #if WITH_EDITOR
@@ -187,17 +170,4 @@ bool ABaseObject::GetPickedUp_Implementation() const
 void ABaseObject::SetWidgetVisibility_Implementation(bool Visible)
 {
     WidgetComponent->SetVisibility(Visible);
-}
-
-
-void ABaseObject::SetOutline(bool bActive)
-{
-    if (bActive)
-    {
-        MeshComponent->SetOverlayMaterial(OverlayMID);
-    }
-    else
-    {
-        MeshComponent->SetOverlayMaterial(nullptr);
-    }
 }
