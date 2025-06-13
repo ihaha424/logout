@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "SzObjects/BaseObject.h"
+#include "SzInterface/Hacking.h"
 #include "InputActionValue.h"
 #include "CCTV.generated.h"
 
@@ -11,7 +12,7 @@
  * 
  */
 UCLASS()
-class OBJECT_PLUGINS_API ACCTV : public ABaseObject
+class OBJECT_PLUGINS_API ACCTV : public ABaseObject, public IHacking
 {
 	GENERATED_BODY()
 
@@ -20,29 +21,35 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
 	virtual void OnInteractSever_Implementation(APawn* Interactor) override;
 	virtual bool CanInteract_Implementation(const APawn* Interactor) const override;
+	virtual void SetWidgetVisibility_Implementation(bool Visible) override;
+
+
+	// 해킹
+	virtual void OnHackingStarted_Implementation(APawn* Interactor) override;
+	virtual void OnHackingCompleted_Implementation(APawn* Interactor) override;
+	virtual bool CanBeHacked_Implementation() const override;
+	virtual void ClearHacking_Implementation() override;
 
 	// Input 콜백
 	void Turn(const FInputActionValue& Value);
 	void Exit(const FInputActionValue& Value);
+	void Prev(const FInputActionValue& Value);
+	void Next(const FInputActionValue& Value);
 
-private:
+	int32 GetID() { return CCTVID; }
+
 	// 상태 관리 함수
 	void EnterCCTVView(APlayerController* PlayerController);
 	void ExitCCTVView(APlayerController* PlayerController);
 
+
 public:
-	// CCTV 설정
-	UPROPERTY(EditAnywhere, Category = "CCTV")
-	TObjectPtr<AActor> RequiredKey;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
-	bool bHasKey = false;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
 	TObjectPtr<class USpringArmComponent> SpringArm;
 
@@ -78,6 +85,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<class UInputAction> IA_Exit;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<class UInputAction> IA_Prev;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<class UInputAction> IA_Next;
+
 	TObjectPtr<class UEnhancedInputLocalPlayerSubsystem> InputSubsystem;
 
 	UPROPERTY()
@@ -89,4 +102,21 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
     bool IsActive = false;
+
+	// 해킹
+	UPROPERTY(EditAnywhere, Category = "CCTV | Hacking")
+	TObjectPtr<class UHackableComponent> HackingComp;
+
+	UPROPERTY(EditAnywhere, Category = "CCTV | Hacking")
+	TObjectPtr<class UNoiseComponent> NoiseComp;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
+	int32 CCTVID = 0;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class UUserWidget> PhantomVisionWidget;
+	
+	UPROPERTY()
+	TObjectPtr<class UUserWidget> PhantomVisionUI;
 };

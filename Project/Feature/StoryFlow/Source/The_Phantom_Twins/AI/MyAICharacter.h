@@ -20,13 +20,22 @@ public:
 	virtual void OnHackingStarted_Implementation(APawn* Interactor) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Spline")
-	class ASplinePathActor* SplinePath;
+	class ASplinePathActor* BaseSplinePath;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Spline")
+	class ASplinePathActor* StimulusSplinePath;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	class UWidgetComponent* AIStateWidget;
 
-	UFUNCTION()
-	void UpdateAIStateWidget(EAIStateWidget State);
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_UpdateAIStateWidget(EAIStateWidget State);
+	void S2A_UpdateAIStateWidget_Implementation(EAIStateWidget State);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_UpdateWidgetDirection(FRotator Rotate);
+	void S2A_UpdateWidgetDirection_Implementation(FRotator Rotate);
+
 
 	float DistanceAlongSpline = 0.f;
 	bool bMovingForward = true;
@@ -47,5 +56,6 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	class ASplinePathActor* GetSplinePath() const { return SplinePath; }
+	class ASplinePathActor* GetBaseSplinePath() const { return BaseSplinePath; }
+	
 };
