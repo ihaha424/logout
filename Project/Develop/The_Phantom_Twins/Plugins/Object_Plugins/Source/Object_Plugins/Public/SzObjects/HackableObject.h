@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "SzInterface/Hacking.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "HackableObject.generated.h"
 
 UCLASS()
@@ -34,6 +35,7 @@ public:
 
 	virtual void SetWidgetVisibility_Implementation(bool Visible) override;
 
+	void SetOutline(bool bActive);
 
 protected:
 	// 위젯
@@ -52,4 +54,20 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Hacking")
 	TObjectPtr<class UHackableComponent> HackingComp;
+
+	// Outline
+    UPROPERTY(EditDefaultsOnly, Category="Outline")
+    TObjectPtr<UMaterialInterface> OverlayMaterial;	// Overlay 머티리얼 레퍼런스
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Outline")	
+    FLinearColor OutlineColor = FLinearColor(3,0,0,1);	// OutlineColor 파라미터
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Outline")
+    float LineScale = 5.0f;	// LineScale 파라미터
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Outline")
+    float MaxDrawDistance = 2000.0f;
+
+private:
+	TObjectPtr<UMaterialInstanceDynamic> OverlayMID;
 };
