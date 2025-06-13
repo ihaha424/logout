@@ -15,11 +15,4 @@ class THE_PHANTOM_TWINS_API UPhantomTwinsInstance : public UGameInstance
 
 	UFUNCTION(BlueprintCallable, Category = "Story")
 	UStoryFlowManager* GetStoryFlowManager();
-
-public:
-	UFUNCTION(BlueprintCallable)
-	void LoadLevelWithLoadingScreen(const FString& LevelName);
-
-private:
-	void OnLevelLoaded();
 };
