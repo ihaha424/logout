@@ -502,7 +502,7 @@ void APlayerBase::StopHacking(const FInputActionValue& Value)
 	if (NearestInteractiveObject 
 		&& NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
 	{
-		IHacking::Execute_OnHackingCompleted(NearestInteractiveObject, this);
+		IHacking::Execute_OnHackingCompletedServer(NearestInteractiveObject, this);
 	}
 }
 
@@ -601,7 +601,7 @@ void APlayerBase::C2S_Hacking_Implementation(UObject* interact)
 		return;
 	}
 	if (interact->GetClass()->ImplementsInterface(UHacking::StaticClass()))
-	IHacking::Execute_OnHackingStarted(interact, this);
+	IHacking::Execute_OnHackingStartedServer(interact, this);
 }
 
 void APlayerBase::C2S_SetMaxWalkSpeed_Implementation(float Speed)

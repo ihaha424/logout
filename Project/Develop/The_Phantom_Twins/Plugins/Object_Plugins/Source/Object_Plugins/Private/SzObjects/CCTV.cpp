@@ -144,13 +144,13 @@ void ACCTV::SetWidgetVisibility_Implementation(bool Visible)
 
 }
 
-void ACCTV::OnHackingStarted_Implementation(APawn* Interactor)
+void ACCTV::OnHackingStartedServer_Implementation(APawn* Interactor)
 {
 	HackingComp->HackingStarted();
 	NoiseComp->HackingStarted();
 }
 
-void ACCTV::OnHackingCompleted_Implementation(APawn* Interactor)
+void ACCTV::OnHackingCompletedServer_Implementation(APawn* Interactor)
 {
 	HackingComp->HackingCompleted();
 	NoiseComp->HackingCompleted();

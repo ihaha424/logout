@@ -31,8 +31,8 @@ public:
 
 
 	// 해킹
-	virtual void OnHackingStarted_Implementation(APawn* Interactor) override;
-	virtual void OnHackingCompleted_Implementation(APawn* Interactor) override;
+	virtual void OnHackingStartedServer_Implementation(APawn* Interactor) override;
+	virtual void OnHackingCompletedServer_Implementation(APawn* Interactor) override;
 	virtual bool CanBeHacked_Implementation() const override;
 	virtual void ClearHacking_Implementation() override;
 

@@ -99,13 +99,13 @@ void AHackableObject::Tick(float DeltaTime)
 	}
 }
 
-void AHackableObject::OnHackingStarted_Implementation(APawn* Interactor)
+void AHackableObject::OnHackingStartedServer_Implementation(APawn* Interactor)
 {
 	HackingComp->HackingStarted();
 }
 
 
-void AHackableObject::OnHackingCompleted_Implementation(APawn* Interactor)
+void AHackableObject::OnHackingCompletedServer_Implementation(APawn* Interactor)
 {
 	HackingComp->HackingCompleted();
 }
