@@ -19,6 +19,11 @@ public:
     using FCallback = TFunction<void(FName, const UObject*)>;
     using FCallbackID = FGuid;
 
+    virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+    virtual void Deinitialize() override;
+
+    static void OnPostLoadMap(UWorld* LoadedWorld);
+
     /**
      * @brief   : Blueprint-accessible functions
      * @param DataName 
@@ -26,6 +31,9 @@ public:
      */
     UFUNCTION(BlueprintCallable, Category = "StoryFlow")
     void RegisterData(FName DataName, UObject* Data);
+
+    UFUNCTION(BlueprintCallable, Category = "StoryFlow")
+    void UnregisterData(FName DataName);
 
     UFUNCTION(BlueprintCallable, Category = "StoryFlow")
     void SetData(FName DataName, UObject* NewValue);
@@ -54,6 +62,12 @@ public:
         return Cast<T>(Obj);
     }
 
+    UFUNCTION(BlueprintCallable, Category = "StoryFlow")
+    void ClearAllData(bool bRemoveCoreData = false);
+
+    UFUNCTION(BlueprintCallable, Category = "StoryFlow")
+    void MarkAsCoreData(FName DataName, bool bCoreData = true);
+
     /**
      * @brief : Save/Load
      */
@@ -69,6 +83,7 @@ private:
     TMap<FName, TArray<TPair<FGuid, FCallback>>> Subscribers;
     TMap<FGuid, FOnDataChangedBP> BPDelegateMap;
     TSet<FGuid> DeferredRemovals;
+    TSet<FName> CoreDataSet;
 
     void NotifySubscribers(FName DataName);
 };
