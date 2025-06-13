@@ -23,6 +23,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Hacking")
 	virtual void HackingCompleted();
 
+	UFUNCTION(BlueprintCallable, Category = "Hacking")
 	virtual void UpdateHackingProgress(float CurrentTime);
 	virtual void TryCompleteHacking(float HeldDuration, float CurrentTime);
 
@@ -54,7 +55,7 @@ public:
 	bool bIsHacking = false;
 
 	// 해킹 상태
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsHacked = false;
 
 	float HackingStartTime = 0.0f;
