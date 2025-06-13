@@ -14,6 +14,7 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/PawnSensingComponent.h"
+#include "SzObjects/HackableObject.h"
 #include "The_Phantom_Twins/Player/PlayerBase.h"
 
 AMyAIController::AMyAIController()
@@ -226,6 +227,15 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 
 void AMyAIController::ObjectPerception(AActor* Actor, FAIStimulus Stimulus)
 {
+	if (Actor->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+	{
+		AHackableObject* Object = Cast<AHackableObject>(Actor);
+		if (Object->IHacking::CanBeHacked_Implementation())
+		{
+			Object->ClearHacking_Implementation();
+		}
+		
+	}
 }
 
 void AMyAIController::AllyPerception(AActor* Actor, FAIStimulus Stimulus)
