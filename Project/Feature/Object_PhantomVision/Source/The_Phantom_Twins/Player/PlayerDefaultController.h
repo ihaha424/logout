@@ -18,4 +18,6 @@ class THE_PHANTOM_TWINS_API APlayerDefaultController : public APlayerController
 
 public:
 	APlayerDefaultController();
+
+	void BeginPlay() override;
 };
