@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "SzComponents/Interaction.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "BaseObject.generated.h"
 
 UENUM(BlueprintType)
@@ -40,7 +41,9 @@ public:
 	virtual bool GetPickedUp_Implementation() const override;
 	virtual void SetWidgetVisibility_Implementation(bool Visible) override;
 
+	void SetOutline(bool bActive);
 
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UStaticMeshComponent> MeshComponent;
 
@@ -80,9 +83,25 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
     TObjectPtr<class UAIPerceptionStimuliSourceComponent> StimuliSource;
 
+	// Outline
+    UPROPERTY(EditDefaultsOnly, Category="Outline")
+    TObjectPtr<UMaterialInterface> OverlayMaterial;	// Overlay 머티리얼 레퍼런스
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Outline")	
+    FLinearColor OutlineColor = FLinearColor(3,0,0,1);	// OutlineColor 파라미터
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Outline")
+    float LineScale = 5.0f;	// LineScale 파라미터
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Outline")
+    float MaxDrawDistance = 2000.0f;
+
+
 private:
 	// 내부용: bIsPickedUp 노출 조건
 	UPROPERTY()
 	bool bIsInventoryObject = true;
+
+	TObjectPtr<UMaterialInstanceDynamic> OverlayMID;
 
 };

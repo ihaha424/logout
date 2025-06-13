@@ -55,6 +55,15 @@ ABaseObject::ABaseObject()
 
     // "Object" 태그 추가
     Tags.Add(FName("Object"));
+
+    // Outline
+    static ConstructorHelpers::FObjectFinder<UMaterialInterface> MaterialFinder(
+        TEXT("/Game/Project_TPT/Assets/Materials/M_Outline.M_Outline")
+    );
+    if (MaterialFinder.Succeeded())
+    {
+        OverlayMaterial = MaterialFinder.Object;
+    }
 }
 
 void ABaseObject::BeginPlay()
@@ -91,6 +100,24 @@ void ABaseObject::BeginPlay()
             UE_LOG(LogTemp, Warning, TEXT("No InteractableComponent found on %s"), *GetName());
         }
     }
+
+    // Outline
+    if (MeshComponent && OverlayMaterial)
+    {
+        // 동적 머티리얼 인스턴스 생성 및 OverlayMaterial로 적용
+        OverlayMID = UMaterialInstanceDynamic::Create(OverlayMaterial, this);
+        MeshComponent->OverlayMaterialMaxDrawDistance = MaxDrawDistance;
+
+        // 파라미터 값 적용
+        if (OverlayMID)
+        {
+            OverlayMID->SetVectorParameterValue(FName("OutlineColor"), OutlineColor);
+            OverlayMID->SetScalarParameterValue(FName("LineScale"), LineScale);
+        }
+
+        //SetOutline(true);     // outline 테스트용 코드(지워야함)
+    }
+
 }
 
 #if WITH_EDITOR
@@ -160,4 +187,17 @@ bool ABaseObject::GetPickedUp_Implementation() const
 void ABaseObject::SetWidgetVisibility_Implementation(bool Visible)
 {
     WidgetComponent->SetVisibility(Visible);
+}
+
+
+void ABaseObject::SetOutline(bool bActive)
+{
+    if (bActive)
+    {
+        MeshComponent->SetOverlayMaterial(OverlayMID);
+    }
+    else
+    {
+        MeshComponent->SetOverlayMaterial(nullptr);
+    }
 }

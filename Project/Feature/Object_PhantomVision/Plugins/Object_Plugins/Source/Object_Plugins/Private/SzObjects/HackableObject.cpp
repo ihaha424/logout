@@ -35,6 +35,15 @@ AHackableObject::AHackableObject()
 	SphereCollisionComp->ComponentTags.Add(FName("Object"));
 	SphereCollisionComp->SetSphereRadius(50.0f);
 	SphereCollisionComp->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
+
+	// Outline
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MaterialFinder(
+		TEXT("/Game/Project_TPT/Assets/Materials/M_Outline.M_Outline")
+	);
+	if (MaterialFinder.Succeeded())
+	{
+		OverlayMaterial = MaterialFinder.Object;
+	}
 }
 
 // Called when the game starts or when spawned
@@ -55,6 +64,22 @@ void AHackableObject::BeginPlay()
 	{
 		WidgetComponent->SetWidgetClass(WidgetClass);
 		WidgetComponent->SetVisibility(true);
+	}
+
+	// Outline
+	if (MeshComponent && OverlayMaterial)
+	{
+		// 동적 머티리얼 인스턴스 생성 및 OverlayMaterial로 적용
+		OverlayMID = UMaterialInstanceDynamic::Create(OverlayMaterial, this);
+		//MeshComponent->SetOverlayMaterial(OverlayMID);
+		MeshComponent->OverlayMaterialMaxDrawDistance = MaxDrawDistance;
+
+		// 파라미터 값 적용
+		if (OverlayMID)
+		{
+			OverlayMID->SetVectorParameterValue(FName("OutlineColor"), OutlineColor);
+			OverlayMID->SetScalarParameterValue(FName("LineScale"), LineScale);
+		}
 	}
 }
 
@@ -101,3 +126,16 @@ void AHackableObject::SetWidgetVisibility_Implementation(bool Visible)
 {
 	WidgetComponent->SetVisibility(Visible);
 }
+
+void AHackableObject::SetOutline(bool bActive)
+{
+	if (bActive)
+	{
+		MeshComponent->SetOverlayMaterial(OverlayMID);
+	}
+	else
+	{
+		MeshComponent->SetOverlayMaterial(nullptr);
+	}
+}
+
