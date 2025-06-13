@@ -10,10 +10,13 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
 #include "InputAction.h"
+#include "SzComponents/HackableComponent.h"
+#include "SzComponents/NoiseComponent.h"
+#include "PhantomTwinsGameState.h"
 
 ACCTV::ACCTV()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
@@ -49,6 +52,50 @@ ACCTV::ACCTV()
 void ACCTV::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (!HackingComp)
+	{
+		HackingComp = FindComponentByClass<UHackableComponent>();
+		if (!HackingComp)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("No HackingComp found on %s"), *GetName());
+		}
+	}
+
+	if (!NoiseComp)
+	{
+		NoiseComp = FindComponentByClass<UNoiseComponent>();
+		if (!NoiseComp)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("No NoiseComp found on %s"), *GetName());
+		}
+	}
+
+	// CCTVManager에 CCTV 추가
+	APhantomTwinsGameState* gameState = Cast<APhantomTwinsGameState>(GetWorld()->GetGameState());
+	
+	if (gameState && gameState->GetCCTVManager())
+	{
+		gameState->GetCCTVManager()->AddCCTV(CCTVID, this);
+	}
+
+}
+
+void ACCTV::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
+
+	HackingComp->UpdateHackingProgress(CurrentTime);
+	NoiseComp->UpdateHackingProgress(CurrentTime);
+
+	// 해킹된 상태에서 유지 시간이 지나면 초기화 (단, bKeepHacked가 false일 때만)
+	if (HackingComp->bIsHacked && !HackingComp->bKeepHacked &&
+		(CurrentTime - HackingComp->HackingStartTime >= HackingComp->HackedDuration))
+	{
+		HackingComp->CheckHackReset();
+	}
 }
 
 void ACCTV::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -67,7 +114,7 @@ void ACCTV::OnInteractSever_Implementation(APawn* Interactor)
 	APlayerController* PlayerController = Cast<APlayerController>(Interactor->GetController());
 	if (!PlayerController || !CameraComp) return;
 
-	if (IsActive)
+	if (IsActive && HackingComp->bIsHacked)	// 해킹comp
 	{
 		bIsInCCTVView ? ExitCCTVView(PlayerController) : EnterCCTVView(PlayerController);
 	}
@@ -75,7 +122,60 @@ void ACCTV::OnInteractSever_Implementation(APawn* Interactor)
 
 bool ACCTV::CanInteract_Implementation(const APawn* Interactor) const
 {
-	return bHasKey;
+	return HackingComp->bIsHacked && IsActive;	// 임시. 해킹이 되어있고 카드키가 있어야 Interact 가능
+}
+
+void ACCTV::SetWidgetVisibility_Implementation(bool Visible)
+{
+	ABaseObject::SetWidgetVisibility_Implementation(Visible);
+
+}
+
+void ACCTV::OnHackingStarted_Implementation(APawn* Interactor)
+{
+	HackingComp->HackingStarted();
+	NoiseComp->HackingStarted();
+}
+
+void ACCTV::OnHackingCompleted_Implementation(APawn* Interactor)
+{
+	HackingComp->HackingCompleted();
+	NoiseComp->HackingCompleted();
+
+	// HackedIDSet에서 CCTV(자신) 추가
+	if (HackingComp->bIsHacked == true)
+	{
+		APhantomTwinsGameState* gameState = Cast<APhantomTwinsGameState>(GetWorld()->GetGameState());
+
+		if (gameState && gameState->GetCCTVManager())
+		{
+			gameState->GetCCTVManager()->AddHackedCCTV(CCTVID);
+		}
+	}
+}
+
+bool ACCTV::CanBeHacked_Implementation() const
+{
+	return !(HackingComp->bIsHacked);	// 해킹된 상태랑 해킹할 수 있는 상태는 반대.
+}
+
+void ACCTV::ClearHacking_Implementation()
+{
+	// 해킹 초기화
+	HackingComp->CheckHackReset();
+	NoiseComp->CheckHackReset();
+
+	// HackedIDSet에서 CCTV(자신) 제거
+	if (HackingComp->bIsHacked == false)
+	{
+		APhantomTwinsGameState* gameState = Cast<APhantomTwinsGameState>(GetWorld()->GetGameState());
+
+		if (gameState && gameState->GetCCTVManager())
+		{
+			gameState->GetCCTVManager()->RemoveHackedCCTV(CCTVID);
+		}
+	}
+
 }
 
 void ACCTV::Turn(const FInputActionValue& Value)
