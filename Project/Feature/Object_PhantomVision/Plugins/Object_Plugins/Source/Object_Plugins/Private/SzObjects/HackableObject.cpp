@@ -89,6 +89,9 @@ void AHackableObject::Tick(float DeltaTime)
 
 	const float CurrentTime = GetWorld()->GetTimeSeconds();
 
+	if (!HackingComp)
+		return;
+
 	HackingComp->UpdateHackingProgress(CurrentTime);
 
 	// 해킹된 상태에서 유지 시간이 지나면 초기화 (단, bKeepHacked가 false일 때만)

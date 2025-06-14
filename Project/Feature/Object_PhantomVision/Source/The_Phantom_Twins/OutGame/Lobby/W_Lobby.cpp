@@ -67,18 +67,8 @@ void UW_Lobby::OpenAndTravelToLevel(const FName LevelName)
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
 	if (!PC->HasAuthority()) return;
 
-	//for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-	//{
-	//	if (APlayerController* OtherPC = It->Get())
-	//	{
-	//		OtherPC->ClientTravel(LevelName.ToString(), TRAVEL_Absolute);
-	//	}
-	//}
-
-	//UGameplayStatics::OpenLevel(GetWorld(), LevelName, true, TEXT("listen"));
-
 	FString LevelPathWithListen = LevelName.ToString() + TEXT("?listen");
 
-	UE_LOG(LogTemp, Error, TEXT("LevelPathWithListen: %s"), *LevelPathWithListen);
+	UE_LOG(LogTemp, Log, TEXT("LevelPathWithListen: %s"), *LevelPathWithListen);
 	GetWorld()->ServerTravel(LevelPathWithListen, true);
 }
