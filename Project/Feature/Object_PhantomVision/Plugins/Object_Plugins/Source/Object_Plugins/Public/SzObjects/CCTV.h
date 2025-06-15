@@ -122,4 +122,8 @@ protected:
 	
 	UPROPERTY()
 	TObjectPtr<class UUserWidget> PhantomVisionUI;
+
+	// 현재 해킹 중인 플레이어를 추적하기 위한 변수 추가
+	UPROPERTY()
+	TObjectPtr<APawn> CurrentHackingPawn;
 };

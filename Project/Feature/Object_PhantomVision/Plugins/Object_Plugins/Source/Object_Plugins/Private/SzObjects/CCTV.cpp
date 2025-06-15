@@ -17,6 +17,7 @@
 #include "Blueprint/UserWidget.h"
 #include "SzUI/PhantomVisionWidget.h"
 #include "SzComponents/OutlineComponent.h"
+#include "Net/UnrealNetwork.h"
 
 
 ACCTV::ACCTV()
@@ -40,6 +41,8 @@ ACCTV::ACCTV()
 	bUseControllerRotationRoll = false;
 
 	AutoPossessPlayer = EAutoReceiveInput::Disabled;
+
+	CurrentHackingPawn = nullptr;
 
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputMappingContextRef(TEXT("/Game/Project_TPT/Assets/Input/Object/IMC_CCTV.IMC_CCTV"));
 	InputMappingContext = InputMappingContextRef.Object;
@@ -98,14 +101,23 @@ void ACCTV::Tick(float DeltaTime)
 
 	const float CurrentTime = GetWorld()->GetTimeSeconds();
 
-	HackingComp->UpdateHackingProgress(CurrentTime);
-	NoiseComp->UpdateHackingProgress(CurrentTime);
+	// 현재 해킹 중인 플레이어가 있을 때만 UpdateHackingProgress 호출
+	if (CurrentHackingPawn && HackingComp->bIsHacking)
+	{
+		HackingComp->UpdateHackingProgress(CurrentHackingPawn, CurrentTime);
+	}
+
+	if (CurrentHackingPawn && NoiseComp->bIsHacking)
+	{
+		NoiseComp->UpdateHackingProgress(CurrentHackingPawn, CurrentTime);
+	}
 
 	// 해킹된 상태에서 유지 시간이 지나면 초기화 (단, bKeepHacked가 false일 때만)
 	if (HackingComp->bIsHacked && !HackingComp->bKeepHacked &&
 		(CurrentTime - HackingComp->HackingStartTime >= HackingComp->HackedDuration))
 	{
 		HackingComp->CheckHackReset();
+		CurrentHackingPawn = nullptr; // 해킹이 리셋되면 현재 해킹 플레이어도 초기화
 	}
 }
 
@@ -146,14 +158,23 @@ void ACCTV::SetWidgetVisibility_Implementation(bool Visible)
 
 void ACCTV::OnHackingStartedServer_Implementation(APawn* Interactor)
 {
-	HackingComp->HackingStarted();
-	NoiseComp->HackingStarted();
+	// 현재 해킹 중인 플레이어 저장
+	CurrentHackingPawn = Interactor;
+
+	HackingComp->HackingStarted(Interactor);
+	NoiseComp->HackingStarted(Interactor);
 }
 
 void ACCTV::OnHackingCompletedServer_Implementation(APawn* Interactor)
 {
-	HackingComp->HackingCompleted();
-	NoiseComp->HackingCompleted();
+	// 해킹을 시작한 플레이어와 완료하는 플레이어가 같은지 확인
+	if (CurrentHackingPawn != Interactor) return;
+
+	HackingComp->HackingCompleted(Interactor);
+	NoiseComp->HackingCompleted(Interactor);
+
+	// 해킹 완료 후 현재 해킹 플레이어 초기화
+	CurrentHackingPawn = nullptr;
 
 	// HackedIDSet에서 CCTV(자신) 추가
 	if (HackingComp->bIsHacked == true)
@@ -169,7 +190,9 @@ void ACCTV::OnHackingCompletedServer_Implementation(APawn* Interactor)
 
 bool ACCTV::CanBeHacked_Implementation() const
 {
-	return !(HackingComp->bIsHacked);	// 해킹된 상태랑 해킹할 수 있는 상태는 반대.
+	if (!HackingComp) return false;
+
+	return !(HackingComp->bIsHacked) && !(HackingComp->bIsHacking);
 }
 
 void ACCTV::ClearHacking_Implementation()
@@ -177,6 +200,7 @@ void ACCTV::ClearHacking_Implementation()
 	// 해킹 초기화
 	HackingComp->CheckHackReset();
 	NoiseComp->CheckHackReset();
+	CurrentHackingPawn = nullptr;
 
 	// HackedIDSet에서 CCTV(자신) 제거
 	if (HackingComp->bIsHacked == false)
@@ -188,7 +212,6 @@ void ACCTV::ClearHacking_Implementation()
 			gameState->GetCCTVManager()->RemoveHackedCCTV(CCTVID);
 		}
 	}
-
 }
 
 void ACCTV::Turn(const FInputActionValue& Value)

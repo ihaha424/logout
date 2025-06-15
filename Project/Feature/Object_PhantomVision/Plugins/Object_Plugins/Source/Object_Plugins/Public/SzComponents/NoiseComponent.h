@@ -18,7 +18,7 @@ public:
 	UNoiseComponent();
 
 public:
-	virtual void TryCompleteHacking(float HeldDuration, float CurrentTime) override;
+	virtual void TryCompleteHacking(APawn* Interactor, float HeldDuration, float CurrentTime) override;
 	virtual void CheckHackReset() override;
 
 	// 소음 타이머 시작

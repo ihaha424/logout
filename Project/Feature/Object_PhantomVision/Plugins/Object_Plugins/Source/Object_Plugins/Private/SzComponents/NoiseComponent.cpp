@@ -12,9 +12,9 @@ UNoiseComponent::UNoiseComponent() : UHackableComponent()
 	bNoise = false;
 }
 
-void UNoiseComponent::TryCompleteHacking(float HeldDuration, float CurrentTime)
+void UNoiseComponent::TryCompleteHacking(APawn* Interactor, float HeldDuration, float CurrentTime)
 {
-	Super::TryCompleteHacking(HeldDuration, CurrentTime);
+	Super::TryCompleteHacking(Interactor, HeldDuration, CurrentTime);
 
 	UE_LOG(LogTemp, Log, TEXT("UNoiseComponent::TryCompleteHacking"));
 
