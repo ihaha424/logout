@@ -14,6 +14,7 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/PawnSensingComponent.h"
+#include "SzObjects/HackableObject.h"
 #include "The_Phantom_Twins/Player/PlayerBase.h"
 
 AMyAIController::AMyAIController()
@@ -133,10 +134,10 @@ void AMyAIController::Tick(float DeltaTime)
 		AccumulatedHearingStrength = 0.f;
 
 		Blackboard->SetValueAsVector(TEXT("LastStimulusLocation"), FVector::ZeroVector);
-		Blackboard->SetValueAsVector(TEXT("PatrolStimulusLocation"), FVector::ZeroVector);
+		Blackboard->SetValueAsVector(TEXT("UsingStimulusLocation"), FVector::ZeroVector);
 		Blackboard->SetValueAsEnum("AIStimulus", static_cast<uint8>(EMyAIStimulus::None));
 		Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
-
+		AICharacter->S2A_UpdateAIStateWidget(EAIStateWidget::NoneMark);
 		Blackboard->ClearValue("ChasingPlayer");
 		Blackboard->ClearValue("TargetPlayer");
 	}
@@ -176,7 +177,7 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 				SightStartTime = CurrentTime;
 			// 시야 감지에 따른 블랙보드 키 값 변경.
 			Blackboard->SetValueAsVector(TEXT("LastStimulusLocation"), Stimulus.StimulusLocation);
-			Blackboard->SetValueAsVector(TEXT("PatrolStimulusLocation"), Stimulus.StimulusLocation);
+			Blackboard->SetValueAsVector(TEXT("UsingStimulusLocation"), Stimulus.StimulusLocation);
 
 			Blackboard->SetValueAsEnum("AIStimulus", static_cast<uint8>(EMyAIStimulus::Sight));
 			Blackboard->SetValueAsObject(TEXT("TargetPlayer"), Target);
@@ -189,7 +190,7 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 		if (Stimulus.WasSuccessfullySensed())
 		{
 			// 발자국 마다 소리자극의 위치가 많이 갱신되는 것을 방지하기 위해서 만든 변수들.
-			PrevLocation = Blackboard->GetValueAsVector(TEXT("PatrolStimulusLocation"));
+			PrevLocation = Blackboard->GetValueAsVector(TEXT("UsingStimulusLocation"));
 			CurrLocation = Blackboard->GetValueAsVector(TEXT("LastStimulusLocation"));
 
 			AICharacter->S2A_UpdateAIStateWidget(EAIStateWidget::ExclamationMark);
@@ -206,7 +207,7 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 				// 패트롤해야하는 자극 위치와 들어온 자극의 거리가 차이나면 패트롤위치를 갱신한다.
 				if (FVector::DistSquared(PrevLocation, CurrLocation) > StimulusUpdateDistance)
 				{
-					Blackboard->SetValueAsVector(TEXT("PatrolStimulusLocation"), Stimulus.StimulusLocation);
+					Blackboard->SetValueAsVector(TEXT("UsingStimulusLocation"), Stimulus.StimulusLocation);
 				}
 			
 
@@ -221,11 +222,20 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 		}
 	}
 	// 자극의 근원지에서 가장 가까운 스플라인 경로를 찾는다.
-	AICharacter->StimulusSplinePath = FindNearestSplinePath(Blackboard->GetValueAsVector(TEXT("PatrolStimulusLocation")));
+	AICharacter->StimulusSplinePath = FindNearestSplinePath(Blackboard->GetValueAsVector(TEXT("UsingStimulusLocation")));
 }
 
 void AMyAIController::ObjectPerception(AActor* Actor, FAIStimulus Stimulus)
 {
+	if (Actor->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+	{
+		AHackableObject* Object = Cast<AHackableObject>(Actor);
+		if (Object->IHacking::CanBeHacked_Implementation())
+		{
+			Object->ClearHacking_Implementation();
+		}
+		
+	}
 }
 
 void AMyAIController::AllyPerception(AActor* Actor, FAIStimulus Stimulus)
@@ -239,7 +249,7 @@ void AMyAIController::ResetStimulus()
 	HearingStimulus.Empty();
 	AccumulatedHearingStrength = 0.f;
 	Blackboard->SetValueAsVector(TEXT("LastStimulusLocation"), FVector::ZeroVector);
-	Blackboard->SetValueAsVector(TEXT("PatrolStimulusLocation"), FVector::ZeroVector);
+	Blackboard->SetValueAsVector(TEXT("UsingStimulusLocation"), FVector::ZeroVector);
 	Blackboard->SetValueAsEnum("AIStimulus", static_cast<uint8>(EMyAIStimulus::None));
 	Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
 
@@ -251,10 +261,8 @@ ASplinePathActor* AMyAIController::FindNearestSplinePath(const FVector& Stimulus
 {
 	ASplinePathActor* ClosestSpline = nullptr;
 	float ClosestDistance = FLT_MAX;
-	int Count = 0;
 	for (TActorIterator<ASplinePathActor> It(GetWorld()); It; ++It)
 	{
-		++Count;
 		ASplinePathActor* SplineActor = *It;
 		if (SplineActor && SplineActor->SplineComponent)
 		{
@@ -267,6 +275,5 @@ ASplinePathActor* AMyAIController::FindNearestSplinePath(const FVector& Stimulus
 			}
 		}
 	}
-	UE_LOG(LogTemp, Warning, TEXT("SplinePathActor found: %d"), Count);
 	return ClosestSpline;
 }
