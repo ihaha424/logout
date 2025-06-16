@@ -637,15 +637,6 @@ void APlayerBase::SetGroggy()
 
 void APlayerBase::SetGroggyWidget(bool Visible)
 {
-	if (Visible)
-	{
-		UKismetSystemLibrary::PrintString(this, TEXT("Visible true"));
-	}
-	else
-	{
-		UKismetSystemLibrary::PrintString(this, TEXT("Visible Fail"));
-	}
-
 	GroggyWidget->SetVisibility(Visible);
 }
 
