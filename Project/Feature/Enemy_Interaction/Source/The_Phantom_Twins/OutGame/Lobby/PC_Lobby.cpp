@@ -8,6 +8,8 @@
 
 void APC_Lobby::C2S_SelectChractor_Implementation(const ECharacterType& type, const FName& DataName)
 {
+    bool bIsHost;
+
 	UStoryFlowManager* Manager = GetGameInstance()->GetSubsystem<UStoryFlowManager>();
 
     UIdentifyChracterData* ChractorData = Manager->GetDataAs<UIdentifyChracterData>(DataName);
@@ -21,20 +23,20 @@ void APC_Lobby::C2S_SelectChractor_Implementation(const ECharacterType& type, co
     {
         if (ChractorData->Client == type)
             return;
-        ChractorData->Host = type;
+        bIsHost = true;
     }
     else
     {
         if (ChractorData->Host == type)
             return;
-        ChractorData->Client = type;
+        bIsHost = false;
     }
 
     AGameStateBase* GS = GetWorld()->GetGameState();
     AGS_Lobby* LobbyGS = Cast<AGS_Lobby>(GS);
     if (LobbyGS)
     {
-        LobbyGS->S2A_SelectChractorEffect(ChractorData, DataName);
+        LobbyGS->S2A_SelectChractorEffect(type, bIsHost, DataName);
     }
 }
 

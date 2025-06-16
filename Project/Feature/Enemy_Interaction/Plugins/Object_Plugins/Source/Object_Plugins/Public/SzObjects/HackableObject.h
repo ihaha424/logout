@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "SzInterface/Hacking.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "HackableObject.generated.h"
 
 UCLASS()
@@ -21,10 +22,10 @@ protected:
 
 public:
 	// 해킹 실행 (E키 홀딩)
-    virtual void OnHackingStarted_Implementation(APawn* Interactor) override;
+    virtual void OnHackingStartedServer_Implementation(APawn* Interactor) override;
 
 	// 해킹 완료 후 로직 (CCTV 보임, 적 무력화 등)
-	virtual void OnHackingCompleted_Implementation(APawn* Interactor) override;
+	virtual void OnHackingCompletedServer_Implementation(APawn* Interactor) override;
     
 	// 해킹 가능 여부 체크 (false => 해킹 전 / true => 해킹 완료)
 	virtual bool CanBeHacked_Implementation() const override;
@@ -34,6 +35,7 @@ public:
 
 	virtual void SetWidgetVisibility_Implementation(bool Visible) override;
 
+	void SetOutline(bool bActive);
 
 protected:
 	// 위젯
@@ -50,6 +52,22 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class USphereComponent> SphereCollisionComp;
 
-	UPROPERTY(EditAnywhere, Category = "Hacking")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hacking")
 	TObjectPtr<class UHackableComponent> HackingComp;
+
+	// Outline
+    UPROPERTY(EditDefaultsOnly, Category="Outline")
+    TObjectPtr<UMaterialInterface> OverlayMaterial;	// Overlay 머티리얼 레퍼런스
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Outline")	
+    FLinearColor OutlineColor = FLinearColor(3,0,0,1);	// OutlineColor 파라미터
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Outline")
+    float LineScale = 5.0f;	// LineScale 파라미터
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Outline")
+    float MaxDrawDistance = 2000.0f;
+
+private:
+	TObjectPtr<UMaterialInstanceDynamic> OverlayMID;
 };

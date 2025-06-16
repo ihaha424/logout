@@ -73,7 +73,7 @@ void UStoryFlowManager::UnregisterData(FName DataName)
 
 void UStoryFlowManager::SetData(FName DataName, UObject* NewValue)
 {
-    if (DataMap.Contains(DataName))
+    if (nullptr != NewValue && DataMap.Contains(DataName))
     {
         DataMap[DataName] = NewValue;
         NotifySubscribers(DataName);

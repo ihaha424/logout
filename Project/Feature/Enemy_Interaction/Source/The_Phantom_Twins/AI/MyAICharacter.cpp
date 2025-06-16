@@ -45,7 +45,7 @@ AMyAICharacter::AMyAICharacter()
 	Tags.Add(FName("Object"));
 }
 
-void AMyAICharacter::OnHackingStarted_Implementation(APawn* Interactor)
+void AMyAICharacter::OnHackingStartedServer_Implementation(APawn* Interactor)
 {
 	AMyAIController* AIController = Cast<AMyAIController>(GetController());
 	if (!AIController)
