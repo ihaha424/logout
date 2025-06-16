@@ -22,10 +22,12 @@ protected:
 
 public:
 	// 해킹 실행 (E키 홀딩)
-    virtual void OnHackingStartedServer_Implementation(APawn* Interactor) override;
+	virtual void OnHackingStartedServer_Implementation(APawn* Interactor) override;
+	virtual void OnHackingStartedClient_Implementation(APawn* Interactor) override;
 
 	// 해킹 완료 후 로직 (CCTV 보임, 적 무력화 등)
 	virtual void OnHackingCompletedServer_Implementation(APawn* Interactor) override;
+	virtual void OnHackingCompletedClient_Implementation(APawn* Interactor) override;
     
 	// 해킹 가능 여부 체크 (false => 해킹 전 / true => 해킹 완료)
 	virtual bool CanBeHacked_Implementation() const override;
@@ -66,8 +68,12 @@ protected:
     float LineScale = 5.0f;	// LineScale 파라미터
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Outline")
-    float MaxDrawDistance = 2000.0f;
+	float MaxDrawDistance = 2000.0f;	// 최대 드로우 거리 (이 거리 이상에서는 오버레이가 보이지 않음)
 
 private:
-	TObjectPtr<UMaterialInstanceDynamic> OverlayMID;
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> OverlayMID;	// 동적 머티리얼 인스턴스 (머티리얼 인스턴스가 필요할 때마다 생성됨)
+	
+	UPROPERTY()
+	TObjectPtr<APawn> CurrentHackingPawn;	// 현재 해킹 중인 플레이어를 추적하기 위한 변수
 };

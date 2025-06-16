@@ -32,7 +32,11 @@ public:
 
 	// 해킹
 	virtual void OnHackingStartedServer_Implementation(APawn* Interactor) override;
+	virtual void OnHackingStartedClient_Implementation(APawn* Interactor) override;
+
 	virtual void OnHackingCompletedServer_Implementation(APawn* Interactor) override;
+	virtual void OnHackingCompletedClient_Implementation(APawn* Interactor) override;
+
 	virtual bool CanBeHacked_Implementation() const override;
 	virtual void ClearHacking_Implementation() override;
 
@@ -76,22 +80,22 @@ public:
 	float MaxYaw = 40.0f;
 
 	// 입력 설정
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	TObjectPtr<class UInputMappingContext> InputMappingContext;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<class UInputMappingContext> PlayerMappingContext;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	TObjectPtr<class UInputAction> IA_Turn;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	TObjectPtr<class UInputAction> IA_Exit;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	TObjectPtr<class UInputAction> IA_Prev;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	TObjectPtr<class UInputAction> IA_Next;
 
 	TObjectPtr<class UEnhancedInputLocalPlayerSubsystem> InputSubsystem;
@@ -122,4 +126,8 @@ protected:
 	
 	UPROPERTY()
 	TObjectPtr<class UUserWidget> PhantomVisionUI;
+
+	// 현재 해킹 중인 플레이어를 추적하기 위한 변수 추가
+	UPROPERTY()
+	TObjectPtr<APawn> CurrentHackingPawn;
 };
