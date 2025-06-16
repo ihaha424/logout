@@ -31,28 +31,32 @@ public:
 
 
 	// 해킹
-	virtual void OnHackingStarted_Implementation(APawn* Interactor) override;
-	virtual void OnHackingCompleted_Implementation(APawn* Interactor) override;
+	virtual void OnHackingStartedServer_Implementation(APawn* Interactor) override;
+	virtual void OnHackingStartedClient_Implementation(APawn* Interactor) override;
+
+	virtual void OnHackingCompletedServer_Implementation(APawn* Interactor) override;
+	virtual void OnHackingCompletedClient_Implementation(APawn* Interactor) override;
+
 	virtual bool CanBeHacked_Implementation() const override;
 	virtual void ClearHacking_Implementation() override;
 
 	// Input 콜백
 	void Turn(const FInputActionValue& Value);
 	void Exit(const FInputActionValue& Value);
+	void Prev(const FInputActionValue& Value);
+	void Next(const FInputActionValue& Value);
 
-private:
+	int32 GetID() { return CCTVID; }
+
 	// 상태 관리 함수
 	void EnterCCTVView(APlayerController* PlayerController);
 	void ExitCCTVView(APlayerController* PlayerController);
 
+private:
+	void SetActorsOutlines(bool bActive);
+
+
 public:
-	// CCTV 설정
-	UPROPERTY(EditAnywhere, Category = "CCTV")
-	TObjectPtr<AActor> RequiredKey;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
-	bool bHasKey = false;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
 	TObjectPtr<class USpringArmComponent> SpringArm;
 
@@ -76,17 +80,23 @@ public:
 	float MaxYaw = 40.0f;
 
 	// 입력 설정
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	TObjectPtr<class UInputMappingContext> InputMappingContext;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<class UInputMappingContext> PlayerMappingContext;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	TObjectPtr<class UInputAction> IA_Turn;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
 	TObjectPtr<class UInputAction> IA_Exit;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	TObjectPtr<class UInputAction> IA_Prev;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	TObjectPtr<class UInputAction> IA_Next;
 
 	TObjectPtr<class UEnhancedInputLocalPlayerSubsystem> InputSubsystem;
 
@@ -106,4 +116,18 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "CCTV | Hacking")
 	TObjectPtr<class UNoiseComponent> NoiseComp;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
+	int32 CCTVID = 0;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class UUserWidget> PhantomVisionWidget;
+	
+	UPROPERTY()
+	TObjectPtr<class UUserWidget> PhantomVisionUI;
+
+	// 현재 해킹 중인 플레이어를 추적하기 위한 변수 추가
+	UPROPERTY()
+	TObjectPtr<APawn> CurrentHackingPawn;
 };

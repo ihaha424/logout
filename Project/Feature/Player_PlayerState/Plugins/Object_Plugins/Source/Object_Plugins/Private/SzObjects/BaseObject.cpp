@@ -7,9 +7,7 @@
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "SzComponents/InteractableComponent.h"
-
-// TODO: Delete Debug Library
-#include "Kismet/KismetSystemLibrary.h"
+#include "SzComponents/OutlineComponent.h"
 
 //AI Perception
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
@@ -22,6 +20,9 @@
 // Sets default values
 ABaseObject::ABaseObject()
 {
+    // NetWork
+    bReplicates = true;
+
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
     SetRootComponent(MeshComponent);
 	MeshComponent->SetCollisionProfileName(TEXT("OverlapAll"));
@@ -42,8 +43,9 @@ ABaseObject::ABaseObject()
 	SphereCollisionComp->SetSphereRadius(50.0f);
 	SphereCollisionComp->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
 
-    // NetWork
-    bReplicates = true;
+    // Outline
+    OutlineComp = CreateDefaultSubobject<UOutlineComponent>(TEXT("OutlineComponent"));
+
 
     // AI Perception
     StimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource"));
@@ -90,6 +92,11 @@ void ABaseObject::BeginPlay()
         {
             UE_LOG(LogTemp, Warning, TEXT("No InteractableComponent found on %s"), *GetName());
         }
+    }
+
+    if (OutlineComp)
+    {
+        OutlineComp->SetOutline(false);
     }
 }
 
