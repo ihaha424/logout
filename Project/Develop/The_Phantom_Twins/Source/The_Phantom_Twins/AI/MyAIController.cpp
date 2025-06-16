@@ -178,7 +178,7 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 	{
 		if (Stimulus.WasSuccessfullySensed())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Sight PlayerPerception : %s"), *Actor->GetName());
+			//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Sight PlayerPerception : %s"), *Actor->GetName());
 			// AI의 위젯UI를 모두가 볼수있도록 하는 부분.
 			AICharacter->S2A_UpdateAIStateWidget(EAIStateWidget::QuestionMark);
 			// 시야 감지가 시작된적이 없다면 시간체크 시작.
@@ -195,7 +195,8 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 	{
 		if (Stimulus.WasSuccessfullySensed())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Hearing PlayerPerception : %s"), *Actor->GetName());
+			//
+			//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Hearing PlayerPerception : %s"), *Actor->GetName());
 			// 발자국 마다 소리자극의 위치가 많이 갱신되는 것을 방지하기 위해서 만든 변수들.
 			PrevLocation = Blackboard->GetValueAsVector(TEXT("UpdatedStimulusLocation"));
 			CurrLocation = Blackboard->GetValueAsVector(TEXT("PlayerStimulusLocation"));
@@ -214,7 +215,7 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 			// 패트롤해야하는 자극 위치와 들어온 자극의 거리가 차이나면 패트롤위치를 갱신한다.
 			if (FVector::DistSquared(PrevLocation, CurrLocation) > StimulusUpdateDistance)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("UpdatedStimulusLocation is Updated by \"UAISense_Hearing\""));
+				//UE_LOG(LogTemp, Warning, TEXT("UpdatedStimulusLocation is Updated by \"UAISense_Hearing\""));
 
 				Blackboard->SetValueAsVector(TEXT("UpdatedStimulusLocation"), Stimulus.StimulusLocation);
 			}
@@ -240,7 +241,7 @@ void AMyAIController::ObjectPerception(AActor* Actor, FAIStimulus Stimulus)
 		// 오브제트가 이미 해킹이되어서 해킹이 불가한 상태라면 밑의 코드가 실행됨.
 		if (!Object->IHacking::CanBeHacked_Implementation())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Hearing ObjectPerception : %s"), *Actor->GetName());
+			//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Hearing ObjectPerception : %s"), *Actor->GetName());
 			Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Suspicion));
 			Blackboard->SetValueAsObject("TargetObject", Object);
 		}
@@ -257,7 +258,7 @@ void AMyAIController::AllyPerception(AActor* Actor, FAIStimulus Stimulus)
 
 		if (BlackboardComp->GetValueAsEnum("AIState") == static_cast<uint8>(EMyAIState::Combat))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Sight AllyPerception : %s"), *Actor->GetName());
+			//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Sight AllyPerception : %s"), *Actor->GetName());
 			Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Combat));
 		}
 	}

@@ -191,6 +191,11 @@ void APlayerBase::NearestObjectCheck()
 	}
 }
 
+bool APlayerBase::IsGroggy() const
+{
+	return PS->bIsGroggy;
+}
+
 // Called when the game starts or when spawned
 void APlayerBase::BeginPlay()
 {
