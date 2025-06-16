@@ -19,7 +19,6 @@
 #include "EnhancedInputSubsystems.h"
 #include "PlayerDefaultController.h"
 #include "DrawDebugHelpers.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
 // Object Plugin
@@ -244,7 +243,6 @@ void APlayerBase::Tick(float DeltaTime)
 	NoiseTimer += DeltaTime;
 	if (NoiseTimer >= NoiseInterval)
 	{
-		//UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Noise : %.2f"), CurrentNoise));
 		C2S_MakeNoise(CurrentNoise);
 		NoiseTimer = 0.f;
 	}
@@ -344,7 +342,6 @@ void APlayerBase::SetWidgetVisibility_Implementation(bool Visible)
 {
 	if (bIsGroggy)
 	{
-		UKismetSystemLibrary::PrintString(this, TEXT("SetGroggyWidget"));
 		GroggyWidget->SetVisibility(Visible);
 	}
 	else
@@ -628,7 +625,6 @@ void APlayerBase::C2S_MakeNoise_Implementation(float Noise)
 
 void APlayerBase::SetGroggy()
 {
-	UKismetSystemLibrary::PrintString(this, TEXT("Groggy"));
 	S2A_SetGroggy();
 	GroggyWidget->SetVisibility(true);
 
@@ -645,7 +641,6 @@ void APlayerBase::S2A_SetGroggy_Implementation()
 
 void APlayerBase::S2A_SetRecovery_Implementation()
 {
-	//UKismetSystemLibrary::PrintString(this, TEXT("Recovery"));
 	Stat->SetHp(Stat->GetMaxHp());
 	bIsGroggy = false;
 	GroggyWidget->SetVisibility(false);

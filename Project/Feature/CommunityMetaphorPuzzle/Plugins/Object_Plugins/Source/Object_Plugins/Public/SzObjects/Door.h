@@ -27,7 +27,6 @@ public:
     // 블루프린트에서 문을 여는 동작을 구현할 수 있도록 선언
     UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Door")
 	void OpenDoor();
-	void OpenDoor_Implementation();
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Door")
     void CloseDoor();
 
