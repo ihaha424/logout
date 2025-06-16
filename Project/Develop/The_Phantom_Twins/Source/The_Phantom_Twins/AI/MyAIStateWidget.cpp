@@ -3,7 +3,6 @@
 
 #include "MyAIStateWidget.h"
 #include "Components/Image.h"
-#include "Kismet/KismetSystemLibrary.h"
 
 
 
@@ -21,7 +20,6 @@ void UMyAIStateWidget::SetState(EAIStateWidget AIState)
     QuestionMark->SetVisibility(ESlateVisibility::Hidden);
     ExclamationMark->SetVisibility(ESlateVisibility::Hidden);
 
-    UKismetSystemLibrary::PrintString(this, TEXT("SetState"));
     switch (AIState)
     {
     case EAIStateWidget::QuestionMark:
