@@ -117,6 +117,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)
 	TSubclassOf<UUserWidget> InvenWidgetClass;
 
+	// for using CCTV 
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Widget)
+	//TObjectPtr<class UCCTVUserComponent> CCTVUserComp;
+
 public:
 	UPROPERTY()
 	float NoiseTimer = 0.f;
@@ -174,6 +178,10 @@ public:
 	UFUNCTION(Server, Reliable)
 	void C2S_Hacking(UObject* interact);
 	void C2S_Hacking_Implementation(UObject* interact);
+
+	UFUNCTION(Server, Reliable)
+	void C2S_StopHacking(UObject* interact);
+	void C2S_StopHacking_Implementation(UObject* interact);
 
 	UFUNCTION(Server, Reliable)
 	void C2S_SetMaxWalkSpeed(float Speed);

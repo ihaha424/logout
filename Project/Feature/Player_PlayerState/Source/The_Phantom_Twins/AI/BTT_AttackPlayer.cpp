@@ -17,6 +17,7 @@ UBTT_AttackPlayer::UBTT_AttackPlayer()
 
 EBTNodeResult::Type UBTT_AttackPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
+	Super::ExecuteTask(OwnerComp, NodeMemory);
 	AMyAIController* AIController = Cast<AMyAIController>(OwnerComp.GetAIOwner());
 	if (!AIController)
 	{
@@ -51,7 +52,7 @@ EBTNodeResult::Type UBTT_AttackPlayer::ExecuteTask(UBehaviorTreeComponent& Owner
 		*AIPawn->GetName(), *Target->GetName(), DamageAmount);*/
 
 	// 일단 여기에 임시로 상태를 변경해줘보기.
-	BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
+	//BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
 
 	return EBTNodeResult::Succeeded;
 }

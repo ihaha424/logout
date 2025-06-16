@@ -7,6 +7,8 @@
 #include "Perception/AIPerceptionTypes.h"
 #include "MyAIController.generated.h"
 
+class AMyAICharacter;
+class ASplinePathActor;
 struct FAuditoryStimulus;
 class UAIPerceptionComponent;
 class UAISenseConfig_Sight;
@@ -26,9 +28,9 @@ public:
 
 	void RunAI();
 	void StopAI();
-	virtual void Tick(float DeltaTime);
-	//TODO:: private 으로 변경학...
-	float LastSightStartTime = -1.0f;
+	virtual void Tick(float DeltaTime) override;
+	void ResetStimulus();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
@@ -36,39 +38,46 @@ protected:
 	// 감지 콜백 함수
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+	void PlayerPerception(AActor* Actor, FAIStimulus Stimulus);
+	void ObjectPerception(AActor* Actor, FAIStimulus Stimulus);
+	void AllyPerception(AActor* Actor, FAIStimulus Stimulus);
+	ASplinePathActor* FindNearestSplinePath(const FVector& StimulusLocation);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "AI")
 	TObjectPtr<UAIPerceptionComponent> AIPerception;
-
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, Category = "AI")
 	TObjectPtr<UAISenseConfig_Sight> SightConfig;
-
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, Category = "AI")
 	TObjectPtr<UAISenseConfig_Hearing> HearingConfig;
 
 	// 비헤이비어 트리와 블랙보드
 	UPROPERTY()
 	TObjectPtr<UBehaviorTree> BTAI;
-
 	UPROPERTY()
 	TObjectPtr<UBlackboardData> BBAI;
 
 	UPROPERTY()
-
-
 	bool bSeeingPlayer = false;
 
+	UPROPERTY(EditAnywhere, Category = "AI")
+	float SeenDuration;
 	UPROPERTY()
 	TArray<FAuditoryStimulus> HearingStimulus;
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "AI")
 	float ExpireTime = 10.f;
-
 	float AccumulatedHearingStrength = 0.f;
 
-
-	float LastSeenTime = -1.0f;
+	float SightStartTime = -1.0f;
 	float LastHeardTime = -1.0f;
-	float ForgetTime = 3.0f; // 감지 해제 후 몇 초 뒤에 잊을지 설정
 
+	UPROPERTY(EditAnywhere, Category = "AI")
+	float SightForgetTime = 3.0f; // 감지 해제 후 몇 초 뒤에 잊을지 설정
+	float CurrentTime = 0.f;
+	TObjectPtr<AMyAICharacter> AICharacter;
+
+
+	FVector PrevLocation;
+	FVector CurrLocation;
+	const float StimulusUpdateDistance = FMath::Square(100.0f);
 };

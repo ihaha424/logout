@@ -21,9 +21,11 @@
 #include "PlayerDefaultController.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 // Object Plugin
 #include "SzInterface/Hacking.h"
+#include "SzObjects/CCTVLogic.h"
 
 // Sets default values
 APlayerBase::APlayerBase()
@@ -488,6 +490,7 @@ void APlayerBase::Hacking(const FInputActionValue& Value)
 	if (NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
 	{
 		C2S_Hacking(NearestInteractiveObject);
+		IHacking::Execute_OnHackingStartedClient(NearestInteractiveObject, this);
 	}
 }
 
@@ -501,7 +504,8 @@ void APlayerBase::StopHacking(const FInputActionValue& Value)
 	if (NearestInteractiveObject 
 		&& NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
 	{
-		IHacking::Execute_OnHackingCompleted(NearestInteractiveObject, this);
+		C2S_StopHacking(NearestInteractiveObject);
+		IHacking::Execute_OnHackingCompletedClient(NearestInteractiveObject, this);
 	}
 }
 
@@ -563,7 +567,19 @@ void APlayerBase::OpenInventory(const FInputActionValue& Value)
 
 void APlayerBase::PhantomVision(const FInputActionValue& Value)
 {
+	// 현재 월드에서 모든 ACCTVLogic 액터를 찾음
+	TArray<AActor*> CCTVLogicActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACCTVLogic::StaticClass(), CCTVLogicActors);
 
+	// 하나라도 있으면 첫 번째 ACCTVLogic을 사용
+	if (CCTVLogicActors.Num() > 0)
+	{
+		ACCTVLogic* CCTVLogic = Cast<ACCTVLogic>(CCTVLogicActors[0]);
+		if (CCTVLogic)
+		{
+			CCTVLogic->EnterFirstHackedCCTV(this);
+		}
+	}
 }
 
 void APlayerBase::C2S_Interactive_Implementation(UObject* interact)
@@ -584,7 +600,17 @@ void APlayerBase::C2S_Hacking_Implementation(UObject* interact)
 		return;
 	}
 	if (interact->GetClass()->ImplementsInterface(UHacking::StaticClass()))
-	IHacking::Execute_OnHackingStarted(interact, this);
+	IHacking::Execute_OnHackingStartedServer(interact, this);
+}
+
+void APlayerBase::C2S_StopHacking_Implementation(UObject* interact)
+{
+	if (nullptr == interact)
+	{
+		return;
+	}
+	if (interact->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+		IHacking::Execute_OnHackingCompletedServer(interact, this);
 }
 
 void APlayerBase::C2S_SetMaxWalkSpeed_Implementation(float Speed)
@@ -599,8 +625,13 @@ void APlayerBase::C2S_MakeNoise_Implementation(float Noise)
 
 void APlayerBase::SetGroggy()
 {
+	if (!PS)
+	{
+		PS = Cast<APlayerDefaultState>(GetPlayerState());
+	}
+
 	PS->bIsGroggy = true;
-	PS->OnRep_Groggy();
+	PS->OnRep_S2A_Groggy();
 	GetCharacterMovement()->MaxWalkSpeed = 0.f;
 }
 
@@ -623,7 +654,7 @@ void APlayerBase::SetRecovery()
 	Stat->SetHp(Stat->GetMaxHp());
 
 	PS->bIsGroggy = false;
-	PS->OnRep_Groggy();
+	PS->OnRep_S2A_Groggy();
 	GetCharacterMovement()->MaxWalkSpeed = PS->MoveSpeedInfo.WalkSpeed;
 }
 

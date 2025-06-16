@@ -8,3 +8,11 @@ APlayerDefaultController::APlayerDefaultController()
 {
  
 }
+
+void APlayerDefaultController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	SetInputMode(FInputModeGameOnly());
+	SetShowMouseCursor(false);
+}

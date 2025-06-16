@@ -55,11 +55,12 @@ public:
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadWrite, Category = "Player Info")
 	FNoiseInfo NoiseInfo;
 
-	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_Groggy, BlueprintReadOnly, Category = "Player Info")
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_S2A_Groggy, BlueprintReadOnly, Category = "Player Info")
 	bool bIsGroggy = false;
 
 public:
 
-	UFUNCTION()
-	void OnRep_Groggy();
+	UFUNCTION(NetMulticast, Reliable)
+	void OnRep_S2A_Groggy();
+	void OnRep_S2A_Groggy_Implementation();
 };

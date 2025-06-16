@@ -18,7 +18,7 @@ void APlayerDefaultState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(APlayerDefaultState, bIsGroggy);
 }
 
-void APlayerDefaultState::OnRep_Groggy()
+void APlayerDefaultState::OnRep_S2A_Groggy_Implementation()
 {
 	if (APlayerBase* OwnerPlayer = Cast<APlayerBase>(GetPawn()))
 	{
