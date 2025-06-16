@@ -112,7 +112,7 @@ void AHackableObject::Tick(float DeltaTime)
 
 void AHackableObject::OnHackingStartedServer_Implementation(APawn* Interactor)
 {
-	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingStartedServer"));
+	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingStarted Server"));
 
 	//if (!HackingComp || !Interactor) return;
 
@@ -125,7 +125,7 @@ void AHackableObject::OnHackingStartedServer_Implementation(APawn* Interactor)
 
 void AHackableObject::OnHackingStartedClient_Implementation(APawn* Interactor)
 {
-	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingStartedClient"));
+	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingStarted Client"));
 
 	if (!HackingComp || !Interactor) return;
 
@@ -139,7 +139,7 @@ void AHackableObject::OnHackingStartedClient_Implementation(APawn* Interactor)
 
 void AHackableObject::OnHackingCompletedServer_Implementation(APawn* Interactor)
 {
-	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingCompletedServer"));
+	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingCompleted Server"));
 
 	//if (!HackingComp || !Interactor) return;
 
@@ -155,7 +155,7 @@ void AHackableObject::OnHackingCompletedServer_Implementation(APawn* Interactor)
 
 void AHackableObject::OnHackingCompletedClient_Implementation(APawn* Interactor)
 {
-	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingCompletedClient"));
+	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingCompleted Client"));
 
 	if (!HackingComp || !Interactor) return;
 

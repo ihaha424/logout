@@ -158,6 +158,8 @@ void ACCTV::SetWidgetVisibility_Implementation(bool Visible)
 
 void ACCTV::OnHackingStartedServer_Implementation(APawn* Interactor)
 {
+	UE_LOG(LogTemp, Log, TEXT("ACCTV::OnHackingStarted Server"));
+
 	// 현재 해킹 중인 플레이어 저장
 	CurrentHackingPawn = Interactor;
 
@@ -167,11 +169,14 @@ void ACCTV::OnHackingStartedServer_Implementation(APawn* Interactor)
 
 void ACCTV::OnHackingStartedClient_Implementation(APawn* Interactor)
 {
+	UE_LOG(LogTemp, Log, TEXT("ACCTV::OnHackingStarted Client"));
 
 }
 
 void ACCTV::OnHackingCompletedServer_Implementation(APawn* Interactor)
 {
+	UE_LOG(LogTemp, Log, TEXT("ACCTV::OnHackingCompleted Server"));
+
 	// 해킹을 시작한 플레이어와 완료하는 플레이어가 같은지 확인
 	if (CurrentHackingPawn != Interactor) return;
 
@@ -195,6 +200,8 @@ void ACCTV::OnHackingCompletedServer_Implementation(APawn* Interactor)
 
 void ACCTV::OnHackingCompletedClient_Implementation(APawn* Interactor)
 {
+	UE_LOG(LogTemp, Log, TEXT("ACCTV::OnHackingCompleted Client"));
+
 
 }
 
