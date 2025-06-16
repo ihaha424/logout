@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/WidgetComponent.h"
 #include "PlayerWidgetComponent.h"
+#include "PlayerDefaultState.h"
 #include "PlayerStatComponent.h"
 #include "PlayerHpBar.h"
 #include "Animation/AnimationAsset.h"
@@ -64,8 +65,6 @@ APlayerBase::APlayerBase()
 	GetCharacterMovement()->RotationRate = FRotator(0, 500, 0);
 	GetCharacterMovement()->JumpZVelocity = 500.f;
 	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-	GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 0.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 
@@ -191,19 +190,22 @@ void APlayerBase::NearestObjectCheck()
 	}
 }
 
+bool APlayerBase::IsGroggy() const
+{
+	return PS->bIsGroggy;
+}
+
 // Called when the game starts or when spawned
 void APlayerBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
 
 	RecoverySphere->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
 
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	if (PlayerController)
 	{
-		if (ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer())
+		if (ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer()) 
 		{
 			if (UEnhancedInputLocalPlayerSubsystem* SubSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
 			{
@@ -219,14 +221,14 @@ void APlayerBase::BeginPlay()
 		if (InvenWidget)
 		{
 			InvenWidget->AddToViewport();
-			InvenWidget->SetVisibility(ESlateVisibility::Hidden);
+			InvenWidget->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
 
 	// Widget Setting
 	if (GroggyWidget->GetWidgetClass())
 	{
-		GroggyWidget->SetWidgetSpace(EWidgetSpace::Screen);
+		GroggyWidget->SetWidgetSpace(EWidgetSpace::World);
 		GroggyWidget->SetDrawSize(FVector2D(150.f, 80.f));
 		GroggyWidget->SetRelativeLocation(FVector(0, 0, 0));
 		GroggyWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -249,16 +251,13 @@ void APlayerBase::Tick(float DeltaTime)
 
 	FVector InputVector = GetLastMovementInputVector();
 
-	if (InputVector.IsNearlyZero())
-		bIsMove = false;
-
 	if (bIsCrouched)
 	{
 		CurrentNoise = 0.0f;
 	}
 	else
 	{
-		if (bIsMove)
+		if (!InputVector.IsZero())
 		{
 			CurrentNoise = MoveNoise;
 		}
@@ -295,6 +294,32 @@ void APlayerBase::PostInitializeComponents()
 	Stat->OnHpZero.AddUObject(this, &APlayerBase::SetGroggy);
 }
 
+void APlayerBase::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	PS = Cast<APlayerDefaultState>(GetPlayerState());
+	
+	if (PS)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = PS->MoveSpeedInfo.WalkSpeed;
+		GetCharacterMovement()->MaxWalkSpeedCrouched = PS->MoveSpeedInfo.CrouchSpeed;
+	}
+}
+
+void APlayerBase::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	PS = Cast<APlayerDefaultState>(GetPlayerState());
+
+	if (PS)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = PS->MoveSpeedInfo.WalkSpeed;
+		GetCharacterMovement()->MaxWalkSpeedCrouched = PS->MoveSpeedInfo.CrouchSpeed;
+	}
+}
+
 // Called to bind functionality to input
 void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -324,30 +349,26 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 void APlayerBase::OnInteractSever_Implementation(APawn* Player)
 {
-	S2A_SetRecovery();
+	SetRecovery();
 }
 
 void APlayerBase::OnInteractClient_Implementation(APawn* Player)
 {
 	Stat->SetHp(Stat->GetMaxHp());
-	bIsGroggy = false;
+	if (PS)
+	{
+		PS->bIsGroggy = false;
+	}
 }
 
 bool APlayerBase::CanInteract_Implementation(const APawn* Player) const
 {
-	return bIsGroggy;
-}
+	if (PS)
+	{
+		return PS->bIsGroggy;
+	}
 
-void APlayerBase::SetWidgetVisibility_Implementation(bool Visible)
-{
-	if (bIsGroggy)
-	{
-		GroggyWidget->SetVisibility(Visible);
-	}
-	else
-	{
-		GroggyWidget->SetVisibility(false);
-	}
+	return false;
 }
 
 void APlayerBase::NotifyActorBeginOverlap(AActor* Actor)
@@ -399,10 +420,13 @@ void APlayerBase::SetupCharacterWidget(UMyPlayerUserWidget* UserWidget)
 
 void APlayerBase::Move(const FInputActionValue& Value)
 {
-	if (bIsGroggy)
+	if (!PS)
+		PS = Cast<APlayerDefaultState>(GetPlayerState());
+	if (!PS)
 		return;
 
-	bIsMove = true;
+	if (PS->bIsGroggy)
+		return;
 
 	if (Controller != nullptr)
 	{
@@ -432,35 +456,35 @@ void APlayerBase::Look(const FInputActionValue& Value)
 
 void APlayerBase::Run(const FInputActionValue& Value)
 {
-	if (bIsGroggy) 
+	if (PS->bIsGroggy)
 		return;
 
-	MoveNoise = RunNoise;
+	MoveNoise = PS->NoiseInfo.RunNoise;
 
 	if (!HasAuthority())
 	{
-		GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
+		GetCharacterMovement()->MaxWalkSpeed = PS->MoveSpeedInfo.RunSpeed;
 	}
-	C2S_SetMaxWalkSpeed(RunSpeed);
+	C2S_SetMaxWalkSpeed(PS->MoveSpeedInfo.RunSpeed);
 }
 
 void APlayerBase::StopRun(const FInputActionValue& Value)
 {
-	MoveNoise = WalkNoise;
+	MoveNoise = PS->NoiseInfo.WalkNoise;
 
-	if (bIsGroggy)
+	if (PS->bIsGroggy)
 		return;
 
 	if (!HasAuthority())
 	{
-		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+		GetCharacterMovement()->MaxWalkSpeed = PS->MoveSpeedInfo.WalkSpeed;
 	}
-	C2S_SetMaxWalkSpeed(WalkSpeed);
+	C2S_SetMaxWalkSpeed(PS->MoveSpeedInfo.WalkSpeed);
 }
 
 void APlayerBase::PlayerCrouch(const FInputActionValue& Value)
 {
-	if (bIsGroggy)
+	if (PS->bIsGroggy)
 		return;
 
 	if (bIsCrouched)
@@ -476,12 +500,10 @@ void APlayerBase::PlayerCrouch(const FInputActionValue& Value)
 
 void APlayerBase::Hacking(const FInputActionValue& Value)
 {
-	if (bIsGroggy)
+	if (PS->bIsGroggy)
 		return;
 
-	bIsMove = false;
-
-	UE_LOG(LogTemp, Log, TEXT("Hacking Start"));
+	//UE_LOG(LogTemp, Log, TEXT("Hacking Start"));
 
 	if (NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
 	{
@@ -492,10 +514,10 @@ void APlayerBase::Hacking(const FInputActionValue& Value)
 
 void APlayerBase::StopHacking(const FInputActionValue& Value)
 {
-	if (bIsGroggy)
+	if (PS->bIsGroggy)
 		return;
 
-	UE_LOG(LogTemp, Log, TEXT("Hacking Stop"));
+	//UE_LOG(LogTemp, Log, TEXT("Hacking Stop"));
 	 
 	if (NearestInteractiveObject 
 		&& NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
@@ -507,7 +529,7 @@ void APlayerBase::StopHacking(const FInputActionValue& Value)
 
 void APlayerBase::Interactive(const FInputActionValue& Value)
 {
-	if (bIsGroggy)
+	if (PS->bIsGroggy)
 		return;
 
 	if (!NearestInteractiveObject) return;
@@ -526,33 +548,29 @@ void APlayerBase::Interactive(const FInputActionValue& Value)
 			AddItemToUI();
 		}
 	}
-
-	bIsMove = false;
 }
 
 void APlayerBase::OpenInventory(const FInputActionValue& Value)
 {
-	if (bIsGroggy)
+	if (PS->bIsGroggy)
 		return;
-
-	bIsMove = false;
 
 	APlayerController* PC = CastChecked<APlayerController>(GetController());
 
 	if (!PC || !InvenWidget) return;
 
-	bIsInventoryVisible = !bIsInventoryVisible;
+	//bIsInventoryOpen = !bIsInventoryOpen;
 
-	if (bIsInventoryVisible)
+	if (bIsInventoryOpen)
 	{
 		InvenWidget->SetVisibility(ESlateVisibility::Visible);
 
-		FInputModeGameAndUI InputMode;
-		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-		InputMode.SetHideCursorDuringCapture(false);
-		PC->SetInputMode(InputMode);
+		//FInputModeGameAndUI InputMode;
+		//InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		//InputMode.SetHideCursorDuringCapture(false);
+		//PC->SetInputMode(InputMode);
 
-		PC->bShowMouseCursor = true;
+		//PC->bShowMouseCursor = true;
 	}
 	else
 	{
@@ -625,26 +643,28 @@ void APlayerBase::C2S_MakeNoise_Implementation(float Noise)
 
 void APlayerBase::SetGroggy()
 {
-	S2A_SetGroggy();
-	GroggyWidget->SetVisibility(true);
+	if (!PS)
+	{
+		PS = Cast<APlayerDefaultState>(GetPlayerState());
+	}
 
-	bIsGroggy = true;
+	PS->bIsGroggy = true;
+	PS->OnRep_S2A_Groggy();
 	GetCharacterMovement()->MaxWalkSpeed = 0.f;
 }
 
-void APlayerBase::S2A_SetGroggy_Implementation()
+void APlayerBase::SetGroggyWidget(bool Visible)
 {
-	bIsGroggy = true;
-	// 이동속도 0으로 설정
-	GetCharacterMovement()->MaxWalkSpeed = 0.f;
+	GroggyWidget->SetVisibility(Visible);
 }
 
-void APlayerBase::S2A_SetRecovery_Implementation()
+void APlayerBase::SetRecovery()
 {
 	Stat->SetHp(Stat->GetMaxHp());
-	bIsGroggy = false;
-	GroggyWidget->SetVisibility(false);
-	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+
+	PS->bIsGroggy = false;
+	PS->OnRep_S2A_Groggy();
+	GetCharacterMovement()->MaxWalkSpeed = PS->MoveSpeedInfo.WalkSpeed;
 }
 
 void APlayerBase::S2C_UpdatePerceivedActor_Implementation(AActor* Actor, bool bVisible)
