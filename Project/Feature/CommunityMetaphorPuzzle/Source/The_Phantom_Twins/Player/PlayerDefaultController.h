@@ -18,4 +18,8 @@ class THE_PHANTOM_TWINS_API APlayerDefaultController : public APlayerController
 
 public:
 	APlayerDefaultController();
+
+	UFUNCTION(Server, Reliable)
+	void C2S_SetOwnerActor(APlayerController* thisPC, AActor* Actor);
+	void C2S_SetOwnerActor_Implementation(APlayerController* thisPC, AActor* Actor);
 };

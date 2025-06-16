@@ -8,3 +8,9 @@ APlayerDefaultController::APlayerDefaultController()
 {
  
 }
+
+void APlayerDefaultController::C2S_SetOwnerActor_Implementation(APlayerController* thisPC, AActor* Actor)
+{
+	if(HasAuthority())
+		Actor->SetOwner(thisPC);
+}
