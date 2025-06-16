@@ -13,7 +13,7 @@
 UHackableComponent::UHackableComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	SetIsReplicated(true); // 컴포넌트 복제 활성화
+	SetIsReplicatedByDefault(true); // 컴포넌트 복제 활성화
 
 	bIsHacking = false;
 	bIsHacked = false;
@@ -76,7 +76,7 @@ void UHackableComponent::HackingCompleted(APawn* Interactor)
 	{
 		// 실패 처리
 		UE_LOG(LogTemp, Warning, TEXT("Hacking Failed: %.2f / %.2f"), HeldDuration, RequiredTime);
-		CheckHackReset();
+		CheckHackReset(Interactor);
 	}
 }
 
@@ -129,28 +129,30 @@ void UHackableComponent::CheckHackReset()
 	HackingStartTime = 0.0f;
 	bAutoHackingCompleted = false;
 
+
+	//S2C_HideHackingUI();
+
+
+	// CurrentHackingPlayer 초기화
+	CurrentHackingPlayer = nullptr;
+
+	UE_LOG(LogTemp, Log, TEXT("해킹 상태 초기화 완료"));
+}
+
+void UHackableComponent::CheckHackReset(APawn* Interactor)
+{
+	// 상태 초기화 (모든 클라이언트에 복제됨)
+	bIsHacking = false;
+	bIsHacked = false;
+	HackingStartTime = 0.0f;
+	bAutoHackingCompleted = false;
+
 	// 해킹을 시작했던 플레이어에게만 UI 숨김
 		// CurrentHackingPlayer가 이 Component의 Owner와 같다면 UI 숨김
-	if (CurrentHackingPlayer && GetOwner())
+
+	if (CurrentHackingPlayer == GetPlayerControllerFromPawn(Interactor))
 	{
-		APlayerController* OwnerController = nullptr;
-
-		// Owner가 Pawn인 경우 해당 Pawn의 Controller 가져오기
-		if (APawn* OwnerPawn = Cast<APawn>(GetOwner()))
-		{
-			OwnerController = Cast<APlayerController>(OwnerPawn->GetController());
-		}
-		// Owner가 PlayerController인 경우 직접 사용
-		else if (APlayerController* OwnerPC = Cast<APlayerController>(GetOwner()))
-		{
-			OwnerController = OwnerPC;
-		}
-
-		// CurrentHackingPlayer와 Owner의 Controller가 같다면 UI 숨김
-		if (OwnerController && CurrentHackingPlayer == OwnerController)
-		{
-			S2C_HideHackingUI();
-		}
+		S2C_HideHackingUI();
 	}
 
 	// CurrentHackingPlayer 초기화
