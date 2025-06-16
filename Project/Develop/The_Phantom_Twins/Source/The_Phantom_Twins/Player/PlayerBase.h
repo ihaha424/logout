@@ -9,7 +9,6 @@
 #include "InputActionValue.h"
 #include "PlayerBase.generated.h"
 
-
 class UPlayerStatComponent;
 class UWidgetComponent;
 class UCameraComponent;
@@ -19,6 +18,7 @@ class UInputAction;
 class ABaseObject;
 class UUserWidget;
 class USphereComponent;
+class APlayerDefaultState;
 
 UCLASS()
 class THE_PHANTOM_TWINS_API APlayerBase : public ACharacter, public IPlayerWidgetInterface, public IInteraction
@@ -46,17 +46,22 @@ public:
 
 	virtual void PostInitializeComponents() override;
 
+	virtual void OnRep_PlayerState() override;
+
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual void OnInteractSever_Implementation(APawn* Player) override;
 	virtual void OnInteractClient_Implementation(APawn* Player) override;
 	virtual bool CanInteract_Implementation(const APawn* Player) const override;
-	virtual void SetWidgetVisibility_Implementation(bool Visible) override;
+
 public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision")
 	TObjectPtr<USphereComponent> RangeSphere;
+
+	UPROPERTY()
+	TObjectPtr<APlayerDefaultState> PS;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision")
 	TObjectPtr<USphereComponent> RecoverySphere;
@@ -67,6 +72,9 @@ public:
 	virtual void NotifyActorEndOverlap(AActor* Actor) override;
 
 public:
+
+	bool bIsInventoryOpen = true;
+
 	UFUNCTION(BlueprintCallable, Category = "Stats")
 	
 	virtual float TakeDamage
@@ -78,21 +86,6 @@ public:
 	) override;
 
 	virtual void SetupCharacterWidget(UMyPlayerUserWidget* UserWidget) override;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Noise")
-	float RunNoise = 1.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Noise")
-	float WalkNoise = 1.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MoveSpeed")
-	float RunSpeed = 800.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MoveSpeed")
-	float WalkSpeed = 200.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MoveSpeed")
-	float CrouchSpeed = 80.f;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -129,16 +122,13 @@ protected:
 	//TObjectPtr<class UCCTVUserComponent> CCTVUserComp;
 
 public:
-	bool bIsInventoryVisible = false;
-	bool bIsGroggy = false;
-	bool bIsMove = false;
-
+	UPROPERTY()
 	float NoiseTimer = 0.f;
+	UPROPERTY()
 	float MoveNoise = 100.f;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Noise")
 	float NoiseInterval = 3.f;
-
+	UPROPERTY()
 	float CurrentNoise = 100.f;
 
 	// Input Section
@@ -202,13 +192,11 @@ public:
 	void C2S_MakeNoise_Implementation(float Noise);
 
 	void SetGroggy();
-	UFUNCTION(NetMulticast, Reliable)
-	void S2A_SetGroggy();
-	void S2A_SetGroggy_Implementation();
+	void SetGroggyWidget(bool Visible);
 
-	UFUNCTION(NetMulticast, Reliable)
-	void S2A_SetRecovery();
-	void S2A_SetRecovery_Implementation();
+	//UFUNCTION(NetMulticast, Reliable)
+	void SetRecovery();
+	//void S2A_SetRecovery_Implementation();
 
 	UFUNCTION(Client, Reliable)
 	void S2C_UpdatePerceivedActor(AActor* Actor, bool bVisible);
