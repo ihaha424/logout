@@ -4,6 +4,8 @@
 #include "SzObjects/Door.h"
 #include "SzInterface/Hacking.h"
 
+#include "Kismet/KismetSystemLibrary.h"
+
 ADoor::ADoor() : ABaseObject()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -32,6 +34,7 @@ void ADoor::OnInteractSever_Implementation(APawn* Interactor)
 		bIsOpened = true;
 
 		// 이후 동작은 블루프린트에서 구현
+		UKismetSystemLibrary::PrintString(this, TEXT("DoorAnum: OnInteractSever_Implementation"));
 		S2A_OpenDoor();
 	//}
 }
@@ -39,8 +42,14 @@ void ADoor::OnInteractSever_Implementation(APawn* Interactor)
 bool ADoor::CanInteract_Implementation(const APawn* Interactor) const
 {
 	UE_LOG(LogTemp, Warning, TEXT("ADoor::OnInteract2"));
+	UKismetSystemLibrary::PrintString(this, TEXT("DoorAnum: CanInteract_Implementation"));
 	// 트리거가 모두 활성화되고, 열쇠가 있으면 상호작용 가능
 	return AreAllObjActived() && HasKey(Interactor);
+}
+
+void ADoor::OpenDoor_Implementation()
+{
+	UKismetSystemLibrary::PrintString(this, TEXT("DoorAnum: OpenDoorLogic_Implementation: CPP"));
 }
 
 bool ADoor::AreAllObjActived() const
@@ -73,5 +82,6 @@ bool ADoor::HasKey(const APawn* Interactor) const
 
 void ADoor::S2A_OpenDoor_Implementation()
 {
+	UKismetSystemLibrary::PrintString(this, TEXT("DoorAnum: S2A_OpenDoor_Implementation"));
 	OpenDoor();
 }

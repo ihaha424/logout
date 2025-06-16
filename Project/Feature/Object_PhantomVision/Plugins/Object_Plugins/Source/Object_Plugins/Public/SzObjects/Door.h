@@ -26,8 +26,9 @@ public:
 
     // 블루프린트에서 문을 여는 동작을 구현할 수 있도록 선언
     UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Door")
-    void OpenDoor();
-    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Door")
+	void OpenDoor();
+	void OpenDoor_Implementation();
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Door")
     void CloseDoor();
 
 protected:
@@ -39,6 +40,7 @@ protected:
 
     UFUNCTION(NetMulticast, Reliable)
     void S2A_OpenDoor();
+    void S2A_OpenDoor_Implementation();
 
     // 문 여는 횟수 제한(임시 : 지울거임)
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
