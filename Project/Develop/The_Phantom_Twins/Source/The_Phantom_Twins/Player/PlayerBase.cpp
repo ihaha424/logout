@@ -309,6 +309,19 @@ void APlayerBase::OnRep_PlayerState()
 	}
 }
 
+void APlayerBase::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	PS = Cast<APlayerDefaultState>(GetPlayerState());
+
+	if (PS)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = PS->MoveSpeedInfo.WalkSpeed;
+		GetCharacterMovement()->MaxWalkSpeedCrouched = PS->MoveSpeedInfo.CrouchSpeed;
+	}
+}
+
 // Called to bind functionality to input
 void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -411,6 +424,8 @@ void APlayerBase::Move(const FInputActionValue& Value)
 {
 	if (!PS)
 		PS = Cast<APlayerDefaultState>(GetPlayerState());
+	if (!PS)
+		return;
 
 	if (PS->bIsGroggy)
 		return;
