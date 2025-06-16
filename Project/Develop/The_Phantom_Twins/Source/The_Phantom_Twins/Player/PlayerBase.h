@@ -33,6 +33,8 @@ public:
 
 	void NearestObjectCheck();
 
+	bool IsGroggy() const { return bIsGroggy; }
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "Inventory")
 	void AddItemToUI();
 
