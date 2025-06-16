@@ -3,6 +3,8 @@
 
 #include "BTT_PatrolStimulusLocation.h"
 
+#include <NavigationPath.h>
+
 #include "MyAICharacter.h"
 #include "MyAIController.h"
 #include "SplinePathActor.h"
@@ -31,19 +33,37 @@ EBTNodeResult::Type UBTT_PatrolStimulusLocation::ExecuteTask(UBehaviorTreeCompon
 	if (!BlackboardComp) return EBTNodeResult::Failed;
 
 	USplineComponent* SplineRoute = AIPawn->StimulusSplinePath->SplineComponent;
-	if (!SplineRoute) return EBTNodeResult::Failed;
-
-	MaxIndex = SplineRoute->GetNumberOfSplinePoints();
-	CurrentIndex = BlackboardComp->GetValueAsInt(TEXT("CurrentPatrolIndex"));
-
+	if (!SplineRoute)
+	{
+		BlackboardComp->ClearValue("LastStimulusLocation");
+		BlackboardComp->ClearValue("UsingStimulusLocation");
+		BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		return EBTNodeResult::Failed;
+	}
+	int32 CurrentIndex = BlackboardComp->GetValueAsInt(TEXT("CurrentPatrolIndex"));
 	if (ACharacter* AICharacter = Cast<ACharacter>(AIPawn))
 	{
 		AICharacter->GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
 	}
 
 	// 현재 순찰 포인트 위치
-	TargetLocation = SplineRoute->GetLocationAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::World);
-
+	FVector StartLocation = AIPawn->GetActorLocation();
+	FVector TargetLocation = SplineRoute->GetLocationAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::World);
+	UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(
+		GetWorld(),                // UWorld*
+		StartLocation,             // 시작 위치
+		TargetLocation,            // 목표 위치
+		AIPawn                     // Navigation Agent (예: AI Pawn)
+	);
+	if (!NavPath || NavPath->PathPoints.Num() <= 1 || !NavPath->IsValid() || NavPath->IsPartial())
+	{
+		BlackboardComp->ClearValue("LastStimulusLocation");
+		BlackboardComp->ClearValue("UsingStimulusLocation");
+		BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		return EBTNodeResult::Failed;
+	}
 	// MoveTo 실행
 	FAIMoveRequest MoveRequest;
 	MoveRequest.SetGoalLocation(TargetLocation);
@@ -54,13 +74,13 @@ EBTNodeResult::Type UBTT_PatrolStimulusLocation::ExecuteTask(UBehaviorTreeCompon
 	{
 		// 실패했으므로 상태 초기화
 		BlackboardComp->ClearValue("LastStimulusLocation");
-		BlackboardComp->ClearValue("PatrolStimulusLocation");
+		BlackboardComp->ClearValue("UsingStimulusLocation");
 		BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
 
 		return EBTNodeResult::Failed;
 	}
 
-	BlackboardComp->SetValueAsVector(TEXT("PatrolStimulusLocation"), TargetLocation);
+	BlackboardComp->SetValueAsVector(TEXT("PatrolDestination"), TargetLocation);
 	return EBTNodeResult::InProgress;
 }
 void UBTT_PatrolStimulusLocation::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -68,31 +88,43 @@ void UBTT_PatrolStimulusLocation::TickTask(UBehaviorTreeComponent& OwnerComp, ui
 	AMyAIController* AIController = Cast<AMyAIController>(OwnerComp.GetAIOwner());
 	if (!AIController) return;
 
-	APawn* AIPawn = AIController->GetPawn();
-	if (!AIPawn) return;
+	AMyAICharacter* AIPawn = Cast<AMyAICharacter>(AIController->GetPawn());
+	if (!AIPawn || !AIPawn->StimulusSplinePath) return;
 
-	float Distance = FVector::Dist(AIPawn->GetActorLocation(), TargetLocation);
+	UBlackboardComponent* BlackboardComp = AIController->GetBlackboardComponent();
+	if (!BlackboardComp) return;
+
+	USplineComponent* SplineRoute = AIPawn->StimulusSplinePath->SplineComponent;
+	if (!SplineRoute) return;
+
+	const int32 MaxIndex = SplineRoute->GetNumberOfSplinePoints() - 1;
+	const FVector CurrentTargetLocation = BlackboardComp->GetValueAsVector(TEXT("PatrolDestination"));
+
+	const float Distance = FVector::Dist(AIPawn->GetActorLocation(), CurrentTargetLocation);
+
 	if (Distance <= 150.f)
 	{
-		UBlackboardComponent* BlackboardComp = AIController->GetBlackboardComponent();
-		if (!BlackboardComp) return;
-
 		// 다음 포인트로 인덱스 증가
+		int32 CurrentIndex = BlackboardComp->GetValueAsInt(TEXT("CurrentPatrolIndex"));
 		CurrentIndex++;
-		if (CurrentIndex > MaxIndex)
+		BlackboardComp->SetValueAsInt(TEXT("CurrentPatrolIndex"), CurrentIndex);
+		if (CurrentIndex > MaxIndex) // >= → >로 변경 (마지막 포인트 도달 후 종료)
 		{
-			// 순찰 종료
+			// 순찰 종료 로직
 			BlackboardComp->ClearValue("LastStimulusLocation");
-			BlackboardComp->ClearValue("PatrolStimulusLocation");
+			BlackboardComp->ClearValue("UsingStimulusLocation");
 			BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
+			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded); // ✅ 전체 순찰 완료 시에만 호출
 		}
 		else
 		{
-			// 다음 포인트 저장
-			BlackboardComp->SetValueAsInt(TEXT("CurrentPatrolIndex"), CurrentIndex);
-		}
+			// 다음 포인트로 이동 재시작
+			const FVector TargetLocation = SplineRoute->GetLocationAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::World);
+			BlackboardComp->SetValueAsVector(TEXT("PatrolDestination"), TargetLocation);
 
-		AIController->StopMovement();
-		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+			FAIMoveRequest MoveRequest;
+			MoveRequest.SetGoalLocation(TargetLocation);
+			AIController->MoveTo(MoveRequest); // ✅ 다음 포인트로 이동
+		}
 	}
 }

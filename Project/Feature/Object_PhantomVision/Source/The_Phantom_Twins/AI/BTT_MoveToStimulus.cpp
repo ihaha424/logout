@@ -45,7 +45,7 @@ EBTNodeResult::Type UBTT_MoveToStimulus::ExecuteTask(UBehaviorTreeComponent& Own
 	AIPawn->GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
 
 	FVector StartLocation = AIPawn->GetActorLocation();
-	TargetLocation = BlackboardComp->GetValueAsVector(TEXT("PatrolStimulusLocation"));
+	TargetLocation = BlackboardComp->GetValueAsVector(TEXT("UsingStimulusLocation"));
 
 	UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(
 		GetWorld(),                // UWorld*
@@ -75,7 +75,7 @@ EBTNodeResult::Type UBTT_MoveToStimulus::ExecuteTask(UBehaviorTreeComponent& Own
 		DrawDebugSphere(AIPawn->GetWorld(), TargetLocation, 25.0f, 12, FColor::Red, false, 10.0f);
 
 		BlackboardComp->ClearValue("LastStimulusLocation");
-		BlackboardComp->ClearValue("PatrolStimulusLocation");
+		BlackboardComp->ClearValue("UsingStimulusLocation");
 		BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
 		return EBTNodeResult::Failed;
 	}

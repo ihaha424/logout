@@ -2,6 +2,9 @@
 
 
 #include "BTT_PatrolSplineRoute.h"
+
+#include <Navigation/PathFollowingComponent.h>
+
 #include "Components/SplineComponent.h"
 #include "Behaviortree/Blackboardcomponent.h"
 #include "SplinePathActor.h"
@@ -14,6 +17,7 @@
 UBTT_PatrolSplineRoute::UBTT_PatrolSplineRoute()
 {
 	NodeName = TEXT("Patrol Spline Route");
+	bNotifyTick = true;
 }
 
 EBTNodeResult::Type UBTT_PatrolSplineRoute::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -41,21 +45,56 @@ EBTNodeResult::Type UBTT_PatrolSplineRoute::ExecuteTask(UBehaviorTreeComponent& 
 	{
 		return EBTNodeResult::Failed;
 	}
+	MaxIndex = SplineRoute->GetNumberOfSplinePoints() - 1;
+	int32 CurrentIndex = BlackboardComp->GetValueAsInt(TEXT("CurrentPatrolIndex"));
+	CurrentIndex = FMath::Clamp(CurrentIndex, 0, MaxIndex - 1);
 
-	MaxIndex = SplineRoute->GetNumberOfSplinePoints();
-	AIPawn->GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
-	FVector PatrolPoint = SplineRoute->GetLocationAtSplinePoint(Index, ESplineCoordinateSpace::World);
+	// 목표 위치 설정
+	const FVector TargetLocation = SplineRoute->GetLocationAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::World);
+	BlackboardComp->SetValueAsVector(TEXT("PatrolDestination"), TargetLocation);
 
-	if (FVector::Dist(AIPawn->GetActorLocation(), PatrolPoint) < 150.f)
+	// 이동 시작
+	FAIMoveRequest MoveRequest;
+	MoveRequest.SetGoalLocation(TargetLocation);
+	MoveRequest.SetAcceptanceRadius(50.f); // 도달 반경
+
+	FPathFollowingRequestResult MoveResult = AIController->MoveTo(MoveRequest);
+
+	return (MoveResult == EPathFollowingRequestResult::RequestSuccessful) ?
+		EBTNodeResult::InProgress :
+		EBTNodeResult::Failed;
+}
+void UBTT_PatrolSplineRoute::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+{
+	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
+
+	AMyAIController* AIController = Cast<AMyAIController>(OwnerComp.GetAIOwner());
+	if (!AIController) return;
+
+	AMyAICharacter* AIPawn = Cast<AMyAICharacter>(AIController->GetPawn());
+	if (!AIPawn || !AIPawn->BaseSplinePath) return;
+
+	UBlackboardComponent* BlackboardComp = AIController->GetBlackboardComponent();
+	if (!BlackboardComp) return;
+
+	// 현재 목표 위치와의 거리 확인
+	const FVector CurrentLocation = AIPawn->GetActorLocation();
+	const FVector TargetLocation = BlackboardComp->GetValueAsVector(TEXT("PatrolDestination"));
+	const float Distance = FVector::Distance(CurrentLocation, TargetLocation);
+
+	if (Distance <= 150.f) // 도달 반경
 	{
-		Index = (1 + Index) % MaxIndex;
-		FVector NextPoint = SplineRoute->GetLocationAtSplinePoint(Index, ESplineCoordinateSpace::World);
-		BlackboardComp->SetValueAsVector(TEXT("PatrolLocation"), NextPoint);
-	}
-	else
-	{
-		BlackboardComp->SetValueAsVector(TEXT("PatrolLocation"), PatrolPoint);
-	}
+		// 다음 인덱스 계산 (순환)
+		int32 CurrentIndex = BlackboardComp->GetValueAsInt(TEXT("CurrentPatrolIndex"));
+		CurrentIndex = (CurrentIndex + 1) % MaxIndex;
+		BlackboardComp->SetValueAsInt(TEXT("CurrentPatrolIndex"), CurrentIndex);
 
-	return EBTNodeResult::Succeeded;
+		// 새로운 목표지점 설정 및 이동 재시작
+		const FVector NewTarget = AIPawn->BaseSplinePath->SplineComponent->GetLocationAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::World);
+		BlackboardComp->SetValueAsVector(TEXT("PatrolDestination"), NewTarget);
+
+		FAIMoveRequest NewMoveRequest;
+		NewMoveRequest.SetGoalLocation(NewTarget);
+		AIController->MoveTo(NewMoveRequest);
+	}
 }
