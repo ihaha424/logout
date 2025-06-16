@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "SzComponents/Interaction.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "BaseObject.generated.h"
 
 UENUM(BlueprintType)
@@ -38,7 +39,10 @@ public:
 	virtual void OnInteractClient_Implementation(APawn* Interactor) override;
 	virtual bool CanInteract_Implementation(const APawn* Interactor) const override;
 	virtual bool GetPickedUp_Implementation() const override;
+	virtual void SetWidgetVisibility_Implementation(bool Visible) override;
 
+
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class UStaticMeshComponent> MeshComponent;
 
@@ -47,6 +51,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<class USphereComponent> SphereCollisionComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<class UOutlineComponent> OutlineComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
 	bool bDestory = false;
@@ -77,6 +84,7 @@ public:
     // AI percrption
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
     TObjectPtr<class UAIPerceptionStimuliSourceComponent> StimuliSource;
+
 
 private:
 	// 내부용: bIsPickedUp 노출 조건

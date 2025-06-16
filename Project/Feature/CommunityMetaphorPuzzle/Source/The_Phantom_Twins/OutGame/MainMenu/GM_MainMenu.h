@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BehaviorTree/BTTaskNode.h"
-#include "BTT_PatrolSitimulusLocation.generated.h"
+#include "GameFramework/GameModeBase.h"
+#include "GM_MainMenu.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class THE_PHANTOM_TWINS_API UBTT_PatrolSitimulusLocation : public UBTTaskNode
+class THE_PHANTOM_TWINS_API AGM_MainMenu : public AGameModeBase
 {
 	GENERATED_BODY()
 	

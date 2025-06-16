@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AIInterface.h"
 #include "GameFramework/Character.h"
-#include "SplinePathActor.h"
 #include "SzInterface/Hacking.h"
 #include "MyAICharacter.generated.h"
 
@@ -17,10 +17,25 @@ public:
 	// Sets default values for this character's properties
 	AMyAICharacter();
 
-	virtual void OnHackingStarted_Implementation(APawn* Interactor) override;
+	virtual void OnHackingStartedServer_Implementation(APawn* Interactor) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Spline")
-	ASplinePathActor* SplinePath;
+	class ASplinePathActor* BaseSplinePath;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Spline")
+	class ASplinePathActor* StimulusSplinePath;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
+	class UWidgetComponent* AIStateWidget;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_UpdateAIStateWidget(EAIStateWidget State);
+	void S2A_UpdateAIStateWidget_Implementation(EAIStateWidget State);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_UpdateWidgetDirection(FRotator Rotate);
+	void S2A_UpdateWidgetDirection_Implementation(FRotator Rotate);
+
 
 	float DistanceAlongSpline = 0.f;
 	bool bMovingForward = true;
@@ -41,5 +56,6 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	ASplinePathActor* GetSplinePath() const { return SplinePath; }
+	class ASplinePathActor* GetBaseSplinePath() const { return BaseSplinePath; }
+	
 };

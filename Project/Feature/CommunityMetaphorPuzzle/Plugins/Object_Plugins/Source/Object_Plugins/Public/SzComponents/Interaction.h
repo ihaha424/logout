@@ -33,4 +33,7 @@ public:
 	
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
 	bool GetPickedUp() const;
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
+	void SetWidgetVisibility(bool Visible);
 };

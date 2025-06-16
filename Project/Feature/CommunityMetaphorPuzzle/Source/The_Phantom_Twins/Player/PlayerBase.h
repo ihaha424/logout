@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "SzComponents/Interaction.h"
 #include "PlayerWidgetInterface.h"
 #include "InputActionValue.h"
 #include "PlayerBase.generated.h"
@@ -20,13 +21,15 @@ class UUserWidget;
 class USphereComponent;
 
 UCLASS()
-class THE_PHANTOM_TWINS_API APlayerBase : public ACharacter, public IPlayerWidgetInterface
+class THE_PHANTOM_TWINS_API APlayerBase : public ACharacter, public IPlayerWidgetInterface, public IInteraction
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
 	APlayerBase();
+
+	bool CheckActorInFront(AActor* TargetActor);
 
 	void NearestObjectCheck();
 
@@ -46,10 +49,17 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual void OnInteractSever_Implementation(APawn* Player) override;
+	virtual void OnInteractClient_Implementation(APawn* Player) override;
+	virtual bool CanInteract_Implementation(const APawn* Player) const override;
+	virtual void SetWidgetVisibility_Implementation(bool Visible) override;
 public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision")
-	TObjectPtr<USphereComponent> SphereComponent;
+	TObjectPtr<USphereComponent> RangeSphere;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision")
+	TObjectPtr<USphereComponent> RecoverySphere;
 
 	TArray<AActor*> InteractiveableObjects;
 
@@ -57,10 +67,15 @@ public:
 	virtual void NotifyActorEndOverlap(AActor* Actor) override;
 
 public:
-	void SetGroggy();
-
 	UFUNCTION(BlueprintCallable, Category = "Stats")
-	void TakeDamage(float Damage);
+	
+	virtual float TakeDamage
+	(
+		float DamageAmount,
+		struct FDamageEvent const& DamageEvent,
+		class AController* EventInstigator,
+		AActor* DamageCauser
+	) override;
 
 	virtual void SetupCharacterWidget(UMyPlayerUserWidget* UserWidget) override;
 
@@ -70,8 +85,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Noise")
 	float WalkNoise = 1.0f;
 
-protected:
-	void ReferenceSetting();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MoveSpeed")
+	float RunSpeed = 800.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MoveSpeed")
+	float WalkSpeed = 200.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MoveSpeed")
+	float CrouchSpeed = 80.f;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -103,8 +124,22 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget)
 	TSubclassOf<UUserWidget> InvenWidgetClass;
 
+	// for using CCTV 
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Widget)
+	//TObjectPtr<class UCCTVUserComponent> CCTVUserComp;
+
 public:
 	bool bIsInventoryVisible = false;
+	bool bIsGroggy = false;
+	bool bIsMove = false;
+
+	float NoiseTimer = 0.f;
+	float MoveNoise = 100.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Noise")
+	float NoiseInterval = 3.f;
+
+	float CurrentNoise = 100.f;
 
 	// Input Section
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -131,6 +166,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> InventoryAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> PhantomAction;
+
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void Run(const FInputActionValue& Value);
@@ -140,6 +178,7 @@ public:
 	void StopHacking(const FInputActionValue& Value);
 	void Interactive(const FInputActionValue& Value);
 	void OpenInventory(const FInputActionValue& Value);
+	void PhantomVision(const FInputActionValue& Value);
 
 	// NetWork
 	UFUNCTION(Server, Reliable)
@@ -151,12 +190,30 @@ public:
 	void C2S_Hacking_Implementation(UObject* interact);
 
 	UFUNCTION(Server, Reliable)
+	void C2S_StopHacking(UObject* interact);
+	void C2S_StopHacking_Implementation(UObject* interact);
+
+	UFUNCTION(Server, Reliable)
 	void C2S_SetMaxWalkSpeed(float Speed);
 	void C2S_SetMaxWalkSpeed_Implementation(float Speed);
 
-	// Network
+	UFUNCTION(Server, Reliable)
+	void C2S_MakeNoise(float Noise);
+	void C2S_MakeNoise_Implementation(float Noise);
+
+	void SetGroggy();
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_SetGroggy();
+	void S2A_SetGroggy_Implementation();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_SetRecovery();
+	void S2A_SetRecovery_Implementation();
+
 	UFUNCTION(Client, Reliable)
 	void S2C_UpdatePerceivedActor(AActor* Actor, bool bVisible);
 	void S2C_UpdatePerceivedActor_Implementation(AActor* Actort, bool bVisible);
 
+private:
+	void ReferenceSetting();
 };
