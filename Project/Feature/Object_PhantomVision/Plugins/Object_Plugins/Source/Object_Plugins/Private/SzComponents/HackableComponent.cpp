@@ -27,6 +27,7 @@ void UHackableComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME(UHackableComponent, HackingStartTime);
 	DOREPLIFETIME(UHackableComponent, bIsHacking);
 	DOREPLIFETIME(UHackableComponent, bIsHacked);
 	DOREPLIFETIME(UHackableComponent, bKeepHacked);

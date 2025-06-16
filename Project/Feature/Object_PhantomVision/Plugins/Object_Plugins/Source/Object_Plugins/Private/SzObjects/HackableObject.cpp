@@ -105,13 +105,28 @@ void AHackableObject::Tick(float DeltaTime)
 	if (HackingComp->bIsHacked && !HackingComp->bKeepHacked &&
 		(CurrentTime - HackingComp->HackingStartTime >= HackingComp->HackedDuration))
 	{
-		HackingComp->CheckHackReset();
+		HackingComp->CheckHackReset(CurrentHackingPawn);
 		CurrentHackingPawn = nullptr; // 해킹이 리셋되면 현재 해킹 플레이어도 초기화
 	}
 }
 
 void AHackableObject::OnHackingStartedServer_Implementation(APawn* Interactor)
 {
+	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingStartedServer"));
+
+	//if (!HackingComp || !Interactor) return;
+
+	//// 현재 해킹 중인 플레이어 저장
+	//CurrentHackingPawn = Interactor;
+
+	//// HackingComponent에 Interactor 전달
+	//HackingComp->HackingStarted(Interactor);
+}
+
+void AHackableObject::OnHackingStartedClient_Implementation(APawn* Interactor)
+{
+	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingStartedClient"));
+
 	if (!HackingComp || !Interactor) return;
 
 	// 현재 해킹 중인 플레이어 저장
@@ -121,14 +136,27 @@ void AHackableObject::OnHackingStartedServer_Implementation(APawn* Interactor)
 	HackingComp->HackingStarted(Interactor);
 }
 
-void AHackableObject::OnHackingStartedClient_Implementation(APawn* Interactor)
-{
-	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingStartedClient"));
-}
-
 
 void AHackableObject::OnHackingCompletedServer_Implementation(APawn* Interactor)
 {
+	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingCompletedServer"));
+
+	//if (!HackingComp || !Interactor) return;
+
+	//// 해킹을 시작한 플레이어와 완료하는 플레이어가 같은지 확인
+	//if (CurrentHackingPawn != Interactor) return;
+
+	//// HackingComponent에 Interactor 전달
+	//HackingComp->HackingCompleted(Interactor);
+
+	//// 해킹 완료 후 현재 해킹 플레이어 초기화
+	//CurrentHackingPawn = nullptr;
+}
+
+void AHackableObject::OnHackingCompletedClient_Implementation(APawn* Interactor)
+{
+	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingCompletedClient"));
+
 	if (!HackingComp || !Interactor) return;
 
 	// 해킹을 시작한 플레이어와 완료하는 플레이어가 같은지 확인
@@ -137,13 +165,11 @@ void AHackableObject::OnHackingCompletedServer_Implementation(APawn* Interactor)
 	// HackingComponent에 Interactor 전달
 	HackingComp->HackingCompleted(Interactor);
 
-	// 해킹 완료 후 현재 해킹 플레이어 초기화
-	CurrentHackingPawn = nullptr;
-}
-
-void AHackableObject::OnHackingCompletedClient_Implementation(APawn* Interactor)
-{
-	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingCompletedClient"));
+	// 해킹 실패할때만
+	if (HackingComp->bIsHacked == false)
+	{
+		CurrentHackingPawn = nullptr;
+	}
 }
 
 bool AHackableObject::CanBeHacked_Implementation() const

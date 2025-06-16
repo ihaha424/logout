@@ -55,6 +55,10 @@ public:
 	void S2C_HideHackingUI();	// UI 제거
 	void S2C_HideHackingUI_Implementation();
 
+	//UFUNCTION(Server, Reliable)
+	//void SetInformation();
+
+
 public:
 	/* 로컬용 or const(런타임에 수정X) */
 	UPROPERTY(EditDefaultsOnly, Category = "Hacking")
@@ -69,10 +73,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Hacking")
 	float RequiredTime = 2.0f;				// 해킹 키 홀딩 시간
 
-	float HackingStartTime = 0.0f;			// 해킹 시작 시간 (GetWorld()->GetTimeSeconds()로 초기화됨)
 	bool bAutoHackingCompleted = false;		// 자동 해킹 완료 여부 (true면 HeldTime이 충분하면 자동으로 해킹 성공 처리됨)
 
 	/* 서버용 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
+	float HackingStartTime = 0.0f;			// 해킹 시작 시간 (GetWorld()->GetTimeSeconds()로 초기화됨)
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hacking", Replicated)
 	bool bKeepHacked = false;	// 해킹 유지 여부 (true면 무한 해킹 유지)
 

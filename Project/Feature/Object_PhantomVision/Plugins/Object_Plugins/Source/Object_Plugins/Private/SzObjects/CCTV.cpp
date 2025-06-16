@@ -165,6 +165,11 @@ void ACCTV::OnHackingStartedServer_Implementation(APawn* Interactor)
 	NoiseComp->HackingStarted(Interactor);
 }
 
+void ACCTV::OnHackingStartedClient_Implementation(APawn* Interactor)
+{
+
+}
+
 void ACCTV::OnHackingCompletedServer_Implementation(APawn* Interactor)
 {
 	// 해킹을 시작한 플레이어와 완료하는 플레이어가 같은지 확인
@@ -186,6 +191,11 @@ void ACCTV::OnHackingCompletedServer_Implementation(APawn* Interactor)
 			gameState->GetCCTVManager()->AddHackedCCTV(CCTVID);
 		}
 	}
+}
+
+void ACCTV::OnHackingCompletedClient_Implementation(APawn* Interactor)
+{
+
 }
 
 bool ACCTV::CanBeHacked_Implementation() const
@@ -213,6 +223,7 @@ void ACCTV::ClearHacking_Implementation()
 		}
 	}
 }
+
 
 void ACCTV::Turn(const FInputActionValue& Value)
 {
