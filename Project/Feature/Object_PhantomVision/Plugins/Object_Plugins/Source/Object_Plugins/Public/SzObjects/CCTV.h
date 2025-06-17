@@ -26,8 +26,6 @@ protected:
 
 public:
 	virtual void OnInteractSever_Implementation(APawn* Interactor) override;
-	virtual void OnInteractClient_Implementation(APawn* Interactor) override;
-
 	virtual bool CanInteract_Implementation(const APawn* Interactor) const override;
 	virtual void SetWidgetVisibility_Implementation(bool Visible) override;
 

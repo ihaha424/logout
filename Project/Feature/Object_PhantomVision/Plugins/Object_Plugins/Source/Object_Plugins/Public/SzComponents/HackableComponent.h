@@ -55,6 +55,9 @@ public:
 	void S2C_HideHackingUI();	// UI 제거
 	void S2C_HideHackingUI_Implementation();
 
+	//UFUNCTION(Server, Reliable)
+	//void SetInformation();
+
 
 public:
 	/* 로컬용 or const(런타임에 수정X) */

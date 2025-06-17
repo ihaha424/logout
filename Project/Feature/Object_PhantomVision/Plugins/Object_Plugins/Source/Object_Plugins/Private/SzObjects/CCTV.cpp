@@ -145,11 +145,6 @@ void ACCTV::OnInteractSever_Implementation(APawn* Interactor)
 	}
 }
 
-void ACCTV::OnInteractClient_Implementation(APawn* Interactor)
-{
-
-}
-
 bool ACCTV::CanInteract_Implementation(const APawn* Interactor) const
 {
 	return HackingComp->bIsHacked && IsActive;	// 임시. 해킹이 되어있고 카드키가 있어야 Interact 가능
@@ -165,31 +160,22 @@ void ACCTV::OnHackingStartedServer_Implementation(APawn* Interactor)
 {
 	UE_LOG(LogTemp, Log, TEXT("ACCTV::OnHackingStarted Server"));
 
-	//// 현재 해킹 중인 플레이어 저장
+	// 현재 해킹 중인 플레이어 저장
 	CurrentHackingPawn = Interactor;
 
-	HackingComp->HackingStarted(Interactor);
 
 	if (NoiseComp)
 	{
 		NoiseComp->HackingStarted(Interactor);
 	}
+	
+	HackingComp->HackingStarted(Interactor);
 }
 
 void ACCTV::OnHackingStartedClient_Implementation(APawn* Interactor)
 {
 	UE_LOG(LogTemp, Log, TEXT("ACCTV::OnHackingStarted Client"));
 
-
-	// 현재 해킹 중인 플레이어 저장
-	CurrentHackingPawn = Interactor;
-
-	HackingComp->HackingStarted(Interactor);
-
-	if (NoiseComp)
-	{
-		NoiseComp->HackingStarted(Interactor);
-	}
 }
 
 void ACCTV::OnHackingCompletedServer_Implementation(APawn* Interactor)
@@ -199,12 +185,13 @@ void ACCTV::OnHackingCompletedServer_Implementation(APawn* Interactor)
 	// 해킹을 시작한 플레이어와 완료하는 플레이어가 같은지 확인
 	if (CurrentHackingPawn != Interactor) return;
 
-	HackingComp->HackingCompleted(Interactor);
 
 	if (NoiseComp)
 	{
 		NoiseComp->HackingCompleted(Interactor);
 	}
+
+	HackingComp->HackingCompleted(Interactor);
 
 	// 해킹 완료 후 현재 해킹 플레이어 초기화
 	CurrentHackingPawn = nullptr;
@@ -237,13 +224,13 @@ bool ACCTV::CanBeHacked_Implementation() const
 
 void ACCTV::ClearHacking_Implementation()
 {
-	// 해킹 초기화
-	HackingComp->CheckHackReset(CurrentHackingPawn);
-
 	if (NoiseComp)
 	{
-		NoiseComp->CheckHackReset(CurrentHackingPawn);
+		NoiseComp->CheckHackReset();
 	}
+
+	// 해킹 초기화
+	HackingComp->CheckHackReset();
 
 	CurrentHackingPawn = nullptr;
 
@@ -258,6 +245,7 @@ void ACCTV::ClearHacking_Implementation()
 		}
 	}
 }
+
 
 void ACCTV::Turn(const FInputActionValue& Value)
 {

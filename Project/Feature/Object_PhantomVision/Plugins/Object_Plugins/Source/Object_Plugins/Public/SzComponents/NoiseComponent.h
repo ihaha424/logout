@@ -17,12 +17,9 @@ class OBJECT_PLUGINS_API UNoiseComponent : public UHackableComponent
 public:
 	UNoiseComponent();
 
-protected:
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 public:
 	virtual void TryCompleteHacking(APawn* Interactor, float HeldDuration, float CurrentTime) override;
-	virtual void CheckHackReset(APawn* Interactor) override;
+	virtual void CheckHackReset() override;
 
 	// 소음 타이머 시작
 	void StartNoise();
@@ -47,10 +44,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hacking|Noise")
 	float noisePeriod = 3.0f;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Hacking|Noise", Replicated)
+	UPROPERTY(BlueprintReadOnly, Category = "Hacking|Noise")
 	bool bNoise = false;
 
 	FTimerHandle NoiseTimerHandle;
 };
-
-// NoiseComponent는 한명의 플레이어가 실행시키지만 모든 플레이어들에게 적용되어야 한다.(클라 -> 서버)

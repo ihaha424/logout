@@ -2,24 +2,14 @@
 
 
 #include "SzComponents/NoiseComponent.h"
-#include "Net/UnrealNetwork.h"
 #include "Gameframework/Actor.h"
 #include "Gameframework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
-#include "Components/ActorComponent.h"
 
 UNoiseComponent::UNoiseComponent() : UHackableComponent()
 {
 	bNoise = false;
-	SetIsReplicatedByDefault(true);
-}
-
-void UNoiseComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(UNoiseComponent, bNoise);
 }
 
 void UNoiseComponent::TryCompleteHacking(APawn* Interactor, float HeldDuration, float CurrentTime)
@@ -31,9 +21,9 @@ void UNoiseComponent::TryCompleteHacking(APawn* Interactor, float HeldDuration, 
 	StartNoise();
 }
 
-void UNoiseComponent::CheckHackReset(APawn* Interactor)
+void UNoiseComponent::CheckHackReset()
 {
-	Super::CheckHackReset(Interactor);
+	Super::CheckHackReset();
 
 	StopNoise();
 }
@@ -56,12 +46,12 @@ void UNoiseComponent::StartNoise()
 
 void UNoiseComponent::StopNoise()
 {
-	bNoise = false;
-
 	if (GetWorld())
 	{
 		GetWorld()->GetTimerManager().ClearTimer(NoiseTimerHandle);
 	}
+
+	bNoise = false;
 }
 
 void UNoiseComponent::GenerateNoise()
@@ -69,7 +59,11 @@ void UNoiseComponent::GenerateNoise()
 	if (!bNoise) return;
 
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	if (!OwnerPawn) return;
+	if (!OwnerPawn)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UNoiseComponent::GenerateNoise - Owner is not a Pawn!"));
+		return;
+	}
 
 	OwnerPawn->MakeNoise(
 		static_cast<float>(noisePoint),
@@ -77,4 +71,6 @@ void UNoiseComponent::GenerateNoise()
 		OwnerPawn->GetActorLocation(),
 		noiseRange
 	);
+
+	UE_LOG(LogTemp, Log, TEXT("UNoiseComponent::GenerateNoise - Making noise at location."));
 }
