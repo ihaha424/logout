@@ -44,6 +44,13 @@ void UHackableComponent::HackingStarted(APawn* Interactor)
 
 	UE_LOG(LogTemp, Log, TEXT("Hacking : Started"));
 
+	// 컴포넌트의 소유자를 해킹하는 플레이어로 설정
+    if (AActor* Owner = GetOwner())
+    {
+        Owner->SetOwner(InstigatorController);
+    }
+
+
 	// 현재 시간을 저장 (시작 시간) :: 상태 업데이트 (모든 클라이언트에 복제됨)
 	bIsHacking = true;
 	bAutoHackingCompleted = false;
