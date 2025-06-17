@@ -22,8 +22,8 @@ public:
 	void TravelToLevel(const FName LevelName);
 
 	UFUNCTION(Server, Reliable)
-	void Server_TravelToLevel(const FName& LevelName);
-	void Server_TravelToLevel_Implementation(const FName& LevelName);
+	void C2S_TravelToLevel(const FName& LevelName);
+	void C2S_TravelToLevel_Implementation(const FName& LevelName);
 
 	void OpenAndTravelToLevel(const FName LevelName);
 

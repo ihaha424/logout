@@ -107,7 +107,7 @@ void ACCTV::Tick(float DeltaTime)
 		HackingComp->UpdateHackingProgress(CurrentHackingPawn, CurrentTime);
 	}
 
-	if (CurrentHackingPawn && NoiseComp->bIsHacking)
+	if (CurrentHackingPawn && NoiseComp && NoiseComp->bIsHacking)
 	{
 		NoiseComp->UpdateHackingProgress(CurrentHackingPawn, CurrentTime);
 	}
@@ -163,8 +163,13 @@ void ACCTV::OnHackingStartedServer_Implementation(APawn* Interactor)
 	// 현재 해킹 중인 플레이어 저장
 	CurrentHackingPawn = Interactor;
 
+
+	if (NoiseComp)
+	{
+		NoiseComp->HackingStarted(Interactor);
+	}
+	
 	HackingComp->HackingStarted(Interactor);
-	NoiseComp->HackingStarted(Interactor);
 }
 
 void ACCTV::OnHackingStartedClient_Implementation(APawn* Interactor)
@@ -180,8 +185,13 @@ void ACCTV::OnHackingCompletedServer_Implementation(APawn* Interactor)
 	// 해킹을 시작한 플레이어와 완료하는 플레이어가 같은지 확인
 	if (CurrentHackingPawn != Interactor) return;
 
+
+	if (NoiseComp)
+	{
+		NoiseComp->HackingCompleted(Interactor);
+	}
+
 	HackingComp->HackingCompleted(Interactor);
-	NoiseComp->HackingCompleted(Interactor);
 
 	// 해킹 완료 후 현재 해킹 플레이어 초기화
 	CurrentHackingPawn = nullptr;
@@ -214,9 +224,14 @@ bool ACCTV::CanBeHacked_Implementation() const
 
 void ACCTV::ClearHacking_Implementation()
 {
+	if (NoiseComp)
+	{
+		NoiseComp->CheckHackReset();
+	}
+
 	// 해킹 초기화
 	HackingComp->CheckHackReset();
-	NoiseComp->CheckHackReset();
+
 	CurrentHackingPawn = nullptr;
 
 	// HackedIDSet에서 CCTV(자신) 제거

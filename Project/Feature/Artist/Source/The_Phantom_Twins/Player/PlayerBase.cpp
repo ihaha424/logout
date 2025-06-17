@@ -20,7 +20,6 @@
 #include "EnhancedInputSubsystems.h"
 #include "PlayerDefaultController.h"
 #include "DrawDebugHelpers.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
 // Object Plugin
@@ -246,7 +245,6 @@ void APlayerBase::Tick(float DeltaTime)
 	NoiseTimer += DeltaTime;
 	if (NoiseTimer >= NoiseInterval)
 	{
-		//UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Noise : %.2f"), CurrentNoise));
 		C2S_MakeNoise(CurrentNoise);
 		NoiseTimer = 0.f;
 	}
@@ -302,6 +300,19 @@ void APlayerBase::OnRep_PlayerState()
 
 	PS = Cast<APlayerDefaultState>(GetPlayerState());
 	
+	if (PS)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = PS->MoveSpeedInfo.WalkSpeed;
+		GetCharacterMovement()->MaxWalkSpeedCrouched = PS->MoveSpeedInfo.CrouchSpeed;
+	}
+}
+
+void APlayerBase::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	PS = Cast<APlayerDefaultState>(GetPlayerState());
+
 	if (PS)
 	{
 		GetCharacterMovement()->MaxWalkSpeed = PS->MoveSpeedInfo.WalkSpeed;
@@ -411,6 +422,8 @@ void APlayerBase::Move(const FInputActionValue& Value)
 {
 	if (!PS)
 		PS = Cast<APlayerDefaultState>(GetPlayerState());
+	if (!PS)
+		return;
 
 	if (PS->bIsGroggy)
 		return;

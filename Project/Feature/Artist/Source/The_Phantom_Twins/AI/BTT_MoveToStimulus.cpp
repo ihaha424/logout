@@ -88,7 +88,7 @@ void UBTT_MoveToStimulus::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 	if (!AIPawn) return;
 
 	float Distance = FVector::Dist(AIPawn->GetActorLocation(), MyMemory->TargetLocation);
-	UE_LOG(LogTemp, Warning, TEXT("AI IS Moving TO UpdatedStimulusLocation"));
+	//UE_LOG(LogTemp, Warning, TEXT("AI IS Moving TO UpdatedStimulusLocation"));
 	if (Distance <= AcceptanceRadius)
 	{
 		AIController->StopMovement();
