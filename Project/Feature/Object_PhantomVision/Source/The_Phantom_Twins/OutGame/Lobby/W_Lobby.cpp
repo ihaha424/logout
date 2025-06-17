@@ -4,6 +4,7 @@
 #include "W_Lobby.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "PC_Lobby.h"
 
@@ -52,11 +53,11 @@ void UW_Lobby::TravelToLevel(const FName LevelName)
 	else
 	{
 		// Features are provided, but calls are recommended only on hosts.
-		C2S_TravelToLevel_Implementation(LevelName);
+		Server_TravelToLevel(LevelName);
 	}
 }
 
-void UW_Lobby::C2S_TravelToLevel_Implementation(const FName& LevelName)
+void UW_Lobby::Server_TravelToLevel_Implementation(const FName& LevelName)
 {
 	OpenAndTravelToLevel(LevelName);
 }

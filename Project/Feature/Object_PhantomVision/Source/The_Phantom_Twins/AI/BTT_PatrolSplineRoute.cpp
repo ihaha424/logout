@@ -45,10 +45,9 @@ EBTNodeResult::Type UBTT_PatrolSplineRoute::ExecuteTask(UBehaviorTreeComponent& 
 	{
 		return EBTNodeResult::Failed;
 	}
-
-	AIPawn->GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
-	MaxIndex = SplineRoute->GetNumberOfSplinePoints();
+	MaxIndex = SplineRoute->GetNumberOfSplinePoints() - 1;
 	int32 CurrentIndex = BlackboardComp->GetValueAsInt(TEXT("CurrentPatrolIndex"));
+	CurrentIndex = FMath::Clamp(CurrentIndex, 0, MaxIndex - 1);
 
 	// 목표 위치 설정
 	const FVector TargetLocation = SplineRoute->GetLocationAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::World);

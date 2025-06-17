@@ -34,7 +34,7 @@ EBTNodeResult::Type UBTT_LookAtStimulusLocation::ExecuteTask(UBehaviorTreeCompon
 	{
 		return EBTNodeResult::Failed;
 	}
-	FVector TargetLocation = BlackboardComp->GetValueAsVector(TEXT("PlayerStimulusLocation"));
+	FVector TargetLocation = BlackboardComp->GetValueAsVector(TEXT("LastStimulusLocation"));
 	FVector Direction = TargetLocation - AIPawn->GetActorLocation();
 	Direction.Z = 0.f; // 수평 회전만
 

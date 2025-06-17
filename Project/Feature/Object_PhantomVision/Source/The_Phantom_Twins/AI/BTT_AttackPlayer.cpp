@@ -40,14 +40,6 @@ EBTNodeResult::Type UBTT_AttackPlayer::ExecuteTask(UBehaviorTreeComponent& Owner
 		return EBTNodeResult::Failed;
 	}
 
-	if (Target->IsGroggy())
-	{
-		BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
-		//UE_LOG(LogTemp, Warning, TEXT("Target->IsGroggy()"));
-		AIController->ResetStimulus();
-		return EBTNodeResult::Succeeded;
-	}
-
 	UGameplayStatics::ApplyDamage(
 		Target,          // 피해자
 		DamageAmount,         // 데미지 양
@@ -55,6 +47,12 @@ EBTNodeResult::Type UBTT_AttackPlayer::ExecuteTask(UBehaviorTreeComponent& Owner
 		AIPawn,               // 데미지를 유발한 액터
 		UDamageType::StaticClass() // 기본 데미지 타입
 	);
-	//UE_LOG(LogTemp, Warning, TEXT("Attack Success()"));
-	return EBTNodeResult::InProgress;
+
+	/*UE_LOG(LogTemp, Warning, TEXT("[BTTask] %s 이(가) %s 에게 %.1f 데미지를 가함"),
+		*AIPawn->GetName(), *Target->GetName(), DamageAmount);*/
+
+	// 일단 여기에 임시로 상태를 변경해줘보기.
+	//BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
+
+	return EBTNodeResult::Succeeded;
 }

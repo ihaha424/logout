@@ -166,15 +166,10 @@ void ACCTV::OnHackingStartedServer_Implementation(APawn* Interactor)
 	UE_LOG(LogTemp, Log, TEXT("ACCTV::OnHackingStarted Server"));
 
 	//// 현재 해킹 중인 플레이어 저장
-	CurrentHackingPawn = Interactor;
+	//CurrentHackingPawn = Interactor;
 
-	HackingComp->HackingStarted(Interactor);
-
-	if (NoiseComp)
-	{
-		NoiseComp->HackingStarted(Interactor);
-	}
-
+	//HackingComp->HackingStarted(Interactor);
+	//NoiseComp->HackingStarted(Interactor);
 }
 
 void ACCTV::OnHackingStartedClient_Implementation(APawn* Interactor)
