@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "BTT_ObjectRestoration.h"
 #include "MyAIController.h"
 #include "MyAICharacter.h"
@@ -11,39 +8,50 @@
 UBTT_ObjectRestoration::UBTT_ObjectRestoration()
 {
 	NodeName = TEXT("Turn Off Object");
+	bNotifyTick = true; // TickTask 활성화
 }
 
 EBTNodeResult::Type UBTT_ObjectRestoration::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	Super::ExecuteTask(OwnerComp, NodeMemory);
+	return EBTNodeResult::InProgress; // TickTask에서 처리
+}
+
+void UBTT_ObjectRestoration::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+{
 	AMyAIController* AIController = Cast<AMyAIController>(OwnerComp.GetAIOwner());
 	if (!AIController)
 	{
-		return EBTNodeResult::Failed;
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		return;
 	}
 
 	AMyAICharacter* AIPawn = Cast<AMyAICharacter>(AIController->GetPawn());
 	if (!AIPawn)
 	{
-		return EBTNodeResult::Failed;
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		return;
 	}
 	UBlackboardComponent* BlackboardComp = AIController->GetBlackboardComponent();
 	if (!BlackboardComp)
 	{
-		return EBTNodeResult::Failed;
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		return;
 	}
 	AHackableObject* Target = Cast<AHackableObject>(BlackboardComp->GetValueAsObject(TEXT("TargetObject")));
 	if (!Target)
 	{
-		return EBTNodeResult::Failed;
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		return;
 	}
 	float Distance = FVector::Dist(AIPawn->GetActorLocation(), Target->GetActorLocation());
 
-	if (Distance < 100)
+	if (Distance < 350)
 	{
-		Target->ClearHacking_Implementation();
+		//Target->ClearHacking();
+		IHacking::Execute_ClearHacking(Target);
 		BlackboardComp->ClearValue(TEXT("TargetObject"));
-		return EBTNodeResult::Succeeded;
+		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	}
-	return EBTNodeResult::InProgress;
+	FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 }
