@@ -7,6 +7,29 @@
 #include "SzObjects/CCTV.h"
 #include "CCTVManager.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogCameraManger, Log, All);
+
+
+USTRUCT(BlueprintType)
+struct FCameraInfomation
+{
+	GENERATED_BODY()
+public:
+	FCameraInfomation() 
+		: CCTV(nullptr)
+		, IsHacking(false)
+	{}
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
+	TObjectPtr<ACCTV> CCTV;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
+	bool IsHacking;
+};
+
+
+
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class OBJECT_PLUGINS_API UCCTVManager : public UActorComponent
@@ -21,46 +44,32 @@ protected:
 
 public:
 	// CCTV
-	void AddCCTV(int32 CCTVId, ACCTV* CCTV);
-	void RemoveCCTV(int32 CCTVId);
-
-	ACCTV* GetCCTV(int32 CCTVId) const
-	{
-		if (const TObjectPtr<ACCTV>* CCTVPtr = CCTVMap.Find(CCTVId))
-		{
-			return CCTVPtr->Get();
-		}
-		return nullptr;
-	}
-
-
-	// 해킹된 CCTV
-	void AddHackedCCTV(int32 CCTVId);
-	void RemoveHackedCCTV(int32 CCTVId);
-	bool HasHackedCCTV() const;								// 해킹된 CCTV가 있는지 확인하는 함수
+	void	AddCCTV(int32 CCTVId, ACCTV* CCTV);
+	ACCTV*	GetCCTV(int32 CCTVId) const;
+	void	SetHackedCCTV(int32 CCTVId, bool IsHacking);
+	/**
+	 * @brief 
+			: 해킹된 CCTV가 있는지 확인하는 함수
+	 * @return 
+			: Hacked CCTV Count 
+	 */
+	int32	HasHackedCCTV() const;
 	ACCTV* GetFirstHackedCCTV() const;						// HackedIDSet 을 sorting 했을 때 가장 첫번째 CCTV를 반환
 	ACCTV* GetPrevHackedCCTV(int32 CurrentCCTVId) const;	// 현재 CCTV의 이전 CCTV를 반환해주는 함수
 	ACCTV* GetNextHackedCCTV(int32 CurrentCCTVId) const;	// 현재 CCTV의 이후 CCTV를 반환해주는 함수	
-	
-	ACCTV* GetHackedCCTV(int32 CCTVId) const
-	{
-		if (HackedIDSet.Contains(CCTVId))
-		{
-			if (const TObjectPtr<ACCTV>* CCTVPtr = CCTVMap.Find(CCTVId))
-			{
-				return CCTVPtr->Get();
-			}
-		}
-		return nullptr;
-	}
+	ACCTV* GetHackedCCTV(int32 CCTVId) const;
 
 
 		
-protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
-	TMap<int32, TObjectPtr<ACCTV>> CCTVMap;				// 전체 CCTV들
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
-	TSet<int32> HackedIDSet;		// 해킹된 CCTV id 모음
+protected:
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
+	TArray<FCameraInfomation> CCTVList;
+
+
+
+private:
+	const int32 InitializeCameraMaxSize = 15;
 
 };

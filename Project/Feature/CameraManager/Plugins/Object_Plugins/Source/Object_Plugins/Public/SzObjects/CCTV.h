@@ -26,6 +26,7 @@ protected:
 
 public:
 	virtual void OnInteractSever_Implementation(APawn* Interactor) override;
+	virtual void OnInteractClient_Implementation(APawn* Interactor) override;
 	virtual bool CanInteract_Implementation(const APawn* Interactor) const override;
 	virtual void SetWidgetVisibility_Implementation(bool Visible) override;
 
@@ -52,6 +53,8 @@ public:
 	void EnterCCTVView(APlayerController* PlayerController);
 	void ExitCCTVView(APlayerController* PlayerController);
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 private:
 	void SetActorsOutlines(bool bActive);
 
@@ -63,7 +66,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
 	TObjectPtr<class UCameraComponent> CameraComp;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
 	bool bIsInCCTVView = false;
 
 	UPROPERTY()
@@ -130,4 +133,22 @@ protected:
 	// 현재 해킹 중인 플레이어를 추적하기 위한 변수 추가
 	UPROPERTY()
 	TObjectPtr<APawn> CurrentHackingPawn;
+
+	UPROPERTY(ReplicatedUsing = OnRep_SetOutlines, EditAnywhere, BlueprintReadWrite, Category = "CCTV")
+	bool bSetOutlinesDirtyFlag;
+	/**
+	 * @brief :
+			임시로 아웃라인뿐만 아니라 클라이언트 코드도 처리하고 있음.
+	 */
+	UFUNCTION()
+	void OnRep_SetOutlines();
+
+	UFUNCTION(Server, Reliable)
+	void C2S_Exit();
+	void C2S_Exit_Implementation();
+
+	UFUNCTION(Server, Reliable)
+	void C2S_ChangeCCTV(ACCTV* nextCCTV);
+	void C2S_ChangeCCTV_Implementation(ACCTV* nextCCTV);
+
 };

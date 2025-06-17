@@ -589,18 +589,7 @@ void APlayerBase::OpenInventory(const FInputActionValue& Value)
 void APlayerBase::PhantomVision(const FInputActionValue& Value)
 {
 	// 현재 월드에서 모든 ACCTVLogic 액터를 찾음
-	TArray<AActor*> CCTVLogicActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACCTVLogic::StaticClass(), CCTVLogicActors);
-
-	// 하나라도 있으면 첫 번째 ACCTVLogic을 사용
-	if (CCTVLogicActors.Num() > 0)
-	{
-		ACCTVLogic* CCTVLogic = Cast<ACCTVLogic>(CCTVLogicActors[0]);
-		if (CCTVLogic)
-		{
-			CCTVLogic->EnterFirstHackedCCTV(this);
-		}
-	}
+	C2S_PhantomVision();
 }
 
 void APlayerBase::C2S_Interactive_Implementation(UObject* interact)
@@ -642,6 +631,22 @@ void APlayerBase::C2S_SetMaxWalkSpeed_Implementation(float Speed)
 void APlayerBase::C2S_MakeNoise_Implementation(float Noise)
 {
 	MakeNoise(Noise, this, GetActorLocation());
+}
+
+void APlayerBase::C2S_PhantomVision_Implementation()
+{
+	TArray<AActor*> CCTVLogicActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACCTVLogic::StaticClass(), CCTVLogicActors);
+
+	// 하나라도 있으면 첫 번째 ACCTVLogic을 사용
+	if (CCTVLogicActors.Num() > 0)
+	{
+		ACCTVLogic* CCTVLogic = Cast<ACCTVLogic>(CCTVLogicActors[0]);
+		if (CCTVLogic)
+		{
+			CCTVLogic->EnterFirstHackedCCTV(this);
+		}
+	}
 }
 
 void APlayerBase::SetGroggy()

@@ -194,6 +194,10 @@ public:
 	void C2S_MakeNoise(float Noise);
 	void C2S_MakeNoise_Implementation(float Noise);
 
+	UFUNCTION(Server, Reliable)
+	void C2S_PhantomVision();
+	void C2S_PhantomVision_Implementation();
+
 	void SetGroggy();
 	void SetGroggyWidget(bool Visible);
 

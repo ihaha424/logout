@@ -4,12 +4,17 @@
 #include "SzComponents/CCTVManager.h"
 #include "EngineUtils.h"
 #include "Engine/World.h"
+#include "Net/UnrealNetwork.h"
+
+DEFINE_LOG_CATEGORY(LogCameraManger);
 
 // Sets default values for this component's properties
 UCCTVManager::UCCTVManager()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicatedByDefault(true);
 
+	CCTVList.SetNum(InitializeCameraMaxSize);
 }
 
 
@@ -22,80 +27,105 @@ void UCCTVManager::AddCCTV(int32 CCTVId, ACCTV* CCTV)
 {
 	if (!CCTV) return;
 	
-	CCTVMap.Add(CCTVId, CCTV);
+	if (CCTVId < 0)
+	{
+		UE_LOG(LogCameraManger, Error, TEXT("AddCCTV: CCTVId is InVaild."));
+	}
+	else if (!CCTVList.IsValidIndex(CCTVId))
+	{
+		CCTVList.SetNum(CCTVId);
+	}
+
+	CCTVList[CCTVId].CCTV = CCTV;
+	CCTVList[CCTVId].IsHacking = false;
 }
 
-void UCCTVManager::RemoveCCTV(int32 CCTVId)
+ACCTV* UCCTVManager::GetCCTV(int32 CCTVId) const
 {
-	if (!CCTVMap.Contains(CCTVId)) return;
+	if (!CCTVList.IsValidIndex(CCTVId))
+	{
+		UE_LOG(LogCameraManger, Warning, TEXT("GetCCTV: CCTVId is InVaild."));
+		return nullptr;
+	}
 
-	CCTVMap.Remove(CCTVId);
-
-	RemoveHackedCCTV(CCTVId);
+	return CCTVList[CCTVId].CCTV;
 }
 
-void UCCTVManager::AddHackedCCTV(int32 CCTVId)
+void UCCTVManager::SetHackedCCTV(int32 CCTVId, bool IsHacking)
 {
-	if (!CCTVMap.Contains(CCTVId)) return;
+	if (!CCTVList.IsValidIndex(CCTVId))
+	{
+		UE_LOG(LogCameraManger, Warning, TEXT("SetHackedCCTV: CCTVId is InVaild."));
+		return;
+	}
 
-	HackedIDSet.Add(CCTVId);
+	CCTVList[CCTVId].IsHacking = IsHacking;
 }
 
-void UCCTVManager::RemoveHackedCCTV(int32 CCTVId)
+int32 UCCTVManager::HasHackedCCTV() const
 {
-	if (!HackedIDSet.Contains(CCTVId)) return;
-
-	HackedIDSet.Remove(CCTVId);
-}
-
-bool UCCTVManager::HasHackedCCTV() const
-{
-	return HackedIDSet.Num() > 0;
+	int32 Count = 0;
+	for (const auto& CCTVInfo : CCTVList)
+	{
+		if (CCTVInfo.IsHacking)
+			Count++;
+	}
+	return Count;
 }
 
 ACCTV* UCCTVManager::GetFirstHackedCCTV() const
 {
-	if (HackedIDSet.Num() == 0) return nullptr;
-
-	TArray<int32> SortedIDs = HackedIDSet.Array();
-	SortedIDs.Sort();
-
-	int32 cctvID = SortedIDs[0];
-
-	const TObjectPtr<ACCTV>* firstHackedCCTV = CCTVMap.Find(cctvID);
-	return firstHackedCCTV ? firstHackedCCTV->Get() : nullptr;
+	for (const auto& CCTVInfo : CCTVList)
+	{
+		if (CCTVInfo.IsHacking)
+			return CCTVInfo.CCTV;
+	}
+	return nullptr;
 }
 
 ACCTV* UCCTVManager::GetPrevHackedCCTV(int32 CurrentCCTVId) const
 {
-	if (HackedIDSet.Num() == 0) return nullptr;
-
-	TArray<int32> SortedIDs = HackedIDSet.Array();
-	SortedIDs.Sort();
-
-	int32 Index = SortedIDs.IndexOfByKey(CurrentCCTVId);
-	if (Index == INDEX_NONE) return nullptr;
-
-	int32 PrevIndex = (Index == 0) ? SortedIDs.Num() - 1 : Index - 1;
-	int32 PrevID = SortedIDs[PrevIndex];
-
-	const TObjectPtr<ACCTV>* CCTVPtr = CCTVMap.Find(PrevID);
-	return CCTVPtr ? CCTVPtr->Get() : nullptr;
+	int CurIndex = CurrentCCTVId;
+	for (int32 count = 0; CCTVList.Num(); count++)
+	{
+		CurIndex--;
+		if (CurIndex < 0)
+			CurIndex = CCTVList.Num() - 1;
+		if (CCTVList[CurIndex].IsHacking)
+		{
+			return CCTVList[CurIndex].CCTV;
+		}
+	}
+	return nullptr;
 }
 
 ACCTV* UCCTVManager::GetNextHackedCCTV(int32 CurrentCCTVId) const
 {
-	if (HackedIDSet.Num() == 0) return nullptr;
+	int CurIndex = CurrentCCTVId;
+	for (int32 count = 0; CCTVList.Num(); count++)
+	{
+		CurIndex++;
+		if (CurIndex >= CCTVList.Num())
+			CurIndex = (CurIndex) % CCTVList.Num();
+		if (CCTVList[CurIndex].IsHacking)
+			return CCTVList[CurIndex].CCTV;
+	}
+	return nullptr;
+}
 
-	TArray<int32> SortedIDs = HackedIDSet.Array();
-	SortedIDs.Sort();
+ACCTV* UCCTVManager::GetHackedCCTV(int32 CCTVId) const
+{
+	if (!CCTVList.IsValidIndex(CCTVId))
+	{
+		UE_LOG(LogCameraManger, Warning, TEXT("GetHackedCCTV: CCTVId is InVaild."));
+		return nullptr;
+	}
+	return CCTVList[CCTVId].CCTV;
+}
 
-	int32 Index = SortedIDs.IndexOfByKey(CurrentCCTVId);
-	if (Index == INDEX_NONE) return nullptr;
+void UCCTVManager::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	int32 NextIndex = (Index == SortedIDs.Num() - 1) ? 0 : Index + 1;
-	int32 NextID = SortedIDs[NextIndex];
-
-	const TObjectPtr<ACCTV>* CCTVPtr = CCTVMap.Find(NextID);
-	return CCTVPtr ? CCTVPtr->Get() : nullptr;
+	DOREPLIFETIME(UCCTVManager, CCTVList);
 }

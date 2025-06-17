@@ -23,6 +23,7 @@
 ACCTV::ACCTV()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
@@ -146,6 +147,11 @@ void ACCTV::OnInteractSever_Implementation(APawn* Interactor)
 	}
 }
 
+void ACCTV::OnInteractClient_Implementation(APawn* Interactor)
+{
+
+}
+
 bool ACCTV::CanInteract_Implementation(const APawn* Interactor) const
 {
 	return HackingComp->bIsHacked && IsActive;	// 임시. 해킹이 되어있고 카드키가 있어야 Interact 가능
@@ -204,7 +210,7 @@ void ACCTV::OnHackingCompletedServer_Implementation(APawn* Interactor)
 
 		if (gameState && gameState->GetCCTVManager())
 		{
-			gameState->GetCCTVManager()->AddHackedCCTV(CCTVID);
+			gameState->GetCCTVManager()->SetHackedCCTV(CCTVID, true);
 		}
 	}
 }
@@ -242,7 +248,7 @@ void ACCTV::ClearHacking_Implementation()
 
 		if (gameState && gameState->GetCCTVManager())
 		{
-			gameState->GetCCTVManager()->RemoveHackedCCTV(CCTVID);
+			gameState->GetCCTVManager()->SetHackedCCTV(CCTVID, false);
 		}
 	}
 }
@@ -272,13 +278,7 @@ void ACCTV::Turn(const FInputActionValue& Value)
 
 void ACCTV::Exit(const FInputActionValue& Value)
 {
-	if (bIsInCCTVView && Controller)
-	{
-		if (APlayerController* PC = Cast<APlayerController>(Controller))
-		{
-			ExitCCTVView(PC);
-		}
-	}
+	C2S_Exit();
 }
 
 void ACCTV::Prev(const FInputActionValue& Value)
@@ -288,17 +288,7 @@ void ACCTV::Prev(const FInputActionValue& Value)
 	if (gameState && gameState->GetCCTVManager())
 	{
 		ACCTV* prevCCTV = gameState->GetCCTVManager()->GetPrevHackedCCTV(CCTVID);
-		APlayerController* PC = Cast<APlayerController>(Controller);
-
-		if (PC)
-		{
-			ExitCCTVView(PC);
-
-			if (prevCCTV)
-			{
-				prevCCTV->EnterCCTVView(PC);
-			}
-		}
+		C2S_ChangeCCTV(prevCCTV);
 	}
 }
 
@@ -309,18 +299,7 @@ void ACCTV::Next(const FInputActionValue& Value)
 	if (gameState && gameState->GetCCTVManager())
 	{
 		ACCTV* nextCCTV = gameState->GetCCTVManager()->GetNextHackedCCTV(CCTVID);
-		APlayerController* PC = Cast<APlayerController>(Controller);
-
-
-		if (PC)
-		{
-			ExitCCTVView(PC);
-
-			if (nextCCTV)
-			{
-				nextCCTV->EnterCCTVView(PC);
-			}
-		}
+		C2S_ChangeCCTV(nextCCTV);
 	}
 }
 
@@ -329,9 +308,6 @@ void ACCTV::EnterCCTVView(APlayerController* PlayerController)
 	PreviousViewTarget = PlayerController->GetViewTarget();
 	PreviousPawn = PlayerController->GetPawn();
 	PlayerController->Possess(this);
-
-	BaseControlRotation = GetActorRotation();
-	PlayerController->SetControlRotation(BaseControlRotation);
 
 	bIsInCCTVView = true;
 
@@ -348,22 +324,8 @@ void ACCTV::EnterCCTVView(APlayerController* PlayerController)
 	PlayerController->SetInputMode(FInputModeGameOnly());
 	EnableInput(PlayerController);
 
-	// 위젯 생성 및 뷰포트 추가
-	if (PhantomVisionWidget && !PhantomVisionUI)
-	{
-		PhantomVisionUI = CreateWidget<UUserWidget>(PlayerController, PhantomVisionWidget);
-		if (PhantomVisionUI)
-		{
-			PhantomVisionUI->AddToViewport();
-
-			if (UPhantomVisionWidget* Widget = Cast<UPhantomVisionWidget>(PhantomVisionUI))
-			{
-				Widget->SetCCTVIDTxt(CCTVID);
-			}
-		}
-	}
-
-	SetActorsOutlines(true);
+	bSetOutlinesDirtyFlag = true;
+	OnRep_SetOutlines();
 }
 
 void ACCTV::ExitCCTVView(APlayerController* PlayerController)
@@ -384,14 +346,16 @@ void ACCTV::ExitCCTVView(APlayerController* PlayerController)
 
 	PlayerController->SetInputMode(FInputModeGameOnly());
 
-	// 위젯 뷰포트에서 제거
-	if (PhantomVisionUI)
-	{
-		PhantomVisionUI->RemoveFromParent();
-		PhantomVisionUI = nullptr;
-	}
+	bSetOutlinesDirtyFlag = false;
+	OnRep_SetOutlines();
+}
 
-	SetActorsOutlines(false);
+void ACCTV::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ACCTV, bSetOutlinesDirtyFlag);
+	DOREPLIFETIME(ACCTV, bIsInCCTVView);
 }
 
 void ACCTV::SetActorsOutlines(bool bActive)
@@ -412,6 +376,95 @@ void ACCTV::SetActorsOutlines(bool bActive)
 		if (IsValid(FoundOutlineComp))
 		{
 			FoundOutlineComp->SetOutline(bActive);
+		}
+	}
+}
+
+void ACCTV::OnRep_SetOutlines()
+{
+	if (!bSetOutlinesDirtyFlag)
+	{
+		SetActorsOutlines(bSetOutlinesDirtyFlag);
+		if (!PhantomVisionUI && !IsLocallyControlled())
+		{
+			if(!PhantomVisionUI)
+				UE_LOG(LogCameraManger, Warning, TEXT("ACCTV: OnRep_SetOutlines: PhantomVisionUI is nullptr.(bSetOutlinesDirtyFlag is false)"));
+			return;
+		}
+		PhantomVisionUI->RemoveFromParent();
+	}
+	else
+	{
+		if (!IsLocallyControlled())
+		{
+			return;
+		}
+
+		SetActorsOutlines(bSetOutlinesDirtyFlag);
+
+		BaseControlRotation = GetActorRotation();
+
+		APlayerController* PlayerController = Cast<APlayerController>(GetController());
+		if (!PlayerController)
+		{
+			UE_LOG(LogCameraManger, Error, TEXT("ACCTV: OnRep_SetOutlines: Cast To PlayerController Faild."));
+			return;
+		}
+		PlayerController->SetControlRotation(BaseControlRotation);
+
+		// 위젯 생성 및 뷰포트 추가
+		if (PhantomVisionWidget)
+		{
+			if (!PhantomVisionUI)
+			{
+				PhantomVisionUI = CreateWidget<UPhantomVisionWidget>(PlayerController, PhantomVisionWidget);
+				if (!PhantomVisionUI)
+				{
+					UE_LOG(LogCameraManger, Error, TEXT("ACCTV: OnRep_SetOutlines: CreateWidget PhantomVisionUI Faild."));
+				}
+			}
+
+			if (!PhantomVisionUI)
+			{
+				UE_LOG(LogCameraManger, Warning, TEXT("ACCTV: OnRep_SetOutlines: PhantomVisionUI is nullptr.(bSetOutlinesDirtyFlag is true)"));
+				return;
+			}
+
+			if (bSetOutlinesDirtyFlag)
+			{
+				PhantomVisionUI->AddToViewport();
+
+				if (UPhantomVisionWidget* Widget = Cast<UPhantomVisionWidget>(PhantomVisionUI))
+				{
+					Widget->SetCCTVIDTxt(CCTVID);
+				}
+			}
+		}
+	}
+}
+
+void ACCTV::C2S_Exit_Implementation()
+{
+	if (bIsInCCTVView && Controller)
+	{
+		if (APlayerController* PC = Cast<APlayerController>(Controller))
+		{
+			ExitCCTVView(PC);
+		}
+	}
+}
+
+void ACCTV::C2S_ChangeCCTV_Implementation(ACCTV* nextCCTV)
+{
+	APlayerController* PC = Cast<APlayerController>(Controller);
+
+	if (PC)
+	{
+		ExitCCTVView(PC);
+
+		if (nextCCTV)
+		{
+			nextCCTV->EnterCCTVView(PC);
 		}
 	}
 }

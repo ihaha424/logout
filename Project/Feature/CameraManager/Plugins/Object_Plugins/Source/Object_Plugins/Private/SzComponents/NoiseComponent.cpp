@@ -80,5 +80,4 @@ void UNoiseComponent::GenerateNoise()
 		noiseRange
 	);
 
-	UE_LOG(LogTemp, Log, TEXT("UNoiseComponent::GenerateNoise - Making noise at location."));
 }
