@@ -279,7 +279,6 @@ void AMyAIController::ResetStimulus()
 	Blackboard->SetValueAsVector(TEXT("PlayerStimulusLocation"), FVector::ZeroVector);
 	Blackboard->SetValueAsVector(TEXT("UpdatedStimulusLocation"), FVector::ZeroVector);
 	Blackboard->SetValueAsEnum("AIStimulus", static_cast<uint8>(EMyAIStimulus::None));
-	Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
 
 	Blackboard->ClearValue("TargetPlayer");
 	Blackboard->ClearValue("ChasingPlayer");

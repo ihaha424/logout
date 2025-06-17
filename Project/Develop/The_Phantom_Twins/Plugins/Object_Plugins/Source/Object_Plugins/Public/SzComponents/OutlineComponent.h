@@ -35,6 +35,8 @@ public:
     float MaxDrawDistance = 5000.0f;
 
 private:
+    UPROPERTY()
     TObjectPtr<UMaterialInstanceDynamic> OverlayMID;
+    UPROPERTY()
     TObjectPtr<UMeshComponent> TargetMesh;
 };

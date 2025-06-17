@@ -9,6 +9,7 @@
 #include "MyAIStateWidget.h"
 #include "MyAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Perception/AIPerceptionComponent.h"
@@ -30,6 +31,7 @@ AMyAICharacter::AMyAICharacter()
 	{
 		GetCharacterMovement()->bOrientRotationToMovement = false;
 	}
+
 	// 위젯컴포넌트에 대한 설정
 	AIStateWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("AIStateWidget"));
 	AIStateWidget->SetupAttachment(RootComponent);
@@ -42,6 +44,20 @@ AMyAICharacter::AMyAICharacter()
 		AIStateWidget->SetWidgetClass(WidgetClass.Class);
 	}
 
+	// WidgetComponent
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("ObjectWidget"));
+	WidgetComponent->SetupAttachment(RootComponent);
+	WidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	WidgetComponent->SetDrawSize(FVector2D(10, 10));
+	WidgetComponent->SetRelativeLocation(FVector(0, 0, 100));
+	WidgetComponent->SetVisibility(false); // 기본은 비활성화
+
+	// AIPerception과 player안의 sphere만 감지하는 Object
+	SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
+	SphereCollisionComp->SetupAttachment(RootComponent);
+	SphereCollisionComp->ComponentTags.Add(FName("Object"));
+	SphereCollisionComp->SetSphereRadius(50.0f);
+	SphereCollisionComp->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
 	Tags.Add(FName("Object"));
 }
 
@@ -61,7 +77,7 @@ void AMyAICharacter::OnHackingStartedServer_Implementation(APawn* Interactor)
 	if (Target == nullptr || Target != Interactor)
 	{
 		// AI 상태를 해킹 상태로 변경
-		BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Hacked));
+		BlackboardComp->SetValueAsEnum(TEXT("AIState"), static_cast<uint8>(EMyAIState::Hacked));
 		// Perception 비활성화
 		if (UAIPerceptionComponent* Perception = AIController->FindComponentByClass<UAIPerceptionComponent>())
 		{
@@ -70,6 +86,7 @@ void AMyAICharacter::OnHackingStartedServer_Implementation(APawn* Interactor)
 			Perception->ForgetAll();
 		}
 		AIController->ResetStimulus();
+		UE_LOG(LogTemp, Error, TEXT("dsjkflfadsasdlfadasdfkadskd"));
 	}
 	
 }
@@ -90,6 +107,14 @@ void AMyAICharacter::S2A_UpdateWidgetDirection_Implementation(FRotator Rotate)
 	if (!AIStateWidget) return;
 
 	AIStateWidget->SetWorldRotation(Rotate);
+}
+
+void AMyAICharacter::SetWidgetVisibility_Implementation(bool Visible)
+{
+	if (WidgetComponent)
+	{
+		WidgetComponent->SetVisibility(Visible);
+	}
 }
 
 // Called when the game starts or when spawned

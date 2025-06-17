@@ -242,11 +242,14 @@ void APlayerBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// Noise ¹ß»ý
-	NoiseTimer += DeltaTime;
-	if (NoiseTimer >= NoiseInterval)
+	if (IsLocallyControlled())
 	{
-		C2S_MakeNoise(CurrentNoise);
-		NoiseTimer = 0.f;
+		NoiseTimer += DeltaTime;
+		if (NoiseTimer >= NoiseInterval)
+		{
+			C2S_MakeNoise(CurrentNoise);
+			NoiseTimer = 0.f;
+		}
 	}
 
 	FVector InputVector = GetLastMovementInputVector();
