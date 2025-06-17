@@ -151,7 +151,6 @@ void AMyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimu
 		return;
 	}
 	CurrentTime = GetWorld()->GetTimeSeconds();
-
 	if (Cast<APlayerBase>(Actor))
 		PlayerPerception(Actor,Stimulus);
 

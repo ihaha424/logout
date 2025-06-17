@@ -42,6 +42,7 @@ EBTNodeResult::Type UBTT_ObjectRestoration::ExecuteTask(UBehaviorTreeComponent& 
 	if (Distance < 100)
 	{
 		Target->ClearHacking_Implementation();
+		BlackboardComp->ClearValue(TEXT("TargetObject"));
 		return EBTNodeResult::Succeeded;
 	}
 	return EBTNodeResult::InProgress;
