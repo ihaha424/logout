@@ -1,69 +1,60 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "BTT_MoveToStimulus.h"
 #include "MyAICharacter.h"
 #include "MyAIController.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
-#include "BehaviorTree/BTTaskNode.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Navigation/PathFollowingComponent.h"
-#include "The_Phantom_Twins/Player/PlayerBase.h"
-#include "DrawDebugHelpers.h"
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
-#include "BehaviorTree/BlackboardComponent.h"
+#include "DrawDebugHelpers.h"
+#include "The_Phantom_Twins/Player/PlayerBase.h"
 
 UBTT_MoveToStimulus::UBTT_MoveToStimulus()
 {
 	NodeName = TEXT("Move To Stimulus Location");
 	bNotifyTick = true;
-
 }
 
 EBTNodeResult::Type UBTT_MoveToStimulus::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	Super::ExecuteTask(OwnerComp, NodeMemory);
 
+	FBTMoveToStimulusMemory* MyMemory = (FBTMoveToStimulusMemory*)NodeMemory;
+
 	AMyAIController* MyAIController = Cast<AMyAIController>(OwnerComp.GetAIOwner());
-	if (!MyAIController)
-	{
-		return EBTNodeResult::Failed;
-	}
+	if (!MyAIController) return EBTNodeResult::Failed;
 
 	AMyAICharacter* AIPawn = Cast<AMyAICharacter>(MyAIController->GetPawn());
-	if (!AIPawn)
-	{
-		return EBTNodeResult::Failed;
-	}
+	if (!AIPawn) return EBTNodeResult::Failed;
+
 	UBlackboardComponent* BlackboardComp = MyAIController->GetBlackboardComponent();
-	if (!BlackboardComp)
-	{
-		return EBTNodeResult::Failed;
-	}
-	// 추격 속도 적용
+	if (!BlackboardComp) return EBTNodeResult::Failed;
+
 	AIPawn->GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
 
 	FVector StartLocation = AIPawn->GetActorLocation();
-	TargetLocation = BlackboardComp->GetValueAsVector(TEXT("UsingStimulusLocation"));
+	FVector TargetLocation = BlackboardComp->GetValueAsVector(TEXT("UpdatedStimulusLocation"));
 
 	UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(
-		GetWorld(),                // UWorld*
-		StartLocation,             // 시작 위치
-		TargetLocation,            // 목표 위치
-		AIPawn                     // Navigation Agent (예: AI Pawn)
-	);
-	if (NavPath && NavPath->IsValid() && NavPath->PathPoints.Num() > 1)
+		GetWorld(),
+		StartLocation,
+		TargetLocation,
+		AIPawn
+		);
+	
+	// 경로 유효시 이동 시작
+	if (NavPath && NavPath->IsValid() && NavPath->PathPoints.Num() > 1 && !NavPath->IsPartial())
 	{
-		// 유효한 경로가 있으므로 MoveTo 실행
 		FAIMoveRequest MoveRequest;
 		MoveRequest.SetGoalLocation(TargetLocation);
 		MoveRequest.SetAcceptanceRadius(AcceptanceRadius);
+		MyAIController->MoveTo(MoveRequest);
 
-		FNavPathSharedPtr DummyPath;
-		MyAIController->MoveTo(MoveRequest, &DummyPath);
-
-		bPathValid = true;
+		UE_LOG(LogTemp, Warning, TEXT("AI CAN move TO UpdatedStimulusLocation"));
+		
+		MyMemory->TargetLocation = TargetLocation;
+		MyMemory->bPathValid = true;
 
 		DrawDebugSphere(AIPawn->GetWorld(), TargetLocation, 20.f, 12, FColor::Green, false, 10.0f);
 
@@ -71,20 +62,20 @@ EBTNodeResult::Type UBTT_MoveToStimulus::ExecuteTask(UBehaviorTreeComponent& Own
 	}
 	else
 	{
-		// 경로가 유효하지 않으면 실패 처리
 		DrawDebugSphere(AIPawn->GetWorld(), TargetLocation, 25.0f, 12, FColor::Red, false, 10.0f);
-
-		BlackboardComp->ClearValue("LastStimulusLocation");
-		BlackboardComp->ClearValue("UsingStimulusLocation");
+		UE_LOG(LogTemp, Warning, TEXT("AI Move TO UpdatedStimulusLocation IS FAILED. CAN'T GO"));
+		BlackboardComp->ClearValue("PlayerStimulusLocation");
+		BlackboardComp->ClearValue("UpdatedStimulusLocation");
 		BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
+
 		return EBTNodeResult::Failed;
 	}
 }
 
-
 void UBTT_MoveToStimulus::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-	if (!bPathValid)
+	FBTMoveToStimulusMemory* MyMemory = (FBTMoveToStimulusMemory*)NodeMemory;
+	if (!MyMemory->bPathValid)
 	{
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return;
@@ -96,11 +87,20 @@ void UBTT_MoveToStimulus::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 	APawn* AIPawn = AIController->GetPawn();
 	if (!AIPawn) return;
 
-	float Distance = FVector::Dist(AIPawn->GetActorLocation(), TargetLocation);
-
+	float Distance = FVector::Dist(AIPawn->GetActorLocation(), MyMemory->TargetLocation);
+	//UE_LOG(LogTemp, Warning, TEXT("AI IS Moving TO UpdatedStimulusLocation"));
 	if (Distance <= AcceptanceRadius)
 	{
 		AIController->StopMovement();
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+	}
+}
+
+void UBTT_MoveToStimulus::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult)
+{
+	AAIController* AIController = OwnerComp.GetAIOwner();
+	if (AIController)
+	{
+		AIController->StopMovement();
 	}
 }
