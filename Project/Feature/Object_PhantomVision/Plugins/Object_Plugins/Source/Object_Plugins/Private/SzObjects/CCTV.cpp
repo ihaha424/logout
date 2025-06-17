@@ -107,7 +107,7 @@ void ACCTV::Tick(float DeltaTime)
 		HackingComp->UpdateHackingProgress(CurrentHackingPawn, CurrentTime);
 	}
 
-	if (CurrentHackingPawn && NoiseComp->bIsHacking)
+	if (CurrentHackingPawn && NoiseComp && NoiseComp->bIsHacking)
 	{
 		NoiseComp->UpdateHackingProgress(CurrentHackingPawn, CurrentTime);
 	}
@@ -145,6 +145,11 @@ void ACCTV::OnInteractSever_Implementation(APawn* Interactor)
 	}
 }
 
+void ACCTV::OnInteractClient_Implementation(APawn* Interactor)
+{
+
+}
+
 bool ACCTV::CanInteract_Implementation(const APawn* Interactor) const
 {
 	return HackingComp->bIsHacked && IsActive;	// 임시. 해킹이 되어있고 카드키가 있어야 Interact 가능
@@ -160,17 +165,27 @@ void ACCTV::OnHackingStartedServer_Implementation(APawn* Interactor)
 {
 	UE_LOG(LogTemp, Log, TEXT("ACCTV::OnHackingStarted Server"));
 
-	// 현재 해킹 중인 플레이어 저장
-	CurrentHackingPawn = Interactor;
+	//// 현재 해킹 중인 플레이어 저장
+	//CurrentHackingPawn = Interactor;
 
-	HackingComp->HackingStarted(Interactor);
-	NoiseComp->HackingStarted(Interactor);
+	//HackingComp->HackingStarted(Interactor);
+	//NoiseComp->HackingStarted(Interactor);
 }
 
 void ACCTV::OnHackingStartedClient_Implementation(APawn* Interactor)
 {
 	UE_LOG(LogTemp, Log, TEXT("ACCTV::OnHackingStarted Client"));
 
+
+	// 현재 해킹 중인 플레이어 저장
+	CurrentHackingPawn = Interactor;
+
+	HackingComp->HackingStarted(Interactor);
+
+	if (NoiseComp)
+	{
+		NoiseComp->HackingStarted(Interactor);
+	}
 }
 
 void ACCTV::OnHackingCompletedServer_Implementation(APawn* Interactor)
@@ -181,7 +196,11 @@ void ACCTV::OnHackingCompletedServer_Implementation(APawn* Interactor)
 	if (CurrentHackingPawn != Interactor) return;
 
 	HackingComp->HackingCompleted(Interactor);
-	NoiseComp->HackingCompleted(Interactor);
+
+	if (NoiseComp)
+	{
+		NoiseComp->HackingCompleted(Interactor);
+	}
 
 	// 해킹 완료 후 현재 해킹 플레이어 초기화
 	CurrentHackingPawn = nullptr;
@@ -215,8 +234,13 @@ bool ACCTV::CanBeHacked_Implementation() const
 void ACCTV::ClearHacking_Implementation()
 {
 	// 해킹 초기화
-	HackingComp->CheckHackReset();
-	NoiseComp->CheckHackReset();
+	HackingComp->CheckHackReset(CurrentHackingPawn);
+
+	if (NoiseComp)
+	{
+		NoiseComp->CheckHackReset(CurrentHackingPawn);
+	}
+
 	CurrentHackingPawn = nullptr;
 
 	// HackedIDSet에서 CCTV(자신) 제거
@@ -230,7 +254,6 @@ void ACCTV::ClearHacking_Implementation()
 		}
 	}
 }
-
 
 void ACCTV::Turn(const FInputActionValue& Value)
 {
