@@ -44,7 +44,7 @@ public:
 	
 	ACCTV* GetHackedCCTV(int32 CCTVId) const
 	{
-		if (HackedIDSet.Contains(CCTVId))
+		if (HackedIDArray.Contains(CCTVId))
 		{
 			if (const TObjectPtr<ACCTV>* CCTVPtr = CCTVMap.Find(CCTVId))
 			{
@@ -54,13 +54,18 @@ public:
 		return nullptr;
 	}
 
-
 		
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
-	TMap<int32, TObjectPtr<ACCTV>> CCTVMap;				// 전체 CCTV들
+	TMap<int32, TObjectPtr<ACCTV>> CCTVMap;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
-	TSet<int32> HackedIDSet;		// 해킹된 CCTV id 모음
+	UPROPERTY(ReplicatedUsing=OnRep_HackedIDArray, VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
+	TArray<int32> HackedIDArray;
+
+	UFUNCTION()
+	void OnRep_HackedIDArray();
+
+public:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 };

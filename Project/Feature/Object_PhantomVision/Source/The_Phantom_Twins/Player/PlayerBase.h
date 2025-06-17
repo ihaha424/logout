@@ -187,6 +187,10 @@ public:
 	void C2S_StopHacking_Implementation(UObject* interact);
 
 	UFUNCTION(Server, Reliable)
+	void C2S_PhantomVision(UObject* interact);
+	void C2S_PhantomVision_Implementation(UObject* interact);
+
+	UFUNCTION(Server, Reliable)
 	void C2S_SetMaxWalkSpeed(float Speed);
 	void C2S_SetMaxWalkSpeed_Implementation(float Speed);
 

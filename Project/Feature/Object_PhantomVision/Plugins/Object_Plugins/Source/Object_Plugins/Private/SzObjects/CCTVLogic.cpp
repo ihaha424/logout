@@ -1,7 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "SzObjects/CCTVLogic.h"
+﻿#include "SzObjects/CCTVLogic.h"
 #include "SzComponents/CCTVManager.h"
 #include "SzObjects/CCTV.h"
 #include "PhantomTwinsGameState.h"
@@ -11,16 +8,14 @@
 // Sets default values
 ACCTVLogic::ACCTVLogic()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
-
+	bReplicates = true;
 }
 
 // Called when the game starts or when spawned
 void ACCTVLogic::BeginPlay()
 {
 	Super::BeginPlay();
-
 	CurrentGameState = CastChecked<APhantomTwinsGameState>(GetWorld()->GetGameState());
 	CurrentCCTVManager = CurrentGameState->GetCCTVManager();
 	check(CurrentCCTVManager);
@@ -28,38 +23,68 @@ void ACCTVLogic::BeginPlay()
 
 void ACCTVLogic::EnterFirstHackedCCTV(APawn* Interactor)
 {
-	if (CurrentGameState && CurrentCCTVManager)
-	{
-		ACCTV* firstCCTV = CurrentCCTVManager->GetFirstHackedCCTV();
-		APlayerController* PC = CastChecked<APlayerController>(Interactor->GetController());
+	if (!CurrentGameState || !CurrentCCTVManager) return;
 
-		if (firstCCTV)
+	// PlayerController 획득 및 소유자 설정
+	APlayerController* PC = CastChecked<APlayerController>(Interactor->GetController());
+	SetOwner(PC);  // 이후 Client RPC가 이 PC에게 전달됨[2]
+
+	ACCTV* FirstCCTV = CurrentCCTVManager->GetFirstHackedCCTV();
+	if (FirstCCTV)
+	{
+		FirstCCTV->EnterCCTVView(PC);
+
+		if (bIsWidgetShown)
 		{
-			// CCTV 진입
-			firstCCTV->EnterCCTVView(PC);
+			HideNoHackedCCTVUI_Client();
+			bIsWidgetShown = false;
+		}
+	}
+	else
+	{
+		// 토글하여 오류 UI 생성/제거
+		if (bIsWidgetShown)
+		{
+			HideNoHackedCCTVUI_Client();
+			bIsWidgetShown = false;
 		}
 		else
 		{
-			// Error UI 토글
-			if (CCTVWidgetInstance && CCTVWidgetInstance->IsInViewport())
-			{
-				UE_LOG(LogTemp, Log, TEXT("Error UI 제거"));
-				CCTVWidgetInstance->RemoveFromParent();
-				CCTVWidgetInstance = nullptr;
-			}
-			else
-			{
-				UE_LOG(LogTemp, Log, TEXT("Error UI 띄움"));
-
-				if (NoHackedCCTVWidget)
-				{
-					CCTVWidgetInstance = CreateWidget<UUserWidget>(PC, NoHackedCCTVWidget);
-					if (CCTVWidgetInstance)
-					{
-						CCTVWidgetInstance->AddToViewport();
-					}
-				}
-			}
+			ShowNoHackedCCTVUI_Client();
+			bIsWidgetShown = true;
 		}
+	}
+}
+
+void ACCTVLogic::ShowNoHackedCCTVUI_Client_Implementation()
+{
+	// 소유자인 로컬 플레이어 컨트롤러 얻기
+	APlayerController* LocalPC = Cast<APlayerController>(GetOwner());
+	if (!LocalPC || !LocalPC->IsLocalPlayerController()) return;
+
+	// 기존 위젯 제거  
+	if (CCTVWidgetInstance && CCTVWidgetInstance->IsInViewport())
+	{
+		CCTVWidgetInstance->RemoveFromParent();
+		CCTVWidgetInstance = nullptr;
+	}
+
+	// 새 위젯 생성 및 표시  
+	if (NoHackedCCTVWidget)
+	{
+		CCTVWidgetInstance = CreateWidget<UUserWidget>(LocalPC, NoHackedCCTVWidget);
+		if (CCTVWidgetInstance)
+		{
+			CCTVWidgetInstance->AddToViewport();
+		}
+	}
+}
+
+void ACCTVLogic::HideNoHackedCCTVUI_Client_Implementation()
+{
+	if (CCTVWidgetInstance && CCTVWidgetInstance->IsInViewport())
+	{
+		CCTVWidgetInstance->RemoveFromParent();
+		CCTVWidgetInstance = nullptr;
 	}
 }
