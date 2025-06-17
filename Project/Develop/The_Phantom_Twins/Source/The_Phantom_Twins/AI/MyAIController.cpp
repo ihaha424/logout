@@ -234,15 +234,22 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 
 void AMyAIController::ObjectPerception(AActor* Actor, FAIStimulus Stimulus)
 {
-	if (Actor->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+	if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
 	{
-		AHackableObject* Object = Cast<AHackableObject>(Actor);
-		// 오브제트가 이미 해킹이되어서 해킹이 불가한 상태라면 밑의 코드가 실행됨.
-		if (!Object->IHacking::CanBeHacked_Implementation())
+		if (Stimulus.WasSuccessfullySensed())
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Hearing ObjectPerception : %s"), *Actor->GetName());
-			Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Suspicion));
-			Blackboard->SetValueAsObject("TargetObject", Object);
+			UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Hearing ObjectPerception : %s"), *Actor->GetName());
+			if (Actor->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+			{
+				AHackableObject* Object = Cast<AHackableObject>(Actor);
+				// 오브제트가 이미 해킹이되어서 해킹이 불가한 상태라면 밑의 코드가 실행됨.
+				if (!Object->IHacking::CanBeHacked_Implementation())
+				{
+					UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Hearing AHackableObject AHackableObject ObjectPerception : %s"), *Object->GetName());
+					Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Suspicion));
+					Blackboard->SetValueAsObject("TargetObject", Object);
+				}
+			}
 		}
 	}
 }
@@ -257,7 +264,7 @@ void AMyAIController::AllyPerception(AActor* Actor, FAIStimulus Stimulus)
 
 		if (BlackboardComp->GetValueAsEnum("AIState") == static_cast<uint8>(EMyAIState::Combat))
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Sight AllyPerception : %s"), *Actor->GetName());
+			UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Sight AllyPerception : %s"), *Actor->GetName());
 			Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Combat));
 		}
 	}
@@ -298,6 +305,7 @@ ASplinePathActor* AMyAIController::FindNearestSplinePath(const FVector& Stimulus
 			{
 				ClosestDistance = Dist;
 				ClosestSpline = SplineActor;
+				Blackboard->SetValueAsObject("TargetSplinePath", ClosestSpline);
 			}
 		}
 	}
