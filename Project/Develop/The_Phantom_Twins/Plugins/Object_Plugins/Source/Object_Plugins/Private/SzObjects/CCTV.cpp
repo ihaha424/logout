@@ -116,7 +116,8 @@ void ACCTV::Tick(float DeltaTime)
 	if (HackingComp->bIsHacked && !HackingComp->bKeepHacked &&
 		(CurrentTime - HackingComp->HackingStartTime >= HackingComp->HackedDuration))
 	{
-		HackingComp->CheckHackReset();
+		HackingComp->CheckHackReset(CurrentHackingPawn);
+		NoiseComp->CheckHackReset(CurrentHackingPawn);
 		CurrentHackingPawn = nullptr; // 해킹이 리셋되면 현재 해킹 플레이어도 초기화
 	}
 }
@@ -226,11 +227,11 @@ void ACCTV::ClearHacking_Implementation()
 {
 	if (NoiseComp)
 	{
-		NoiseComp->CheckHackReset();
+		NoiseComp->CheckHackReset(CurrentHackingPawn);
 	}
 
 	// 해킹 초기화
-	HackingComp->CheckHackReset();
+	HackingComp->CheckHackReset(CurrentHackingPawn);
 
 	CurrentHackingPawn = nullptr;
 
