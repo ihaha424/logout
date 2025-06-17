@@ -31,14 +31,20 @@ EBTNodeResult::Type UBTT_MoveToStimulus::ExecuteTask(UBehaviorTreeComponent& Own
     UBlackboardComponent* BlackboardComp = MyAIController->GetBlackboardComponent();
     if (!BlackboardComp) return EBTNodeResult::Failed;
 
-    FVector CurrentLocation = AIPawn->GetActorLocation();
+    FVector CurrentLocation = AIPawn->GetNavAgentLocation();
+    FNavLocation AdjustedTargetLocation;
     FVector TargetLocation = BlackboardComp->GetValueAsVector(TEXT("UpdatedStimulusLocation"));
+    UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
+    if (NavSys->ProjectPointToNavigation(TargetLocation, AdjustedTargetLocation, FVector(500, 500, 500)))
+    {
+        TargetLocation = AdjustedTargetLocation;
+    }
     float InitialDistance = FVector::Dist(CurrentLocation, TargetLocation);
 
     // 이미 도착한 경우 실패 반환 및 상태 초기화
     if (InitialDistance <= AcceptanceRadius)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Move To Stimulus Location : Already at target location! : %s"), *AIPawn->GetName());
+        //UE_LOG(LogTemp, Warning, TEXT("Move To Stimulus Location : Already at target location! : %s"), *AIPawn->GetName());
         BlackboardComp->ClearValue("PlayerStimulusLocation");
         BlackboardComp->ClearValue("UpdatedStimulusLocation");
         BlackboardComp->SetValueAsEnum(TEXT("AIState"), static_cast<uint8>(EMyAIState::Default));
@@ -65,7 +71,7 @@ EBTNodeResult::Type UBTT_MoveToStimulus::ExecuteTask(UBehaviorTreeComponent& Own
 
         if (MoveResult == EPathFollowingRequestResult::RequestSuccessful)
         {
-            UE_LOG(LogTemp, Warning, TEXT("Move To Stimulus Location : Movement started successfully : %s"), *AIPawn->GetName());
+           // UE_LOG(LogTemp, Warning, TEXT("Move To Stimulus Location : Movement started successfully : %s"), *AIPawn->GetName());
             MyMemory->TargetLocation = TargetLocation;
             MyMemory->bPathValid = true;
             DrawDebugSphere(AIPawn->GetWorld(), TargetLocation, 20.f, 12, FColor::Green, false, 10.0f);
@@ -73,7 +79,7 @@ EBTNodeResult::Type UBTT_MoveToStimulus::ExecuteTask(UBehaviorTreeComponent& Own
         }
         else
         {
-            UE_LOG(LogTemp, Error, TEXT("Move To Stimulus Location : Failed to start movement! Reason: %d"), (int32)MoveResult);
+            //UE_LOG(LogTemp, Error, TEXT("Move To Stimulus Location : Failed to start movement! Reason: %d"), (int32)MoveResult);
             BlackboardComp->ClearValue("PlayerStimulusLocation");
             BlackboardComp->ClearValue("UpdatedStimulusLocation");
             BlackboardComp->SetValueAsEnum(TEXT("AIState"), static_cast<uint8>(EMyAIState::Default));
@@ -82,8 +88,28 @@ EBTNodeResult::Type UBTT_MoveToStimulus::ExecuteTask(UBehaviorTreeComponent& Own
     }
     else
     {
+        //if (!NavPath)
+        //{
+        //    UE_LOG(LogTemp, Warning, TEXT("NavPath is nullptr"));
+        //}
+        //else if (!NavPath->IsValid())
+        //{
+        //    UE_LOG(LogTemp, Warning, TEXT("NavPath is not valid"));
+        //}
+        //else if (NavPath->PathPoints.Num() <= 1)
+        //{
+        //    UE_LOG(LogTemp, Warning, TEXT("NavPath->PathPoints.Num() <= 1 : %d"), NavPath->PathPoints.Num());
+        //}
+        //else if (NavPath->IsPartial())
+        //{
+        //    UE_LOG(LogTemp, Warning, TEXT("NavPath is partial"));
+        //}
+        //else
+        //{
+        //    UE_LOG(LogTemp, Warning, TEXT("All conditions passed"));
+        //}
         DrawDebugSphere(AIPawn->GetWorld(), TargetLocation, 25.0f, 12, FColor::Red, false, 10.0f);
-        UE_LOG(LogTemp, Warning, TEXT("AI Move TO UpdatedStimulusLocation IS FAILED. CAN'T GO : %s"), *AIPawn->GetName());
+        //UE_LOG(LogTemp, Warning, TEXT("AI Move TO UpdatedStimulusLocation IS FAILED. CAN'T GO : %s"), *AIPawn->GetName());
         BlackboardComp->ClearValue("PlayerStimulusLocation");
         BlackboardComp->ClearValue("UpdatedStimulusLocation");
         BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
@@ -115,7 +141,7 @@ void UBTT_MoveToStimulus::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
             BlackboardComp->ClearValue("PlayerStimulusLocation");
             BlackboardComp->ClearValue("UpdatedStimulusLocation");
         }
-        UE_LOG(LogTemp, Warning, TEXT("AI Movement completed successfully! : %s"), *AIPawn->GetName());
+       // UE_LOG(LogTemp, Warning, TEXT("AI Movement completed successfully! : %s"), *AIPawn->GetName());
         FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
     }
 }

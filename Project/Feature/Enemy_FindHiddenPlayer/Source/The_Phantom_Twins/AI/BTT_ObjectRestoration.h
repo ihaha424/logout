@@ -16,5 +16,5 @@ class THE_PHANTOM_TWINS_API UBTT_ObjectRestoration : public UBTTaskNode
 public:
 	UBTT_ObjectRestoration();
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-
+	void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds);
 };
