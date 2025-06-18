@@ -27,8 +27,12 @@ class OBJECT_PLUGINS_API ABaseObject : public APawn, public IInteraction
 public:	
 	ABaseObject();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
 	virtual void BeginPlay() override;
+
+
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
@@ -38,7 +42,7 @@ public:
 	virtual void OnInteractSever_Implementation(APawn* Interactor) override;
 	virtual void OnInteractClient_Implementation(APawn* Interactor) override;
 	virtual bool CanInteract_Implementation(const APawn* Interactor) const override;
-	virtual bool GetPickedUp_Implementation() const override;
+	virtual bool CanPickedUp_Implementation() const override;
 	virtual void SetWidgetVisibility_Implementation(bool Visible) override;
 
 
@@ -66,7 +70,7 @@ public:
 	EObjectType ObjectType = EObjectType::Item;
 
 	// 인벤토리 획득 여부 (아이템, 텍스트, 도구일 때만 노출)
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction", meta = (EditCondition = "bIsInventoryObject", EditConditionHides))
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Interaction", meta = (EditCondition = "bIsInventoryObject", EditConditionHides))
 	bool bIsPickedUp = false;
 
 	// UI 사용 여부

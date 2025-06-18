@@ -66,7 +66,6 @@ private:
 	TArray<FAuditoryStimulus> HearingStimulus;
 	UPROPERTY(EditAnywhere, Category = "AI")
 	float ExpireTime = 10.f;
-	float AccumulatedHearingStrength = 0.f;
 
 	float SightStartTime = -1.0f;
 	float LastHeardTime = -1.0f;
@@ -74,8 +73,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = "AI")
 	float SightForgetTime = 3.0f; // 감지 해제 후 몇 초 뒤에 잊을지 설정
 	float CurrentTime = 0.f;
-	TObjectPtr<AMyAICharacter> AICharacter;
-
 
 	FVector PrevLocation;
 	FVector CurrLocation;

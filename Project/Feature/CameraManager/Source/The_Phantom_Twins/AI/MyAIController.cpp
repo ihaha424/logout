@@ -14,6 +14,7 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/PawnSensingComponent.h"
+#include "SzComponents/HideComponent.h"
 #include "SzObjects/HackableObject.h"
 #include "The_Phantom_Twins/Player/PlayerBase.h"
 
@@ -104,6 +105,7 @@ void AMyAIController::Tick(float DeltaTime)
 			if (CurrentState != static_cast<uint8>(EMyAIState::Combat))
 			{
 				Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Combat));
+				UE_LOG(LogTemp, Warning, TEXT("This is FOR Sight Stimulus Target"));
 				Blackboard->SetValueAsObject(TEXT("ChasingPlayer"), TargetActor);
 			}
 		}
@@ -113,7 +115,8 @@ void AMyAIController::Tick(float DeltaTime)
 	{
 		if (TickCurrentTime - HearingStimulus[i].Timestamp > ExpireTime)
 		{
-			AccumulatedHearingStrength -= HearingStimulus[i].Strength;
+			float AccumulatedHearingStrength = Blackboard->GetValueAsFloat(TEXT("HearingStimulusStack"));
+			Blackboard->SetValueAsFloat(TEXT("HearingStimulusStack"), AccumulatedHearingStrength - HearingStimulus[i].Strength); 
 			HearingStimulus.RemoveAt(i);
 		}
 	}
@@ -122,8 +125,7 @@ void AMyAIController::Tick(float DeltaTime)
 	uint8 CurrentState = Blackboard->GetValueAsEnum("AIState");
 
 	/*지금 문제가 시야자극에서 갱신이 안되기 떄문에..*/
-
-
+	AMyAICharacter* MyAICharacter = Cast<AMyAICharacter>(GetPawn());
 	// 전투상태 중이었는데 보이는것도 들리는것도 없으면 해제 하기.
 	if(CurrentState == static_cast<uint8>(EMyAIState::Combat)&& !bStillSeeing && HearingStimulus.IsEmpty())
 	{
@@ -131,13 +133,13 @@ void AMyAIController::Tick(float DeltaTime)
 		SightStartTime = -1.0f;
 		LastHeardTime = -1.0f;
 		HearingStimulus.Empty();
-		AccumulatedHearingStrength = 0.f;
 
+		Blackboard->ClearValue("HearingStimulusStack");
 		Blackboard->SetValueAsVector(TEXT("PlayerStimulusLocation"), FVector::ZeroVector);
 		Blackboard->SetValueAsVector(TEXT("UpdatedStimulusLocation"), FVector::ZeroVector);
 		Blackboard->SetValueAsEnum("AIStimulus", static_cast<uint8>(EMyAIStimulus::None));
 		Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
-		AICharacter->S2A_UpdateAIStateWidget(EAIStateWidget::NoneMark);
+		MyAICharacter->S2A_UpdateAIStateWidget(EAIStateWidget::NoneMark);
 		Blackboard->ClearValue("ChasingPlayer");
 		Blackboard->ClearValue("TargetPlayer");
 	}
@@ -145,8 +147,8 @@ void AMyAIController::Tick(float DeltaTime)
 
 void AMyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	AICharacter = Cast<AMyAICharacter>(GetPawn());
-	if (!AICharacter || !AICharacter->AIStateWidget)
+	AMyAICharacter* MyAICharacter = Cast<AMyAICharacter>(GetPawn());
+	if (!MyAICharacter || !MyAICharacter->AIStateWidget)
 	{
 		return;
 	}
@@ -163,6 +165,7 @@ void AMyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimu
 
 void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 {
+	AMyAICharacter* MyAICharacter = Cast<AMyAICharacter>(GetPawn());
 	APlayerBase* Target = Cast<APlayerBase>(Actor);
 	if (Target->IsGroggy()) return;
 
@@ -179,7 +182,7 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Sight PlayerPerception : %s"), *Actor->GetName());
 			// AI의 위젯UI를 모두가 볼수있도록 하는 부분.
-			AICharacter->S2A_UpdateAIStateWidget(EAIStateWidget::QuestionMark);
+			MyAICharacter->S2A_UpdateAIStateWidget(EAIStateWidget::QuestionMark);
 			// 시야 감지가 시작된적이 없다면 시간체크 시작.
 			if (SightStartTime < 0.f)
 				SightStartTime = CurrentTime;
@@ -200,11 +203,13 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 			PrevLocation = Blackboard->GetValueAsVector(TEXT("UpdatedStimulusLocation"));
 			CurrLocation = Blackboard->GetValueAsVector(TEXT("PlayerStimulusLocation"));
 
-			AICharacter->S2A_UpdateAIStateWidget(EAIStateWidget::ExclamationMark);
+			MyAICharacter->S2A_UpdateAIStateWidget(EAIStateWidget::ExclamationMark);
 			LastHeardTime = CurrentTime;
 
 			HearingStimulus.Add(FAuditoryStimulus(CurrentTime, Stimulus.Strength));
-			AccumulatedHearingStrength += Stimulus.Strength;
+
+			float AccumulatedHearingStrength = Blackboard->GetValueAsFloat(TEXT("HearingStimulusStack"));
+			Blackboard->SetValueAsFloat(TEXT("HearingStimulusStack"), AccumulatedHearingStrength + Stimulus.Strength);
 
 			// 들어온 자극의 순위를 확인하는 코드. TODO:: 플레이어가 뛰는 것과 걷는것을 어떻게 구분?
 			////일단 이거 나중에 처리 ㅎ가ㅣ///if (Blackboard->GetValueAsEnum("AIStimulus") >= static_cast<uint8>(EMyAIStimulus::PlayerRun))
@@ -214,22 +219,23 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 			// 패트롤해야하는 자극 위치와 들어온 자극의 거리가 차이나면 패트롤위치를 갱신한다.
 			if (FVector::DistSquared(PrevLocation, CurrLocation) > StimulusUpdateDistance)
 			{
-				//UE_LOG(LogTemp, Warning, TEXT("UpdatedStimulusLocation is Updated by \"UAISense_Hearing\""));
+				//UE_LOG(LogTemp, Warning, TEXT("UpdatedStimulusLocation is Updated by \"UAISense_Hearing\"")); 
 
 				Blackboard->SetValueAsVector(TEXT("UpdatedStimulusLocation"), Stimulus.StimulusLocation);
 			}
 
 			Blackboard->SetValueAsObject("TargetPlayer", Target);
 
-			if (AccumulatedHearingStrength >= 100.f)
+			if (Blackboard->GetValueAsFloat(TEXT("HearingStimulusStack")) >= 100.f)
 			{
 				Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Combat));
+				UE_LOG(LogTemp, Warning, TEXT("This is FOR HearingStrength >= 100.f Stimulus Target"));
 				Blackboard->SetValueAsObject("ChasingPlayer", Target);
 			}
 		}
 	}
 	// 자극의 근원지에서 가장 가까운 스플라인 경로를 찾는다.
-	AICharacter->StimulusSplinePath = FindNearestSplinePath(Blackboard->GetValueAsVector(TEXT("UpdatedStimulusLocation")));
+	MyAICharacter->StimulusSplinePath = FindNearestSplinePath(Blackboard->GetValueAsVector(TEXT("UpdatedStimulusLocation")));
 }
 
 void AMyAIController::ObjectPerception(AActor* Actor, FAIStimulus Stimulus)
@@ -248,6 +254,20 @@ void AMyAIController::ObjectPerception(AActor* Actor, FAIStimulus Stimulus)
 					//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Hearing AHackableObject AHackableObject ObjectPerception : %s"), *Object->GetName());
 					Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Suspicion));
 					Blackboard->SetValueAsObject("TargetObject", Object);
+				}
+			}
+		}
+	}
+	if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
+	{
+		if (Stimulus.WasSuccessfullySensed())
+		{
+			if (UHideComponent* HideComponent = Actor-> FindComponentByClass<UHideComponent>())
+			{
+				if (Blackboard->GetValueAsEnum("AIState") == static_cast<uint8>(EMyAIState::Combat) && HideComponent->bHasPlayer)
+				{
+					// 안보이더라도 숨어있는 애를 바로 찾아서 공격할수있도록 하는 코드. 숨어있는 플레이어 값을 받아와야함
+
 				}
 			}
 		}
@@ -275,11 +295,11 @@ void AMyAIController::ResetStimulus()
 	SightStartTime = -1.0f;
 	LastHeardTime = -1.0f;
 	HearingStimulus.Empty();
-	AccumulatedHearingStrength = 0.f;
 	Blackboard->SetValueAsVector(TEXT("PlayerStimulusLocation"), FVector::ZeroVector);
 	Blackboard->SetValueAsVector(TEXT("UpdatedStimulusLocation"), FVector::ZeroVector);
 	Blackboard->SetValueAsEnum("AIStimulus", static_cast<uint8>(EMyAIStimulus::None));
 
+	Blackboard->ClearValue("HearingStimulusStack");
 	Blackboard->ClearValue("TargetPlayer");
 	Blackboard->ClearValue("ChasingPlayer");
 }

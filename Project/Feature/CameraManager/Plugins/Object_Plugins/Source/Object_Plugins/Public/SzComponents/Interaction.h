@@ -32,7 +32,7 @@ public:
     bool CanInteract(const APawn* Interactor) const;
 	
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
-	bool GetPickedUp() const;
+	bool CanPickedUp() const;
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
 	void SetWidgetVisibility(bool Visible);
