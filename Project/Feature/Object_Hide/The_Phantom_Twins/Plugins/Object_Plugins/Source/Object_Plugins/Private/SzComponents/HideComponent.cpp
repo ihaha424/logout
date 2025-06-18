@@ -11,7 +11,7 @@
 #include "Net/UnrealNetwork.h"
 
 
-#include "Kismet/KismetSystemLibrary.h"
+//#include "Kismet/KismetSystemLibrary.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogHideComponent, Log, All);
 
@@ -215,11 +215,9 @@ void UHideComponent::ExitObject(APlayerController* InteractorPC)
     HidePlayer = nullptr;
 }
 
-
-// 클라이언트에서 입력 제어를 위한 RPC 함수 구현
 void UHideComponent::SetInputState(APlayerController* InteractorPC, bool bIgnoreInput)
 {
-    UKismetSystemLibrary::PrintString(this, "S2C_SetInputState_Implementation");
+    //UKismetSystemLibrary::PrintString(this, "S2C_SetInputState_Implementation");
 
     if (InteractorPC && InteractorPC->IsLocalController())
     {
@@ -231,7 +229,6 @@ void UHideComponent::SetInputState(APlayerController* InteractorPC, bool bIgnore
     }
 }
 
-// 클라이언트에서 카메라 전환을 위한 RPC 함수 구현
 void UHideComponent::SetViewTarget(APlayerController* InteractorPC, AActor* NewViewTarget)
 {
     ULocalPlayer* LocalPlayer = InteractorPC->GetLocalPlayer();
