@@ -198,6 +198,10 @@ public:
 	void C2S_PhantomVision();
 	void C2S_PhantomVision_Implementation();
 
+	UFUNCTION(Client, Reliable)
+	void S2C_PhantomVisionWidget();
+	void S2C_PhantomVisionWidget_Implementation();
+
 	void SetGroggy();
 	void SetGroggyWidget(bool Visible);
 
@@ -208,6 +212,7 @@ public:
 	UFUNCTION(Client, Reliable)
 	void S2C_UpdatePerceivedActor(AActor* Actor, bool bVisible);
 	void S2C_UpdatePerceivedActor_Implementation(AActor* Actort, bool bVisible);
+
 
 private:
 	void ReferenceSetting();

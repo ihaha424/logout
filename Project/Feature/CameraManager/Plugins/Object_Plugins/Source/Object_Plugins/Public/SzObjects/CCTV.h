@@ -110,7 +110,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
     int32 SecurityLevel = 0;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
+    UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "CCTV")
     bool IsActive = false;
 
 	// 해킹
@@ -134,11 +134,20 @@ protected:
 	UPROPERTY()
 	TObjectPtr<APawn> CurrentHackingPawn;
 
-	UPROPERTY(ReplicatedUsing = OnRep_SetOutlines, EditAnywhere, BlueprintReadWrite, Category = "CCTV")
-	bool bSetOutlinesDirtyFlag;
+	UPROPERTY(ReplicatedUsing = OnRep_SetWidget, EditAnywhere, BlueprintReadWrite, Category = "CCTV")
+	bool bSetWidgetDirtyFlag;
 	/**
 	 * @brief :
-			임시로 아웃라인뿐만 아니라 클라이언트 코드도 처리하고 있음.
+			클라이언트 코드도 처리하고 있음.
+	 */
+	UFUNCTION()
+	void OnRep_SetWidget();
+
+	UPROPERTY(ReplicatedUsing = OnRep_SetOutlines, EditAnywhere, BlueprintReadWrite, Category = "CCTV")
+	bool bSetOutlineDirtyFlag;
+	/**
+	 * @brief :
+			아웃라인
 	 */
 	UFUNCTION()
 	void OnRep_SetOutlines();

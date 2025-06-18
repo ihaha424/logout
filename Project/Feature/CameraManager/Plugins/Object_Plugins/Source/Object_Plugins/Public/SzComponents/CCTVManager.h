@@ -17,7 +17,8 @@ struct FCameraInfomation
 public:
 	FCameraInfomation() 
 		: CCTV(nullptr)
-		, IsHacking(false)
+		, bIsHacking(false)
+		, bIsUsed(false)
 	{}
 
 public:
@@ -25,7 +26,10 @@ public:
 	TObjectPtr<ACCTV> CCTV;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
-	bool IsHacking;
+	bool bIsHacking;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CCTV")
+	bool bIsUsed;
 };
 
 
@@ -46,7 +50,8 @@ public:
 	// CCTV
 	void	AddCCTV(int32 CCTVId, ACCTV* CCTV);
 	ACCTV*	GetCCTV(int32 CCTVId) const;
-	void	SetHackedCCTV(int32 CCTVId, bool IsHacking);
+	void	SetHackedCCTV(int32 CCTVId, bool bIsHacking);
+	void	SetUsedCCTV(int32 CCTVId, bool bIsUsed);
 	/**
 	 * @brief 
 			: 해킹된 CCTV가 있는지 확인하는 함수
@@ -58,6 +63,7 @@ public:
 	ACCTV* GetPrevHackedCCTV(int32 CurrentCCTVId) const;	// 현재 CCTV의 이전 CCTV를 반환해주는 함수
 	ACCTV* GetNextHackedCCTV(int32 CurrentCCTVId) const;	// 현재 CCTV의 이후 CCTV를 반환해주는 함수	
 	ACCTV* GetHackedCCTV(int32 CCTVId) const;
+
 
 
 		

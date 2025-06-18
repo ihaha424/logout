@@ -288,7 +288,10 @@ void ACCTV::Prev(const FInputActionValue& Value)
 	if (gameState && gameState->GetCCTVManager())
 	{
 		ACCTV* prevCCTV = gameState->GetCCTVManager()->GetPrevHackedCCTV(CCTVID);
+		if (!prevCCTV)
+			return;
 		C2S_ChangeCCTV(prevCCTV);
+
 	}
 }
 
@@ -299,6 +302,8 @@ void ACCTV::Next(const FInputActionValue& Value)
 	if (gameState && gameState->GetCCTVManager())
 	{
 		ACCTV* nextCCTV = gameState->GetCCTVManager()->GetNextHackedCCTV(CCTVID);
+		if (!nextCCTV)
+			return;
 		C2S_ChangeCCTV(nextCCTV);
 	}
 }
@@ -324,8 +329,16 @@ void ACCTV::EnterCCTVView(APlayerController* PlayerController)
 	PlayerController->SetInputMode(FInputModeGameOnly());
 	EnableInput(PlayerController);
 
-	bSetOutlinesDirtyFlag = true;
+	bSetWidgetDirtyFlag = true;
+	OnRep_SetWidget();
+	bSetOutlineDirtyFlag = true;
 	OnRep_SetOutlines();
+
+	APhantomTwinsGameState* gameState = Cast<APhantomTwinsGameState>(GetWorld()->GetGameState());
+	if (gameState && gameState->GetCCTVManager())
+	{
+		gameState->GetCCTVManager()->SetUsedCCTV(CCTVID, true);
+	}
 }
 
 void ACCTV::ExitCCTVView(APlayerController* PlayerController)
@@ -334,6 +347,7 @@ void ACCTV::ExitCCTVView(APlayerController* PlayerController)
 	{
 		PlayerController->Possess(PreviousPawn);
 		PreviousPawn->EnableInput(PlayerController);
+		PreviousPawn = nullptr;
 	}
 
 	bIsInCCTVView = false;
@@ -346,16 +360,24 @@ void ACCTV::ExitCCTVView(APlayerController* PlayerController)
 
 	PlayerController->SetInputMode(FInputModeGameOnly());
 
-	bSetOutlinesDirtyFlag = false;
-	OnRep_SetOutlines();
+	bSetWidgetDirtyFlag = false;
+	OnRep_SetWidget();
+
+	APhantomTwinsGameState* gameState = Cast<APhantomTwinsGameState>(GetWorld()->GetGameState());
+	if (gameState && gameState->GetCCTVManager())
+	{
+		gameState->GetCCTVManager()->SetUsedCCTV(CCTVID, false);
+	}
 }
 
 void ACCTV::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ACCTV, bSetOutlinesDirtyFlag);
+	DOREPLIFETIME(ACCTV, bSetWidgetDirtyFlag);
+	DOREPLIFETIME(ACCTV, bSetOutlineDirtyFlag);
 	DOREPLIFETIME(ACCTV, bIsInCCTVView);
+	DOREPLIFETIME(ACCTV, IsActive);
 }
 
 void ACCTV::SetActorsOutlines(bool bActive)
@@ -380,15 +402,14 @@ void ACCTV::SetActorsOutlines(bool bActive)
 	}
 }
 
-void ACCTV::OnRep_SetOutlines()
+void ACCTV::OnRep_SetWidget()
 {
-	if (!bSetOutlinesDirtyFlag)
+	if (!bSetWidgetDirtyFlag)
 	{
-		SetActorsOutlines(bSetOutlinesDirtyFlag);
 		if (!PhantomVisionUI && !IsLocallyControlled())
 		{
 			if(!PhantomVisionUI)
-				UE_LOG(LogCameraManger, Warning, TEXT("ACCTV: OnRep_SetOutlines: PhantomVisionUI is nullptr.(bSetOutlinesDirtyFlag is false)"));
+				UE_LOG(LogCameraManger, Warning, TEXT("ACCTV: OnRep_SetWidget: PhantomVisionUI is nullptr.(bSetWidgetDirtyFlag is false)"));
 			return;
 		}
 		PhantomVisionUI->RemoveFromParent();
@@ -400,14 +421,12 @@ void ACCTV::OnRep_SetOutlines()
 			return;
 		}
 
-		SetActorsOutlines(bSetOutlinesDirtyFlag);
-
 		BaseControlRotation = GetActorRotation();
 
 		APlayerController* PlayerController = Cast<APlayerController>(GetController());
 		if (!PlayerController)
 		{
-			UE_LOG(LogCameraManger, Error, TEXT("ACCTV: OnRep_SetOutlines: Cast To PlayerController Faild."));
+			UE_LOG(LogCameraManger, Error, TEXT("ACCTV: OnRep_SetWidget: Cast To PlayerController Faild."));
 			return;
 		}
 		PlayerController->SetControlRotation(BaseControlRotation);
@@ -420,17 +439,17 @@ void ACCTV::OnRep_SetOutlines()
 				PhantomVisionUI = CreateWidget<UPhantomVisionWidget>(PlayerController, PhantomVisionWidget);
 				if (!PhantomVisionUI)
 				{
-					UE_LOG(LogCameraManger, Error, TEXT("ACCTV: OnRep_SetOutlines: CreateWidget PhantomVisionUI Faild."));
+					UE_LOG(LogCameraManger, Error, TEXT("ACCTV: OnRep_SetWidget: CreateWidget PhantomVisionUI Faild."));
 				}
 			}
 
 			if (!PhantomVisionUI)
 			{
-				UE_LOG(LogCameraManger, Warning, TEXT("ACCTV: OnRep_SetOutlines: PhantomVisionUI is nullptr.(bSetOutlinesDirtyFlag is true)"));
+				UE_LOG(LogCameraManger, Warning, TEXT("ACCTV: OnRep_SetWidget: PhantomVisionUI is nullptr.(bSetWidgetDirtyFlag is true)"));
 				return;
 			}
 
-			if (bSetOutlinesDirtyFlag)
+			if (bSetWidgetDirtyFlag)
 			{
 				PhantomVisionUI->AddToViewport();
 
@@ -443,6 +462,21 @@ void ACCTV::OnRep_SetOutlines()
 	}
 }
 
+void ACCTV::OnRep_SetOutlines()
+{
+	if (!bSetOutlineDirtyFlag)
+	{
+		SetActorsOutlines(bSetOutlineDirtyFlag);
+	}
+	else
+	{
+		if (IsLocallyControlled())
+		{
+			SetActorsOutlines(bSetOutlineDirtyFlag);
+		}
+	}
+}
+
 void ACCTV::C2S_Exit_Implementation()
 {
 	if (bIsInCCTVView && Controller)
@@ -450,21 +484,18 @@ void ACCTV::C2S_Exit_Implementation()
 		if (APlayerController* PC = Cast<APlayerController>(Controller))
 		{
 			ExitCCTVView(PC);
+			bSetOutlineDirtyFlag = false;
+			OnRep_SetOutlines();
 		}
 	}
 }
 
 void ACCTV::C2S_ChangeCCTV_Implementation(ACCTV* nextCCTV)
-{
+{	
 	APlayerController* PC = Cast<APlayerController>(Controller);
-
 	if (PC)
 	{
 		ExitCCTVView(PC);
-
-		if (nextCCTV)
-		{
-			nextCCTV->EnterCCTVView(PC);
-		}
+		nextCCTV->EnterCCTVView(PC);
 	}
 }
