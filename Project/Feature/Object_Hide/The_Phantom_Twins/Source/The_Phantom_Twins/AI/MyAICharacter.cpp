@@ -86,7 +86,6 @@ void AMyAICharacter::OnHackingStartedServer_Implementation(APawn* Interactor)
 			Perception->ForgetAll();
 		}
 		AIController->ResetStimulus();
-		UE_LOG(LogTemp, Error, TEXT("dsjkflfadsasdlfadasdfkadskd"));
 	}
 	
 }

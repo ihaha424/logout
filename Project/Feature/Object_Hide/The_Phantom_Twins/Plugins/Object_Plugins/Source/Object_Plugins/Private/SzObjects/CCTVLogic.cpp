@@ -26,7 +26,7 @@ void ACCTVLogic::BeginPlay()
 	check(CurrentCCTVManager);
 }
 
-void ACCTVLogic::EnterFirstHackedCCTV(APawn* Interactor)
+bool ACCTVLogic::EnterFirstHackedCCTV(APawn* Interactor)
 {
 	if (CurrentGameState && CurrentCCTVManager)
 	{
@@ -37,28 +37,34 @@ void ACCTVLogic::EnterFirstHackedCCTV(APawn* Interactor)
 		{
 			// CCTV 진입
 			firstCCTV->EnterCCTVView(PC);
+			return true;
 		}
 		else
 		{
-			// Error UI 토글
-			if (CCTVWidgetInstance && CCTVWidgetInstance->IsInViewport())
-			{
-				UE_LOG(LogTemp, Log, TEXT("Error UI 제거"));
-				CCTVWidgetInstance->RemoveFromParent();
-				CCTVWidgetInstance = nullptr;
-			}
-			else
-			{
-				UE_LOG(LogTemp, Log, TEXT("Error UI 띄움"));
+			return false;
+		}
+	}
+	UE_LOG(LogCameraManger, Error, TEXT("ACCTVLogic: EnterFirstHackedCCTV: CurrentGameState || CurrentCCTVManager is nullptr."));
+	return true;
+}
 
-				if (NoHackedCCTVWidget)
-				{
-					CCTVWidgetInstance = CreateWidget<UUserWidget>(PC, NoHackedCCTVWidget);
-					if (CCTVWidgetInstance)
-					{
-						CCTVWidgetInstance->AddToViewport();
-					}
-				}
+void ACCTVLogic::SetWidget(APlayerController* PC)
+{
+	// Error UI 토글
+	if (CCTVWidgetInstance && CCTVWidgetInstance->IsInViewport())
+	{
+		CCTVWidgetInstance->RemoveFromParent();
+		CCTVWidgetInstance = nullptr;
+	}
+	else
+	{
+		if (NoHackedCCTVWidget)
+		{
+			if(!CCTVWidgetInstance)
+				CCTVWidgetInstance = CreateWidget<UUserWidget>(PC, NoHackedCCTVWidget);
+			if (CCTVWidgetInstance)
+			{
+				CCTVWidgetInstance->AddToViewport();
 			}
 		}
 	}

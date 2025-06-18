@@ -18,7 +18,8 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	void EnterFirstHackedCCTV(APawn* Interactor);
+	bool EnterFirstHackedCCTV(APawn* Interactor);
+	void SetWidget(APlayerController* PC);
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="UI")

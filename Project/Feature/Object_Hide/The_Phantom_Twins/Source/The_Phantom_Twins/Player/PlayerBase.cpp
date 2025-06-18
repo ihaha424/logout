@@ -21,6 +21,7 @@
 #include "PlayerDefaultController.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 // Object Plugin
 #include "SzInterface/Hacking.h"
@@ -59,6 +60,7 @@ APlayerBase::APlayerBase()
 	RecoverySphere->SetCollisionResponseToAllChannels(ECR_Overlap);
 	RecoverySphere->SetSphereRadius(30.0f);
 	RecoverySphere->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
+	RecoverySphere->SetVisibility(false); // Object Type 설정
 
 	// movement setting
 	GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -92,6 +94,13 @@ APlayerBase::APlayerBase()
 	// UI Widget
 	GroggyWidget = CreateDefaultSubobject<UPlayerWidgetComponent>(TEXT("Widget"));
 	GroggyWidget->SetupAttachment(RootComponent);
+}
+
+void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APlayerBase, InventoryObjects);
 }
 
 bool APlayerBase::CheckActorInFront(AActor* TargetActor)
@@ -247,7 +256,12 @@ void APlayerBase::Tick(float DeltaTime)
 		NoiseTimer += DeltaTime;
 		if (NoiseTimer >= NoiseInterval)
 		{
+			if (HasAuthority())
+			{
+				MakeNoise(CurrentNoise, this, GetActorLocation());
+			}
 			C2S_MakeNoise(CurrentNoise);
+			//UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Noise : %.2f"), CurrentNoise));
 			NoiseTimer = 0.f;
 		}
 	}
@@ -267,6 +281,22 @@ void APlayerBase::Tick(float DeltaTime)
 		else
 		{
 			CurrentNoise = 0.0f;
+		}
+	}
+
+	if (GroggyWidget)
+	{
+		APlayerCameraManager* CamMgr = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+		if (CamMgr)
+		{
+			FVector CamLoc = CamMgr->GetCameraLocation();
+			FVector WidgetLoc = GroggyWidget->GetComponentLocation();
+
+			FRotator LookAtRot = (CamLoc - WidgetLoc).Rotation();
+			LookAtRot.Pitch = 0.f; // 위아래 회전 제거
+			LookAtRot.Roll = 0.f;
+
+			GroggyWidget->SetWorldRotation(LookAtRot);
 		}
 	}
 
@@ -421,6 +451,11 @@ void APlayerBase::SetupCharacterWidget(UMyPlayerUserWidget* UserWidget)
 	}
 }
 
+void APlayerBase::OnRep_InventoryObjects()
+{
+	AddItemToUI();
+}
+
 void APlayerBase::Move(const FInputActionValue& Value)
 {
 	if (!PS)
@@ -459,6 +494,11 @@ void APlayerBase::Look(const FInputActionValue& Value)
 
 void APlayerBase::Run(const FInputActionValue& Value)
 {
+	if (!PS)
+	{
+		PS = Cast<APlayerDefaultState>(GetPlayerState());
+	}
+
 	if (PS->bIsGroggy)
 		return;
 
@@ -545,10 +585,13 @@ void APlayerBase::Interactive(const FInputActionValue& Value)
 			IInteraction::Execute_OnInteractClient(NearestInteractiveObject, this);
 		}
 
-		if (IInteraction::Execute_GetPickedUp(NearestInteractiveObject))
+		if (IInteraction::Execute_CanPickedUp(NearestInteractiveObject))
 		{
-			InventoryObjects.Add(NearestInteractiveObject);
-			AddItemToUI();
+			C2S_AddInventory(NearestInteractiveObject);
+			if (HasAuthority())
+			{
+				OnRep_InventoryObjects();
+			}
 		}
 	}
 }
@@ -589,18 +632,7 @@ void APlayerBase::OpenInventory(const FInputActionValue& Value)
 void APlayerBase::PhantomVision(const FInputActionValue& Value)
 {
 	// 현재 월드에서 모든 ACCTVLogic 액터를 찾음
-	TArray<AActor*> CCTVLogicActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACCTVLogic::StaticClass(), CCTVLogicActors);
-
-	// 하나라도 있으면 첫 번째 ACCTVLogic을 사용
-	if (CCTVLogicActors.Num() > 0)
-	{
-		ACCTVLogic* CCTVLogic = Cast<ACCTVLogic>(CCTVLogicActors[0]);
-		if (CCTVLogic)
-		{
-			CCTVLogic->EnterFirstHackedCCTV(this);
-		}
-	}
+	C2S_PhantomVision();
 }
 
 void APlayerBase::C2S_Interactive_Implementation(UObject* interact)
@@ -644,6 +676,50 @@ void APlayerBase::C2S_MakeNoise_Implementation(float Noise)
 	MakeNoise(Noise, this, GetActorLocation());
 }
 
+void APlayerBase::C2S_AddInventory_Implementation(UObject* Object)
+{
+	InventoryObjects.Add(NearestInteractiveObject);
+}
+
+void APlayerBase::C2S_PhantomVision_Implementation()
+{
+	TArray<AActor*> CCTVLogicActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACCTVLogic::StaticClass(), CCTVLogicActors);
+
+	// 하나라도 있으면 첫 번째 ACCTVLogic을 사용
+	if (CCTVLogicActors.Num() > 0)
+	{
+		ACCTVLogic* CCTVLogic = Cast<ACCTVLogic>(CCTVLogicActors[0]);
+		if (CCTVLogic)
+		{
+			if (!CCTVLogic->EnterFirstHackedCCTV(this))
+				S2C_PhantomVisionWidget();
+		}
+	}
+}
+
+void APlayerBase::S2C_PhantomVisionWidget_Implementation()
+{
+	TArray<AActor*> CCTVLogicActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACCTVLogic::StaticClass(), CCTVLogicActors);
+
+	// 하나라도 있으면 첫 번째 ACCTVLogic을 사용
+	if (CCTVLogicActors.Num() > 0)
+	{
+		ACCTVLogic* CCTVLogic = Cast<ACCTVLogic>(CCTVLogicActors[0]);
+		if (CCTVLogic)
+		{
+			APlayerController* PC = Cast<APlayerController>(GetController());
+			if (!PC)
+			{
+				UE_LOG(LogTemp, Error, TEXT("APlayerBase: S2C_PhantomVisionWidget: APlayerController Cast Fail"));
+				return;
+			}
+			CCTVLogic->SetWidget(PC);
+		}
+	}
+}
+
 void APlayerBase::SetGroggy()
 {
 	if (!PS)
@@ -651,6 +727,7 @@ void APlayerBase::SetGroggy()
 		PS = Cast<APlayerDefaultState>(GetPlayerState());
 	}
 
+	RecoverySphere->SetVisibility(true);
 	PS->bIsGroggy = true;
 	PS->OnRep_S2A_Groggy();
 	GetCharacterMovement()->MaxWalkSpeed = 0.f;
