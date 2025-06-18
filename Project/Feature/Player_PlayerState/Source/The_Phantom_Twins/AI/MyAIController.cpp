@@ -133,8 +133,8 @@ void AMyAIController::Tick(float DeltaTime)
 		HearingStimulus.Empty();
 		AccumulatedHearingStrength = 0.f;
 
-		Blackboard->SetValueAsVector(TEXT("LastStimulusLocation"), FVector::ZeroVector);
-		Blackboard->SetValueAsVector(TEXT("UsingStimulusLocation"), FVector::ZeroVector);
+		Blackboard->SetValueAsVector(TEXT("PlayerStimulusLocation"), FVector::ZeroVector);
+		Blackboard->SetValueAsVector(TEXT("UpdatedStimulusLocation"), FVector::ZeroVector);
 		Blackboard->SetValueAsEnum("AIStimulus", static_cast<uint8>(EMyAIStimulus::None));
 		Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
 		AICharacter->S2A_UpdateAIStateWidget(EAIStateWidget::NoneMark);
@@ -151,7 +151,6 @@ void AMyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimu
 		return;
 	}
 	CurrentTime = GetWorld()->GetTimeSeconds();
-
 	if (Cast<APlayerBase>(Actor))
 		PlayerPerception(Actor,Stimulus);
 
@@ -165,23 +164,29 @@ void AMyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimu
 void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 {
 	APlayerBase* Target = Cast<APlayerBase>(Actor);
+	if (Target->IsGroggy()) return;
+
+	if (Blackboard->GetValueAsVector(TEXT("UpdatedStimulusLocation")) == FVector::ZeroVector)
+	{
+		Blackboard->SetValueAsVector(TEXT("UpdatedStimulusLocation"), Stimulus.StimulusLocation);
+	}
+	Blackboard->SetValueAsVector(TEXT("PlayerStimulusLocation"), Stimulus.StimulusLocation);
+	Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Suspicion));
 	// 플레이어에 대한 시각 자극 처리.
 	if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
 	{
 		if (Stimulus.WasSuccessfullySensed())
 		{
+			//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Sight PlayerPerception : %s"), *Actor->GetName());
 			// AI의 위젯UI를 모두가 볼수있도록 하는 부분.
 			AICharacter->S2A_UpdateAIStateWidget(EAIStateWidget::QuestionMark);
 			// 시야 감지가 시작된적이 없다면 시간체크 시작.
 			if (SightStartTime < 0.f)
 				SightStartTime = CurrentTime;
-			// 시야 감지에 따른 블랙보드 키 값 변경.
-			Blackboard->SetValueAsVector(TEXT("LastStimulusLocation"), Stimulus.StimulusLocation);
-			Blackboard->SetValueAsVector(TEXT("UsingStimulusLocation"), Stimulus.StimulusLocation);
-
+			// 시야 감지시 감각 업데이트 111111111111순위.
 			Blackboard->SetValueAsEnum("AIStimulus", static_cast<uint8>(EMyAIStimulus::Sight));
+			Blackboard->SetValueAsVector(TEXT("UpdatedStimulusLocation"), Stimulus.StimulusLocation);
 			Blackboard->SetValueAsObject(TEXT("TargetPlayer"), Target);
-			Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Suspicion));
 		}
 	}
 	
@@ -189,9 +194,11 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 	{
 		if (Stimulus.WasSuccessfullySensed())
 		{
+			//
+			//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Hearing PlayerPerception : %s"), *Actor->GetName());
 			// 발자국 마다 소리자극의 위치가 많이 갱신되는 것을 방지하기 위해서 만든 변수들.
-			PrevLocation = Blackboard->GetValueAsVector(TEXT("UsingStimulusLocation"));
-			CurrLocation = Blackboard->GetValueAsVector(TEXT("LastStimulusLocation"));
+			PrevLocation = Blackboard->GetValueAsVector(TEXT("UpdatedStimulusLocation"));
+			CurrLocation = Blackboard->GetValueAsVector(TEXT("PlayerStimulusLocation"));
 
 			AICharacter->S2A_UpdateAIStateWidget(EAIStateWidget::ExclamationMark);
 			LastHeardTime = CurrentTime;
@@ -202,17 +209,17 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 			// 들어온 자극의 순위를 확인하는 코드. TODO:: 플레이어가 뛰는 것과 걷는것을 어떻게 구분?
 			////일단 이거 나중에 처리 ㅎ가ㅣ///if (Blackboard->GetValueAsEnum("AIStimulus") >= static_cast<uint8>(EMyAIStimulus::PlayerRun))
 			
-				// 일단 들어온 자극을 집어넣는다.
-				Blackboard->SetValueAsVector(TEXT("LastStimulusLocation"), Stimulus.StimulusLocation);
-				// 패트롤해야하는 자극 위치와 들어온 자극의 거리가 차이나면 패트롤위치를 갱신한다.
-				if (FVector::DistSquared(PrevLocation, CurrLocation) > StimulusUpdateDistance)
-				{
-					Blackboard->SetValueAsVector(TEXT("UsingStimulusLocation"), Stimulus.StimulusLocation);
-				}
-			
+			// 일단 들어온 자극을 집어넣는다.
+			Blackboard->SetValueAsVector(TEXT("PlayerStimulusLocation"), Stimulus.StimulusLocation);
+			// 패트롤해야하는 자극 위치와 들어온 자극의 거리가 차이나면 패트롤위치를 갱신한다.
+			if (FVector::DistSquared(PrevLocation, CurrLocation) > StimulusUpdateDistance)
+			{
+				//UE_LOG(LogTemp, Warning, TEXT("UpdatedStimulusLocation is Updated by \"UAISense_Hearing\""));
+
+				Blackboard->SetValueAsVector(TEXT("UpdatedStimulusLocation"), Stimulus.StimulusLocation);
+			}
 
 			Blackboard->SetValueAsObject("TargetPlayer", Target);
-			Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Suspicion));
 
 			if (AccumulatedHearingStrength >= 100.f)
 			{
@@ -222,24 +229,45 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 		}
 	}
 	// 자극의 근원지에서 가장 가까운 스플라인 경로를 찾는다.
-	AICharacter->StimulusSplinePath = FindNearestSplinePath(Blackboard->GetValueAsVector(TEXT("UsingStimulusLocation")));
+	AICharacter->StimulusSplinePath = FindNearestSplinePath(Blackboard->GetValueAsVector(TEXT("UpdatedStimulusLocation")));
 }
 
 void AMyAIController::ObjectPerception(AActor* Actor, FAIStimulus Stimulus)
 {
-	if (Actor->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+	if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
 	{
-		AHackableObject* Object = Cast<AHackableObject>(Actor);
-		if (Object->IHacking::CanBeHacked_Implementation())
+		if (Stimulus.WasSuccessfullySensed())
 		{
-			Object->ClearHacking_Implementation();
+			//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Hearing ObjectPerception : %s"), *Actor->GetName());
+			if (Actor->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+			{
+				AHackableObject* Object = Cast<AHackableObject>(Actor);
+				// 오브제트가 이미 해킹이되어서 해킹이 불가한 상태라면 밑의 코드가 실행됨.
+				if (!Object->IHacking::CanBeHacked_Implementation())
+				{
+					//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Hearing AHackableObject AHackableObject ObjectPerception : %s"), *Object->GetName());
+					Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Suspicion));
+					Blackboard->SetValueAsObject("TargetObject", Object);
+				}
+			}
 		}
-		
 	}
 }
 
 void AMyAIController::AllyPerception(AActor* Actor, FAIStimulus Stimulus)
 {
+	if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
+	{
+		AMyAICharacter* Ally = Cast<AMyAICharacter>(Actor);
+		AMyAIController* AllyController = Cast<AMyAIController>(Ally->GetController());
+		UBlackboardComponent* BlackboardComp = AllyController->GetBlackboardComponent();
+
+		if (BlackboardComp->GetValueAsEnum("AIState") == static_cast<uint8>(EMyAIState::Combat))
+		{
+			//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Sight AllyPerception : %s"), *Actor->GetName());
+			Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Combat));
+		}
+	}
 }
 
 void AMyAIController::ResetStimulus()
@@ -248,10 +276,9 @@ void AMyAIController::ResetStimulus()
 	LastHeardTime = -1.0f;
 	HearingStimulus.Empty();
 	AccumulatedHearingStrength = 0.f;
-	Blackboard->SetValueAsVector(TEXT("LastStimulusLocation"), FVector::ZeroVector);
-	Blackboard->SetValueAsVector(TEXT("UsingStimulusLocation"), FVector::ZeroVector);
+	Blackboard->SetValueAsVector(TEXT("PlayerStimulusLocation"), FVector::ZeroVector);
+	Blackboard->SetValueAsVector(TEXT("UpdatedStimulusLocation"), FVector::ZeroVector);
 	Blackboard->SetValueAsEnum("AIStimulus", static_cast<uint8>(EMyAIStimulus::None));
-	Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
 
 	Blackboard->ClearValue("TargetPlayer");
 	Blackboard->ClearValue("ChasingPlayer");
@@ -261,17 +288,23 @@ ASplinePathActor* AMyAIController::FindNearestSplinePath(const FVector& Stimulus
 {
 	ASplinePathActor* ClosestSpline = nullptr;
 	float ClosestDistance = FLT_MAX;
+
 	for (TActorIterator<ASplinePathActor> It(GetWorld()); It; ++It)
 	{
 		ASplinePathActor* SplineActor = *It;
 		if (SplineActor && SplineActor->SplineComponent)
 		{
-			FVector SplineStartLocation = SplineActor->SplineComponent->GetLocationAtSplinePoint(0, ESplineCoordinateSpace::World);
-			float Dist = FVector::Dist(StimulusLocation, SplineStartLocation);
+			// Spline 전체에서 StimulusLocation과 가장 가까운 Spline상의 점을 찾음
+			USplineComponent* SplineComp = SplineActor->SplineComponent;
+			float ClosestKey = SplineComp->FindInputKeyClosestToWorldLocation(StimulusLocation);
+			FVector ClosestPointOnSpline = SplineComp->GetLocationAtSplineInputKey(ClosestKey, ESplineCoordinateSpace::World);
+
+			float Dist = FVector::Dist(StimulusLocation, ClosestPointOnSpline);
 			if (Dist < ClosestDistance)
 			{
 				ClosestDistance = Dist;
 				ClosestSpline = SplineActor;
+				Blackboard->SetValueAsObject("TargetSplinePath", ClosestSpline);
 			}
 		}
 	}

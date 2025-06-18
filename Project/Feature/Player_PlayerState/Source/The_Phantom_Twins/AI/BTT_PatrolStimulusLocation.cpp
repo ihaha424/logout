@@ -35,17 +35,17 @@ EBTNodeResult::Type UBTT_PatrolStimulusLocation::ExecuteTask(UBehaviorTreeCompon
 	USplineComponent* SplineRoute = AIPawn->StimulusSplinePath->SplineComponent;
 	if (!SplineRoute)
 	{
-		BlackboardComp->ClearValue("LastStimulusLocation");
-		BlackboardComp->ClearValue("UsingStimulusLocation");
+		UE_LOG(LogTemp, Warning, TEXT("!SplineRoute"));
+		BlackboardComp->ClearValue("PlayerStimulusLocation");
+		BlackboardComp->ClearValue("UpdatedStimulusLocation");
+		BlackboardComp->ClearValue("TargetSplinePath");
 		BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return EBTNodeResult::Failed;
 	}
-	int32 CurrentIndex = BlackboardComp->GetValueAsInt(TEXT("CurrentPatrolIndex"));
-	if (ACharacter* AICharacter = Cast<ACharacter>(AIPawn))
-	{
-		AICharacter->GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
-	}
+
+	int32 CurrentIndex = BlackboardComp->GetValueAsInt(TEXT("StimulusPatrolIndex"));
+	AIPawn->GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
 
 	// 현재 순찰 포인트 위치
 	FVector StartLocation = AIPawn->GetActorLocation();
@@ -58,9 +58,11 @@ EBTNodeResult::Type UBTT_PatrolStimulusLocation::ExecuteTask(UBehaviorTreeCompon
 	);
 	if (!NavPath || NavPath->PathPoints.Num() <= 1 || !NavPath->IsValid() || NavPath->IsPartial())
 	{
-		BlackboardComp->ClearValue("LastStimulusLocation");
-		BlackboardComp->ClearValue("UsingStimulusLocation");
+		BlackboardComp->ClearValue("PlayerStimulusLocation");
+		BlackboardComp->ClearValue("UpdatedStimulusLocation");
+		BlackboardComp->ClearValue("TargetSplinePath");
 		BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
+		AIPawn->StimulusSplinePath = nullptr;
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return EBTNodeResult::Failed;
 	}
@@ -73,10 +75,12 @@ EBTNodeResult::Type UBTT_PatrolStimulusLocation::ExecuteTask(UBehaviorTreeCompon
 	if (AIController->MoveTo(MoveRequest, &OutPath) == EPathFollowingRequestResult::Failed)
 	{
 		// 실패했으므로 상태 초기화
-		BlackboardComp->ClearValue("LastStimulusLocation");
-		BlackboardComp->ClearValue("UsingStimulusLocation");
+		BlackboardComp->ClearValue("PlayerStimulusLocation");
+		BlackboardComp->ClearValue("UpdatedStimulusLocation");
+		BlackboardComp->ClearValue("TargetSplinePath");
 		BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
-
+		AIPawn->StimulusSplinePath = nullptr;
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return EBTNodeResult::Failed;
 	}
 
@@ -85,46 +89,99 @@ EBTNodeResult::Type UBTT_PatrolStimulusLocation::ExecuteTask(UBehaviorTreeCompon
 }
 void UBTT_PatrolStimulusLocation::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-	AMyAIController* AIController = Cast<AMyAIController>(OwnerComp.GetAIOwner());
-	if (!AIController) return;
+    AMyAIController* AIController = Cast<AMyAIController>(OwnerComp.GetAIOwner());
+    if (!AIController)
+    {
+        FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+        return;
+    }
 
-	AMyAICharacter* AIPawn = Cast<AMyAICharacter>(AIController->GetPawn());
-	if (!AIPawn || !AIPawn->StimulusSplinePath) return;
+    AMyAICharacter* AIPawn = Cast<AMyAICharacter>(AIController->GetPawn());
+    if (!AIPawn || !AIPawn->StimulusSplinePath)
+    {
+        FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+        return;
+    }
 
-	UBlackboardComponent* BlackboardComp = AIController->GetBlackboardComponent();
-	if (!BlackboardComp) return;
+    UBlackboardComponent* BlackboardComp = AIController->GetBlackboardComponent();
+    if (!BlackboardComp)
+    {
+        FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+        return;
+    }
 
-	USplineComponent* SplineRoute = AIPawn->StimulusSplinePath->SplineComponent;
-	if (!SplineRoute) return;
+    USplineComponent* SplineRoute = AIPawn->StimulusSplinePath->SplineComponent;
+    if (!SplineRoute)
+    {
+        FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+        return;
+    }
 
-	const int32 MaxIndex = SplineRoute->GetNumberOfSplinePoints() - 1;
-	const FVector CurrentTargetLocation = BlackboardComp->GetValueAsVector(TEXT("PatrolDestination"));
+    // 이동 상태 직접 확인
+    EPathFollowingStatus::Type MoveStatus = AIController->GetMoveStatus();
+    if (MoveStatus == EPathFollowingStatus::Idle)
+    {
+        // 목적지 도착 또는 이동 중단
+        int32 CurrentIndex = BlackboardComp->GetValueAsInt(TEXT("StimulusPatrolIndex"));
+        const int32 MaxIndex = SplineRoute->GetNumberOfSplinePoints() - 1;
 
-	const float Distance = FVector::Dist(AIPawn->GetActorLocation(), CurrentTargetLocation);
+        if (CurrentIndex > MaxIndex)
+        {
+            // 순찰 종료
+            BlackboardComp->ClearValue("PlayerStimulusLocation");
+            BlackboardComp->ClearValue("UpdatedStimulusLocation");
+            BlackboardComp->ClearValue("TargetSplinePath");
+            BlackboardComp->SetValueAsInt(TEXT("StimulusPatrolIndex"), 0);
+            BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
+            AIPawn->StimulusSplinePath = nullptr;
+            FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+        }
+        else
+        {
+            // 다음 포인트로 이동
+            CurrentIndex++;
+            BlackboardComp->SetValueAsInt(TEXT("StimulusPatrolIndex"), CurrentIndex);
 
-	if (Distance <= 150.f)
-	{
-		// 다음 포인트로 인덱스 증가
-		int32 CurrentIndex = BlackboardComp->GetValueAsInt(TEXT("CurrentPatrolIndex"));
-		CurrentIndex++;
-		BlackboardComp->SetValueAsInt(TEXT("CurrentPatrolIndex"), CurrentIndex);
-		if (CurrentIndex > MaxIndex) // >= → >로 변경 (마지막 포인트 도달 후 종료)
-		{
-			// 순찰 종료 로직
-			BlackboardComp->ClearValue("LastStimulusLocation");
-			BlackboardComp->ClearValue("UsingStimulusLocation");
-			BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
-			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded); // ✅ 전체 순찰 완료 시에만 호출
-		}
-		else
-		{
-			// 다음 포인트로 이동 재시작
-			const FVector TargetLocation = SplineRoute->GetLocationAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::World);
-			BlackboardComp->SetValueAsVector(TEXT("PatrolDestination"), TargetLocation);
+            if (CurrentIndex > MaxIndex)
+            {
+                // 마지막 포인트를 넘어간 경우
+                BlackboardComp->ClearValue("PlayerStimulusLocation");
+                BlackboardComp->ClearValue("UpdatedStimulusLocation");
+                BlackboardComp->ClearValue("TargetSplinePath");
+                BlackboardComp->SetValueAsInt(TEXT("StimulusPatrolIndex"), 0);
+                BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
+                AIPawn->StimulusSplinePath = nullptr;
+                FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+            }
+            else
+            {
+                // 다음 포인트로 이동 재시작
+                const FVector TargetLocation = SplineRoute->GetLocationAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::World);
+                BlackboardComp->SetValueAsVector(TEXT("PatrolDestination"), TargetLocation);
 
-			FAIMoveRequest MoveRequest;
-			MoveRequest.SetGoalLocation(TargetLocation);
-			AIController->MoveTo(MoveRequest); // ✅ 다음 포인트로 이동
-		}
-	}
+                FAIMoveRequest MoveRequest;
+                MoveRequest.SetGoalLocation(TargetLocation);
+                if (AIController->MoveTo(MoveRequest) == EPathFollowingRequestResult::Failed)
+                {
+                    BlackboardComp->ClearValue("PlayerStimulusLocation");
+                    BlackboardComp->ClearValue("UpdatedStimulusLocation");
+                    BlackboardComp->ClearValue("TargetSplinePath");
+                    BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
+                    AIPawn->StimulusSplinePath = nullptr;
+                    FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+                }
+            }
+        }
+    }
+    else if (MoveStatus == EPathFollowingStatus::Waiting || MoveStatus == EPathFollowingStatus::Paused)
+    {
+        // 이동이 비정상적으로 중단된 경우
+        BlackboardComp->ClearValue("PlayerStimulusLocation");
+        BlackboardComp->ClearValue("UpdatedStimulusLocation");
+        BlackboardComp->ClearValue("TargetSplinePath");
+        BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
+        AIPawn->StimulusSplinePath = nullptr;
+        FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+    }
 }
+

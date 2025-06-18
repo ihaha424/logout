@@ -28,6 +28,12 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
 	class UWidgetComponent* AIStateWidget;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<class UWidgetComponent> WidgetComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<class USphereComponent> SphereCollisionComp;
+
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_UpdateAIStateWidget(EAIStateWidget State);
 	void S2A_UpdateAIStateWidget_Implementation(EAIStateWidget State);
@@ -35,7 +41,6 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_UpdateWidgetDirection(FRotator Rotate);
 	void S2A_UpdateWidgetDirection_Implementation(FRotator Rotate);
-
 
 	float DistanceAlongSpline = 0.f;
 	bool bMovingForward = true;
@@ -55,7 +60,7 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	virtual void SetWidgetVisibility_Implementation(bool Visible) override;
 	class ASplinePathActor* GetBaseSplinePath() const { return BaseSplinePath; }
 	
 };

@@ -33,6 +33,8 @@ public:
 
 	void NearestObjectCheck();
 
+	bool IsGroggy() const;
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "Inventory")
 	void AddItemToUI();
 
@@ -47,6 +49,7 @@ public:
 	virtual void PostInitializeComponents() override;
 
 	virtual void OnRep_PlayerState() override;
+	virtual void PossessedBy(AController* NewController) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

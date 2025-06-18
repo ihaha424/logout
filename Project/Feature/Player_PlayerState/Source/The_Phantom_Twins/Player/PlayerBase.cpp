@@ -20,7 +20,6 @@
 #include "EnhancedInputSubsystems.h"
 #include "PlayerDefaultController.h"
 #include "DrawDebugHelpers.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
 // Object Plugin
@@ -191,6 +190,11 @@ void APlayerBase::NearestObjectCheck()
 	}
 }
 
+bool APlayerBase::IsGroggy() const
+{
+	return PS->bIsGroggy;
+}
+
 // Called when the game starts or when spawned
 void APlayerBase::BeginPlay()
 {
@@ -238,8 +242,7 @@ void APlayerBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// Noise ¹ß»ý
-	NoiseTimer += DeltaTime;
-	if (NoiseTimer >= NoiseInterval)
+	if (IsLocallyControlled())
 	{
 		if (HasAuthority())
 		{
@@ -302,6 +305,19 @@ void APlayerBase::OnRep_PlayerState()
 
 	PS = Cast<APlayerDefaultState>(GetPlayerState());
 	
+	if (PS)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = PS->MoveSpeedInfo.WalkSpeed;
+		GetCharacterMovement()->MaxWalkSpeedCrouched = PS->MoveSpeedInfo.CrouchSpeed;
+	}
+}
+
+void APlayerBase::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	PS = Cast<APlayerDefaultState>(GetPlayerState());
+
 	if (PS)
 	{
 		GetCharacterMovement()->MaxWalkSpeed = PS->MoveSpeedInfo.WalkSpeed;
@@ -411,6 +427,8 @@ void APlayerBase::Move(const FInputActionValue& Value)
 {
 	if (!PS)
 		PS = Cast<APlayerDefaultState>(GetPlayerState());
+	if (!PS)
+		return;
 
 	if (PS->bIsGroggy)
 		return;
