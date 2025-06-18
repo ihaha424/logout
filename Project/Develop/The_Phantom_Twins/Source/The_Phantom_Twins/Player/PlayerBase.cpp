@@ -253,14 +253,17 @@ void APlayerBase::Tick(float DeltaTime)
 	// Noise ¹ß»ý
 	if (IsLocallyControlled())
 	{
-		if (HasAuthority())
+		NoiseTimer += DeltaTime;
+		if (NoiseTimer >= NoiseInterval)
 		{
-			MakeNoise(CurrentNoise, this, GetActorLocation());
+			if (HasAuthority())
+			{
+				MakeNoise(CurrentNoise, this, GetActorLocation());
+			}
+			C2S_MakeNoise(CurrentNoise);
+			//UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Noise : %.2f"), CurrentNoise));
+			NoiseTimer = 0.f;
 		}
-
-		C2S_MakeNoise(CurrentNoise);
-		//UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Noise : %.2f"), CurrentNoise));
-		NoiseTimer = 0.f;
 	}
 
 	FVector InputVector = GetLastMovementInputVector();
