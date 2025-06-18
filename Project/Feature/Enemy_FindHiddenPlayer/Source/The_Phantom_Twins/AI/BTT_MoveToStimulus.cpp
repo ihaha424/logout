@@ -32,13 +32,14 @@ EBTNodeResult::Type UBTT_MoveToStimulus::ExecuteTask(UBehaviorTreeComponent& Own
     if (!BlackboardComp) return EBTNodeResult::Failed;
 
     FVector CurrentLocation = AIPawn->GetNavAgentLocation();
-    FNavLocation AdjustedTargetLocation;
     FVector TargetLocation = BlackboardComp->GetValueAsVector(TEXT("UpdatedStimulusLocation"));
-    UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
-    if (NavSys->ProjectPointToNavigation(TargetLocation, AdjustedTargetLocation, FVector(500, 500, 500)))
+  /*
+   *   FNavLocation AdjustedTargetLocation;
+	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
+    if (NavSys->ProjectPointToNavigation(TargetLocation, AdjustedTargetLocation, FVector(300, 300, 300)))
     {
         TargetLocation = AdjustedTargetLocation;
-    }
+    }*/
     float InitialDistance = FVector::Dist(CurrentLocation, TargetLocation);
 
     // 이미 도착한 경우 실패 반환 및 상태 초기화
