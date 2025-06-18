@@ -241,8 +241,13 @@ void APlayerBase::Tick(float DeltaTime)
 	NoiseTimer += DeltaTime;
 	if (NoiseTimer >= NoiseInterval)
 	{
-		//UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Noise : %.2f"), CurrentNoise));
+		if (HasAuthority())
+		{
+			MakeNoise(CurrentNoise, this, GetActorLocation());
+		}
+
 		C2S_MakeNoise(CurrentNoise);
+		//UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Noise : %.2f"), CurrentNoise));
 		NoiseTimer = 0.f;
 	}
 
@@ -438,6 +443,11 @@ void APlayerBase::Look(const FInputActionValue& Value)
 
 void APlayerBase::Run(const FInputActionValue& Value)
 {
+	if (!PS)
+	{
+		PS = Cast<APlayerDefaultState>(GetPlayerState());
+	}
+
 	if (PS->bIsGroggy)
 		return;
 
