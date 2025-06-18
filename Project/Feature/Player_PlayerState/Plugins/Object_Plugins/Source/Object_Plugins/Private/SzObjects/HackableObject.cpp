@@ -114,19 +114,6 @@ void AHackableObject::OnHackingStartedServer_Implementation(APawn* Interactor)
 {
 	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingStarted Server"));
 
-	//if (!HackingComp || !Interactor) return;
-
-	//// 현재 해킹 중인 플레이어 저장
-	//CurrentHackingPawn = Interactor;
-
-	//// HackingComponent에 Interactor 전달
-	//HackingComp->HackingStarted(Interactor);
-}
-
-void AHackableObject::OnHackingStartedClient_Implementation(APawn* Interactor)
-{
-	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingStarted Client"));
-
 	if (!HackingComp || !Interactor) return;
 
 	// 현재 해킹 중인 플레이어 저장
@@ -136,26 +123,16 @@ void AHackableObject::OnHackingStartedClient_Implementation(APawn* Interactor)
 	HackingComp->HackingStarted(Interactor);
 }
 
+void AHackableObject::OnHackingStartedClient_Implementation(APawn* Interactor)
+{
+	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingStarted Client"));
+
+}
+
 
 void AHackableObject::OnHackingCompletedServer_Implementation(APawn* Interactor)
 {
 	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingCompleted Server"));
-
-	//if (!HackingComp || !Interactor) return;
-
-	//// 해킹을 시작한 플레이어와 완료하는 플레이어가 같은지 확인
-	//if (CurrentHackingPawn != Interactor) return;
-
-	//// HackingComponent에 Interactor 전달
-	//HackingComp->HackingCompleted(Interactor);
-
-	//// 해킹 완료 후 현재 해킹 플레이어 초기화
-	//CurrentHackingPawn = nullptr;
-}
-
-void AHackableObject::OnHackingCompletedClient_Implementation(APawn* Interactor)
-{
-	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingCompleted Client"));
 
 	if (!HackingComp || !Interactor) return;
 
@@ -165,11 +142,17 @@ void AHackableObject::OnHackingCompletedClient_Implementation(APawn* Interactor)
 	// HackingComponent에 Interactor 전달
 	HackingComp->HackingCompleted(Interactor);
 
-	// 해킹 실패할때만
-	if (HackingComp->bIsHacked == false)
+	// 해킹 완료 후 현재 해킹 플레이어 초기화
+	if (!HackingComp->bIsHacked)
 	{
 		CurrentHackingPawn = nullptr;
 	}
+}
+
+void AHackableObject::OnHackingCompletedClient_Implementation(APawn* Interactor)
+{
+	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingCompleted Client"));
+
 }
 
 bool AHackableObject::CanBeHacked_Implementation() const

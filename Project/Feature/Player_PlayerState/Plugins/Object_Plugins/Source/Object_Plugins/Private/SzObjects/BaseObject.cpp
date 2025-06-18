@@ -8,6 +8,7 @@
 #include "Blueprint/UserWidget.h"
 #include "SzComponents/InteractableComponent.h"
 #include "SzComponents/OutlineComponent.h"
+#include "Net/UnrealNetwork.h"
 
 //AI Perception
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
@@ -59,9 +60,22 @@ ABaseObject::ABaseObject()
     Tags.Add(FName("Object"));
 }
 
+void ABaseObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(ABaseObject, bIsPickedUp);
+}
+
 void ABaseObject::BeginPlay()
 {
     Super::BeginPlay();
+
+    // 인벤토리 오브젝트라면 픽업 상태 설정
+    if (ObjectType == EObjectType::Item || ObjectType == EObjectType::Text || ObjectType == EObjectType::Tool)
+    {
+        bIsPickedUp = true;
+    }
 
     // 위젯 설정 (필요할 때만)
     if (bUseUI && WidgetComponent)
@@ -123,12 +137,6 @@ void ABaseObject::OnInteractSever_Implementation(APawn* Interactor)
     {
         InteractComp->ExecuteSever(Interactor);
 
-        // 인벤토리 오브젝트라면 픽업 상태 설정
-        if (ObjectType == EObjectType::Item || ObjectType == EObjectType::Text || ObjectType == EObjectType::Tool)
-        {
-            bIsPickedUp = true;
-        }
-
         if (bDestory)
         {
             InteractComp->DeleteLogic();
@@ -158,7 +166,7 @@ bool ABaseObject::CanInteract_Implementation(const APawn* Interactor) const
     return bCanInteract;
 }
 
-bool ABaseObject::GetPickedUp_Implementation() const
+bool ABaseObject::CanPickedUp_Implementation() const
 {
     return bIsPickedUp;
 }
