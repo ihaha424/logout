@@ -2,6 +2,8 @@
 #include "MyAIController.h"
 #include "MyAICharacter.h"
 #include <SzObjects/HackableObject.h>
+
+#include "NavigationSystem.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 
@@ -45,8 +47,13 @@ void UBTT_ObjectRestoration::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* 
 		return;
 	}
 	float Distance = FVector::Dist(AIPawn->GetActorLocation(), Target->GetActorLocation());
-
-	if (Distance < 350)
+	FNavLocation NavMeshLocation;
+	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
+	if (NavSys && NavSys->ProjectPointToNavigation(Target->GetActorLocation(), NavMeshLocation, FVector(300, 300, 700)))
+	{
+		Target->GetActorLocation() = NavMeshLocation; // NavMesh 위 좌표로 보정
+	}
+	if (Distance < 300)
 	{
 		//Target->ClearHacking();
 		IHacking::Execute_ClearHacking(Target);
