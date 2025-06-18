@@ -35,8 +35,10 @@ public:
 
 	bool IsGroggy() const;
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Inventory")
+	UFUNCTION(BlueprintImplementableEvent)
 	void AddItemToUI();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -49,6 +51,7 @@ public:
 	virtual void PostInitializeComponents() override;
 
 	virtual void OnRep_PlayerState() override;
+
 	virtual void PossessedBy(AController* NewController) override;
 
 	// Called to bind functionality to input
@@ -90,6 +93,12 @@ public:
 
 	virtual void SetupCharacterWidget(UMyPlayerUserWidget* UserWidget) override;
 
+	UPROPERTY(ReplicatedUsing = OnRep_InventoryObjects, EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TArray<UObject*> InventoryObjects;
+
+	UFUNCTION()
+	void OnRep_InventoryObjects();
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<UCameraComponent> Camera;
@@ -102,9 +111,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TObjectPtr<UStaticMesh> InteractiveMesh;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
-	TArray<UObject*> InventoryObjects;
 
 	// Stat Section
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat)
@@ -193,6 +199,10 @@ public:
 	UFUNCTION(Server, Reliable)
 	void C2S_MakeNoise(float Noise);
 	void C2S_MakeNoise_Implementation(float Noise);
+
+	UFUNCTION(Server, Reliable)
+	void C2S_AddInventory(UObject* Object);
+	void C2S_AddInventory_Implementation(UObject* Object);
 
 	void SetGroggy();
 	void SetGroggyWidget(bool Visible);

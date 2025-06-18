@@ -21,6 +21,7 @@
 #include "PlayerDefaultController.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 
 // Object Plugin
 #include "SzInterface/Hacking.h"
@@ -59,6 +60,7 @@ APlayerBase::APlayerBase()
 	RecoverySphere->SetCollisionResponseToAllChannels(ECR_Overlap);
 	RecoverySphere->SetSphereRadius(30.0f);
 	RecoverySphere->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
+	RecoverySphere->SetVisibility(false); // Object Type 설정
 
 	// movement setting
 	GetCharacterMovement()->bOrientRotationToMovement = true;
@@ -92,6 +94,13 @@ APlayerBase::APlayerBase()
 	// UI Widget
 	GroggyWidget = CreateDefaultSubobject<UPlayerWidgetComponent>(TEXT("Widget"));
 	GroggyWidget->SetupAttachment(RootComponent);
+}
+
+void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APlayerBase, InventoryObjects);
 }
 
 bool APlayerBase::CheckActorInFront(AActor* TargetActor)
@@ -272,6 +281,22 @@ void APlayerBase::Tick(float DeltaTime)
 		}
 	}
 
+	if (GroggyWidget)
+	{
+		APlayerCameraManager* CamMgr = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+		if (CamMgr)
+		{
+			FVector CamLoc = CamMgr->GetCameraLocation();
+			FVector WidgetLoc = GroggyWidget->GetComponentLocation();
+
+			FRotator LookAtRot = (CamLoc - WidgetLoc).Rotation();
+			LookAtRot.Pitch = 0.f; // 위아래 회전 제거
+			LookAtRot.Roll = 0.f;
+
+			GroggyWidget->SetWorldRotation(LookAtRot);
+		}
+	}
+
 	// Tick 또는 디버그용 함수 안에서
 	//FVector SphereLocation = SphereComponent->GetComponentLocation();
 	//float SphereRadius = SphereComponent->GetScaledSphereRadius();
@@ -423,6 +448,11 @@ void APlayerBase::SetupCharacterWidget(UMyPlayerUserWidget* UserWidget)
 	}
 }
 
+void APlayerBase::OnRep_InventoryObjects()
+{
+	AddItemToUI();
+}
+
 void APlayerBase::Move(const FInputActionValue& Value)
 {
 	if (!PS)
@@ -552,10 +582,13 @@ void APlayerBase::Interactive(const FInputActionValue& Value)
 			IInteraction::Execute_OnInteractClient(NearestInteractiveObject, this);
 		}
 
-		if (IInteraction::Execute_GetPickedUp(NearestInteractiveObject))
+		if (IInteraction::Execute_CanPickedUp(NearestInteractiveObject))
 		{
-			InventoryObjects.Add(NearestInteractiveObject);
-			AddItemToUI();
+			C2S_AddInventory(NearestInteractiveObject);
+			if (HasAuthority())
+			{
+				OnRep_InventoryObjects();
+			}
 		}
 	}
 }
@@ -651,6 +684,11 @@ void APlayerBase::C2S_MakeNoise_Implementation(float Noise)
 	MakeNoise(Noise, this, GetActorLocation());
 }
 
+void APlayerBase::C2S_AddInventory_Implementation(UObject* Object)
+{
+	InventoryObjects.Add(NearestInteractiveObject);
+}
+
 void APlayerBase::SetGroggy()
 {
 	if (!PS)
@@ -658,6 +696,7 @@ void APlayerBase::SetGroggy()
 		PS = Cast<APlayerDefaultState>(GetPlayerState());
 	}
 
+	RecoverySphere->SetVisibility(true);
 	PS->bIsGroggy = true;
 	PS->OnRep_S2A_Groggy();
 	GetCharacterMovement()->MaxWalkSpeed = 0.f;
