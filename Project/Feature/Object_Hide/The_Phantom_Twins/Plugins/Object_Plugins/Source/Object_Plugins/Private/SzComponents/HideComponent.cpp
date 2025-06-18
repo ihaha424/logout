@@ -11,6 +11,8 @@
 #include "Kismet/GameplayStatics.h" // 게임플레이 스태틱스 헤더 추가
 #include "Camera/CameraComponent.h" // 카메라 컴포넌트 헤더 추가
 #include "Engine/World.h"
+#include "Net/UnrealNetwork.h"
+
 
 // Sets default values for this component's properties
 UHideComponent::UHideComponent()
@@ -21,8 +23,16 @@ UHideComponent::UHideComponent()
 	TriggerComponent->SetupAttachment(this);
 	TriggerComponent->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
 	TriggerComponent->SetGenerateOverlapEvents(true);
+
+    SetIsReplicatedByDefault(true); // 컴포넌트 복제 활성화
 }
 
+void UHideComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(UHideComponent, bHasPlayer);
+}
 
 // Called when the game starts
 void UHideComponent::BeginPlay()
@@ -101,7 +111,11 @@ void UHideComponent::ExecuteSever(APawn* Interactor)
 
             // 상태 변경
             bIsInHideView = true;
+            bHasPlayer = true;
             HidePlayer = PlayerController;
+
+            Debug_bHasPlayer();
+
         }
         else
         {
@@ -122,7 +136,10 @@ void UHideComponent::ExecuteSever(APawn* Interactor)
 
             // 상태 변경
             bIsInHideView = false;
+            bHasPlayer = false;
             HidePlayer = nullptr;
+
+            Debug_bHasPlayer();
         }
     }
     else
@@ -137,19 +154,45 @@ void UHideComponent::ExecuteSever(APawn* Interactor)
 void UHideComponent::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	APawn* Pawn = Cast<APawn>(OtherActor);
-	if (Pawn)
+	if (Pawn && !bUseCamera)
 	{
 		bHasPlayer = true;
-        //UE_LOG(LogTemp, Log, TEXT("Begin"));
 	}
+
+    Debug_bHasPlayer();
+
 }
 
 void UHideComponent::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	APawn* Pawn = Cast<APawn>(OtherActor);
-	if (Pawn)
+	if (Pawn && !bUseCamera)
 	{
 		bHasPlayer = false;
-        //UE_LOG(LogTemp, Log, TEXT("End"));
 	}
+
+    Debug_bHasPlayer();
+}
+
+void UHideComponent::Debug_bHasPlayer()
+{
+    // 로그 출력
+    if (GEngine)
+    {
+        FString RoleString = GetOwner()->HasAuthority() ? TEXT("Server") : TEXT("Client");
+        ENetMode NetMode = GetNetMode();
+        FString NetModeString;
+        switch (NetMode)
+        {
+        case NM_Standalone: NetModeString = TEXT("Standalone"); break;
+        case NM_ListenServer: NetModeString = TEXT("ListenServer"); break;
+        case NM_Client: NetModeString = TEXT("Client"); break;
+        default: NetModeString = TEXT("Unknown"); break;
+        }
+        GEngine->AddOnScreenDebugMessage(
+            -1, 5.f, FColor::Yellow,
+            FString::Printf(TEXT("[EndOverlap] %s (%s): bHasPlayer = %s"),
+                *RoleString, *NetModeString, bHasPlayer ? TEXT("True") : TEXT("False"))
+        );
+    }
 }

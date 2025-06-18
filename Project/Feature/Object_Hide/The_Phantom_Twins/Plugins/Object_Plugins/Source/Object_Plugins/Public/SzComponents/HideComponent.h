@@ -18,13 +18,14 @@ public:
 
 protected:
 	// Called when the game starts
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void BeginPlay() override;
 
 public:
 	virtual void ExecuteSever(APawn* Interactor) override;
 	
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hide")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hide", Replicated)
     bool bHasPlayer = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
