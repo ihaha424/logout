@@ -46,7 +46,12 @@ EBTNodeResult::Type UBTT_PatrolStimulusLocation::ExecuteTask(UBehaviorTreeCompon
 
 	int32 CurrentIndex = BlackboardComp->GetValueAsInt(TEXT("StimulusPatrolIndex"));
 	AIPawn->GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
-
+    // 자극의 위치가 현재 순찰 위치일 경우 자꾸 처음 스플라인 포인트로 돌아가는 현상때문에 넣은 조건
+	if (AIPawn->StimulusSplinePath== AIPawn->BaseSplinePath)
+	{
+        CurrentIndex = BlackboardComp->GetValueAsInt(TEXT("CurrentPatrolIndex")) + 1;
+        BlackboardComp->SetValueAsInt(TEXT("StimulusPatrolIndex"), CurrentIndex);
+	}
 	// 현재 순찰 포인트 위치
 	FVector StartLocation = AIPawn->GetActorLocation();
 	FVector TargetLocation = SplineRoute->GetLocationAtSplinePoint(CurrentIndex, ESplineCoordinateSpace::World);
