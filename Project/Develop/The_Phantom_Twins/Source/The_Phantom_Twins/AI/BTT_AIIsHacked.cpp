@@ -50,6 +50,5 @@ EBTNodeResult::Type UBTT_AIIsHacked::ExecuteTask(UBehaviorTreeComponent& OwnerCo
         5.0f,
         false
     );
-
     return EBTNodeResult::InProgress;
 }

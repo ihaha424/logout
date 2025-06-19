@@ -34,7 +34,7 @@ AMyAIController::AMyAIController()
 	AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
 
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
-	SightConfig->SightRadius = 1200.f;
+	SightConfig->SightRadius = 1500;
 	SightConfig->LoseSightRadius = 1200.f;
 	SightConfig->PeripheralVisionAngleDegrees = 100.f;
 	SightConfig->SetMaxAge(5.f);
@@ -99,7 +99,7 @@ void AMyAIController::Tick(float DeltaTime)
 	if (bSeeingPlayer && SightStartTime > 0.f)
 	{
 		SeenDuration = TickCurrentTime - SightStartTime;
-		if (SeenDuration >= 1.1f)
+		if (SeenDuration >= 1.f)
 		{
 			uint8 CurrentState = Blackboard->GetValueAsEnum("AIState");
 			if (CurrentState != static_cast<uint8>(EMyAIState::Combat))

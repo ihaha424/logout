@@ -122,6 +122,21 @@ void AMyAICharacter::BeginPlay()
 	Super::BeginPlay();
 }
 
+void AMyAICharacter::SetDead()
+{
+	GetCharacterMovement()->SetMovementMode(MOVE_None);
+	SetActorEnableCollision(false);
+
+	FTimerHandle DeadTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(DeadTimerHandle, FTimerDelegate::CreateLambda(
+		[&]()
+		{
+			Destroy();
+		}
+	), DeadEventDelayTime, false);
+
+}
+
 // Called every frame
 void AMyAICharacter::Tick(float DeltaTime)
 {
