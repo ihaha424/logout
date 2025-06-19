@@ -50,10 +50,14 @@ public:
 
 	bool bIsFollowingSpline = false;
 
+	UFUNCTION(CallInEditor, BlueprintCallable, Category = "AI|Dead")
+	virtual void SetDead();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	float DeadEventDelayTime = 2.0f;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

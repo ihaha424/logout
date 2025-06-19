@@ -33,6 +33,7 @@ EBTNodeResult::Type UBTT_AISenseRestoration::ExecuteTask(UBehaviorTreeComponent&
         Perception->SetSenseEnabled(UAISense_Sight::StaticClass(), true);
         Perception->SetSenseEnabled(UAISense_Hearing::StaticClass(), true);
         BlackboardComp->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
+
     }
 	return EBTNodeResult::Succeeded;
 }
