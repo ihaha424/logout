@@ -640,6 +640,8 @@ void APlayerBase::OpenInventory(const FInputActionValue& Value)
 
 void APlayerBase::PhantomVision(const FInputActionValue& Value)
 {
+	if (PS->bIsGroggy)
+		return;
 	// 현재 월드에서 모든 ACCTVLogic 액터를 찾음
 	C2S_PhantomVision();
 }
