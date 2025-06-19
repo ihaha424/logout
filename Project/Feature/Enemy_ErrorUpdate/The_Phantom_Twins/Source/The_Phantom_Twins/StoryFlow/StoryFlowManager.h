@@ -22,7 +22,8 @@ public:
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
     virtual void Deinitialize() override;
 
-    static void OnPostLoadMap(UWorld* LoadedWorld);
+    UFUNCTION()
+    void OnPreLoadMap(const FString& MapName);
 
     /**
      * @brief   : Blueprint-accessible functions

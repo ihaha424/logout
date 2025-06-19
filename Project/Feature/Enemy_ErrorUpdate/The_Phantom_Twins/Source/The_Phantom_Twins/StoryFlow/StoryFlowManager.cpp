@@ -10,35 +10,26 @@ void UStoryFlowManager::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
 
-    FCoreUObjectDelegates::PostLoadMapWithWorld.AddStatic(&UStoryFlowManager::OnPostLoadMap);
+    FCoreUObjectDelegates::PreLoadMap.AddUObject(this, &UStoryFlowManager::OnPreLoadMap);
 }
 
 void UStoryFlowManager::Deinitialize()
 {
     Super::Deinitialize();
 
-    FCoreUObjectDelegates::PostLoadMapWithWorld.RemoveAll(this);
+    FCoreUObjectDelegates::PreLoadMap.RemoveAll(this);
 }
 
-void UStoryFlowManager::OnPostLoadMap(UWorld* LoadedWorld)
+void UStoryFlowManager::OnPreLoadMap(const FString& MapName)
 {
-    if (LoadedWorld && LoadedWorld->IsGameWorld())
-    {
-        if (UGameInstance* GI = LoadedWorld->GetGameInstance())
-        {
-            if (UStoryFlowManager* Subsystem = GI->GetSubsystem<UStoryFlowManager>())
-            {
-                Subsystem->ClearAllData();
-            }
-        }
-    }
+    this->ClearAllData();
 }
 
 void UStoryFlowManager::RegisterData(FName DataName, UObject* Data)
 {
     if (nullptr == Data)
     {
-        UE_LOG(LogStoryFlow, Error, TEXT("Data is invalid or nullptr"));
+        UE_LOG(LogStoryFlow, Error, TEXT("RegisterData: Data is invalid or nullptr"));
         return;
     }
     DataMap.Add(DataName, Data);
@@ -78,6 +69,7 @@ void UStoryFlowManager::SetData(FName DataName, UObject* NewValue)
         DataMap[DataName] = NewValue;
         NotifySubscribers(DataName);
     }
+    UE_LOG(LogStoryFlow, Warning, TEXT("SetData: Data is invalid or Unregister"));
 }
 
 UObject* UStoryFlowManager::GetData(FName DataName) const
@@ -86,6 +78,8 @@ UObject* UStoryFlowManager::GetData(FName DataName) const
     {
         return *Found;
     }
+    UE_LOG(LogStoryFlow, Warning, TEXT("GetData: Data is Unregister"));
+
     return nullptr;
 }
 
