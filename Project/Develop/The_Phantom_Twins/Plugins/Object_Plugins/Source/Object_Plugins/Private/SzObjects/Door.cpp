@@ -3,6 +3,7 @@
 
 #include "SzObjects/Door.h"
 #include "SzInterface/Hacking.h"
+#include "Net/UnrealNetwork.h"
 
 ADoor::ADoor() : ABaseObject()
 {
@@ -43,6 +44,13 @@ bool ADoor::CanInteract_Implementation(const APawn* Interactor) const
 	return AreAllObjActived() && HasKey(Interactor);
 }
 
+
+void ADoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ADoor, IsActive);
+}
 
 bool ADoor::AreAllObjActived() const
 {

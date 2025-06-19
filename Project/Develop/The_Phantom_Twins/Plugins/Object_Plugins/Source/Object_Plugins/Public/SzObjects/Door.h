@@ -30,6 +30,8 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Door")
     void CloseDoor();
 
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
     // 연결된 객체들(예: 해킹 컴퓨터)이 모두 활성화되었는지 확인
     bool AreAllObjActived() const;
@@ -65,6 +67,6 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
     int32 SecurityLevel = 0;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
+    UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Door")
     bool IsActive = false;
 };
