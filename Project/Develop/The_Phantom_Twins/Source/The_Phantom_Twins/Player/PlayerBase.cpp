@@ -22,6 +22,7 @@
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "../GM_PhantomTwins.h"
 
 // Object Plugin
 #include "SzInterface/Hacking.h"
@@ -438,6 +439,14 @@ float APlayerBase::TakeDamage(float DamageAmount, struct FDamageEvent const& Dam
 
 	Stat->ApplyDamage(DamageAmount);
 
+	if (HasAuthority())
+	{
+		if (AGM_PhantomTwins* GM = GetWorld()->GetAuthGameMode<AGM_PhantomTwins>())
+		{
+			GM->NotifyPlayerDied(GetController(), true);
+		}
+	}
+
 	return 0.f;
 }
 
@@ -745,6 +754,14 @@ void APlayerBase::SetRecovery()
 	PS->bIsGroggy = false;
 	PS->OnRep_S2A_Groggy();
 	GetCharacterMovement()->MaxWalkSpeed = PS->MoveSpeedInfo.WalkSpeed;
+
+	if (HasAuthority())
+	{
+		if (AGM_PhantomTwins* GM = GetWorld()->GetAuthGameMode<AGM_PhantomTwins>())
+		{
+			GM->NotifyPlayerDied(GetController(), true);
+		}
+	}
 }
 
 void APlayerBase::S2C_UpdatePerceivedActor_Implementation(AActor* Actor, bool bVisible)
