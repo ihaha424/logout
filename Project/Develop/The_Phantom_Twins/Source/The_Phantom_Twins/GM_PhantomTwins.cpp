@@ -5,7 +5,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h"
 
-
 void AGM_PhantomTwins::BeginPlay()
 {
     Super::BeginPlay();
@@ -55,8 +54,8 @@ void AGM_PhantomTwins::RestartLevelWithDelay(float Delay)
     FTimerHandle TimerHandle;
     GetWorldTimerManager().SetTimer(TimerHandle, [this]()
         {
-            FString MapName = UGameplayStatics::GetCurrentLevelName(GetWorld(), true);
+            FString MapName = GetWorld()->GetOutermost()->GetName();
             FString LevelPathWithListen = MapName + TEXT("?listen");
-            GetWorld()->ServerTravel(LevelPathWithListen, true);
+            GetWorld()->ServerTravel(LevelPathWithListen, false);
         }, Delay, false);
 }

@@ -69,5 +69,5 @@ void UW_Lobby::OpenAndTravelToLevel(const FName LevelName)
 	FString LevelPathWithListen = LevelName.ToString() + TEXT("?listen");
 
 	UE_LOG(LogTemp, Log, TEXT("LevelPathWithListen: %s"), *LevelPathWithListen);
-	GetWorld()->ServerTravel(LevelPathWithListen, true);
+	GetWorld()->ServerTravel(LevelPathWithListen, false);
 }

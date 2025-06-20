@@ -97,7 +97,7 @@ void AP_CM_PuzzleActor::OpenAndTravelToLevel(const FName LevelName)
     FString LevelPathWithListen = LevelName.ToString() + TEXT("?listen");
 
     UE_LOG(LogTemp, Log, TEXT("LevelPathWithListen: %s"), *LevelPathWithListen);
-    GetWorld()->ServerTravel(LevelPathWithListen, true);
+    GetWorld()->ServerTravel(LevelPathWithListen, false);
 }
 
 FPuzzleState AP_CM_PuzzleActor::GetCurrentPuzzleState() const
