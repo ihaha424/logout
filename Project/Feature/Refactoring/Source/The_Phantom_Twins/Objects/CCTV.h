@@ -12,7 +12,7 @@
  * 
  */
 UCLASS()
-class OBJECT_PLUGINS_API ACCTV : public ABaseObject, public IHacking
+class THE_PHANTOM_TWINS_API ACCTV : public ABaseObject, public IHacking
 {
 	GENERATED_BODY()
 

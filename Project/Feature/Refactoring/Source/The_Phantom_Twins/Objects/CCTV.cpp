@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "SzObjects/CCTV.h"
+#include "CCTV.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -12,8 +12,8 @@
 #include "InputAction.h"
 #include "SzComponents/HackableComponent.h"
 #include "SzComponents/NoiseComponent.h"
-#include "SzComponents/CCTVManager.h"
-#include "PhantomTwinsGameState.h"
+#include "CCTVManager.h"
+#include "../PhantomTwinsGameState.h"
 #include "Blueprint/UserWidget.h"
 #include "SzUI/PhantomVisionWidget.h"
 #include "SzComponents/OutlineComponent.h"

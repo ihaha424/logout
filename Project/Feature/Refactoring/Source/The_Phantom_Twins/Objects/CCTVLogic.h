@@ -7,7 +7,7 @@
 #include "CCTVLogic.generated.h"
 
 UCLASS()
-class OBJECT_PLUGINS_API ACCTVLogic : public APawn
+class THE_PHANTOM_TWINS_API ACCTVLogic : public APawn
 {
 	GENERATED_BODY()
 	

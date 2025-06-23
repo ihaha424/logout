@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class OBJECT_PLUGINS_API ACardKey : public ABaseObject
+class THE_PHANTOM_TWINS_API ACardKey : public ABaseObject
 {
 	GENERATED_BODY()
 	

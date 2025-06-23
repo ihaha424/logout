@@ -24,9 +24,10 @@
 #include "Net/UnrealNetwork.h"
 #include "../GM_PhantomTwins.h"
 
+#include "../Objects/CCTVLogic.h"
+
 // Object Plugin
 #include "SzInterface/Hacking.h"
-#include "SzObjects/CCTVLogic.h"
 
 // Sets default values
 APlayerBase::APlayerBase()

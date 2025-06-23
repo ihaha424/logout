@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "SzObjects/CardKey.h"
+#include "CardKey.h"
 #include "SzComponents/ItemComponent.h"
 
 ACardKey::ACardKey()

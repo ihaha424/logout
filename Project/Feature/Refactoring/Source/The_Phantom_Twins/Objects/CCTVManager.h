@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "SzObjects/CCTV.h"
+#include "CCTV.h"
 #include "CCTVManager.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogCameraManger, Log, All);
@@ -36,7 +36,7 @@ public:
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class OBJECT_PLUGINS_API UCCTVManager : public UActorComponent
+class THE_PHANTOM_TWINS_API UCCTVManager : public UActorComponent
 {
 	GENERATED_BODY()
 

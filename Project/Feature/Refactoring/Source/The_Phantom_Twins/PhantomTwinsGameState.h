@@ -4,14 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h"
-#include "SzComponents/CCTVManager.h"
+#include "Objects/CCTVManager.h"
 #include "PhantomTwinsGameState.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class OBJECT_PLUGINS_API APhantomTwinsGameState : public AGameStateBase
+class THE_PHANTOM_TWINS_API APhantomTwinsGameState : public AGameStateBase
 {
 	GENERATED_BODY()
 	

@@ -1,10 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "SzObjects/CCTVLogic.h"
-#include "SzComponents/CCTVManager.h"
-#include "SzObjects/CCTV.h"
-#include "PhantomTwinsGameState.h"
+#include "CCTVLogic.h"
+#include "CCTVManager.h"
+#include "CCTV.h"
+#include "../PhantomTwinsGameState.h"
 #include "GameFramework/PlayerController.h"
 #include "Blueprint/UserWidget.h"
 

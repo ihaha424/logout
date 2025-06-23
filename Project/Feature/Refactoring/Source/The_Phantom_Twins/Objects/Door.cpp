@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "SzObjects/Door.h"
+#include "Door.h"
 #include "SzInterface/Hacking.h"
 #include "Net/UnrealNetwork.h"
 

@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class OBJECT_PLUGINS_API ADoor : public ABaseObject
+class THE_PHANTOM_TWINS_API ADoor : public ABaseObject
 {
 	GENERATED_BODY()
 	
