@@ -33,6 +33,7 @@ public:
 
 	void NearestObjectCheck();
 
+	UFUNCTION(BlueprintCallable, Category = "Player")
 	bool IsGroggy() const;
 
 	UFUNCTION(BlueprintImplementableEvent)
