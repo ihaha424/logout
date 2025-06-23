@@ -236,6 +236,7 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 	}
 	// 자극의 근원지에서 가장 가까운 스플라인 경로를 찾는다.
 	MyAICharacter->StimulusSplinePath = FindNearestSplinePath(Blackboard->GetValueAsVector(TEXT("UpdatedStimulusLocation")));
+	MyAICharacter->S2A_UpdateAIStateWidget(EAIStateWidget::NoneMark);
 }
 
 void AMyAIController::ObjectPerception(AActor* Actor, FAIStimulus Stimulus)
@@ -285,7 +286,8 @@ void AMyAIController::AllyPerception(AActor* Actor, FAIStimulus Stimulus)
 		if (BlackboardComp->GetValueAsEnum("AIState") == static_cast<uint8>(EMyAIState::Combat))
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Sight AllyPerception : %s"), *Actor->GetName());
-			Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Combat));
+
+			//Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Suspicion));
 		}
 	}
 }

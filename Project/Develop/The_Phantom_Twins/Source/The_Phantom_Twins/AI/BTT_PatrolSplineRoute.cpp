@@ -48,6 +48,7 @@ EBTNodeResult::Type UBTT_PatrolSplineRoute::ExecuteTask(UBehaviorTreeComponent& 
 
 	AIPawn->GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
 	MaxIndex = SplineRoute->GetNumberOfSplinePoints();
+	BlackboardComp->SetValueAsInt(TEXT("MaxPatrolIndex"), MaxIndex);
 	int32 CurrentIndex = BlackboardComp->GetValueAsInt(TEXT("CurrentPatrolIndex"));
 
 	// 목표 위치 설정
@@ -87,7 +88,8 @@ void UBTT_PatrolSplineRoute::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* 
 	{
 		// 다음 인덱스 계산 (순환)
 		int32 CurrentIndex = BlackboardComp->GetValueAsInt(TEXT("CurrentPatrolIndex"));
-		CurrentIndex = (CurrentIndex + 1) % MaxIndex;
+		int32 MaxPatrolIndex = BlackboardComp->GetValueAsInt(TEXT("MaxPatrolIndex"));
+		CurrentIndex = (CurrentIndex + 1) % MaxPatrolIndex;
 		BlackboardComp->SetValueAsInt(TEXT("CurrentPatrolIndex"), CurrentIndex);
 
 		// 새로운 목표지점 설정 및 이동 재시작
