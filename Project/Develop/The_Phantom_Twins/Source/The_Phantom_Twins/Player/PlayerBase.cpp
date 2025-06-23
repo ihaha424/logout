@@ -555,6 +555,8 @@ void APlayerBase::Hacking(const FInputActionValue& Value)
 	if (PS->bIsGroggy)
 		return;
 
+	if (!NearestInteractiveObject) return;
+
 	//UE_LOG(LogTemp, Log, TEXT("Hacking Start"));
 
 	if (NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
@@ -568,6 +570,8 @@ void APlayerBase::StopHacking(const FInputActionValue& Value)
 {
 	if (PS->bIsGroggy)
 		return;
+
+	if (!NearestInteractiveObject) return;
 
 	//UE_LOG(LogTemp, Log, TEXT("Hacking Stop"));
 	 
