@@ -25,13 +25,13 @@ ABaseObject::ABaseObject()
     bReplicates = true;
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
-    SetRootComponent(MeshComponent);
+    //SetRootComponent(MeshComponent);
 	MeshComponent->SetCollisionProfileName(TEXT("OverlapAll"));
 
 
     // 위젯 컴포넌트는 항상 생성하지만, 사용 여부에 따라 설정/표시 여부 제어
     WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("ObjectWidget"));
-    WidgetComponent->SetupAttachment(RootComponent);
+    WidgetComponent->SetupAttachment(MeshComponent);
     WidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
     WidgetComponent->SetDrawSize(FVector2D(10, 10));
     WidgetComponent->SetRelativeLocation(FVector(0, 0, 100));
@@ -39,7 +39,7 @@ ABaseObject::ABaseObject()
 
     // AIPerception과 player안의 sphere만 감지하는 Object
     SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
-    SphereCollisionComp->SetupAttachment(RootComponent);
+    SphereCollisionComp->SetupAttachment(MeshComponent);
     SphereCollisionComp->ComponentTags.Add(FName("Object"));
 	SphereCollisionComp->SetSphereRadius(50.0f);
 	SphereCollisionComp->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정

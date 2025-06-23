@@ -26,7 +26,7 @@ ACCTV::ACCTV()
 	bReplicates = true;
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->SetupAttachment(RootComponent);
+	//SpringArm->SetupAttachment(RootComponent);
 	SpringArm->TargetArmLength = -60.0f;
 	SpringArm->bUsePawnControlRotation = false;
 	SpringArm->bInheritPitch = false;
