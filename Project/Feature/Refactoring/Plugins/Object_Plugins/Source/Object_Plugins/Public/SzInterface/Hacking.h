@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "Interaction.h"
 #include "Hacking.generated.h"
 
 // This class does not need to be modified.
@@ -16,7 +17,7 @@ class UHacking : public UInterface
 /**
  * 
  */
-class OBJECT_PLUGINS_API IHacking
+class OBJECT_PLUGINS_API IHacking : public IInteraction
 {
 	GENERATED_BODY()
 
@@ -42,7 +43,4 @@ public:
 	// 해킹 초기화
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Hacking")
 	void ClearHacking();
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
-	void SetWidgetVisibility(bool Visible);
 };
