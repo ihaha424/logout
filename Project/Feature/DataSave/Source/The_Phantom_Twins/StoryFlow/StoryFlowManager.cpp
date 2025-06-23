@@ -9,7 +9,7 @@ DEFINE_LOG_CATEGORY(LogStoryFlow);
 void UStoryFlowManager::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
-
+    //todo:: 서버에서 호출뒤, 클라에서 세팅이 되면서 서버에 OnPreLoadMap 함수를 요청함... 순서적으로 맵로드시에 데이터 클리어를 해야해서 이런 구조가 됨.
     FCoreUObjectDelegates::PreLoadMap.AddUObject(this, &UStoryFlowManager::OnPreLoadMap);
 }
 
