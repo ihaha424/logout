@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "SzComponents/Interaction.h"
+#include "SzInterface/Interaction.h"
 #include "PlayerWidgetInterface.h"
 #include "InputActionValue.h"
 #include "PlayerBase.generated.h"

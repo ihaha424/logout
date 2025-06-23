@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-#include "SzComponents/Interaction.h"
+#include "SzInterface/Interaction.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "BaseObject.generated.h"
 
