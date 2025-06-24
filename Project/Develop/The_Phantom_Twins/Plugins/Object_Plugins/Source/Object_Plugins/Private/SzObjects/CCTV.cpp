@@ -45,11 +45,10 @@ ACCTV::ACCTV()
 
 	CurrentHackingPawn = nullptr;
 
-	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputMappingContextRef(TEXT("/Game/Project_TPT/Assets/Input/Object/IMC_CCTV.IMC_CCTV"));
-	InputMappingContext = InputMappingContextRef.Object;
 
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> PlayerMappingContextRef(TEXT("/Game/Project_TPT/Assets/Input/Player/IMC_PlayerIMC.IMC_PlayerIMC"));
 	PlayerMappingContext = PlayerMappingContextRef.Object;
+	InputMappingContext = PlayerMappingContextRef.Object;
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> IA_TurnRef(TEXT("/Game/Project_TPT/Assets/Input/Object/IA_Turn.IA_Turn"));
 	IA_Turn = IA_TurnRef.Object;

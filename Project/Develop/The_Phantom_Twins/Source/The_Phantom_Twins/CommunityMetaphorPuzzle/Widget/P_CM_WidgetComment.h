@@ -16,7 +16,7 @@ class THE_PHANTOM_TWINS_API UP_CM_WidgetComment : public UP_CM_WidgetBase
 	GENERATED_BODY()
 	
 public:
-	FORCEINLINE_DEBUGGABLE bool InitialData(const UP_CM_CommentData* Data);
+	bool InitialData(const UP_CM_CommentData* Data);
 	virtual void NativeConstruct() override;
 
 
