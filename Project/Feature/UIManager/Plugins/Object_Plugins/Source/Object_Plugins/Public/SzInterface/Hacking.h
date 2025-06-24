@@ -46,3 +46,5 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
 	void SetWidgetVisibility(bool Visible);
 };
+
+
