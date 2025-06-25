@@ -25,6 +25,9 @@ ACCTV::ACCTV()
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 
+	USceneComponent* scene = CreateDefaultSubobject<USceneComponent>(TEXT("Parent"));
+	SetRootComponent(scene);
+
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	//SpringArm->SetupAttachment(RootComponent);
 	SpringArm->TargetArmLength = -60.0f;
