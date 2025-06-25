@@ -8,7 +8,7 @@ ACardKey::ACardKey()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	InteractComp = CreateDefaultSubobject<UItemComponent>(TEXT("ItemComponent"));
-	InteractComp->SetupAttachment(RootComponent);
+	//InteractComp->SetupAttachment(RootComponent);
 	ObjectType = EObjectType::Item;
 	bDestory = true;
 }

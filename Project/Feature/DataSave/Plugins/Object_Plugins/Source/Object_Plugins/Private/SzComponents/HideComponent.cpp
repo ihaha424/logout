@@ -21,7 +21,6 @@ UHideComponent::UHideComponent()
     PrimaryComponentTick.bCanEverTick = false;
 
     TriggerComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxTriggerComponent"));
-    TriggerComponent->SetupAttachment(this);
     TriggerComponent->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
     TriggerComponent->SetGenerateOverlapEvents(true);
 
@@ -43,12 +42,12 @@ void UHideComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 void UHideComponent::BeginPlay()
 {
     Super::BeginPlay();
-
     if (!TriggerComponent)
     {
         UE_LOG(LogTemp, Warning, TEXT("TriggerComponent is null in HideComponent"));
         return;
     }
+    TriggerComponent->SetupAttachment(this);
 
     AActor* Owner = GetOwner();
 

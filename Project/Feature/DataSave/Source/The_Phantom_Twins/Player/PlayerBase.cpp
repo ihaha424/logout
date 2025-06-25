@@ -768,7 +768,7 @@ void APlayerBase::SetRecovery()
 	{
 		if (AGM_PhantomTwins* GM = GetWorld()->GetAuthGameMode<AGM_PhantomTwins>())
 		{
-			GM->NotifyPlayerDied(GetController(), true);
+			GM->NotifyPlayerDied(GetController(), false);
 		}
 	}
 }

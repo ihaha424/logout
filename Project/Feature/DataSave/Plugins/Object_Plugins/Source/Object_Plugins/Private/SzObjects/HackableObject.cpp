@@ -18,11 +18,11 @@ AHackableObject::AHackableObject()
 	Tags.Add(FName("Object"));
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
-	SetRootComponent(MeshComponent);
+	//SetRootComponent(MeshComponent);
 
 	// WidgetComponent
 	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("ObjectWidget"));
-	WidgetComponent->SetupAttachment(RootComponent);
+	WidgetComponent->SetupAttachment(MeshComponent);
 	WidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	WidgetComponent->SetDrawSize(FVector2D(10, 10));
 	WidgetComponent->SetRelativeLocation(FVector(0, 0, 100));
@@ -31,7 +31,7 @@ AHackableObject::AHackableObject()
 
 	// AIPerception과 player안의 sphere만 감지하는 Object
 	SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
-	SphereCollisionComp->SetupAttachment(RootComponent);
+	SphereCollisionComp->SetupAttachment(MeshComponent);
 	SphereCollisionComp->ComponentTags.Add(FName("Object"));
 	SphereCollisionComp->SetSphereRadius(50.0f);
 	SphereCollisionComp->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
