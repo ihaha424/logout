@@ -34,9 +34,9 @@ ACCTV::ACCTV()
 	SpringArm->SetupAttachment(EmptyRootComponent);
 	SpringArm->TargetArmLength = -60.0f;
 	SpringArm->bUsePawnControlRotation = false;
-	SpringArm->bInheritPitch = false;
-	SpringArm->bInheritYaw = false;
-	SpringArm->bInheritRoll = false;
+	SpringArm->bInheritPitch = true;
+	SpringArm->bInheritYaw = true;
+	SpringArm->bInheritRoll = true;
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComp->SetupAttachment(SpringArm);
