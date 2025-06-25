@@ -16,6 +16,7 @@ class THE_PHANTOM_TWINS_API UBTT_ChasePlayer : public UBTTaskNode
 public:
 	UBTT_ChasePlayer();
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+	void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds);
 
 	UPROPERTY(EditAnywhere, Category = "AI")
 	float MoveSpeed = 400.f;

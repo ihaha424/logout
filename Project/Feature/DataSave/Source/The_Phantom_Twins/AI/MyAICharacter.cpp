@@ -61,6 +61,44 @@ AMyAICharacter::AMyAICharacter()
 	Tags.Add(FName("Object"));
 }
 
+void AMyAICharacter::PlayJogFwdMontageSynced(float PlayRate)
+{
+	if (HasAuthority())
+	{
+		MulticastPlayJogFwdMontage(PlayRate);
+	}
+}
+void AMyAICharacter::MulticastPlayJogFwdMontage_Implementation(float PlayRate)
+{
+	if (JogFwdMontage && GetMesh())
+	{
+		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+		{
+			AnimInstance->Montage_Play(JogFwdMontage, PlayRate);
+		}
+	}
+}
+
+void AMyAICharacter::PlayJumpMontageSynced(float PlayRate)
+{
+	if (HasAuthority())
+	{
+		MulticastPlayJumpMontage(PlayRate);
+	}
+}
+
+void AMyAICharacter::MulticastPlayJumpMontage_Implementation(float PlayRate)
+{
+	if (JumpMontage && GetMesh())
+	{
+		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+		{
+			AnimInstance->Montage_Play(JumpMontage, PlayRate);
+		}
+	}
+}
+
+
 void AMyAICharacter::OnHackingStartedServer_Implementation(APawn* Interactor)
 {
 	AMyAIController* AIController = Cast<AMyAIController>(GetController());

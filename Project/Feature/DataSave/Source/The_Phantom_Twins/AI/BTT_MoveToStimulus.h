@@ -31,5 +31,9 @@ public:
 	float MoveSpeed = 250.f;
 
 	UPROPERTY(EditAnywhere, Category = "AI")
-	float AcceptanceRadius = 50.f; // 도착 판정 거리
+	float AcceptanceRadius = 100.f; // 도착 판정 거리
+
+
+	UPROPERTY(EditAnywhere, Category = "AI")
+	float TryRadius = 50.f; // 도착 판정 거리
 };
