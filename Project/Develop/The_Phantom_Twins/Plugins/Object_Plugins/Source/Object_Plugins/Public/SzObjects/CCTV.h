@@ -60,10 +60,13 @@ private:
 
 
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CCTV")
+	TObjectPtr<class USceneComponent> EmptyRootComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CCTV")
 	TObjectPtr<class USpringArmComponent> SpringArm;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "CCTV")
 	TObjectPtr<class UCameraComponent> CameraComp;
 
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")

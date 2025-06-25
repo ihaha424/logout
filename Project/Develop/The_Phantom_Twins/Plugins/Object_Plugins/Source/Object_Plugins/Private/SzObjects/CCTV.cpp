@@ -25,11 +25,13 @@ ACCTV::ACCTV()
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 
-	USceneComponent* scene = CreateDefaultSubobject<USceneComponent>(TEXT("Parent"));
-	SetRootComponent(scene);
+	EmptyRootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Parent"));
+	SetRootComponent(EmptyRootComponent);
+
+	MeshComponent->SetupAttachment(EmptyRootComponent);
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	//SpringArm->SetupAttachment(RootComponent);
+	SpringArm->SetupAttachment(EmptyRootComponent);
 	SpringArm->TargetArmLength = -60.0f;
 	SpringArm->bUsePawnControlRotation = false;
 	SpringArm->bInheritPitch = false;
