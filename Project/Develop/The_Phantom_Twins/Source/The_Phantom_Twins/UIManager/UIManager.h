@@ -58,7 +58,8 @@ public:
 	bool UnregisterUI(const FString& Key, UUserWidget* Widget);
 
 	bool SetWidget(const FString& Key, bool bActive);
-	
+
+	UUserWidget* GetWidget(const FString& Key) const;
 
 
 protected:

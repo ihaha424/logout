@@ -94,3 +94,20 @@ bool UUIManager::SetWidget(const FString& Key, bool bActive)
 	}
 	return true;
 }
+
+UUserWidget* UUIManager::GetWidget(const FString& Key) const
+{
+	if (!UIMap.Contains(Key))
+	{
+		UE_LOG(LogUIManager, Warning, TEXT("GetWidget: %s is Non-Register."), *Key);
+		return nullptr;
+	}
+
+	if (UIMap[Key].bIsActivate)
+	{
+		UE_LOG(LogUIManager, Log, TEXT("GetWidget: %s is already Show."), *Key);
+		return UIMap[Key].UI;
+	}
+
+	return nullptr;
+}
