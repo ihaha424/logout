@@ -254,14 +254,15 @@ void APlayerBase::Tick(float DeltaTime)
 	// Noise ¹ß»ý
 	if (IsLocallyControlled())
 	{
+		FName NoiseTag = bIsRunning ? FName("PlayerRun") : FName("PlayerWalk");
 		NoiseTimer += DeltaTime;
 		if (NoiseTimer >= NoiseInterval)
 		{
 			if (HasAuthority())
 			{
-				MakeNoise(CurrentNoise, this, GetActorLocation());
+				MakeNoise(CurrentNoise, this, GetActorLocation(),0, NoiseTag);
 			}
-			C2S_MakeNoise(CurrentNoise);
+			C2S_MakeNoise(CurrentNoise, NoiseTag);
 			//UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Noise : %.2f"), CurrentNoise));
 			NoiseTimer = 0.f;
 		}
@@ -487,6 +488,8 @@ void APlayerBase::Move(const FInputActionValue& Value)
 
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
+
+		bIsRunning = false;
 	}
 }
 
@@ -512,7 +515,7 @@ void APlayerBase::Run(const FInputActionValue& Value)
 		return;
 
 	MoveNoise = PS->NoiseInfo.RunNoise;
-
+	bIsRunning = true;
 	if (!HasAuthority())
 	{
 		GetCharacterMovement()->MaxWalkSpeed = PS->MoveSpeedInfo.RunSpeed;
@@ -686,9 +689,9 @@ void APlayerBase::C2S_SetMaxWalkSpeed_Implementation(float Speed)
 	GetCharacterMovement()->MaxWalkSpeed = Speed;
 }
 
-void APlayerBase::C2S_MakeNoise_Implementation(float Noise)
+void APlayerBase::C2S_MakeNoise_Implementation(float Noise, FName NoiseTag)
 {
-	MakeNoise(Noise, this, GetActorLocation());
+	MakeNoise(Noise, this, GetActorLocation(), 0, NoiseTag);
 }
 
 void APlayerBase::C2S_AddInventory_Implementation(UObject* Object)

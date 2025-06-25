@@ -42,6 +42,7 @@ protected:
 	void ObjectPerception(AActor* Actor, FAIStimulus Stimulus);
 	void AllyPerception(AActor* Actor, FAIStimulus Stimulus);
 	ASplinePathActor* FindNearestSplinePath(const FVector& StimulusLocation);
+	void CalculateSoundStimulus(FName Tag);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "AI")
@@ -50,6 +51,10 @@ private:
 	TObjectPtr<UAISenseConfig_Sight> SightConfig;
 	UPROPERTY(EditAnywhere, Category = "AI")
 	TObjectPtr<UAISenseConfig_Hearing> HearingConfig;
+	UPROPERTY(EditAnywhere, Category = "AI")
+	float HearingMaxPoint = 100;
+	UPROPERTY(EditAnywhere, Category = "AI")
+	float SightMaxTime = 1.1f;
 
 	// 비헤이비어 트리와 블랙보드
 	UPROPERTY()
