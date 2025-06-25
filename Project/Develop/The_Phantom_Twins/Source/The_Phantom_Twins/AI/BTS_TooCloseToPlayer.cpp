@@ -55,7 +55,6 @@ void UBTS_TooCloseToPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
     if (ClosestPlayerPawn && ClosestDistance <= MaxDistance)
     {
     	BB->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Combat));
-    	AIPawn->S2A_UpdateAIStateWidget(EAIStateWidget::ExclamationMark);
         BB->SetValueAsObject("ChasingPlayer", ClosestPlayerPawn);
     }
 }

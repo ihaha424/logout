@@ -17,6 +17,7 @@ public:
 	UBTT_AttackPlayer();
 protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+	void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds);
 
 	UPROPERTY(EditAnywhere)
 	float DamageAmount = 20.f;

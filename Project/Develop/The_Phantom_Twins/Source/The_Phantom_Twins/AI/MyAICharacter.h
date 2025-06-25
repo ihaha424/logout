@@ -17,6 +17,23 @@ public:
 	// Sets default values for this character's properties
 	AMyAICharacter();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	UAnimMontage* JogFwdMontage;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayJogFwdMontage(float PlayRate = 1.0f);
+
+	void PlayJogFwdMontageSynced(float PlayRate = 1.0f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	UAnimMontage* JumpMontage;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayJumpMontage(float PlayRate = 1.0f);
+
+	void PlayJumpMontageSynced(float PlayRate = 1.0f);
+
+
 	virtual void OnHackingStartedServer_Implementation(APawn* Interactor) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Spline")

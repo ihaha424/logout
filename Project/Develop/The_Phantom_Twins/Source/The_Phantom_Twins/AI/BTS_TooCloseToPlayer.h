@@ -20,5 +20,5 @@ protected:
     virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
     UPROPERTY(EditAnywhere, Category = "AI")
-    float MaxDistance = 250.f;
+    float MaxDistance = 200;
 };

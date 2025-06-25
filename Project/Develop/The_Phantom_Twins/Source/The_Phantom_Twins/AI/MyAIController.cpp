@@ -5,6 +5,7 @@
 #include "AIInterface.h"
 #include "EngineUtils.h"
 #include "MyAICharacter.h"
+#include "NavigationSystem.h"
 #include "SplinePathActor.h"
 #include "Components/WidgetComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -15,6 +16,7 @@
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/PawnSensingComponent.h"
 #include "SzComponents/HideComponent.h"
+#include "SzObjects/CCTV.h"
 #include "SzObjects/HackableObject.h"
 #include "The_Phantom_Twins/Player/PlayerBase.h"
 
@@ -215,9 +217,15 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 				//UE_LOG(LogTemp, Warning, TEXT("UpdatedStimulusLocation is Updated by \"UAISense_Hearing\"")); 
 				Blackboard->SetValueAsVector(TEXT("UpdatedStimulusLocation"), Stimulus.StimulusLocation);
 			}
-			Blackboard->SetValueAsObject("ChasingPlayer", Target);
 			Blackboard->SetValueAsObject("TargetPlayer", Target);
 			CalculateSoundStimulus(Stimulus.Tag);
+
+			if (Blackboard->GetValueAsFloat(TEXT("HearingStimulusStack")) >= HearingMaxPoint)
+			{
+				Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Suspicion));
+				Blackboard->SetValueAsObject("ChasingPlayer", Target);
+				//UE_LOG(LogTemp, Warning, TEXT("This is FOR HearingStrength >= 100.f Stimulus Target"));
+			}
 		}
 	}
 	// 자극의 근원지에서 가장 가까운 스플라인 경로를 찾는다.
@@ -234,14 +242,21 @@ void AMyAIController::ObjectPerception(AActor* Actor, FAIStimulus Stimulus)
 			//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Hearing ObjectPerception : %s"), *Actor->GetName());
 			if (Actor->GetClass()->ImplementsInterface(UHacking::StaticClass()))
 			{
-				AHackableObject* Object = Cast<AHackableObject>(Actor);
 				// 오브제트가 이미 해킹이되어서 해킹이 불가한 상태라면 밑의 코드가 실행됨.
-				if (!Object->IHacking::CanBeHacked_Implementation())
+				if (!IHacking::Execute_CanBeHacked(Actor))
 				{
 					//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Hearing AHackableObject AHackableObject ObjectPerception : %s"), *Object->GetName());
-					Blackboard->SetValueAsObject("TargetObject", Object);
-					Blackboard->SetValueAsVector(TEXT("UpdatedStimulusLocation"), Stimulus.StimulusLocation);
+					
+					Blackboard->SetValueAsObject("TargetObject", Actor);
+					FVector TargetLocation = Stimulus.StimulusLocation;
+					LastHeardTime = CurrentTime;
+					Blackboard->SetValueAsVector(TEXT("UpdatedStimulusLocation"), TargetLocation);
 					CalculateSoundStimulus(Stimulus.Tag);
+					if (Blackboard->GetValueAsFloat(TEXT("HearingStimulusStack")) >= HearingMaxPoint)
+					{
+						Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Suspicion));
+						//UE_LOG(LogTemp, Warning, TEXT("This is FOR HearingStrength >= 100.f Stimulus Target"));
+					}
 				}
 			}
 		}
@@ -333,19 +348,14 @@ void AMyAIController::CalculateSoundStimulus(FName Tag)
 	}
 	else if (Tag == "Object")
 	{
-		NoiseStrength = 30.0f;
+		NoiseStrength = 35.0f;
 	}
 
-	HearingStimulus.Add(FAuditoryStimulus(CurrentTime, NoiseStrength));
+	HearingStimulus.Add(FAuditoryStimulus(LastHeardTime, NoiseStrength));
 
 	float AccumulatedHearingStrength = Blackboard->GetValueAsFloat(TEXT("HearingStimulusStack"));
 	Blackboard->SetValueAsFloat(TEXT("HearingStimulusStack"), AccumulatedHearingStrength + NoiseStrength);
 
 	//UE_LOG(LogTemp, Warning, TEXT(" HearingStrength : %f"), Blackboard->GetValueAsFloat(TEXT("HearingStimulusStack")));
 
-	if (Blackboard->GetValueAsFloat(TEXT("HearingStimulusStack")) >= HearingMaxPoint)
-	{
-		Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Suspicion));
-		//UE_LOG(LogTemp, Warning, TEXT("This is FOR HearingStrength >= 100.f Stimulus Target"));
-	}
 }

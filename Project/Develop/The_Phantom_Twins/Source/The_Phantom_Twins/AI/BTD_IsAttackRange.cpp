@@ -32,7 +32,7 @@ bool UBTD_IsAttackRange::CalculateRawConditionValue(UBehaviorTreeComponent& Owne
 	{
 		return EBTNodeResult::Failed;
 	}
-	APlayerBase* Target = Cast<APlayerBase>(BlackboardComp->GetValueAsObject(TEXT("TargetPlayer")));
+	APlayerBase* Target = Cast<APlayerBase>(BlackboardComp->GetValueAsObject(TEXT("ChasingPlayer")));
 	if (!Target)
 	{
 		return EBTNodeResult::Failed;

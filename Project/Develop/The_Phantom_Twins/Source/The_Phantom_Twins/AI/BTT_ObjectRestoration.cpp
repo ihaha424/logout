@@ -21,6 +21,7 @@ EBTNodeResult::Type UBTT_ObjectRestoration::ExecuteTask(UBehaviorTreeComponent& 
 
 void UBTT_ObjectRestoration::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
+	//UE_LOG(LogTemp, Error, TEXT("rkddlsrbrpdl ObjectClear Start"));
 	AMyAIController* AIController = Cast<AMyAIController>(OwnerComp.GetAIOwner());
 	if (!AIController)
 	{
@@ -40,25 +41,31 @@ void UBTT_ObjectRestoration::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* 
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return;
 	}
-	AHackableObject* Target = Cast<AHackableObject>(BlackboardComp->GetValueAsObject(TEXT("TargetObject")));
-	if (!Target)
+	AActor* Target = Cast<AActor>(BlackboardComp->GetValueAsObject(TEXT("TargetObject")));
+	if (nullptr == Target || !Target->GetClass()->ImplementsInterface(UHacking::StaticClass()))
 	{
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		return;
 	}
-	float Distance = FVector::Dist(AIPawn->GetActorLocation(), Target->GetActorLocation());
-	FNavLocation NavMeshLocation;
-	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
-	if (NavSys && NavSys->ProjectPointToNavigation(Target->GetActorLocation(), NavMeshLocation, FVector(300, 300, 700)))
+	FVector MyLocation = AIPawn->GetActorLocation();
+	FVector TargetLocation = Target->GetActorLocation();
+
+	MyLocation.Z = 0;
+	TargetLocation.Z = 0;
+
+	float Distance2D = FVector::Dist2D(MyLocation, TargetLocation); // XY 평면 거리
+
+	//UE_LOG(LogTemp, Warning, TEXT("%f"), Distance2D);
+	if (Distance2D < 500)
 	{
-		Target->GetActorLocation() = NavMeshLocation; // NavMesh 위 좌표로 보정
-	}
-	if (Distance < 300)
-	{
-		//Target->ClearHacking();
 		IHacking::Execute_ClearHacking(Target);
 		BlackboardComp->ClearValue(TEXT("TargetObject"));
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		//UE_LOG(LogTemp, Error, TEXT("rkddlsrbrpdl ObjectClear"));
+
+		return;
 	}
+	//UE_LOG(LogTemp, Error, TEXT("rkddlsrbrpdl ObjectClear Fail"));
 	FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+
 }
