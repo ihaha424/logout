@@ -65,7 +65,7 @@ void AHackableObject::BeginPlay()
 	if (WidgetClass)
 	{
 		WidgetComponent->SetWidgetClass(WidgetClass);
-		WidgetComponent->SetVisibility(true);
+		WidgetComponent->SetVisibility(false);
 	}
 
 	// Outline
