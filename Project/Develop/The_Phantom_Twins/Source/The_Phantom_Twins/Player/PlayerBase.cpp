@@ -696,7 +696,7 @@ void APlayerBase::C2S_MakeNoise_Implementation(float Noise, FName NoiseTag)
 
 void APlayerBase::C2S_AddInventory_Implementation(UObject* Object)
 {
-	InventoryObjects.Add(NearestInteractiveObject);
+	InventoryObjects.Add(Object);
 }
 
 void APlayerBase::C2S_PhantomVision_Implementation()
