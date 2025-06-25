@@ -42,7 +42,7 @@ public:
 
 	// 소음 발생 범위
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hacking|Noise")
-	float noiseRange = 50.0f;
+	float noiseRange = 0.0f;
 
 	// 소음 발생 주기 (초마다)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hacking|Noise")

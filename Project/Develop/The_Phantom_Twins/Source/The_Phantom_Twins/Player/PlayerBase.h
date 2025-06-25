@@ -141,6 +141,8 @@ public:
 	UPROPERTY()
 	float CurrentNoise = 100.f;
 
+	bool bIsRunning = false;
+
 	// Input Section
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> InputMappingContext;
@@ -198,8 +200,8 @@ public:
 	void C2S_SetMaxWalkSpeed_Implementation(float Speed);
 
 	UFUNCTION(Server, Reliable)
-	void C2S_MakeNoise(float Noise);
-	void C2S_MakeNoise_Implementation(float Noise);
+	void C2S_MakeNoise(float Noise, FName NoiseTag);
+	void C2S_MakeNoise_Implementation(float Noise, FName NoiseTag);
 
 	UFUNCTION(Server, Reliable)
 	void C2S_AddInventory(UObject* Object);

@@ -34,8 +34,8 @@ AMyAIController::AMyAIController()
 	AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
 
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
-	SightConfig->SightRadius = 1500;
-	SightConfig->LoseSightRadius = 1200.f;
+	SightConfig->SightRadius = 1500.f;
+	SightConfig->LoseSightRadius = 1600.f;
 	SightConfig->PeripheralVisionAngleDegrees = 100.f;
 	SightConfig->SetMaxAge(5.f);
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
@@ -99,13 +99,13 @@ void AMyAIController::Tick(float DeltaTime)
 	if (bSeeingPlayer && SightStartTime > 0.f)
 	{
 		SeenDuration = TickCurrentTime - SightStartTime;
-		if (SeenDuration >= 1.f)
+		if (SeenDuration >= SightMaxTime)
 		{
 			uint8 CurrentState = Blackboard->GetValueAsEnum("AIState");
 			if (CurrentState != static_cast<uint8>(EMyAIState::Combat))
 			{
 				Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Combat));
-				UE_LOG(LogTemp, Warning, TEXT("This is FOR Sight Stimulus Target"));
+				//UE_LOG(LogTemp, Warning, TEXT("This is FOR Sight Stimulus Target"));
 				Blackboard->SetValueAsObject(TEXT("ChasingPlayer"), TargetActor);
 			}
 		}
@@ -174,7 +174,7 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 		Blackboard->SetValueAsVector(TEXT("UpdatedStimulusLocation"), Stimulus.StimulusLocation);
 	}
 	Blackboard->SetValueAsVector(TEXT("PlayerStimulusLocation"), Stimulus.StimulusLocation);
-	Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Suspicion));
+	
 	// 플레이어에 대한 시각 자극 처리.
 	if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
 	{
@@ -188,6 +188,7 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 				SightStartTime = CurrentTime;
 			// 시야 감지시 감각 업데이트 111111111111순위.
 			Blackboard->SetValueAsEnum("AIStimulus", static_cast<uint8>(EMyAIStimulus::Sight));
+			Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Suspicion));
 			Blackboard->SetValueAsVector(TEXT("UpdatedStimulusLocation"), Stimulus.StimulusLocation);
 			Blackboard->SetValueAsObject(TEXT("TargetPlayer"), Target);
 		}
@@ -199,20 +200,12 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 		{
 			//
 			//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Hearing PlayerPerception : %s"), *Actor->GetName());
-			// 발자국 마다 소리자극의 위치가 많이 갱신되는 것을 방지하기 위해서 만든 변수들.
+			// 발자국 마다 소리자극의 위치가 많이 갱신되는 것을 방지하기 위해서 거리계산을 하려고 만든 변수들.
 			PrevLocation = Blackboard->GetValueAsVector(TEXT("UpdatedStimulusLocation"));
 			CurrLocation = Blackboard->GetValueAsVector(TEXT("PlayerStimulusLocation"));
 
 			MyAICharacter->S2A_UpdateAIStateWidget(EAIStateWidget::ExclamationMark);
 			LastHeardTime = CurrentTime;
-
-			HearingStimulus.Add(FAuditoryStimulus(CurrentTime, Stimulus.Strength));
-
-			float AccumulatedHearingStrength = Blackboard->GetValueAsFloat(TEXT("HearingStimulusStack"));
-			Blackboard->SetValueAsFloat(TEXT("HearingStimulusStack"), AccumulatedHearingStrength + Stimulus.Strength);
-
-			// 들어온 자극의 순위를 확인하는 코드. TODO:: 플레이어가 뛰는 것과 걷는것을 어떻게 구분?
-			////일단 이거 나중에 처리 ㅎ가ㅣ///if (Blackboard->GetValueAsEnum("AIStimulus") >= static_cast<uint8>(EMyAIStimulus::PlayerRun))
 			
 			// 일단 들어온 자극을 집어넣는다.
 			Blackboard->SetValueAsVector(TEXT("PlayerStimulusLocation"), Stimulus.StimulusLocation);
@@ -220,22 +213,15 @@ void AMyAIController::PlayerPerception(AActor* Actor, FAIStimulus Stimulus)
 			if (FVector::DistSquared(PrevLocation, CurrLocation) > StimulusUpdateDistance)
 			{
 				//UE_LOG(LogTemp, Warning, TEXT("UpdatedStimulusLocation is Updated by \"UAISense_Hearing\"")); 
-
 				Blackboard->SetValueAsVector(TEXT("UpdatedStimulusLocation"), Stimulus.StimulusLocation);
 			}
-
+			Blackboard->SetValueAsObject("ChasingPlayer", Target);
 			Blackboard->SetValueAsObject("TargetPlayer", Target);
-
-			if (Blackboard->GetValueAsFloat(TEXT("HearingStimulusStack")) >= 100.f)
-			{
-				Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Combat));
-				UE_LOG(LogTemp, Warning, TEXT("This is FOR HearingStrength >= 100.f Stimulus Target"));
-				Blackboard->SetValueAsObject("ChasingPlayer", Target);
-			}
+			CalculateSoundStimulus(Stimulus.Tag);
 		}
 	}
 	// 자극의 근원지에서 가장 가까운 스플라인 경로를 찾는다.
-	MyAICharacter->StimulusSplinePath = FindNearestSplinePath(Blackboard->GetValueAsVector(TEXT("UpdatedStimulusLocation")));
+	MyAICharacter->StimulusSplinePath = FindNearestSplinePath(Blackboard->GetValueAsVector(TEXT("PlayerStimulusLocation")));
 	MyAICharacter->S2A_UpdateAIStateWidget(EAIStateWidget::NoneMark);
 }
 
@@ -253,8 +239,9 @@ void AMyAIController::ObjectPerception(AActor* Actor, FAIStimulus Stimulus)
 				if (!Object->IHacking::CanBeHacked_Implementation())
 				{
 					//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Hearing AHackableObject AHackableObject ObjectPerception : %s"), *Object->GetName());
-					Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Suspicion));
 					Blackboard->SetValueAsObject("TargetObject", Object);
+					Blackboard->SetValueAsVector(TEXT("UpdatedStimulusLocation"), Stimulus.StimulusLocation);
+					CalculateSoundStimulus(Stimulus.Tag);
 				}
 			}
 		}
@@ -331,4 +318,34 @@ ASplinePathActor* AMyAIController::FindNearestSplinePath(const FVector& Stimulus
 		}
 	}
 	return ClosestSpline;
+}
+
+void AMyAIController::CalculateSoundStimulus(FName Tag)
+{
+	float NoiseStrength = 0;
+	if (Tag == "PlayerRun")
+	{
+		NoiseStrength = 10.0f;
+	}
+	else if (Tag == "PlayerWalk")
+	{
+		NoiseStrength = 5.0f;
+	}
+	else if (Tag == "Object")
+	{
+		NoiseStrength = 30.0f;
+	}
+
+	HearingStimulus.Add(FAuditoryStimulus(CurrentTime, NoiseStrength));
+
+	float AccumulatedHearingStrength = Blackboard->GetValueAsFloat(TEXT("HearingStimulusStack"));
+	Blackboard->SetValueAsFloat(TEXT("HearingStimulusStack"), AccumulatedHearingStrength + NoiseStrength);
+
+	//UE_LOG(LogTemp, Warning, TEXT(" HearingStrength : %f"), Blackboard->GetValueAsFloat(TEXT("HearingStimulusStack")));
+
+	if (Blackboard->GetValueAsFloat(TEXT("HearingStimulusStack")) >= HearingMaxPoint)
+	{
+		Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Suspicion));
+		//UE_LOG(LogTemp, Warning, TEXT("This is FOR HearingStrength >= 100.f Stimulus Target"));
+	}
 }
