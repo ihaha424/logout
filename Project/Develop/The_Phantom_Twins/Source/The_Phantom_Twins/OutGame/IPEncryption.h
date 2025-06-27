@@ -27,8 +27,11 @@ class THE_PHANTOM_TWINS_API UIPEncryption : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 	
 public:
+	UFUNCTION(BlueprintCallable)
 	static FString GetLocalIPAddress(bool bHasPort = false);
+	UFUNCTION(BlueprintCallable)
 	static FString IP2Code(const FString& IP, bool bHasPort = false);
+	UFUNCTION(BlueprintCallable)
 	static FString Code2IP(const FString& Code, bool bHasPort = false);
 
 private:
