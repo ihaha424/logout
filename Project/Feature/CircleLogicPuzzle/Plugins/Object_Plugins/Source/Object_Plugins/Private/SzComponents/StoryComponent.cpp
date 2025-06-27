@@ -6,6 +6,7 @@
 #include "LevelSequencePlayer.h"
 #include "LevelSequenceActor.h"
 #include "Blueprint/UserWidget.h"
+#include "TimerManager.h"
 
 UStoryComponent::UStoryComponent()
 {
@@ -18,43 +19,94 @@ void UStoryComponent::BeginPlay()
 
 }
 
-void UStoryComponent::Execute(APawn* Interactor)
+void UStoryComponent::ExecuteSever(APawn* Interactor)
 {
     if (StoryActionType == EStoryActionType::PlaySequence && SequenceToPlay)
     {
-        FMovieSceneSequencePlaybackSettings PlaybackSettings;
-        ALevelSequenceActor* OutActor = nullptr;
-
-        ULevelSequencePlayer* SequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(
-            GetWorld(),
-            SequenceToPlay,
-            PlaybackSettings,
-            OutActor
-        );
-
-        if (SequencePlayer)
-        {
-            SequencePlayer->Play();
-        }
-        else
-        {
-            UE_LOG(LogTemp, Error, TEXT("Unable to create level sequence player"));
-        }
+        S2A_LevelSequencePlay();
     }
-    else if (StoryActionType == EStoryActionType::ShowUI && WidgetToShow)
+    //else if (StoryActionType == EStoryActionType::ShowUI && WidgetToShow)
+    //{
+    //    UUserWidget* Widget = CreateWidget<UUserWidget>(GetWorld(), WidgetToShow);
+
+    //    if (Widget)
+    //    {
+    //        Widget->AddToViewport();
+
+    //        FTimerHandle TimerHandle;
+    //        GetWorld()->GetTimerManager().SetTimer(
+    //            TimerHandle,
+    //            FTimerDelegate::CreateLambda([Widget]()
+    //                {
+    //                    if (Widget && Widget->IsInViewport())
+    //                    {
+    //                        Widget->RemoveFromParent();
+    //                    }
+    //                }),
+    //            WidgetDuration,
+    //            false
+    //        );
+    //    }
+    //    else
+    //    {
+    //        UE_LOG(LogTemp, Error, TEXT("Unable to create widget"));
+    //    }
+    //}
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("No valid action selected or asset not assigned!"));
+    }
+}
+
+void UStoryComponent::ExecuteClient(APawn* Interactor)
+{
+    if (StoryActionType == EStoryActionType::ShowUI && WidgetToShow)
     {
         UUserWidget* Widget = CreateWidget<UUserWidget>(GetWorld(), WidgetToShow);
+
         if (Widget)
         {
             Widget->AddToViewport();
+
+            FTimerHandle TimerHandle;
+            GetWorld()->GetTimerManager().SetTimer(
+                TimerHandle,
+                FTimerDelegate::CreateLambda([Widget]()
+                    {
+                        if (Widget && Widget->IsInViewport())
+                        {
+                            Widget->RemoveFromParent();
+                        }
+                    }),
+                WidgetDuration,
+                false
+            );
         }
         else
         {
             UE_LOG(LogTemp, Error, TEXT("Unable to create widget"));
         }
     }
+}
+
+void UStoryComponent::S2A_LevelSequencePlay_Implementation()
+{
+    FMovieSceneSequencePlaybackSettings PlaybackSettings;
+    ALevelSequenceActor* OutActor = nullptr;
+
+    ULevelSequencePlayer* SequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(
+        GetWorld(),
+        SequenceToPlay,
+        PlaybackSettings,
+        OutActor
+    );
+
+    if (SequencePlayer)
+    {
+        SequencePlayer->Play();
+    }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("No valid action selected or asset not assigned!"));
+        UE_LOG(LogTemp, Error, TEXT("Unable to create level sequence player"));
     }
 }

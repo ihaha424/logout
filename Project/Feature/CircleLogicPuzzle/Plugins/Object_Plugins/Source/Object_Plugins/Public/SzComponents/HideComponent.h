@@ -1,6 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "InteractableComponent.h"
@@ -18,20 +16,22 @@ public:
 
 protected:
 	// Called when the game starts
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void BeginPlay() override;
 
 public:
-	virtual void Execute(APawn* Interactor) override;
+	virtual void ExecuteSever(APawn* Interactor) override;
+	virtual void ExecuteClient(APawn* Interactor) override;
 	
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hide")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hide", Replicated)
     bool bHasPlayer = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	TObjectPtr<class UBoxComponent> TriggerComponent;
 
 	// 카메라 사용 여부
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Camera", meta=(InlineEditConditionToggle))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Camera", meta=(InlineEditConditionToggle), Replicated)
     bool bUseCamera = true;  // 기본값 true (카메라 사용)
 
 	// 카메라 컴포넌트 참조
@@ -39,7 +39,7 @@ public:
 	TObjectPtr<class UCameraComponent> HideCamera;
 
 	// 카메라 전환을 위한 추가 변수
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Replicated)
 	bool bIsInHideView = false;
 
 	// 블렌드 시간 설정
@@ -47,21 +47,30 @@ public:
 	float CameraBlendTime = 0.75f;
 
 	// 이전 뷰 타겟 저장
-	UPROPERTY()
-	AActor* PreviousViewTarget;
-
-
-
-
+	UPROPERTY(Replicated)
+	TObjectPtr <AActor> PreviousViewTarget = nullptr;
 
 protected:
+	void NoCamLogic(APlayerController* InteractorPC);
+
+	void UseCamLogic(APlayerController* InteractorPC);
+	void ClientUseCamLogic(APlayerController* InteractorPC);
+
+	void EnterObject(APlayerController* InteractorPC);
+	void ExitObject(APlayerController* InteractorPC);
+
+	void SetInputState(APlayerController* InteractorPC, bool bIgnoreInput);		// 입력 제어를 위한 함수
+	void SetViewTarget(APlayerController* InteractorPC, AActor* NewViewTarget); // 카메라 전환을 위한 함수
+
+
 	UFUNCTION()
-    void OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+    void OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
 
     UFUNCTION()
     void OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-private:
-	APlayerController* HidePlayer;
 
+private:
+	UPROPERTY(Replicated)
+	TObjectPtr<APlayerController> HidePlayer = nullptr;
 };

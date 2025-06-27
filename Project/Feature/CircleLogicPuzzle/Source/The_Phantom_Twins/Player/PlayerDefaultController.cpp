@@ -2,80 +2,156 @@
 
 
 #include "PlayerDefaultController.h"
-#include "Perception/AIPerceptionComponent.h"
-#include "Perception/AISense_Sight.h"
-#include "Perception/AISenseConfig_Sight.h"
-#include "Perception/AISenseConfig_Hearing.h"
-#include "Perception/AISense_Hearing.h"
 #include "Components/WidgetComponent.h"
-
+#include "Kismet/KismetSystemLibrary.h"
 
 APlayerDefaultController::APlayerDefaultController()
 {
-	// Create AIPerceptionComponent & Setting
-	Perception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("Perception"));
 
-    // 시야 설정 추가
-    SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
-    if (SightConfig)
-    {
-        SightConfig->SightRadius = 1000.0f;
-        SightConfig->LoseSightRadius = 1200.0f;
-        SightConfig->PeripheralVisionAngleDegrees = 90.0f;
-        SightConfig->SetMaxAge(5.f);     
-        SightConfig->AutoSuccessRangeFromLastSeenLocation = -1.f;
+}
 
-        SightConfig->DetectionByAffiliation.bDetectEnemies = true;
-        SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
-        SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
+void APlayerDefaultController::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
 
-
-        Perception->ConfigureSense(*SightConfig);
-        Perception->SetDominantSense(SightConfig->GetSenseImplementation());
-    }
-
-	// 청각 설정 추가
-    HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("HearingConfig"));
-    if (HearingConfig)
+	if (!UIManager && IsLocalController())
 	{
-		HearingConfig->HearingRange = 5000.f;
-		HearingConfig->SetMaxAge(3.f);
-
-		HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
-		HearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
-		HearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
-
-		Perception->ConfigureSense(*HearingConfig);
-    }
-
-    Perception->OnTargetPerceptionUpdated.AddDynamic(this, &APlayerDefaultController::OnTargetPerceptionUpdated);
+		UIManager = NewObject<UUIManager>(this);
+		UIManager->Initialize(this);
+	}
 }
 
-void APlayerDefaultController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
+void APlayerDefaultController::BeginPlay()
 {
-    if (HasAuthority()) 
-    {
-        S2C_UpdatePerceivedActor(Actor, Stimulus.WasSuccessfullySensed());
-    }
+	Super::BeginPlay();
+
+	SetInputMode(FInputModeGameOnly());
+	SetShowMouseCursor(false);
 }
 
-void APlayerDefaultController::S2C_UpdatePerceivedActor_Implementation(AActor* Actor, bool bVisible)
+void APlayerDefaultController::C2S_SetOwnerActor_Implementation(APlayerController* thisPC, AActor* Actor)
 {
-    if (nullptr == Actor)
-        return;
-
-    // Add/Delete Object Array
-    if (bVisible)
-    {
-        PerceptionActors.AddUnique(Actor);
-    }
-    else
-    {
-        PerceptionActors.Remove(Actor);
-    }
-    // Set Object UI
-    if (UWidgetComponent* Widget = Actor->FindComponentByClass<UWidgetComponent>())
-    {
-        Widget->SetVisibility(bVisible);
-    }
+	if(HasAuthority())
+		Actor->SetOwner(thisPC);
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//																						//
+//									UI Manager											//
+//																						//
+//////////////////////////////////////////////////////////////////////////////////////////
+
+void APlayerDefaultController::SetWidget(const FString& UIKey, bool bActive, EMessageTargetType TargetType)
+{
+	if (nullptr != UIManager && IsLocalController())
+		NetSetWidget(UIKey, bActive, TargetType);
+}
+
+void APlayerDefaultController::RegisterWidget(const FString& Key, UUserWidget* Widget, int32 Order)
+{
+	if (IsLocalController())
+		UIManager->RegisterUI(Key, Widget, Order);
+	else
+		UE_LOG(LogUIManager, Error, TEXT("APlayerDefaultController::RegisterWidget: Player Controller is not LocalController."));
+}
+
+void APlayerDefaultController::UnregisterWidget(const FString& Key, UUserWidget* Widget)
+{
+	if (IsLocalController())
+		UIManager->RegisterUI(Key, Widget);
+	else
+		UE_LOG(LogUIManager, Error, TEXT("APlayerDefaultController::UnregisterWidget: Player Controller is not LocalController."));
+}
+
+
+
+void APlayerDefaultController::NetSetWidget(const FString& UIKey, bool bActive, EMessageTargetType TargetType)
+{
+	if (HasAuthority())
+		HandleServerSetWidget(UIKey, bActive, TargetType);
+	else
+		HandleClientSetWidget(UIKey, bActive, TargetType);
+}
+inline void APlayerDefaultController::HandleServerSetWidget(const FString& UIKey, bool bActive, EMessageTargetType TargetType)
+{
+	switch (TargetType)
+	{
+	case EMessageTargetType::LocalClient:
+		if (IsLocalController())
+			UIManager->SetWidget(UIKey, bActive);
+		else
+			S2C_ShowUI(UIKey, bActive);
+		break;
+
+	case EMessageTargetType::Multicast:
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+		{
+			if (APlayerDefaultController* PC = Cast<APlayerDefaultController>(It->Get()))
+			{
+				PC->S2C_ShowUI(UIKey, bActive);
+			}
+		}
+		break;
+
+	case EMessageTargetType::OnlyHost:
+		if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+		{
+			APlayerDefaultController* DefaultPC = Cast<APlayerDefaultController>(PC);
+			DefaultPC->SetWidget(UIKey, bActive, EMessageTargetType::LocalClient);
+		}
+		break;
+
+	case EMessageTargetType::AllExceptSelf:
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+		{
+			if (APlayerDefaultController* PC = Cast<APlayerDefaultController>(It->Get()))
+			{
+				if (PC == this)
+					continue;
+
+				PC->S2C_ShowUI(UIKey, bActive);
+			}
+		}
+		break;
+
+	default:
+		UE_LOG(LogUIManager, Error, TEXT("APlayerDefaultController::HandleServerSetWidget: TargetType is Invaild."));
+		ensureMsgf(false, TEXT("Invalid EMessageTargetType passed to SetWidget"));
+		break;
+	}
+}
+inline void APlayerDefaultController::HandleClientSetWidget(const FString& UIKey, bool bActive, EMessageTargetType TargetType)
+{
+	switch (TargetType)
+	{
+	case EMessageTargetType::LocalClient:
+		if (IsLocalController())
+			UIManager->SetWidget(UIKey, bActive);
+		else
+		{
+			UE_LOG(LogUIManager, Error, TEXT("APlayerDefaultController::SetWidget: Key: %s"), *UIKey);
+			UE_LOG(LogUIManager, Error, TEXT("Invalid access. Client accesses the UI of the host."));
+		}
+		break;
+
+	case EMessageTargetType::Multicast:
+	case EMessageTargetType::OnlyHost:
+	case EMessageTargetType::AllExceptSelf:
+		C2S_ShowUI(UIKey, bActive, TargetType);
+		break;
+
+	default:
+		UE_LOG(LogUIManager, Error, TEXT("APlayerDefaultController::HandleClientSetWidget: TargetType is Invaild."));
+		ensureMsgf(false, TEXT("Invalid EMessageTargetType passed to SetWidget"));
+		break;
+	}
+}
+void APlayerDefaultController::C2S_ShowUI_Implementation(const FString& UIKey, bool bActive, EMessageTargetType TargetType)
+{
+	NetSetWidget(UIKey, bActive, TargetType);
+}
+void APlayerDefaultController::S2C_ShowUI_Implementation(const FString& UIKey, bool bActive)
+{
+	UIManager->SetWidget(UIKey, bActive);
+}
+

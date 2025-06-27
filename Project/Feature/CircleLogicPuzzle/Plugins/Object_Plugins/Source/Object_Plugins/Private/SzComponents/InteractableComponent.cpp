@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "SzComponents/InteractableComponent.h"
@@ -20,9 +20,9 @@ void UInteractableComponent::BeginPlay()
 }
 
 
-void UInteractableComponent::Execute(APawn* Interactor)
+void UInteractableComponent::ExecuteSever(APawn* Interactor)
 {
-	UE_LOG(LogTemp, Log, TEXT("UInteractableComponent::Execute: Please Ovrride."));
+	UE_LOG(LogTemp, Log, TEXT("UInteractableComponent::ExecuteSever: Please Ovrride."));
 	//ABaseObject* Owner = Cast<ABaseObject>(GetOwner());
 	//if (!Owner) return;
 
@@ -30,6 +30,11 @@ void UInteractableComponent::Execute(APawn* Interactor)
 	//{
 	//	DeleteLogic();
 	//}
+}
+
+void UInteractableComponent::ExecuteClient(APawn* Interactor)
+{
+	UE_LOG(LogTemp, Log, TEXT("UInteractableComponent::ExecuteClient: No Logic For Clinet."));
 }
 
 void UInteractableComponent::DeleteLogic()
@@ -42,8 +47,8 @@ void UInteractableComponent::DeleteLogic()
 	// MaxInteractionCount destroy
 	if (InteractionCount >= MaxInteractionCount)
 	{
-
-		Owner->Destroy(true);
+		Owner->SetActorHiddenInGame(true);  // 화면에서 안 보임
+		Owner->SetActorEnableCollision(false); // 충돌도 막음
 	}
 }
 

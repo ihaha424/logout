@@ -30,15 +30,23 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual void Execute(APawn* Interactor) override;
+	virtual void ExecuteSever(APawn* Interactor) override;
+    virtual void ExecuteClient(APawn* Interactor) override;
+
+    UFUNCTION(NetMulticast, Reliable)
+    void S2A_LevelSequencePlay();
+
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Story")
     EStoryActionType StoryActionType = EStoryActionType::PlaySequence;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Story")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Story|LS")
     TObjectPtr<class ULevelSequence> SequenceToPlay;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Story")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Story|UI")
     TSubclassOf<class UUserWidget> WidgetToShow;
+	
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Story|UI")
+    float WidgetDuration = 2.0f;
 	
 };

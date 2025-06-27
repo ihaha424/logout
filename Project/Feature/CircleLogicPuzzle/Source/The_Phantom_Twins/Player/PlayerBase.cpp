@@ -3,9 +3,11 @@
 
 #include "PlayerBase.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/SphereComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/WidgetComponent.h"
 #include "PlayerWidgetComponent.h"
+#include "PlayerDefaultState.h"
 #include "PlayerStatComponent.h"
 #include "PlayerHpBar.h"
 #include "Animation/AnimationAsset.h"
@@ -17,19 +19,14 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "PlayerDefaultController.h"
-#include "Perception/AIPerceptionComponent.h"
-#include "Perception/AISense_Sight.h"
-#include "Perception/AISenseConfig_Sight.h"
-#include "Perception/AISenseConfig_Hearing.h"
-#include "Perception/AISense_Hearing.h"
 #include "DrawDebugHelpers.h"
+#include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
+#include "../GM_PhantomTwins.h"
 
 // Object Plugin
-#include "SzComponents/Interaction.h"
-
-// TODO: Delete Debug Library
-#include "Kismet/KismetSystemLibrary.h"
-
+#include "SzInterface/Hacking.h"
+#include "SzObjects/CCTVLogic.h"
 
 // Sets default values
 APlayerBase::APlayerBase()
@@ -43,13 +40,34 @@ APlayerBase::APlayerBase()
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.f);
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
 
+	RangeSphere = CreateDefaultSubobject<USphereComponent>(TEXT("RangeSphere"));
+	RangeSphere->SetupAttachment(RootComponent);
+	RangeSphere->SetSphereRadius(500.0f);
+	RangeSphere->SetRelativeLocation(FVector(0.f, 0.f, 50.f));
+	// Only Overlap
+	RangeSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	// 충돌 채널 유형 설정
+	RangeSphere->SetCollisionObjectType(ECC_WorldDynamic);
+	// 모든 채널 충돌 무시
+	RangeSphere->SetCollisionResponseToAllChannels(ECR_Overlap);
+	// Object들과 Player까지 오버랩 이벤트 발생하도록
+	RangeSphere->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+	RangeSphere->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Overlap);
+	// 이 컴포넌트에서 Overlap 이벤트 호출 활성화
+	RangeSphere->SetGenerateOverlapEvents(true);
+
+	RecoverySphere = CreateDefaultSubobject<USphereComponent>(TEXT("RecoverySphere"));
+	RecoverySphere->SetupAttachment(RootComponent);
+	RecoverySphere->SetCollisionResponseToAllChannels(ECR_Overlap);
+	RecoverySphere->SetSphereRadius(30.0f);
+	RecoverySphere->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
+	RecoverySphere->SetVisibility(false); // Object Type 설정
+
 	// movement setting
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0, 500, 0);
 	GetCharacterMovement()->JumpZVelocity = 500.f;
 	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->MaxWalkSpeed = 200.f;
-	GetCharacterMovement()->MaxWalkSpeedCrouched = 80.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 0.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 
@@ -76,7 +94,115 @@ APlayerBase::APlayerBase()
 
 	// UI Widget
 	GroggyWidget = CreateDefaultSubobject<UPlayerWidgetComponent>(TEXT("Widget"));
-	GroggyWidget->SetupAttachment(GetMesh());
+	GroggyWidget->SetupAttachment(RootComponent);
+}
+
+void APlayerBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APlayerBase, InventoryObjects);
+}
+
+bool APlayerBase::CheckActorInFront(AActor* TargetActor)
+{
+	if (!TargetActor) return false;
+
+	USphereComponent* Sphere = TargetActor->FindComponentByClass<USphereComponent>();
+
+	if (!Sphere) return false;
+
+	FVector Start = GetActorLocation();
+	FVector End = Sphere->GetComponentLocation();
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this); // 자기 자신은 무시
+	Params.AddIgnoredComponent(this->RecoverySphere); // 자기 자신은 무시
+
+	FCollisionObjectQueryParams ObjParams;
+	ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	ObjParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+
+	bool bHit = GetWorld()->LineTraceSingleByObjectType(
+		Hit,
+		Start,
+		End,
+		ObjParams,
+		Params
+	);
+
+#if WITH_EDITOR
+	//DrawDebugLine(GetWorld(), Start, End, Hit.GetActor() == TargetActor ? FColor::Blue : FColor::Silver, false, 1.0f, 0, 0.3f);
+#endif
+
+	// Ray가 정확히 TargetActor에 부딪혔는지 확인
+	return bHit && Hit.GetActor() == TargetActor;
+}
+
+void APlayerBase::NearestObjectCheck()
+{
+	// 화면상에서 가까운 오브젝트 판별
+	FVector Start = Camera->GetComponentLocation();
+	FVector Direction = Camera->GetForwardVector();
+	Direction.Normalize();
+
+	// 최소거리 설정
+	float MinDistance = RangeSphere->GetScaledSphereRadius();
+
+	// 가장 가까운 오브젝트를 찾고 지정해줌
+	for (AActor* Actor : InteractiveableObjects)
+	{
+		if(Actor->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
+		{
+			if (CheckActorInFront(Actor))
+			{
+				IInteraction::Execute_SetWidgetVisibility(Actor, true);
+			}
+			else
+			{
+				IInteraction::Execute_SetWidgetVisibility(Actor, false);
+				continue;
+			}
+		}
+		else if (Actor->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+		{
+			if (CheckActorInFront(Actor))
+			{
+				IHacking::Execute_SetWidgetVisibility(Actor, true);
+			}
+			else
+			{
+				IHacking::Execute_SetWidgetVisibility(Actor, false);
+				continue;
+			}
+		}
+		else
+		{
+			continue;
+		}
+
+		FVector ToPoint = Actor->GetActorLocation() - Start;
+
+		// 직선과 점 사이의 거리: |Dir x VecToPoint| / |Dir|
+		float DistanceFromLine = FVector::CrossProduct(Direction, ToPoint).Size();
+
+		if (DistanceFromLine < MinDistance)
+		{
+			if (NearestInteractiveObject)
+			{
+
+			}
+			// 가까운 오브젝트가 있을 때
+			MinDistance = DistanceFromLine;
+			NearestInteractiveObject = Actor;
+		}
+	}
+}
+
+bool APlayerBase::IsGroggy() const
+{
+	return PS->bIsGroggy;
 }
 
 // Called when the game starts or when spawned
@@ -84,10 +210,12 @@ void APlayerBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	RecoverySphere->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
+
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	if (PlayerController)
 	{
-		if (ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer())
+		if (ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer()) 
 		{
 			if (UEnhancedInputLocalPlayerSubsystem* SubSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
 			{
@@ -95,15 +223,22 @@ void APlayerBase::BeginPlay()
 			}
 		}
 	}
-	else
+
+	if (InvenWidgetClass)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("PlayerController is not allocation."), true, true, FLinearColor(0.0f, 0.66f, 1.0f), 5);
+		InvenWidget = CreateWidget<UUserWidget>(PlayerController, InvenWidgetClass);
+
+		if (InvenWidget)
+		{
+			InvenWidget->AddToViewport();
+			InvenWidget->SetVisibility(ESlateVisibility::Visible);
+		}
 	}
 
 	// Widget Setting
 	if (GroggyWidget->GetWidgetClass())
 	{
-		GroggyWidget->SetWidgetSpace(EWidgetSpace::Screen);
+		GroggyWidget->SetWidgetSpace(EWidgetSpace::World);
 		GroggyWidget->SetDrawSize(FVector2D(150.f, 80.f));
 		GroggyWidget->SetRelativeLocation(FVector(0, 0, 0));
 		GroggyWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -116,56 +251,74 @@ void APlayerBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	APlayerDefaultController* PlayerController = Cast<APlayerDefaultController>(GetController());
-
-	if (!PlayerController || !PlayerController->Perception)
-		return;
-
-	// 현재 퍼셉션 컴포넌트에 인지된 오브젝트 리스트를 가져옴
-	TArray<AActor*> PerceptionActors;
-	PerceptionActors = PlayerController->PerceptionActors;
-	
-	// 화면상에서 가까운 오브젝트 판별
-	FVector Start = Camera->GetComponentLocation();
-	FVector Direction = Camera->GetForwardVector();
-	Direction.Normalize();
-
-	// 최소거리 설정
-	float MinDistance = PlayerController->SightConfig->SightRadius - 100.f;
-
-	// 가장 가까운 오브젝트를 찾고 지정해줌
-	for (AActor* Actor : PerceptionActors)
+	// Noise 발생
+	if (IsLocallyControlled())
 	{
-
-		//UObject* InteractiveObject = Cast<UObject>(Actor);
-		//if (!InteractiveObject) continue; // 없으면 넘김
-
-		FVector ToPoint = Actor->GetActorLocation() - Start;
-
-		// 직선과 점 사이의 거리: |Dir x VecToPoint| / |Dir|
-		float DistanceFromLine = FVector::CrossProduct(Direction, ToPoint).Size();
-
-		if (DistanceFromLine < MinDistance)
+		FName NoiseTag = bIsRunning ? FName("PlayerRun") : FName("PlayerWalk");
+		NoiseTimer += DeltaTime;
+		if (NoiseTimer >= NoiseInterval)
 		{
-			/*if (NearestInteractiveObject)
+			if (HasAuthority())
 			{
-				if (NearestInteractiveObject != Actor)
-				{
-					NearestInteractiveObject->WidgetComponent->SetWorldScale3D(FVector(2.0f));
-				}
-			}*/
-
-			// 가까운 오브젝트가 있을 때
-			MinDistance = DistanceFromLine;
-			NearestInteractiveObject = Actor;
+				MakeNoise(CurrentNoise, this, GetActorLocation(),0, NoiseTag);
+			}
+			C2S_MakeNoise(CurrentNoise, NoiseTag);
+			//UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Noise : %.2f"), CurrentNoise));
+			NoiseTimer = 0.f;
 		}
 	}
 
-	if (NearestInteractiveObject)
-	{
+	FVector InputVector = GetLastMovementInputVector();
 
-		//NearestInteractiveObject->WidgetComponent->SetWorldScale3D(FVector(2.0f));
+	if (bIsCrouched)
+	{
+		CurrentNoise = 0.0f;
 	}
+	else
+	{
+		if (!InputVector.IsZero())
+		{
+			CurrentNoise = MoveNoise;
+		}
+		else
+		{
+			CurrentNoise = 0.0f;
+		}
+	}
+
+	if (GroggyWidget)
+	{
+		APlayerCameraManager* CamMgr = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+		if (CamMgr)
+		{
+			FVector CamLoc = CamMgr->GetCameraLocation();
+			FVector WidgetLoc = GroggyWidget->GetComponentLocation();
+
+			FRotator LookAtRot = (CamLoc - WidgetLoc).Rotation();
+			LookAtRot.Pitch = 0.f; // 위아래 회전 제거
+			LookAtRot.Roll = 0.f;
+
+			GroggyWidget->SetWorldRotation(LookAtRot);
+		}
+	}
+
+	// Tick 또는 디버그용 함수 안에서
+	//FVector SphereLocation = SphereComponent->GetComponentLocation();
+	//float SphereRadius = SphereComponent->GetScaledSphereRadius();
+	//
+	//DrawDebugSphere(
+	//	GetWorld(),
+	//	SphereLocation,
+	//	SphereRadius,
+	//	32,
+	//	FColor::Green,
+	//	false,
+	//	-1.f,
+	//	0,
+	//	2.f
+	//);
+
+	NearestObjectCheck();
 }
 
 void APlayerBase::PostInitializeComponents()
@@ -174,6 +327,32 @@ void APlayerBase::PostInitializeComponents()
 
 	// 체력 0 일시 실행되는 함수
 	Stat->OnHpZero.AddUObject(this, &APlayerBase::SetGroggy);
+}
+
+void APlayerBase::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	PS = Cast<APlayerDefaultState>(GetPlayerState());
+	
+	if (PS)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = PS->MoveSpeedInfo.WalkSpeed;
+		GetCharacterMovement()->MaxWalkSpeedCrouched = PS->MoveSpeedInfo.CrouchSpeed;
+	}
+}
+
+void APlayerBase::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	PS = Cast<APlayerDefaultState>(GetPlayerState());
+
+	if (PS)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = PS->MoveSpeedInfo.WalkSpeed;
+		GetCharacterMovement()->MaxWalkSpeedCrouched = PS->MoveSpeedInfo.CrouchSpeed;
+	}
 }
 
 // Called to bind functionality to input
@@ -193,24 +372,83 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	// Crouch Action
 	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &APlayerBase::PlayerCrouch);
 	// Hacking Action
-	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Triggered, this, &APlayerBase::Hacking);
+	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Started, this, &APlayerBase::Hacking);
+	EnhancedInputComponent->BindAction(HackingAction, ETriggerEvent::Completed, this, &APlayerBase::StopHacking);
 	// Interactive Action
 	EnhancedInputComponent->BindAction(InteractiveAction, ETriggerEvent::Triggered, this, &APlayerBase::Interactive);
 	// Inventory Action
-	//EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Triggered, this, &APlayerCharacter::OpenInventory);
+	EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Triggered, this, &APlayerBase::OpenInventory);
+	// Phantom Action
+	EnhancedInputComponent->BindAction(PhantomAction, ETriggerEvent::Triggered, this, &APlayerBase::PhantomVision);
 }
 
-void APlayerBase::SetGroggy()
+void APlayerBase::OnInteractSever_Implementation(APawn* Player)
 {
-	// Groggy Widget 활성화
-	GroggyWidget->SetVisibility(true);
-	// 이동속도 0으로 설정
-	GetCharacterMovement()->MaxWalkSpeed = 0.f;
+	SetRecovery();
 }
 
-void APlayerBase::TakeDamage(float Damage)
+void APlayerBase::OnInteractClient_Implementation(APawn* Player)
 {
-	Stat->ApplyDamage(Damage);
+	Stat->SetHp(Stat->GetMaxHp());
+	if (PS)
+	{
+		PS->bIsGroggy = false;
+	}
+}
+
+bool APlayerBase::CanInteract_Implementation(const APawn* Player) const
+{
+	if (PS)
+	{
+		return PS->bIsGroggy;
+	}
+
+	return false;
+}
+
+void APlayerBase::NotifyActorBeginOverlap(AActor* Actor)
+{
+	Super::NotifyActorBeginOverlap(Actor);
+
+	if (!Actor->ActorHasTag("Object"))
+		return;
+
+	//UE_LOG(LogTemp, Warning, TEXT("Begin overlap %s"), *Actor->GetName());
+	
+	if (HasAuthority())
+	{
+		S2C_UpdatePerceivedActor(Actor, true);
+	}
+}
+
+void APlayerBase::NotifyActorEndOverlap(AActor* Actor)
+{
+	Super::NotifyActorEndOverlap(Actor);
+
+	if (!Actor->ActorHasTag("Object"))
+		return;
+
+	if (HasAuthority())
+	{
+		S2C_UpdatePerceivedActor(Actor, false);
+	}
+}
+
+float APlayerBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
+{
+	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	Stat->ApplyDamage(DamageAmount);
+
+	if (HasAuthority())
+	{
+		if (AGM_PhantomTwins* GM = GetWorld()->GetAuthGameMode<AGM_PhantomTwins>())
+		{
+			GM->NotifyPlayerDied(GetController(), true);
+		}
+	}
+
+	return 0.f;
 }
 
 void APlayerBase::SetupCharacterWidget(UMyPlayerUserWidget* UserWidget)
@@ -223,8 +461,21 @@ void APlayerBase::SetupCharacterWidget(UMyPlayerUserWidget* UserWidget)
 	}
 }
 
+void APlayerBase::OnRep_InventoryObjects()
+{
+	AddItemToUI();
+}
+
 void APlayerBase::Move(const FInputActionValue& Value)
 {
+	if (!PS)
+		PS = Cast<APlayerDefaultState>(GetPlayerState());
+	if (!PS)
+		return;
+
+	if (PS->bIsGroggy)
+		return;
+
 	if (Controller != nullptr)
 	{
 		FVector2D MovementVector = Value.Get<FVector2D>();
@@ -237,6 +488,8 @@ void APlayerBase::Move(const FInputActionValue& Value)
 
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
+
+		bIsRunning = false;
 	}
 }
 
@@ -253,63 +506,301 @@ void APlayerBase::Look(const FInputActionValue& Value)
 
 void APlayerBase::Run(const FInputActionValue& Value)
 {
+	if (!PS)
+	{
+		PS = Cast<APlayerDefaultState>(GetPlayerState());
+	}
+
+	if (PS->bIsGroggy)
+		return;
+
+	MoveNoise = PS->NoiseInfo.RunNoise;
+	bIsRunning = true;
 	if (!HasAuthority())
 	{
-		GetCharacterMovement()->MaxWalkSpeed = 800.f;
+		GetCharacterMovement()->MaxWalkSpeed = PS->MoveSpeedInfo.RunSpeed;
 	}
-	C2S_SetMaxWalkSpeed(800.f);
+	C2S_SetMaxWalkSpeed(PS->MoveSpeedInfo.RunSpeed);
 }
 
 void APlayerBase::StopRun(const FInputActionValue& Value)
 {
+	MoveNoise = PS->NoiseInfo.WalkNoise;
+
+	if (PS->bIsGroggy)
+		return;
+
 	if (!HasAuthority())
 	{
-		GetCharacterMovement()->MaxWalkSpeed = 200.f;
+		GetCharacterMovement()->MaxWalkSpeed = PS->MoveSpeedInfo.WalkSpeed;
 	}
-	C2S_SetMaxWalkSpeed(200.f);
+	C2S_SetMaxWalkSpeed(PS->MoveSpeedInfo.WalkSpeed);
 }
 
 void APlayerBase::PlayerCrouch(const FInputActionValue& Value)
 {
+	if (PS->bIsGroggy)
+		return;
+
 	if (bIsCrouched)
 	{
 		UnCrouch();
 	}
 	else
 	{
+		CurrentNoise = 0.0f;
 		Crouch();
 	}
 }
 
 void APlayerBase::Hacking(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Log, TEXT("Hacking Start"));
+	if (PS->bIsGroggy)
+		return;
+
+	if (!NearestInteractiveObject) return;
+
+	//UE_LOG(LogTemp, Log, TEXT("Hacking Start"));
+
+	if (NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+	{
+		C2S_Hacking(NearestInteractiveObject);
+		IHacking::Execute_OnHackingStartedClient(NearestInteractiveObject, this);
+	}
+}
+
+void APlayerBase::StopHacking(const FInputActionValue& Value)
+{
+	if (PS->bIsGroggy)
+		return;
+
+	if (!NearestInteractiveObject) return;
+
+	//UE_LOG(LogTemp, Log, TEXT("Hacking Stop"));
+	 
+	if (NearestInteractiveObject 
+		&& NearestInteractiveObject->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+	{
+		C2S_StopHacking(NearestInteractiveObject);
+		IHacking::Execute_OnHackingCompletedClient(NearestInteractiveObject, this);
+	}
 }
 
 void APlayerBase::Interactive(const FInputActionValue& Value)
 {
-	if (NearestInteractiveObject)
+	if (PS->bIsGroggy)
+		return;
+
+	if (!NearestInteractiveObject) return;
+
+	if (NearestInteractiveObject->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
 	{
-		C2S_Interactive(NearestInteractiveObject);
+		if (IInteraction::Execute_CanInteract(NearestInteractiveObject, this))
+		{
+			C2S_Interactive(NearestInteractiveObject);
+			IInteraction::Execute_OnInteractClient(NearestInteractiveObject, this);
+		}
+
+		if (IInteraction::Execute_CanPickedUp(NearestInteractiveObject))
+		{
+			C2S_AddInventory(NearestInteractiveObject);
+			if (HasAuthority())
+			{
+				OnRep_InventoryObjects();
+			}
+		}
 	}
+}
+
+void APlayerBase::OpenInventory(const FInputActionValue& Value)
+{
+	if (PS->bIsGroggy)
+		return;
+
+	APlayerController* PC = CastChecked<APlayerController>(GetController());
+
+	if (!PC || !InvenWidget) return;
+
+	//bIsInventoryOpen = !bIsInventoryOpen;
+
+	if (bIsInventoryOpen)
+	{
+		InvenWidget->SetVisibility(ESlateVisibility::Visible);
+
+		//FInputModeGameAndUI InputMode;
+		//InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		//InputMode.SetHideCursorDuringCapture(false);
+		//PC->SetInputMode(InputMode);
+
+		//PC->bShowMouseCursor = true;
+	}
+	else
+	{
+		InvenWidget->SetVisibility(ESlateVisibility::Hidden);
+
+		FInputModeGameOnly InputMode;
+		PC->SetInputMode(InputMode);
+
+		PC->bShowMouseCursor = false;
+	}
+}
+
+void APlayerBase::PhantomVision(const FInputActionValue& Value)
+{
+	if (PS->bIsGroggy)
+		return;
+	// 현재 월드에서 모든 ACCTVLogic 액터를 찾음
+	C2S_PhantomVision();
 }
 
 void APlayerBase::C2S_Interactive_Implementation(UObject* interact)
 {
 	if (nullptr == interact)
 	{
-		UKismetSystemLibrary::PrintString(this, TEXT("ABaseObject Interact is nullptr"));
 		return;
 	}
-	
+
 	if (interact->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
-		IInteraction::Execute_OnInteract(interact, this);
+		IInteraction::Execute_OnInteractSever(interact, this);
+}
+
+void APlayerBase::C2S_Hacking_Implementation(UObject* interact)
+{
+	if (nullptr == interact)
+	{
+		return;
+	}
+	if (interact->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+	IHacking::Execute_OnHackingStartedServer(interact, this);
+}
+
+void APlayerBase::C2S_StopHacking_Implementation(UObject* interact)
+{
+	if (nullptr == interact)
+	{
+		return;
+	}
+	if (interact->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+		IHacking::Execute_OnHackingCompletedServer(interact, this);
 }
 
 void APlayerBase::C2S_SetMaxWalkSpeed_Implementation(float Speed)
 {
 	GetCharacterMovement()->MaxWalkSpeed = Speed;
 }
+
+void APlayerBase::C2S_MakeNoise_Implementation(float Noise, FName NoiseTag)
+{
+	MakeNoise(Noise, this, GetActorLocation(), 0, NoiseTag);
+}
+
+void APlayerBase::C2S_AddInventory_Implementation(UObject* Object)
+{
+	InventoryObjects.Add(Object);
+}
+
+void APlayerBase::C2S_PhantomVision_Implementation()
+{
+	TArray<AActor*> CCTVLogicActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACCTVLogic::StaticClass(), CCTVLogicActors);
+
+	// 하나라도 있으면 첫 번째 ACCTVLogic을 사용
+	if (CCTVLogicActors.Num() > 0)
+	{
+		ACCTVLogic* CCTVLogic = Cast<ACCTVLogic>(CCTVLogicActors[0]);
+		if (CCTVLogic)
+		{
+			if (!CCTVLogic->EnterFirstHackedCCTV(this))
+				S2C_PhantomVisionWidget();
+		}
+	}
+}
+
+void APlayerBase::S2C_PhantomVisionWidget_Implementation()
+{
+	TArray<AActor*> CCTVLogicActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACCTVLogic::StaticClass(), CCTVLogicActors);
+
+	// 하나라도 있으면 첫 번째 ACCTVLogic을 사용
+	if (CCTVLogicActors.Num() > 0)
+	{
+		ACCTVLogic* CCTVLogic = Cast<ACCTVLogic>(CCTVLogicActors[0]);
+		if (CCTVLogic)
+		{
+			APlayerController* PC = Cast<APlayerController>(GetController());
+			if (!PC)
+			{
+				UE_LOG(LogTemp, Error, TEXT("APlayerBase: S2C_PhantomVisionWidget: APlayerController Cast Fail"));
+				return;
+			}
+			CCTVLogic->SetWidget(PC);
+		}
+	}
+}
+
+void APlayerBase::SetGroggy()
+{
+	if (!PS)
+	{
+		PS = Cast<APlayerDefaultState>(GetPlayerState());
+	}
+
+	RecoverySphere->SetVisibility(true);
+	PS->bIsGroggy = true;
+	PS->OnRep_S2A_Groggy();
+	GetCharacterMovement()->MaxWalkSpeed = 0.f;
+}
+
+void APlayerBase::SetGroggyWidget(bool Visible)
+{
+	GroggyWidget->SetVisibility(Visible);
+}
+
+void APlayerBase::SetRecovery()
+{
+	Stat->SetHp(Stat->GetMaxHp());
+
+	PS->bIsGroggy = false;
+	PS->OnRep_S2A_Groggy();
+	GetCharacterMovement()->MaxWalkSpeed = PS->MoveSpeedInfo.WalkSpeed;
+
+	if (HasAuthority())
+	{
+		if (AGM_PhantomTwins* GM = GetWorld()->GetAuthGameMode<AGM_PhantomTwins>())
+		{
+			GM->NotifyPlayerDied(GetController(), false);
+		}
+	}
+}
+
+void APlayerBase::S2C_UpdatePerceivedActor_Implementation(AActor* Actor, bool bVisible)
+{
+	if (nullptr == Actor)
+		return;
+
+	// Add/Delete Object Array
+	if (bVisible)
+	{
+		InteractiveableObjects.AddUnique(Actor);
+	}
+	else
+	{
+		InteractiveableObjects.Remove(Actor);
+
+		if (Actor->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
+		{
+			IInteraction::Execute_SetWidgetVisibility(Actor, false);
+		}
+		else if (Actor->GetClass()->ImplementsInterface(UHacking::StaticClass()))
+		{
+			IHacking::Execute_SetWidgetVisibility(Actor, false);
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////ReferenceSetting//////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
 
 void APlayerBase::ReferenceSetting()
 {
@@ -357,9 +848,21 @@ void APlayerBase::ReferenceSetting()
 		InteractiveAction = InteractiveActionRef.Object;
 	}
 
-	//static ConstructorHelpers::FObjectFinder<UInputAction> InventoryActionRef(TEXT("/Game/Project_TPT/Assets/Input/Player/Actions/IA_Inventory.IA_Inventory"));
-	//if (InventoryActionRef.Object)
-	//{
-	//	InventoryAction = InventoryActionRef.Object;
-	//}
+	static ConstructorHelpers::FObjectFinder<UInputAction> InventoryActionRef(TEXT("/Game/Project_TPT/Assets/Input/Player/Actions/IA_Inven.IA_Inven"));
+	if (InventoryActionRef.Object)
+	{
+		InventoryAction = InventoryActionRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> PhantomActionRef(TEXT("/Game/Project_TPT/Assets/Input/Player/Actions/IA_Phantom.IA_Phantom"));
+	if (PhantomActionRef.Object)
+	{
+		PhantomAction = PhantomActionRef.Object;
+	}
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> InvenWidgetRef(TEXT("/Game/Project_TPT/Assets/Blueprints/Player/WB_Inventory.WB_Inventory_C"));
+	if (InvenWidgetRef.Class)
+	{
+		InvenWidgetClass = InvenWidgetRef.Class;
+	}
 }
