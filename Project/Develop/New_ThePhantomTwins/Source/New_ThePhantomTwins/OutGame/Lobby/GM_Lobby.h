@@ -11,5 +11,5 @@ class NEW_THEPHANTOMTWINS_API AGM_Lobby : public AGM_PhantomTwins
 	GENERATED_BODY()
 	
 public:
-	void SetIdentifyChracterData(ECharacterType ChractorType, bool bIsHost);
+	void SetIdentifyCharacterData(ECharacterType ChractorType, bool bIsHost);
 };

@@ -23,6 +23,6 @@ public:
 	void TravelToLevel(const FName LevelName);
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void HandleSetIdentifyChracter(FIdentifyChracterData IdentifyChracterData);
+	void HandleSetIdentifyChracter(FIdentifyCharacterData IdentifyCharacterData);
 
 };

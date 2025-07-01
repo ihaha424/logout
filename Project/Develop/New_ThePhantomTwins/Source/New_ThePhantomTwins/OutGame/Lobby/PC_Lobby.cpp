@@ -13,7 +13,7 @@ void APC_Lobby::SelectChractor(const ECharacterType& type)
 		{
 			if (AGM_Lobby* GM_Lobby = Cast<AGM_Lobby>(GM))
 			{
-				GM_Lobby->SetIdentifyChracterData(type, true);
+				GM_Lobby->SetIdentifyCharacterData(type, true);
 			}
 		}
 	}
@@ -30,7 +30,7 @@ void APC_Lobby::C2S_SelectChractor_Implementation(const ECharacterType& type, bo
 	{
 		if (AGM_Lobby* GM_Lobby = Cast<AGM_Lobby>(GM))
 		{
-			GM_Lobby->SetIdentifyChracterData(type, bIsHost);
+			GM_Lobby->SetIdentifyCharacterData(type, bIsHost);
 		}
 	}
 }

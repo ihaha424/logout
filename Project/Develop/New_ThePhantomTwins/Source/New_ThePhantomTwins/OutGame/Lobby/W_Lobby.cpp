@@ -14,7 +14,7 @@ void UW_Lobby::NativeConstruct()
 
 	if (AGS_Lobby* GS = GetWorld()->GetGameState<AGS_Lobby>())
 	{
-		GS->OnSetIdentifyChracterData.AddDynamic(this, &UW_Lobby::HandleSetIdentifyChracter);
+		GS->OnSetIdentifyCharacterData.AddDynamic(this, &UW_Lobby::HandleSetIdentifyChracter);
 	}
 }
 

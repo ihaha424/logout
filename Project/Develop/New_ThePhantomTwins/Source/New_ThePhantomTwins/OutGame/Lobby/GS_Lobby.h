@@ -8,7 +8,7 @@
 #include "GS_Lobby.generated.h"
 
 USTRUCT(BlueprintType)
-struct NEW_THEPHANTOMTWINS_API FIdentifyChracterData
+struct NEW_THEPHANTOMTWINS_API FIdentifyCharacterData
 {
 	GENERATED_BODY()
 
@@ -20,23 +20,24 @@ struct NEW_THEPHANTOMTWINS_API FIdentifyChracterData
 };
 
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSetIdentifyChracterData, FIdentifyChracterData, IdentifyChracterData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSetIdentifyCharacterData, FIdentifyCharacterData, IdentifyCharacterData);
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API AGS_Lobby : public AGameStateBase
 {
 	GENERATED_BODY()
+
 	
 public:
-	void SetIdentifyChracterData(ECharacterType ChractorType, bool bIsHost);
+	void SetIdentifyCharacterData(ECharacterType ChractorType, bool bIsHost);
 	UPROPERTY(BlueprintAssignable)
-	FOnSetIdentifyChracterData OnSetIdentifyChracterData;
+	FOnSetIdentifyCharacterData OnSetIdentifyCharacterData;
 
 protected:
-	UPROPERTY(ReplicatedUsing = OnRep_IdentifyChracterData)
-	FIdentifyChracterData IdentifyChracterData;
+	UPROPERTY(ReplicatedUsing = OnRep_IdentifyCharacterData)
+	FIdentifyCharacterData IdentifyCharacterData;
 	UFUNCTION()
-	void OnRep_IdentifyChracterData();
+	void OnRep_IdentifyCharacterData();
 
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
