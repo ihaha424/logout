@@ -26,7 +26,7 @@ public:
 
 	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
 	virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
-	virtual bool CanInteract_Implementation(const APawn* Interactor) override;
+	virtual bool CanInteract_Implementation(const APawn* Interactor, bool bIsDetected) override;
 
 
 public:

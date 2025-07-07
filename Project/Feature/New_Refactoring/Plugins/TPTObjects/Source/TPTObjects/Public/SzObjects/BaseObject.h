@@ -17,6 +17,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintCallable, Category = "BaseObject")
 	void SetWidgetVisible(bool Visible);
 
 public:	

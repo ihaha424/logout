@@ -59,6 +59,16 @@ ABaseObject::ABaseObject()
 void ABaseObject::BeginPlay()
 {
 	Super::BeginPlay();
+
+    // 위젯 설정 (필요할 때만)
+    if (NearWidgetComp)
+    {
+        if (NearWidgetClass)
+        {
+            NearWidgetComp->SetWidgetClass(NearWidgetClass);
+            NearWidgetComp->SetVisibility(false);
+        }
+    }
 	
 }
 
