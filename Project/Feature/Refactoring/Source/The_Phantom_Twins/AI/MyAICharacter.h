@@ -17,7 +17,7 @@ public:
 	// Sets default values for this character's properties
 	AMyAICharacter();
 
-	virtual void OnHackingStartedServer_Implementation(APawn* Interactor) override;
+	virtual void OnHackingStartedServer_Implementation(const APawn* Interactor) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Spline")
 	class ASplinePathActor* BaseSplinePath;
@@ -64,7 +64,7 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	virtual void SetWidgetVisibility_Implementation(bool Visible) override;
+	//virtual void SetWidgetVisibility_Implementation(bool Visible) override;
 	class ASplinePathActor* GetBaseSplinePath() const { return BaseSplinePath; }
 	
 };

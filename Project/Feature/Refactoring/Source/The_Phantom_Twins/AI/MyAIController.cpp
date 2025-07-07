@@ -249,7 +249,7 @@ void AMyAIController::ObjectPerception(AActor* Actor, FAIStimulus Stimulus)
 			{
 				AHackableObject* Object = Cast<AHackableObject>(Actor);
 				// 오브제트가 이미 해킹이되어서 해킹이 불가한 상태라면 밑의 코드가 실행됨.
-				if (!Object->IHacking::CanBeHacked_Implementation())
+				if (!Object->IHacking::CanBeHacked_Implementation(nullptr))
 				{
 					//UE_LOG(LogTemp, Warning, TEXT("AI UAISense_Hearing AHackableObject AHackableObject ObjectPerception : %s"), *Object->GetName());
 					Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Suspicion));

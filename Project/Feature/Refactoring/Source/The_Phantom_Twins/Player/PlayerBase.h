@@ -58,9 +58,9 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	virtual void OnInteractSever_Implementation(APawn* Player) override;
-	virtual void OnInteractClient_Implementation(APawn* Player) override;
-	virtual bool CanInteract_Implementation(const APawn* Player) const override;
+	virtual void OnInteractServer_Implementation(const APawn* Player) override;
+	virtual void OnInteractClient_Implementation(const APawn* Player) override;
+	virtual bool CanInteract_Implementation(const APawn* Player) override;
 
 public:
 

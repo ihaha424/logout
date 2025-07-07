@@ -2,6 +2,7 @@
 
 
 #include "CCTV.h"
+#include "CCTVManager.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -12,26 +13,73 @@
 #include "InputAction.h"
 #include "SzComponents/HackableComponent.h"
 #include "SzComponents/NoiseComponent.h"
-#include "CCTVManager.h"
 #include "../PhantomTwinsGameState.h"
-#include "Blueprint/UserWidget.h"
 #include "SzUI/PhantomVisionWidget.h"
-#include "SzComponents/OutlineComponent.h"
 #include "Net/UnrealNetwork.h"
 
+#include "Components/StaticMeshComponent.h"
+#include "Components/SphereComponent.h"
+#include "Components/WidgetComponent.h"
+#include "Blueprint/UserWidget.h"
+#include "SzComponents/InteractableComponent.h"
+#include "SzComponents/OutlineComponent.h"
+
+//AI Perception
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Sight.h"
+#include "Perception/AISenseConfig_Sight.h"
+#include "Perception/AISense_Hearing.h"
+#include "Perception/AISenseConfig_Hearing.h"
 
 ACCTV::ACCTV()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 
+	// Root Scene
+	RootSceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("MeshComponent"));
+	SetRootComponent(RootSceneComp);
+
+	// Mesh
+	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
+	MeshComp->SetCollisionProfileName(TEXT("OverlapAll"));
+
+	// AIPerception과 player안의 sphere만 감지하는 Object
+	SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
+	SphereCollisionComp->SetupAttachment(MeshComp);
+	SphereCollisionComp->SetSphereRadius(50.0f);
+	SphereCollisionComp->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
+
+	// Outline
+	OutlineComp = CreateDefaultSubobject<UOutlineComponent>(TEXT("OutlineComponent"));
+
+	// 위젯 컴포넌트는 항상 생성하지만, 사용 여부에 따라 설정/표시 여부 제어
+	NearWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("NearObjectWidget"));
+	NearWidgetComp->SetupAttachment(MeshComp);
+	NearWidgetComp->SetWidgetSpace(EWidgetSpace::Screen);
+	NearWidgetComp->SetDrawSize(FVector2D(10, 10));
+	NearWidgetComp->SetRelativeLocation(FVector(0, 0, 100));
+	NearWidgetComp->SetVisibility(false); // 기본은 비활성화
+
+	// AI Perception
+	StimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource"));
+	StimuliSource->bAutoRegister = true;
+	StimuliSource->RegisterForSense(UAISense_Sight::StaticClass());
+	StimuliSource->RegisterForSense(UAISense_Hearing::StaticClass());
+
+	// "Object" 태그 추가
+	Tags.Add(FName("Interactable"));
+
+	HackingComp = CreateDefaultSubobject<UHackableComponent>(TEXT("HackableComponent"));
+	NoiseComp = CreateDefaultSubobject<UNoiseComponent>(TEXT("NoiseComponent"));
+
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	//SpringArm->SetupAttachment(RootComponent);
 	SpringArm->TargetArmLength = -60.0f;
 	SpringArm->bUsePawnControlRotation = false;
-	SpringArm->bInheritPitch = false;
-	SpringArm->bInheritYaw = false;
-	SpringArm->bInheritRoll = false;
+	SpringArm->bInheritPitch = true;
+	SpringArm->bInheritYaw = true;
+	SpringArm->bInheritRoll = true;
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComp->SetupAttachment(SpringArm);
@@ -45,11 +93,10 @@ ACCTV::ACCTV()
 
 	CurrentHackingPawn = nullptr;
 
-	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InputMappingContextRef(TEXT("/Game/Project_TPT/Assets/Input/Object/IMC_CCTV.IMC_CCTV"));
-	InputMappingContext = InputMappingContextRef.Object;
 
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> PlayerMappingContextRef(TEXT("/Game/Project_TPT/Assets/Input/Player/IMC_PlayerIMC.IMC_PlayerIMC"));
 	PlayerMappingContext = PlayerMappingContextRef.Object;
+	InputMappingContext = PlayerMappingContextRef.Object;
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> IA_TurnRef(TEXT("/Game/Project_TPT/Assets/Input/Object/IA_Turn.IA_Turn"));
 	IA_Turn = IA_TurnRef.Object;
@@ -68,13 +115,24 @@ void ACCTV::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (!HackingComp)
+	// Near Object Widget
+	if (NearWidgetComp)
 	{
-		HackingComp = FindComponentByClass<UHackableComponent>();
-		if (!HackingComp)
+		if (NearWidgetClass)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("No HackingComp found on %s"), *GetName());
+			NearWidgetComp->SetWidgetClass(NearWidgetClass);
+			NearWidgetComp->SetVisibility(false);
 		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("WidgetClass is not set for %s"), *GetName());
+		}
+	}
+
+	// Outline
+	if (OutlineComp)
+	{
+		OutlineComp->SetOutline(false);
 	}
 
 	if (!NoiseComp)
@@ -88,7 +146,7 @@ void ACCTV::BeginPlay()
 
 	// CCTVManager에 CCTV 추가
 	APhantomTwinsGameState* gameState = Cast<APhantomTwinsGameState>(GetWorld()->GetGameState());
-	
+
 	if (gameState && gameState->GetCCTVManager())
 	{
 		gameState->GetCCTVManager()->AddCCTV(CCTVID, this);
@@ -108,17 +166,19 @@ void ACCTV::Tick(float DeltaTime)
 		HackingComp->UpdateHackingProgress(CurrentHackingPawn, CurrentTime);
 	}
 
-	if (CurrentHackingPawn && NoiseComp && NoiseComp->bIsHacking)
+	// 해킹이 완료 되었고 noise 발생이 안되고 있을 경우
+	if (HackingComp->bIsHacked && !NoiseComp->bNoise)
 	{
-		NoiseComp->UpdateHackingProgress(CurrentHackingPawn, CurrentTime);
+		NoiseComp->StartNoise();	// tick에서 실행 시키면 안됨. 나중에 옮기기
 	}
 
+/*  CCTV는 되돌리기 전까지 계속 해킹 유지하니까 얘는 빼도 될듯  */
 	// 해킹된 상태에서 유지 시간이 지나면 초기화 (단, bKeepHacked가 false일 때만)
 	if (HackingComp->bIsHacked && !HackingComp->bKeepHacked &&
 		(CurrentTime - HackingComp->HackingStartTime >= HackingComp->HackedDuration))
 	{
 		HackingComp->CheckHackReset(CurrentHackingPawn);
-		NoiseComp->CheckHackReset(CurrentHackingPawn);
+		NoiseComp->StopNoise();
 		CurrentHackingPawn = nullptr; // 해킹이 리셋되면 현재 해킹 플레이어도 초기화
 	}
 }
@@ -136,7 +196,7 @@ void ACCTV::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	}
 }
 
-void ACCTV::OnInteractSever_Implementation(APawn* Interactor)
+void ACCTV::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	APlayerController* PlayerController = Cast<APlayerController>(Interactor->GetController());
 	if (!PlayerController || !CameraComp) return;
@@ -147,56 +207,23 @@ void ACCTV::OnInteractSever_Implementation(APawn* Interactor)
 	}
 }
 
-void ACCTV::OnInteractClient_Implementation(APawn* Interactor)
-{
-
-}
-
-bool ACCTV::CanInteract_Implementation(const APawn* Interactor) const
-{
-	return HackingComp->bIsHacked && IsActive;	// 임시. 해킹이 되어있고 카드키가 있어야 Interact 가능
-}
-
-void ACCTV::SetWidgetVisibility_Implementation(bool Visible)
-{
-	ABaseObject::SetWidgetVisibility_Implementation(Visible);
-
-}
-
-void ACCTV::OnHackingStartedServer_Implementation(APawn* Interactor)
+void ACCTV::OnHackingStartedServer_Implementation(const APawn* Interactor)
 {
 	UE_LOG(LogTemp, Log, TEXT("ACCTV::OnHackingStarted Server"));
 
 	// 현재 해킹 중인 플레이어 저장
 	CurrentHackingPawn = Interactor;
 
-
-	if (NoiseComp)
-	{
-		NoiseComp->HackingStarted(Interactor);
-	}
-	
 	HackingComp->HackingStarted(Interactor);
 }
 
-void ACCTV::OnHackingStartedClient_Implementation(APawn* Interactor)
-{
-	UE_LOG(LogTemp, Log, TEXT("ACCTV::OnHackingStarted Client"));
 
-}
-
-void ACCTV::OnHackingCompletedServer_Implementation(APawn* Interactor)
+void ACCTV::OnHackingCompletedServer_Implementation(const APawn* Interactor)
 {
 	UE_LOG(LogTemp, Log, TEXT("ACCTV::OnHackingCompleted Server"));
 
 	// 해킹을 시작한 플레이어와 완료하는 플레이어가 같은지 확인
 	if (CurrentHackingPawn != Interactor) return;
-
-
-	if (NoiseComp)
-	{
-		NoiseComp->HackingCompleted(Interactor);
-	}
 
 	HackingComp->HackingCompleted(Interactor);
 
@@ -215,26 +242,16 @@ void ACCTV::OnHackingCompletedServer_Implementation(APawn* Interactor)
 	}
 }
 
-void ACCTV::OnHackingCompletedClient_Implementation(APawn* Interactor)
+bool ACCTV::CanBeHacked_Implementation(const APawn* Interactor)
 {
-	UE_LOG(LogTemp, Log, TEXT("ACCTV::OnHackingCompleted Client"));
+	SetWidgetVisible(bCanInteract);
 
-
+	return !(HackingComp->bIsHacked) && !(HackingComp->bIsHacking);	// 해킹된 상태랑 해킹할 수 있는 상태는 반대.
 }
 
-bool ACCTV::CanBeHacked_Implementation() const
+void ACCTV::ClearHacking_Implementation(const APawn* Interactor)
 {
-	if (!HackingComp) return false;
-
-	return !(HackingComp->bIsHacked) && !(HackingComp->bIsHacking);
-}
-
-void ACCTV::ClearHacking_Implementation()
-{
-	if (NoiseComp)
-	{
-		NoiseComp->CheckHackReset(CurrentHackingPawn);
-	}
+	NoiseComp->StopNoise();
 
 	// 해킹 초기화
 	HackingComp->CheckHackReset(CurrentHackingPawn);
@@ -380,6 +397,11 @@ void ACCTV::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 	DOREPLIFETIME(ACCTV, IsActive);
 }
 
+void ACCTV::SetWidgetVisible(bool Visible)
+{
+	NearWidgetComp->SetVisibility(Visible);
+}
+
 void ACCTV::SetActorsOutlines(bool bActive)
 {
 	UWorld* World = GetWorld();
@@ -408,7 +430,7 @@ void ACCTV::OnRep_SetWidget()
 	{
 		if (!PhantomVisionUI && !IsLocallyControlled())
 		{
-			if(!PhantomVisionUI)
+			if (!PhantomVisionUI)
 				UE_LOG(LogCameraManger, Warning, TEXT("ACCTV: OnRep_SetWidget: PhantomVisionUI is nullptr.(bSetWidgetDirtyFlag is false)"));
 			return;
 		}
@@ -491,7 +513,7 @@ void ACCTV::C2S_Exit_Implementation()
 }
 
 void ACCTV::C2S_ChangeCCTV_Implementation(ACCTV* nextCCTV)
-{	
+{
 	APlayerController* PC = Cast<APlayerController>(Controller);
 	if (PC)
 	{

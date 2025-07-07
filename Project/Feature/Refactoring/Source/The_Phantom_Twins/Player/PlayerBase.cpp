@@ -158,11 +158,11 @@ void APlayerBase::NearestObjectCheck()
 		{
 			if (CheckActorInFront(Actor))
 			{
-				IInteraction::Execute_SetWidgetVisibility(Actor, true);
+				IInteraction::Execute_CanInteract(Actor, this);
 			}
 			else
 			{
-				IInteraction::Execute_SetWidgetVisibility(Actor, false);
+				IInteraction::Execute_CanInteract(Actor, this);
 				continue;
 			}
 		}
@@ -170,11 +170,11 @@ void APlayerBase::NearestObjectCheck()
 		{
 			if (CheckActorInFront(Actor))
 			{
-				IHacking::Execute_SetWidgetVisibility(Actor, true);
+				IHacking::Execute_CanInteract(Actor, this);
 			}
 			else
 			{
-				IHacking::Execute_SetWidgetVisibility(Actor, false);
+				IHacking::Execute_CanInteract(Actor, this);
 				continue;
 			}
 		}
@@ -382,12 +382,12 @@ void APlayerBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	EnhancedInputComponent->BindAction(PhantomAction, ETriggerEvent::Triggered, this, &APlayerBase::PhantomVision);
 }
 
-void APlayerBase::OnInteractSever_Implementation(APawn* Player)
+void APlayerBase::OnInteractServer_Implementation(const APawn* Player)
 {
 	SetRecovery();
 }
 
-void APlayerBase::OnInteractClient_Implementation(APawn* Player)
+void APlayerBase::OnInteractClient_Implementation(const APawn* Player)
 {
 	Stat->SetHp(Stat->GetMaxHp());
 	if (PS)
@@ -396,7 +396,7 @@ void APlayerBase::OnInteractClient_Implementation(APawn* Player)
 	}
 }
 
-bool APlayerBase::CanInteract_Implementation(const APawn* Player) const
+bool APlayerBase::CanInteract_Implementation(const APawn* Player)
 {
 	if (PS)
 	{
@@ -410,7 +410,7 @@ void APlayerBase::NotifyActorBeginOverlap(AActor* Actor)
 {
 	Super::NotifyActorBeginOverlap(Actor);
 
-	if (!Actor->ActorHasTag("Object"))
+	if (!Actor->ActorHasTag("Interactable"))
 		return;
 
 	//UE_LOG(LogTemp, Warning, TEXT("Begin overlap %s"), *Actor->GetName());
@@ -425,7 +425,7 @@ void APlayerBase::NotifyActorEndOverlap(AActor* Actor)
 {
 	Super::NotifyActorEndOverlap(Actor);
 
-	if (!Actor->ActorHasTag("Object"))
+	if (!Actor->ActorHasTag("Interactable"))
 		return;
 
 	if (HasAuthority())
@@ -599,7 +599,7 @@ void APlayerBase::Interactive(const FInputActionValue& Value)
 			IInteraction::Execute_OnInteractClient(NearestInteractiveObject, this);
 		}
 
-		if (IInteraction::Execute_CanPickedUp(NearestInteractiveObject))
+		if (IInteraction::Execute_GetPickedUp(NearestInteractiveObject, this))
 		{
 			C2S_AddInventory(NearestInteractiveObject);
 			if (HasAuthority())
@@ -659,7 +659,7 @@ void APlayerBase::C2S_Interactive_Implementation(UObject* interact)
 	}
 
 	if (interact->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
-		IInteraction::Execute_OnInteractSever(interact, this);
+		IInteraction::Execute_OnInteractServer(interact, this);
 }
 
 void APlayerBase::C2S_Hacking_Implementation(UObject* interact)
@@ -787,11 +787,11 @@ void APlayerBase::S2C_UpdatePerceivedActor_Implementation(AActor* Actor, bool bV
 
 		if (Actor->GetClass()->ImplementsInterface(UInteraction::StaticClass()))
 		{
-			IInteraction::Execute_SetWidgetVisibility(Actor, false);
+			IInteraction::Execute_CanInteract(Actor, this);
 		}
 		else if (Actor->GetClass()->ImplementsInterface(UHacking::StaticClass()))
 		{
-			IHacking::Execute_SetWidgetVisibility(Actor, false);
+			IHacking::Execute_CanInteract(Actor, this);
 		}
 	}
 }

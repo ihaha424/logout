@@ -56,7 +56,7 @@ void UBTT_ObjectRestoration::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* 
 	if (Distance < 300)
 	{
 		//Target->ClearHacking();
-		IHacking::Execute_ClearHacking(Target);
+		IHacking::Execute_ClearHacking(Target, Cast<APawn>(Target));
 		BlackboardComp->ClearValue(TEXT("TargetObject"));
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	}

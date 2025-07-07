@@ -3,11 +3,11 @@
 
 #include "SzComponents/HackableComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Engine/Engine.h"
+#include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
 #include "Blueprint/UserWidget.h"
 #include "SzUI/HackingGauge.h"
-#include "Engine/Engine.h"
-#include "GameFramework/PlayerController.h"
-#include "GameFramework/Pawn.h"
 
 // Sets default values for this component's properties
 UHackableComponent::UHackableComponent()
@@ -34,7 +34,7 @@ void UHackableComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(UHackableComponent, CurrentHackingPlayer);
 }
 
-void UHackableComponent::HackingStarted(APawn* Interactor)
+void UHackableComponent::HackingStarted(const APawn* Interactor)
 {
 	// 해킹 되어있거나 해킹 중이면 return
 	if (bIsHacked || bIsHacking) return;
@@ -64,7 +64,7 @@ void UHackableComponent::HackingStarted(APawn* Interactor)
 	}
 }
 
-void UHackableComponent::HackingCompleted(APawn* Interactor)
+void UHackableComponent::HackingCompleted(const APawn* Interactor)
 {
 	if (!bIsHacking || bAutoHackingCompleted) return;
 
@@ -88,7 +88,7 @@ void UHackableComponent::HackingCompleted(APawn* Interactor)
 	}
 }
 
-void UHackableComponent::UpdateHackingProgress(APawn* Interactor, float CurrentTime)
+void UHackableComponent::UpdateHackingProgress(const APawn* Interactor, float CurrentTime)
 {
 	APlayerController* InstigatorController = GetPlayerControllerFromPawn(Interactor);
 	ensureMsgf(InstigatorController, TEXT("InstigatorController is invalid"));
@@ -109,7 +109,7 @@ void UHackableComponent::UpdateHackingProgress(APawn* Interactor, float CurrentT
 	}
 }
 
-void UHackableComponent::TryCompleteHacking(APawn* Interactor, float HeldDuration, float CurrentTime)
+void UHackableComponent::TryCompleteHacking(const APawn* Interactor, float HeldDuration, float CurrentTime)
 {
 	if (bIsHacked) return;
 
@@ -129,25 +129,7 @@ void UHackableComponent::TryCompleteHacking(APawn* Interactor, float HeldDuratio
 	S2C_ShowCompletedMessage();
 }
 
-void UHackableComponent::CheckHackReset()
-{
-	// 상태 초기화 (모든 클라이언트에 복제됨)
-	bIsHacking = false;
-	bIsHacked = false;
-	HackingStartTime = 0.0f;
-	bAutoHackingCompleted = false;
-
-
-	//S2C_HideHackingUI();
-
-
-	// CurrentHackingPlayer 초기화
-	CurrentHackingPlayer = nullptr;
-
-	UE_LOG(LogTemp, Log, TEXT("해킹 상태 초기화 완료"));
-}
-
-void UHackableComponent::CheckHackReset(APawn* Interactor)
+void UHackableComponent::CheckHackReset(const APawn* Interactor)
 {
 	// 상태 초기화 (모든 클라이언트에 복제됨)
 	bIsHacking = false;
@@ -169,7 +151,21 @@ void UHackableComponent::CheckHackReset(APawn* Interactor)
 	UE_LOG(LogTemp, Log, TEXT("해킹 상태 초기화 완료"));
 }
 
-APlayerController* UHackableComponent::GetPlayerControllerFromPawn(APawn* Pawn)
+void UHackableComponent::CheckHackReset()
+{
+	// 상태 초기화 (모든 클라이언트에 복제됨)
+	bIsHacking = false;
+	bIsHacked = false;
+	HackingStartTime = 0.0f;
+	bAutoHackingCompleted = false;
+
+	// CurrentHackingPlayer 초기화
+	CurrentHackingPlayer = nullptr;
+
+	UE_LOG(LogTemp, Log, TEXT("해킹 상태 초기화 완료"));
+}
+
+APlayerController* UHackableComponent::GetPlayerControllerFromPawn(const APawn* Pawn)
 {
 	if (!Pawn) return nullptr;
 

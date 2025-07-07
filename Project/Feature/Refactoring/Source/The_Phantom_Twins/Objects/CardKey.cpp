@@ -4,11 +4,24 @@
 #include "CardKey.h"
 #include "SzComponents/ItemComponent.h"
 
-ACardKey::ACardKey()
+ACardKey::ACardKey() : AItemObject()
 {
-	PrimaryActorTick.bCanEverTick = false;
-	InteractComp = CreateDefaultSubobject<UItemComponent>(TEXT("ItemComponent"));
-	//InteractComp->SetupAttachment(RootComponent);
-	ObjectType = EObjectType::Item;
-	bDestory = true;
+	bCanInteract = true;
+}
+
+void ACardKey::OnInteractServer_Implementation(const APawn* Interactor)
+{
+	DestroyLogic();
+}
+
+bool ACardKey::CanInteract_Implementation(const APawn* Interactor)
+{
+	SetWidgetVisible(bCanInteract);
+
+	return bCanInteract;
+}
+
+void ACardKey::DestroyLogic_Implementation()
+{
+	Destroy(true);
 }

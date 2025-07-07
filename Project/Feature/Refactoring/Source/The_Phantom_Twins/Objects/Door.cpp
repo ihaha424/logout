@@ -21,25 +21,23 @@ void ADoor::BeginPlay()
 	}
 }
 
-void ADoor::OnInteractSever_Implementation(APawn* Interactor)
+void ADoor::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ADoor::OnInteract"));
 
-	//if (CanInteract_Implementation(Interactor))
-	//{
-		if (bIsOpened && OpenNum == 1) return;
+	if (bIsOpened && OpenNum == 1) return;
 
-		UE_LOG(LogTemp, Warning, TEXT("ADoor::OnInteract3"));
-		bIsOpened = true;
+	UE_LOG(LogTemp, Warning, TEXT("ADoor::OnInteract3"));
+	bIsOpened = true;
 
-		// 이후 동작은 블루프린트에서 구현
-		S2A_OpenDoor();
-	//}
+	// 이후 동작은 블루프린트에서 구현
+	S2A_OpenDoor();
 }
 
-bool ADoor::CanInteract_Implementation(const APawn* Interactor) const
+bool ADoor::CanInteract_Implementation(const APawn* Interactor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("ADoor::OnInteract2"));
+	SetWidgetVisible(bCanInteract);
+
 	// 트리거가 모두 활성화되고, 열쇠가 있으면 상호작용 가능
 	return AreAllObjActived() && HasKey(Interactor);
 }
@@ -58,13 +56,15 @@ bool ADoor::AreAllObjActived() const
 	int32 triggerActive = 0;
 
 	// Door와 연결된 모든 trigger(Actors)를 하나씩 순회
-	for (auto* trigger : Triggers)
+	for (const auto* triggerActor : Triggers)
 	{
+		const APawn* trigger = Cast<const APawn>(triggerActor);
+
 		// 유효한 액터인지 && IHacking 인터페이스를 구현했는지 확인
 		if (trigger && trigger->GetClass()->ImplementsInterface(UHacking::StaticClass()))
 		{
 			// CanBeHacked()가 false면 = 더 이상 해킹할 수 없다 = 이미 해킹 완료된 상태로 간주
-			if (IHacking::Execute_CanBeHacked(trigger) == false)
+			if (IHacking::Execute_CanBeHacked(const_cast<ADoor*>(this), trigger) == false)
 			{
 				triggerActive++;
 			}

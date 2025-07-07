@@ -23,17 +23,15 @@ class OBJECT_PLUGINS_API IInteraction
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
-	void OnInteractSever(APawn* Interactor);
+	void OnInteractServer(const APawn* Interactor);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
-	void OnInteractClient(APawn* Interactor);
+	void OnInteractClient(const APawn* Interactor);
 
     UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
-    bool CanInteract(const APawn* Interactor) const;
+    bool CanInteract(const APawn* Interactor);
 	
+	// ªË¡¶ ∞ÌπŒ¡ﬂ
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
-	bool CanPickedUp() const;
-
-	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
-	void SetWidgetVisibility(bool Visible);
+	bool GetPickedUp(const APawn* Interactor) const;
 };

@@ -6,7 +6,7 @@
 #include "Components/SceneComponent.h"
 #include "HackableComponent.generated.h"
 
-
+// 해킹전, 해킹 중, 해킹 완료 상태와 게이지위젯을 관리 하는 Comp
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class OBJECT_PLUGINS_API UHackableComponent : public USceneComponent
 {
@@ -21,21 +21,21 @@ protected:
 
 public:	
 	UFUNCTION(BlueprintCallable, Category = "Hacking")
-	virtual void HackingStarted(APawn* Interactor);
+	virtual void HackingStarted(const APawn* Interactor);
 
 	UFUNCTION(BlueprintCallable, Category = "Hacking")
-	virtual void HackingCompleted(APawn* Interactor);
+	virtual void HackingCompleted(const APawn* Interactor);
 
 	UFUNCTION(BlueprintCallable, Category = "Hacking")
-	virtual void UpdateHackingProgress(APawn* Interactor, float CurrentTime);
-	virtual void TryCompleteHacking(APawn* Interactor, float HeldDuration, float CurrentTime);
+	virtual void UpdateHackingProgress(const APawn* Interactor, float CurrentTime);
+	virtual void TryCompleteHacking(const APawn* Interactor, float HeldDuration, float CurrentTime);
 
 	// 해킹 성공 후 일정 시간이 지나면 다시 해킹 가능 상태로 초기화
-	virtual void CheckHackReset(APawn* Interactor);
+	virtual void CheckHackReset(const APawn* Interactor);
 	virtual void CheckHackReset();
 
 private:
-	APlayerController* GetPlayerControllerFromPawn(APawn* Pawn);
+	APlayerController* GetPlayerControllerFromPawn(const APawn* Pawn);
 
 public:
 	/* 클라이언트 RPC 함수들 */
@@ -54,9 +54,6 @@ public:
 	UFUNCTION(Client, Reliable)
 	void S2C_HideHackingUI();	// UI 제거
 	void S2C_HideHackingUI_Implementation();
-
-	//UFUNCTION(Server, Reliable)
-	//void SetInformation();
 
 
 public:

@@ -3,13 +3,15 @@
 
 #include "SzComponents/NoiseComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "Gameframework/Actor.h"
 #include "Gameframework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 
-UNoiseComponent::UNoiseComponent() : UHackableComponent()
+UNoiseComponent::UNoiseComponent()
 {
+	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicatedByDefault(true);
+
 	bNoise = false;
 }
 
@@ -18,22 +20,6 @@ void UNoiseComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UNoiseComponent, bNoise);
-}
-
-void UNoiseComponent::TryCompleteHacking(APawn* Interactor, float HeldDuration, float CurrentTime)
-{
-	Super::TryCompleteHacking(Interactor, HeldDuration, CurrentTime);
-
-	UE_LOG(LogTemp, Log, TEXT("UNoiseComponent::TryCompleteHacking"));
-
-	StartNoise();
-}
-
-void UNoiseComponent::CheckHackReset(APawn* Interactor)
-{
-	Super::CheckHackReset(Interactor);
-
-	StopNoise();
 }
 
 void UNoiseComponent::StartNoise()

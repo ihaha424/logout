@@ -55,13 +55,12 @@ AMyAICharacter::AMyAICharacter()
 	// AIPerception과 player안의 sphere만 감지하는 Object
 	SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
 	SphereCollisionComp->SetupAttachment(RootComponent);
-	SphereCollisionComp->ComponentTags.Add(FName("Object"));
 	SphereCollisionComp->SetSphereRadius(50.0f);
 	SphereCollisionComp->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
-	Tags.Add(FName("Object"));
+	Tags.Add(FName("Interactable"));
 }
 
-void AMyAICharacter::OnHackingStartedServer_Implementation(APawn* Interactor)
+void AMyAICharacter::OnHackingStartedServer_Implementation(const APawn* Interactor)
 {
 	AMyAIController* AIController = Cast<AMyAIController>(GetController());
 	if (!AIController)
@@ -108,13 +107,13 @@ void AMyAICharacter::S2A_UpdateWidgetDirection_Implementation(FRotator Rotate)
 	AIStateWidget->SetWorldRotation(Rotate);
 }
 
-void AMyAICharacter::SetWidgetVisibility_Implementation(bool Visible)
-{
-	if (WidgetComponent)
-	{
-		WidgetComponent->SetVisibility(Visible);
-	}
-}
+//void AMyAICharacter::SetWidgetVisibility_Implementation(bool Visible)
+//{
+//	if (WidgetComponent)
+//	{
+//		WidgetComponent->SetVisibility(Visible);
+//	}
+//}
 
 // Called when the game starts or when spawned
 void AMyAICharacter::BeginPlay()

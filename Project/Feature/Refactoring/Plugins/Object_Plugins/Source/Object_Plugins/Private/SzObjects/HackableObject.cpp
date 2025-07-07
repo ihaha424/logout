@@ -9,86 +9,23 @@
 #include "Components/SphereComponent.h"
 #include "SzUI/HackingGauge.h"
 
-// Sets default values
-AHackableObject::AHackableObject()
+AHackableObject::AHackableObject() : ABaseObject()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// "Object" 태그 추가
-	Tags.Add(FName("Object"));
-
-	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
-	//SetRootComponent(MeshComponent);
-
-	// WidgetComponent
-	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("ObjectWidget"));
-	WidgetComponent->SetupAttachment(MeshComponent);
-	WidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
-	WidgetComponent->SetDrawSize(FVector2D(10, 10));
-	WidgetComponent->SetRelativeLocation(FVector(0, 0, 100));
-	WidgetComponent->SetVisibility(false); // 기본은 비활성화
-
-
-	// AIPerception과 player안의 sphere만 감지하는 Object
-	SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
-	SphereCollisionComp->SetupAttachment(MeshComponent);
-	SphereCollisionComp->ComponentTags.Add(FName("Object"));
-	SphereCollisionComp->SetSphereRadius(50.0f);
-	SphereCollisionComp->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
-
-	// Outline
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MaterialFinder(
-		TEXT("/Game/Project_TPT/Assets/Materials/M_Outline.M_Outline")
-	);
-	if (MaterialFinder.Succeeded())
-	{
-		OverlayMaterial = MaterialFinder.Object;
-	}
+	HackingComp = CreateDefaultSubobject<UHackableComponent>(TEXT("HackableComponent"));
 
 	CurrentHackingPawn = nullptr;
 }
 
-// Called when the game starts or when spawned
 void AHackableObject::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (!HackingComp)
-	{
-		HackingComp = FindComponentByClass<UHackableComponent>();
-		if (!HackingComp)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("No HackingComp found on %s"), *GetName());
-		}
-	}
-
-	if (WidgetClass)
-	{
-		WidgetComponent->SetWidgetClass(WidgetClass);
-		WidgetComponent->SetVisibility(true);
-	}
-
-	// Outline
-	if (MeshComponent && OverlayMaterial)
-	{
-		// 동적 머티리얼 인스턴스 생성 및 OverlayMaterial로 적용
-		OverlayMID = UMaterialInstanceDynamic::Create(OverlayMaterial, this);
-		//MeshComponent->SetOverlayMaterial(OverlayMID);
-		MeshComponent->OverlayMaterialMaxDrawDistance = MaxDrawDistance;
-
-		// 파라미터 값 적용
-		if (OverlayMID)
-		{
-			OverlayMID->SetVectorParameterValue(FName("OutlineColor"), OutlineColor);
-			OverlayMID->SetScalarParameterValue(FName("LineScale"), LineScale);
-		}
-	}
 }
 
 void AHackableObject::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 
 	if (!HackingComp) return;
 
@@ -110,7 +47,7 @@ void AHackableObject::Tick(float DeltaTime)
 	}
 }
 
-void AHackableObject::OnHackingStartedServer_Implementation(APawn* Interactor)
+void AHackableObject::OnHackingStartedServer_Implementation(const APawn* Interactor)
 {
 	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingStarted Server"));
 
@@ -123,14 +60,7 @@ void AHackableObject::OnHackingStartedServer_Implementation(APawn* Interactor)
 	HackingComp->HackingStarted(Interactor);
 }
 
-void AHackableObject::OnHackingStartedClient_Implementation(APawn* Interactor)
-{
-	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingStarted Client"));
-
-}
-
-
-void AHackableObject::OnHackingCompletedServer_Implementation(APawn* Interactor)
+void AHackableObject::OnHackingCompletedServer_Implementation(const APawn* Interactor)
 {
 	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingCompleted Server"));
 
@@ -149,42 +79,16 @@ void AHackableObject::OnHackingCompletedServer_Implementation(APawn* Interactor)
 	}
 }
 
-void AHackableObject::OnHackingCompletedClient_Implementation(APawn* Interactor)
+bool AHackableObject::CanBeHacked_Implementation(const APawn* Interactor)
 {
-	UE_LOG(LogTemp, Log, TEXT("AHackableObject::OnHackingCompleted Client"));
+	SetWidgetVisible(bCanInteract);
 
-}
-
-bool AHackableObject::CanBeHacked_Implementation() const
-{
 	return !(HackingComp->bIsHacked) && !(HackingComp->bIsHacking);	// 해킹된 상태랑 해킹할 수 있는 상태는 반대.
 }
 
-
-void AHackableObject::ClearHacking_Implementation()
+void AHackableObject::ClearHacking_Implementation(const APawn* Interactor)
 {
 	// 해킹 초기화
 	HackingComp->CheckHackReset();
 	CurrentHackingPawn = nullptr;
 }
-
-void AHackableObject::SetWidgetVisibility_Implementation(bool Visible)
-{
-	if (WidgetComponent)
-	{
-		WidgetComponent->SetVisibility(Visible);
-	}
-}
-
-void AHackableObject::SetOutline(bool bActive)
-{
-	if (bActive)
-	{
-		MeshComponent->SetOverlayMaterial(OverlayMID);
-	}
-	else
-	{
-		MeshComponent->SetOverlayMaterial(nullptr);
-	}
-}
-

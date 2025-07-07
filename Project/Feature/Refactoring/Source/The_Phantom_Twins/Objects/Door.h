@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "SzObjects/BaseObject.h"
+#include "SzInterface/Interaction.h"
 #include "Door.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class THE_PHANTOM_TWINS_API ADoor : public ABaseObject
+class THE_PHANTOM_TWINS_API ADoor : public ABaseObject, public IInteraction
 {
 	GENERATED_BODY()
 	
@@ -21,8 +22,8 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-    virtual void OnInteractSever_Implementation(APawn* Interactor) override;
-	virtual bool CanInteract_Implementation(const APawn* Interactor) const override;
+    virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
+	virtual bool CanInteract_Implementation(const APawn* Interactor) override;
 
     // 블루프린트에서 문을 여는 동작을 구현할 수 있도록 선언
     UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Door")
@@ -50,7 +51,7 @@ protected:
 protected:
     // 문이 열리기 위해 필요한 Actor 목록 (예: 해킹 트리거)
     UPROPERTY(EditAnywhere, Category = "Door")
-    TArray<AActor*> Triggers;
+    TArray<const AActor*> Triggers;
 
     // 요구하는 열쇠 Actor
     UPROPERTY(EditAnywhere, Category = "Door")

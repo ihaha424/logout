@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SzObjects/BaseObject.h"
+#include "Gameframework/Pawn.h"
 #include "SzInterface/Hacking.h"
 #include "InputActionValue.h"
 #include "CCTV.generated.h"
@@ -12,7 +12,7 @@
  * 
  */
 UCLASS()
-class THE_PHANTOM_TWINS_API ACCTV : public ABaseObject, public IHacking
+class THE_PHANTOM_TWINS_API ACCTV : public APawn, public IHacking
 {
 	GENERATED_BODY()
 
@@ -25,21 +25,14 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
-	virtual void OnInteractSever_Implementation(APawn* Interactor) override;
-	virtual void OnInteractClient_Implementation(APawn* Interactor) override;
-	virtual bool CanInteract_Implementation(const APawn* Interactor) const override;
-	virtual void SetWidgetVisibility_Implementation(bool Visible) override;
-
+	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
 
 	// 해킹
-	virtual void OnHackingStartedServer_Implementation(APawn* Interactor) override;
-	virtual void OnHackingStartedClient_Implementation(APawn* Interactor) override;
+	virtual void OnHackingStartedServer_Implementation(const APawn* Interactor) override;
+	virtual void OnHackingCompletedServer_Implementation(const APawn* Interactor) override;
 
-	virtual void OnHackingCompletedServer_Implementation(APawn* Interactor) override;
-	virtual void OnHackingCompletedClient_Implementation(APawn* Interactor) override;
-
-	virtual bool CanBeHacked_Implementation() const override;
-	virtual void ClearHacking_Implementation() override;
+	virtual bool CanBeHacked_Implementation(const APawn* Interactor) override;
+	virtual void ClearHacking_Implementation(const APawn* Interactor) override;
 
 	// Input 콜백
 	void Turn(const FInputActionValue& Value);
@@ -56,10 +49,38 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
+	void SetWidgetVisible(bool Visible);
 	void SetActorsOutlines(bool bActive);
 
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "BaseObject | Components")
+	TObjectPtr<class USceneComponent> RootSceneComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "BaseObject | Components")
+	TObjectPtr<class UStaticMeshComponent> MeshComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "BaseObject | Components")
+	TObjectPtr<class USphereComponent> SphereCollisionComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "BaseObject | Components")
+	TObjectPtr<class UOutlineComponent> OutlineComp;
+
+
+	// 가까운 오브젝트 확인용 위젯
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "BaseObject | NearWidget")
+	TObjectPtr<class UWidgetComponent> NearWidgetComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "BaseObject | NearWidget")
+	TSubclassOf<class UUserWidget> NearWidgetClass;
+	
+    // AI percrption(적이 사용)
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BaseObject | AI")
+    TObjectPtr<class UAIPerceptionStimuliSourceComponent> StimuliSource;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BaseObject")
+	bool bCanInteract = true;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CCTV")
 	TObjectPtr<class USpringArmComponent> SpringArm;
 
@@ -132,7 +153,7 @@ protected:
 
 	// 현재 해킹 중인 플레이어를 추적하기 위한 변수 추가
 	UPROPERTY()
-	TObjectPtr<APawn> CurrentHackingPawn;
+	TObjectPtr<const APawn> CurrentHackingPawn;
 
 	UPROPERTY(ReplicatedUsing = OnRep_SetWidget, EditAnywhere, BlueprintReadWrite, Category = "CCTV")
 	bool bSetWidgetDirtyFlag;

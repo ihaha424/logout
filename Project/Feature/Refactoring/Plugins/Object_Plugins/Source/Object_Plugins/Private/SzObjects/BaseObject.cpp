@@ -2,13 +2,12 @@
 
 
 #include "SzObjects/BaseObject.h"
+#include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
-#include "SzComponents/InteractableComponent.h"
 #include "SzComponents/OutlineComponent.h"
-#include "Net/UnrealNetwork.h"
 
 //AI Perception
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
@@ -21,158 +20,72 @@
 // Sets default values
 ABaseObject::ABaseObject()
 {
+    PrimaryActorTick.bCanEverTick = false;
+
     // NetWork
-    bReplicates = true;
+    bReplicates = true; // 자식들이 각각 하는게 좋을 것 같다?????????????????????
 
-	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
-    //SetRootComponent(MeshComponent);
-	MeshComponent->SetCollisionProfileName(TEXT("OverlapAll"));
+    // Root Scene
+    RootSceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("MeshComponent"));
+    SetRootComponent(RootSceneComp);
 
-
-    // 위젯 컴포넌트는 항상 생성하지만, 사용 여부에 따라 설정/표시 여부 제어
-    WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("ObjectWidget"));
-    WidgetComponent->SetupAttachment(MeshComponent);
-    WidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
-    WidgetComponent->SetDrawSize(FVector2D(10, 10));
-    WidgetComponent->SetRelativeLocation(FVector(0, 0, 100));
-    WidgetComponent->SetVisibility(false); // 기본은 비활성화
+    // Mesh
+	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
+	MeshComp->SetCollisionProfileName(TEXT("OverlapAll"));
 
     // AIPerception과 player안의 sphere만 감지하는 Object
     SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
-    SphereCollisionComp->SetupAttachment(MeshComponent);
-    SphereCollisionComp->ComponentTags.Add(FName("Object"));
-	SphereCollisionComp->SetSphereRadius(50.0f);
-	SphereCollisionComp->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
+    SphereCollisionComp->SetupAttachment(MeshComp);
+    SphereCollisionComp->SetSphereRadius(50.0f);
+    SphereCollisionComp->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
 
     // Outline
     OutlineComp = CreateDefaultSubobject<UOutlineComponent>(TEXT("OutlineComponent"));
 
+    // 위젯 컴포넌트는 항상 생성하지만, 사용 여부에 따라 설정/표시 여부 제어
+    NearWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("NearObjectWidget"));
+    NearWidgetComp->SetupAttachment(MeshComp);
+    NearWidgetComp->SetWidgetSpace(EWidgetSpace::Screen);
+    NearWidgetComp->SetDrawSize(FVector2D(10, 10));
+    NearWidgetComp->SetRelativeLocation(FVector(0, 0, 100));
+    NearWidgetComp->SetVisibility(false); // 기본은 비활성화
 
     // AI Perception
     StimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource"));
     StimuliSource->bAutoRegister = true;
-
-    //StimuliSource에 감지할 감각을 등록
     StimuliSource->RegisterForSense(UAISense_Sight::StaticClass());
     StimuliSource->RegisterForSense(UAISense_Hearing::StaticClass());
 
-    // "Object" 태그 추가
-    Tags.Add(FName("Object"));
-}
-
-void ABaseObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-    DOREPLIFETIME(ABaseObject, bIsPickedUp);
+    // "Interactable" 태그 추가
+    Tags.Add(FName("Interactable"));
 }
 
 void ABaseObject::BeginPlay()
 {
     Super::BeginPlay();
 
-    // 인벤토리 오브젝트라면 픽업 상태 설정
-    if (ObjectType == EObjectType::Item || ObjectType == EObjectType::Text || ObjectType == EObjectType::Tool)
+    // Near Object Widget
+    if (NearWidgetComp)
     {
-        bIsPickedUp = true;
-    }
-
-    // 위젯 설정 (필요할 때만)
-    if (bUseUI && WidgetComponent)
-    {
-        if (WidgetClass)
+        if (NearWidgetClass)
         {
-            WidgetComponent->SetWidgetClass(WidgetClass);
-            WidgetComponent->SetVisibility(true);
+            NearWidgetComp->SetWidgetClass(NearWidgetClass);
+            NearWidgetComp->SetVisibility(false);
         }
         else
         {
             UE_LOG(LogTemp, Warning, TEXT("WidgetClass is not set for %s"), *GetName());
         }
     }
-    else
-    {
-        if (WidgetComponent)
-        {
-            WidgetComponent->SetVisibility(false);
-        }
-    }
 
-    // 인터랙션 컴포넌트 확인
-    if (!InteractComp)
-    {
-        InteractComp = FindComponentByClass<UInteractableComponent>();
-        if (!InteractComp)
-        {
-            UE_LOG(LogTemp, Warning, TEXT("No InteractableComponent found on %s"), *GetName());
-        }
-    }
-
+    // Outline
     if (OutlineComp)
     {
         OutlineComp->SetOutline(false);
     }
 }
 
-#if WITH_EDITOR
-void ABaseObject::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void ABaseObject::SetWidgetVisible(bool Visible)
 {
-    Super::PostEditChangeProperty(PropertyChangedEvent);
-
-    const FName PropertyName = PropertyChangedEvent.Property ? PropertyChangedEvent.Property->GetFName() : NAME_None;
-
-    if (PropertyName == GET_MEMBER_NAME_CHECKED(ABaseObject, ObjectType))
-    {
-        bIsInventoryObject =
-            (ObjectType == EObjectType::Item ||
-                ObjectType == EObjectType::Text ||
-                ObjectType == EObjectType::Tool);
-    }
-}
-#endif
-
-void ABaseObject::OnInteractSever_Implementation(APawn* Interactor)
-{
-    if (InteractComp)
-    {
-        InteractComp->ExecuteSever(Interactor);
-
-        if (bDestory)
-        {
-            InteractComp->DeleteLogic();
-        }
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("InteractComp is nullptr!"));
-    }
-}
-
-void ABaseObject::OnInteractClient_Implementation(APawn* Interactor)
-{
-    if (InteractComp)
-    {
-        InteractComp->ExecuteClient(Interactor);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("InteractComp is nullptr!"));
-    }
-}
-
-
-bool ABaseObject::CanInteract_Implementation(const APawn* Interactor) const
-{
-    return bCanInteract;
-}
-
-bool ABaseObject::CanPickedUp_Implementation() const
-{
-    return bIsPickedUp;
-}
-
-
-void ABaseObject::SetWidgetVisibility_Implementation(bool Visible)
-{
-    WidgetComponent->SetVisibility(Visible);
+    NearWidgetComp->SetVisibility(Visible);
 }
