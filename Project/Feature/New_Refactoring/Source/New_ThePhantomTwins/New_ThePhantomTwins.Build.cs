@@ -17,7 +17,7 @@ public class New_ThePhantomTwins : ModuleRules
             "EnhancedInput",
             "AIModule",
             "UMG",
-            //"Object_Plugins",
+            "TPTObjects",
             "NavigationSystem",
             "Sockets",
             "Networking"
