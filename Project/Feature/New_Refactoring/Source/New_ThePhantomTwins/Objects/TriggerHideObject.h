@@ -27,25 +27,28 @@ public:
 
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | Components")
-	TObjectPtr<class USceneComponent> RootSceneComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | Components")
-	TObjectPtr<class UStaticMeshComponent> MeshComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | Components")
-	TObjectPtr<class USphereComponent> SphereCollisionComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | Components")
-	TObjectPtr<class UOutlineComponent> OutlineComp;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject")
-	TObjectPtr<class UBoxComponent> BoxTriggerComponent;
-
 	// AI percrption(적이 사용)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | AI")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | AI")
     TObjectPtr<class UAIPerceptionStimuliSourceComponent> StimuliSource;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject")
-    FHideState HideStatus;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Components")
+	TObjectPtr<class USceneComponent> RootSceneComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Components")
+	TObjectPtr<class UStaticMeshComponent> MeshComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Components")
+	TObjectPtr<class USphereComponent> SphereCollisionComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Components")
+	TObjectPtr<class UOutlineComponent> OutlineComp;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Hide")
+	TObjectPtr<class UBoxComponent> BoxTriggerComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Hide")
+	bool bHasPlayer = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Hide")
+	int32 HidePlayerNum = 0;
 };

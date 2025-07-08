@@ -67,6 +67,8 @@ void APCTestSZ::Tick(float DeltaTime)
 
     APawn* playerPawn = GetPawn();
     if (!playerPawn) return;
+    if (!playerPawn->IsLocallyControlled()) return;
+
 
     // 1. 가장 가까운 인터랙터블 액터 찾기
     FindNearestInteractableActor();
@@ -74,22 +76,6 @@ void APCTestSZ::Tick(float DeltaTime)
     // 2. 이전과 현재가 다르면 상태 변경
     UpdateInteractableActorState(playerPawn);
 
-#if WITH_EDITOR
-    if (NearestInteractableActor)
-    {
-        DrawDebugSphere(
-            GetWorld(),
-            NearestInteractableActor->GetActorLocation(),
-            100.0f,
-            12,
-            FColor::Green,
-            false,
-            -1.0f,
-            0,
-            1.0f
-        );
-    }
-#endif
 }
 
 void APCTestSZ::HandleInteractionInput()
@@ -133,6 +119,23 @@ void APCTestSZ::FindNearestInteractableActor()
     }
 
     NearestInteractableActor = CurrNearActor;
+
+#if WITH_EDITOR
+    if (NearestInteractableActor)
+    {
+        DrawDebugSphere(
+            GetWorld(),
+            NearestInteractableActor->GetActorLocation(),
+            100.0f,
+            12,
+            FColor::Green,
+            false,
+            -1.0f,
+            0,
+            1.0f
+        );
+    }
+#endif
 }
 
 
@@ -141,49 +144,27 @@ void APCTestSZ::UpdateInteractableActorState(APawn* playerPawn)
     if (PreviousInteractableActor != NearestInteractableActor)
     {
         // 이전 액터의 위젯 끄기
-        if (PreviousInteractableActor && PreviousInteractableActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
-        {
-            if (HasAuthority())
-            {
-                UE_LOG(LogTemp, Log, TEXT("Prev Actor( %s ) Visible False [HasAuthority] | %s | Role: %s"),
-                    *PreviousInteractableActor->GetName(),
-                    *GetName(),
-                    *UEnum::GetValueAsString(GetLocalRole()));
+		if (PreviousInteractableActor && PreviousInteractableActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
+		{
+            UE_LOG(LogTemp, Log,
+                TEXT("Prev Actor( %s ) Visible False | %s | Role: %s"),
+                *PreviousInteractableActor->GetName(),
+                *GetName(),
+                *UEnum::GetValueAsString(GetLocalRole()));
 
-                IInteract::Execute_CanInteract(PreviousInteractableActor, playerPawn, false);
-            }
-            else
-            {
-                UE_LOG(LogTemp, Log, TEXT("Previous Actor( %s ) Visible False | %s | Role: %s"),
-                    *PreviousInteractableActor->GetName(),
-                    *GetName(),
-                    *UEnum::GetValueAsString(GetLocalRole()));
-                
-                C2S_CanInteract(PreviousInteractableActor, false);
-            }
+            IInteract::Execute_CanInteract(PreviousInteractableActor, playerPawn, false);
         }
 
         // 현재 액터의 위젯 켜기
         if (NearestInteractableActor && NearestInteractableActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
         {
-            if (HasAuthority())
-            {
-                UE_LOG(LogTemp, Log, TEXT("Curr Actor( %s ) Visible True [HasAuthority] | %s | Role: %s"),
-                    *NearestInteractableActor->GetName(),
-                    *GetName(),
-                    *UEnum::GetValueAsString(GetLocalRole()));
+            UE_LOG(LogTemp, Log,
+                TEXT("Curr Actor( %s ) Visible True | %s | Role: %s"),
+                *NearestInteractableActor->GetName(),
+                *GetName(),
+                *UEnum::GetValueAsString(GetLocalRole()));
 
-                IInteract::Execute_CanInteract(NearestInteractableActor, playerPawn, true);
-            }
-            else
-            {
-                UE_LOG(LogTemp, Log, TEXT("Curr Actor( %s ) Visible True | %s | Role: %s"),
-                    *NearestInteractableActor->GetName(),
-                    *GetName(),
-                    *UEnum::GetValueAsString(GetLocalRole()));
-
-                C2S_CanInteract(NearestInteractableActor, true);
-            }
+            IInteract::Execute_CanInteract(NearestInteractableActor, playerPawn, true);
         }
 
         PreviousInteractableActor = NearestInteractableActor;
@@ -202,20 +183,5 @@ void APCTestSZ::C2S_Interact_Implementation(UObject* interact)
     if (interact->GetClass()->ImplementsInterface(UInteract::StaticClass()))
     {
         IInteract::Execute_OnInteractServer(interact, playerPawn);
-    }
-}
-
-void APCTestSZ::C2S_CanInteract_Implementation(UObject* interact, bool bIsNearest)
-{
-    if (nullptr == interact)
-    {
-        return;
-    }
-
-    APawn* playerPawn = GetPawn();
-
-    if (interact->GetClass()->ImplementsInterface(UInteract::StaticClass()))
-    {
-        IInteract::Execute_CanInteract(interact, playerPawn, bIsNearest);
     }
 }

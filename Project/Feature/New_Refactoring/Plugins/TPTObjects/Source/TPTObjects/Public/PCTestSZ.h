@@ -46,8 +46,4 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void C2S_Interact(UObject* interact);
 	void C2S_Interact_Implementation(UObject* interact);
-
-    UFUNCTION(Server, Reliable)
-    void C2S_CanInteract(UObject* interact, bool bIsNearest);
-    void C2S_CanInteract_Implementation(UObject* interact, bool bIsNearest);
 };

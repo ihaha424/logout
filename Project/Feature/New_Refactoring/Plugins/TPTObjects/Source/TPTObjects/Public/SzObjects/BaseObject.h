@@ -16,14 +16,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintCallable, Category = "BaseObject")
 	void SetWidgetVisible(bool Visible);
-
-	//UFUNCTION(Client, Reliable)
-	//void S2C_SetWidgetVisible(bool Visible);
-	//void S2C_SetWidgetVisible_Implementation(bool Visible);
 
 public:	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | Components")
@@ -50,9 +45,6 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | AI")
     TObjectPtr<class UAIPerceptionStimuliSourceComponent> StimuliSource;
 
-	UPROPERTY(ReplicatedUsing = OnRep_SetWidgetVisible, EditAnywhere, BlueprintReadWrite, Category = "BaseObject")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject")
 	bool bCanInteract = true;
-
-	UFUNCTION()
-	void OnRep_SetWidgetVisible(bool Visible);
 };

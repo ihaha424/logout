@@ -1,32 +1,56 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/DataTable.h"
 #include "ObjectState.generated.h"
 
 
-USTRUCT(BlueprintType)
-struct FItemState
+// 아이템 타입 열거형
+UENUM(BlueprintType)
+enum class EItemType : uint8
 {
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bIsPickedUp = false;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bDestory = false;
+    Consumable  UMETA(DisplayName = "Consumable"),
+    Holdable    UMETA(DisplayName = "Inventory Item"),
+    None        UMETA(DisplayName = "None"),
 };
 
-
 USTRUCT(BlueprintType)
-struct FHideState
+struct TPTOBJECTS_API FInventoryItem : public FTableRowBase
 {
-	GENERATED_BODY()
+    GENERATED_USTRUCT_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hide")
-	bool bHasPlayer = false;
+    FInventoryItem()
+    {
+        ID = 0;
+        Name = FString("");
+        Description = FString("");
+        ItemType = EItemType::None;
+        ItemIcon = nullptr;
+        ItemMesh = nullptr;
+    }
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hide")
-	int32 PlayerNum = 0;
+    // 아이템 고유 ID
+    UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, meta = (DisplayName = "ID"))
+    int32 ID;
+
+    // 아이템 이름
+    UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, meta = (DisplayName = "Name"))
+    FString Name;
+
+    // 아이템 설명
+    UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, meta = (MultiLine = "true", DisplayName = "Description"))
+    FString Description;
+
+    // 아이템 타입
+    UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, SaveGame, meta = (DisplayName = "ItemType"))
+    EItemType ItemType;
+
+    // 아이템 아이콘 (UI용)
+    UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, meta = (DisplayName = "ItemIcon"))
+    UTexture2D* ItemIcon;
+
+    // 아이템 메시 (월드 배치용)
+    UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, meta = (DisplayName = "ItemMesh"))
+    UStaticMesh* ItemMesh;
 };

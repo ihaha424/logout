@@ -2,8 +2,6 @@
 
 
 #include "SzObjects/BaseObject.h"
-#include "Net/UnrealNetwork.h"
-
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
@@ -21,8 +19,6 @@
 ABaseObject::ABaseObject()
 {
 	PrimaryActorTick.bCanEverTick = false;
-
-    bReplicates = true;
 
     // Root Scene
     RootSceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("RootSceneComponent"));
@@ -76,24 +72,7 @@ void ABaseObject::BeginPlay()
 	
 }
 
-void ABaseObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-    DOREPLIFETIME(ABaseObject, bCanInteract);
-}
-
 void ABaseObject::SetWidgetVisible(bool Visible)
 {
-    NearWidgetComp->SetVisibility(Visible);
-}
-
-
-void ABaseObject::OnRep_SetWidgetVisible(bool Visible)
-{
-    UE_LOG(LogTemp, Log, TEXT("OnRep_SetWidgetVisible | %s | Role: %s"),
-        *GetName(),
-        *UEnum::GetValueAsString(GetLocalRole()));
-
     NearWidgetComp->SetVisibility(Visible);
 }

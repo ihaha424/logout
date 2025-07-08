@@ -44,36 +44,36 @@ ATriggerHideObject::ATriggerHideObject()
     // "Interactable" 태그 추가
     Tags.Add(FName("Interactable"));
 
-    BoxTriggerComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxTriggerComponent"));
-    BoxTriggerComponent->SetCollisionProfileName(TEXT("OverlapAll"));
-    BoxTriggerComponent->SetGenerateOverlapEvents(true);
-    BoxTriggerComponent->SetupAttachment(RootSceneComp);
+    BoxTriggerComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxTriggerComponent"));
+    BoxTriggerComp->SetCollisionProfileName(TEXT("OverlapAll"));
+    BoxTriggerComp->SetGenerateOverlapEvents(true);
+    BoxTriggerComp->SetupAttachment(RootSceneComp);
 }
 
 void ATriggerHideObject::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (BoxTriggerComponent)
+    if (BoxTriggerComp)
     {
-        BoxTriggerComponent->OnComponentBeginOverlap.AddDynamic(this, &ATriggerHideObject::OnTriggerBeginOverlap);
-        BoxTriggerComponent->OnComponentEndOverlap.AddDynamic(this, &ATriggerHideObject::OnTriggerEndOverlap);
+        BoxTriggerComp->OnComponentBeginOverlap.AddDynamic(this, &ATriggerHideObject::OnTriggerBeginOverlap);
+        BoxTriggerComp->OnComponentEndOverlap.AddDynamic(this, &ATriggerHideObject::OnTriggerEndOverlap);
     }
 }
 
 void ATriggerHideObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
     // 적과 아이템은 PlayerNum에 포함 안되도록 설정해야함
-    HideStatus.PlayerNum = FMath::Clamp(HideStatus.PlayerNum + 1, 0, 2);
-    HideStatus.bHasPlayer = (HideStatus.PlayerNum > 0);
+    HidePlayerNum = FMath::Clamp(HidePlayerNum + 1, 0, 2);
+    bHasPlayer = (HidePlayerNum > 0);
 
     UE_LOG(LogTemp, Log, TEXT("TriggerHide :: Begin"));
 }
 
 void ATriggerHideObject::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-    HideStatus.PlayerNum = FMath::Clamp(HideStatus.PlayerNum - 1, 0, 2);
-    HideStatus.bHasPlayer = (HideStatus.PlayerNum > 0);
+    HidePlayerNum = FMath::Clamp(HidePlayerNum - 1, 0, 2);
+	bHasPlayer = (HidePlayerNum > 0);
 
     UE_LOG(LogTemp, Log, TEXT("TriggerHide :: End"));
 }

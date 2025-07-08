@@ -21,12 +21,13 @@ class TPTOBJECTS_API IInteract
 	GENERATED_BODY()
 
 public:
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interact")
+    bool CanInteract(const APawn* Interactor, bool bIsDetected);
+
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interact")
 	void OnInteractServer(const APawn* Interactor);
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interact")
 	void OnInteractClient(const APawn* Interactor);
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Interact")
-    bool CanInteract(const APawn* Interactor, bool bIsDetected);
 };

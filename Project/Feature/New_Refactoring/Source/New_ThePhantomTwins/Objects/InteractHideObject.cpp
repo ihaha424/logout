@@ -6,10 +6,12 @@
 
 AInteractHideObject::AInteractHideObject() : ABaseObject()
 {
+	bReplicates = true;
+
 	MeshComp->SetCollisionProfileName(TEXT("BlockAll"));
 
 	// Camera
-	HideCameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("BideCamComponent"));
+	HideCameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("HideCamComponent"));
 	HideCameraComp->SetupAttachment(RootSceneComp);
 
 }
@@ -24,34 +26,142 @@ void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	//DOREPLIFETIME(AInteractHideObject, );
+	DOREPLIFETIME(AInteractHideObject, bIsInHideView);
+	DOREPLIFETIME(AInteractHideObject, PreviousViewTarget);
+	DOREPLIFETIME(AInteractHideObject, HidePlayer);
+}
+
+bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
+{
+	// 다른 사람이 이미 들어가 있을 때 return
+	if (HidePlayer && HidePlayer != Interactor) return false;
+
+	if (!Interactor->IsLocallyControlled()) return false;
+
+	bCanInteract = bIsDetected;
+
+	UE_LOG(LogTemp, Log,
+		TEXT("InteractHideObject::CanInteract - %s | %s | Role: %s"),
+		bCanInteract ? TEXT("true") : TEXT("false"),
+		*Interactor->GetName(),
+		*UEnum::GetValueAsString(GetLocalRole()));
+
+	SetWidgetVisible(bCanInteract);
+
+	return bCanInteract;
 }
 
 void AInteractHideObject::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	UE_LOG(LogTemp, Warning, TEXT("InteractHideObject::OnInteractServer"));
 
-	Destroy();
-	// 플레이어가 들어있다는거 체크
+	//if (HidePlayer && HidePlayer != Interactor) return;
+
+	// 플레이어 컨트롤러 가져오기
+	APlayerController* PlayerController = CastChecked<APlayerController>(Interactor->GetController());
+	CamLogicServer(PlayerController);
 }
 
 void AInteractHideObject::OnInteractClient_Implementation(const APawn* Interactor)
 {
 	UE_LOG(LogTemp, Warning, TEXT("InteractHideObject::OnInteractClient"));
 
-	// 플레이어 카메라를 object 카메라로 돌리기
+	if (HasAuthority()) return;
+
+	if (!Interactor->IsLocallyControlled()) return;
+
+	// 플레이어 컨트롤러 가져오기
+	APlayerController* PlayerController = CastChecked<APlayerController>(Interactor->GetController());
+	CamLogicClient(PlayerController);
 }
 
-bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
+void AInteractHideObject::CamLogicServer(APlayerController* InteractorPC)
 {
-	UE_LOG(LogTemp, Warning, TEXT("InteractHideObject::CanInteract"));
+	// 서버에서 실행되는 코드
+	if (!HasAuthority()) return;
 
-	bCanInteract = bIsDetected;
-
-	if (Interactor->IsLocallyControlled())
+	if (!bIsInHideView)
 	{
-		SetWidgetVisible(bCanInteract);
-	}
+		EnterObject(InteractorPC);
 
-	return bCanInteract;
+		// 클라이언트에게 입력 비활성화 명령 전달
+		SetInputState(InteractorPC, true);
+
+		// 클라이언트에게 카메라 전환 명령 전달 (플레이어 캠 -> 오브젝트 캠)
+		SetViewTarget(InteractorPC, this);
+	}
+	else
+	{
+		ExitObject(InteractorPC);
+
+		// 클라이언트에게 입력 활성화 명령 전달
+		SetInputState(InteractorPC, false);
+
+		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
+		SetViewTarget(InteractorPC, PreviousViewTarget);
+	}
 }
+
+void AInteractHideObject::CamLogicClient(APlayerController* InteractorPC)
+{
+	if (!bIsInHideView)
+	{
+		// 클라이언트에게 입력 비활성화 명령 전달
+		SetInputState(InteractorPC, true);
+
+		// 클라이언트에게 카메라 전환 명령 전달 (플레이어 캠 -> 오브젝트 캠)
+		SetViewTarget(InteractorPC, this);
+	}
+	else
+	{
+		// 클라이언트에게 입력 활성화 명령 전달
+		SetInputState(InteractorPC, false);
+
+		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
+		SetViewTarget(InteractorPC, PreviousViewTarget);
+	}
+}
+
+void AInteractHideObject::EnterObject(APlayerController* InteractorPC)
+{
+	// 현재 뷰 타겟 저장
+	PreviousViewTarget = InteractorPC->GetViewTarget();
+
+	bIsInHideView = true;
+	HidePlayer = InteractorPC->GetPawn();
+}
+
+void AInteractHideObject::ExitObject(APlayerController* InteractorPC)
+{
+	bIsInHideView = false;
+	HidePlayer = nullptr;
+}
+
+void AInteractHideObject::SetInputState(APlayerController* InteractorPC, bool bIgnoreInput)
+{
+	if (InteractorPC && InteractorPC->IsLocalController())
+	{
+		InteractorPC->SetIgnoreMoveInput(bIgnoreInput);
+		InteractorPC->SetIgnoreLookInput(bIgnoreInput);
+
+		UE_LOG(LogTemp, Log, TEXT("Client: SetIgnoreInput called with value: %s"),
+			bIgnoreInput ? TEXT("True") : TEXT("False"));
+	}
+}
+
+void AInteractHideObject::SetViewTarget(APlayerController* InteractorPC, AActor* NewViewTarget)
+{
+	if (!InteractorPC->IsLocalController()) return;
+
+	//ULocalPlayer* LocalPlayer = InteractorPC->GetLocalPlayer();
+	//UE_LOG(LogTemp, Log, TEXT("LocalPlayer = %s"), *LocalPlayer->GetName());
+
+	if (InteractorPC && NewViewTarget)
+	{
+		InteractorPC->SetViewTargetWithBlend(NewViewTarget, CameraBlendTime);
+
+		UE_LOG(LogTemp, Log, TEXT("Client: SetViewTarget called with actor: %s"),
+			*NewViewTarget->GetName());
+	}
+}
+

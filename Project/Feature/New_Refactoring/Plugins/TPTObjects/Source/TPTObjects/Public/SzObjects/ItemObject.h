@@ -4,62 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "SzObjects/BaseObject.h"
-#include "Engine/DataTable.h"
+#include "SzInterface/Interact.h"
 #include "ItemObject.generated.h"
 
-// 아이템 타입 열거형
-UENUM(BlueprintType)
-enum class EItemType : uint8
-{
-    Consumable  UMETA(DisplayName = "Consumable"),
-    Holdable   UMETA(DisplayName = "Inventory Item"),
-    None        UMETA(DisplayName = "None"),
-};
-
-USTRUCT(BlueprintType)
-struct TPTOBJECTS_API FInventoryItem : public FTableRowBase
-{
-    GENERATED_USTRUCT_BODY()
-
-public:
-    FInventoryItem()
-    {
-        ID = 0;
-        Name = FString("");
-        Description = FString("");
-        ItemType = EItemType::None;
-        ItemIcon = nullptr;
-        ItemMesh = nullptr;
-    }
-
-    // 아이템 고유 ID
-    UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, meta = (DisplayName = "ID"))
-    int32 ID;
-
-    // 아이템 이름
-    UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, meta = (DisplayName = "Name"))
-    FString Name;
-
-    // 아이템 설명
-    UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, meta = (MultiLine = "true", DisplayName = "Description"))
-    FString Description;
-
-    // 아이템 타입
-    UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, SaveGame, meta = (DisplayName = "ItemType"))
-    EItemType ItemType;
-
-    // 아이템 아이콘 (UI용)
-    UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, meta = (DisplayName = "ItemIcon"))
-    UTexture2D* ItemIcon;
-
-    // 아이템 메시 (월드 배치용)
-    UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, meta = (DisplayName = "ItemMesh"))
-    UStaticMesh* ItemMesh;
-};
-
-
 UCLASS()
-class TPTOBJECTS_API AItemObject : public ABaseObject
+class TPTOBJECTS_API AItemObject : public ABaseObject, public IInteract
 {
 	GENERATED_BODY()
 	
@@ -67,6 +16,22 @@ public:
 	AItemObject();
 
 protected:
+    virtual void BeginPlay() override;
+
+public:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+    virtual bool CanInteract_Implementation(const APawn* Interactor, bool bIsDetected) override;
+    virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
+    virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
+
+    // 자식클래스 혹은 블루프린트에서 동작을 구현할 수 있도록 선언(서버용)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "ItemObject")
+	void UseItemEffectServer();
+	virtual void UseItemEffectServer_Implementation();
+
+    // (Client용)
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "ItemObject")
+	void UseItemEffectClient();
+	virtual void UseItemEffectClient_Implementation();
 };
