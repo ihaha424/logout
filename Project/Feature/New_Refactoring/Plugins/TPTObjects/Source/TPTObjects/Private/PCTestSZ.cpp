@@ -2,6 +2,7 @@
 
 
 #include "PCTestSZ.h"
+#include "Net/UnrealNetwork.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -31,7 +32,7 @@ void APCTestSZ::SetupInputComponent()
         }
         else
         {
-            UE_LOG(LogTemp, Warning, TEXT("Enhanced Input X"));
+            UE_LOG(LogTemp, Error, TEXT("Enhanced Input X"));
         }
     }
     else
@@ -44,15 +45,18 @@ void APCTestSZ::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+    APawn* MyPawn = GetPawn();
+    if (!MyPawn) return;
+
+    if (APlayerController* PC = Cast<APlayerController>(MyPawn->Controller))
     {
-        if (DefaultMappingContext)
+        if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
         {
             Subsystem->AddMappingContext(DefaultMappingContext, 0);
         }
         else
         {
-            UE_LOG(LogTemp, Warning, TEXT("Enhanced Input X"));
+            UE_LOG(LogTemp, Error, TEXT("Enhanced Input X"));
         }
     }
 }
@@ -61,40 +65,60 @@ void APCTestSZ::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
+    APawn* playerPawn = GetPawn();
+    if (!playerPawn) return;
+
+    // 1. 가장 가까운 인터랙터블 액터 찾기
     FindNearestInteractableActor();
+
+    // 2. 이전과 현재가 다르면 상태 변경
+    UpdateInteractableActorState(playerPawn);
+
+#if WITH_EDITOR
+    if (NearestInteractableActor)
+    {
+        DrawDebugSphere(
+            GetWorld(),
+            NearestInteractableActor->GetActorLocation(),
+            100.0f,
+            12,
+            FColor::Green,
+            false,
+            -1.0f,
+            0,
+            1.0f
+        );
+    }
+#endif
 }
 
 void APCTestSZ::HandleInteractionInput()
 {
-    if (NearestInteractableActor)
+    if (NearestInteractableActor && NearestInteractableActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
     {
-        if (NearestInteractableActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
-        {
-            APawn* playerPawn = GetPawn();
+        APawn* playerPawn = GetPawn();
 
-            if (playerPawn && IInteract::Execute_CanInteract(NearestInteractableActor, playerPawn, true))
-            {
-                IInteract::Execute_OnInteractServer(NearestInteractableActor, playerPawn);
-            }
+        if (playerPawn && IInteract::Execute_CanInteract(NearestInteractableActor, playerPawn, true))
+        {
+            C2S_Interact(NearestInteractableActor);
+            IInteract::Execute_OnInteractClient(NearestInteractableActor, playerPawn);
         }
     }
 }
 
 void APCTestSZ::FindNearestInteractableActor()
 {
-    NearestInteractableActor = nullptr;
     float ClosestDistance = InteractionDistance;
+    AActor* CurrNearActor = nullptr;
 
-    FVector PlayerLocation = GetPawn()->GetActorLocation();
+    APawn* playerPawn = GetPawn();
+    if (!playerPawn) return;
+
+    FVector PlayerLocation = playerPawn->GetActorLocation();
 
     TArray<AActor*> FoundActors;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), FoundActors);
 
-    APawn* playerPawn = GetPawn();
-
-    if (!playerPawn) return;
-
-    // 1. 가장 가까운 인터랙터블 액터 찾기
     for (AActor* Actor : FoundActors)
     {
         if (Actor && Actor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
@@ -103,35 +127,95 @@ void APCTestSZ::FindNearestInteractableActor()
             if (Distance < ClosestDistance)
             {
                 ClosestDistance = Distance;
-                NearestInteractableActor = Actor;
+                CurrNearActor = Actor;
             }
         }
     }
 
-    // 2. 모든 Actor에 대해 CanInteract 호출
-    for (AActor* Actor : FoundActors)
+    NearestInteractableActor = CurrNearActor;
+}
+
+
+void APCTestSZ::UpdateInteractableActorState(APawn* playerPawn)
+{
+    if (PreviousInteractableActor != NearestInteractableActor)
     {
-        if (Actor && Actor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
+        // 이전 액터의 위젯 끄기
+        if (PreviousInteractableActor && PreviousInteractableActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
         {
-            bool bIsNearest = (Actor == NearestInteractableActor);
-            IInteract::Execute_CanInteract(Actor, playerPawn, bIsNearest);
+            if (HasAuthority())
+            {
+                UE_LOG(LogTemp, Log, TEXT("Prev Actor( %s ) Visible False [HasAuthority] | %s | Role: %s"),
+                    *PreviousInteractableActor->GetName(),
+                    *GetName(),
+                    *UEnum::GetValueAsString(GetLocalRole()));
+
+                IInteract::Execute_CanInteract(PreviousInteractableActor, playerPawn, false);
+            }
+            else
+            {
+                UE_LOG(LogTemp, Log, TEXT("Previous Actor( %s ) Visible False | %s | Role: %s"),
+                    *PreviousInteractableActor->GetName(),
+                    *GetName(),
+                    *UEnum::GetValueAsString(GetLocalRole()));
+                
+                C2S_CanInteract(PreviousInteractableActor, false);
+            }
         }
+
+        // 현재 액터의 위젯 켜기
+        if (NearestInteractableActor && NearestInteractableActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
+        {
+            if (HasAuthority())
+            {
+                UE_LOG(LogTemp, Log, TEXT("Curr Actor( %s ) Visible True [HasAuthority] | %s | Role: %s"),
+                    *NearestInteractableActor->GetName(),
+                    *GetName(),
+                    *UEnum::GetValueAsString(GetLocalRole()));
+
+                IInteract::Execute_CanInteract(NearestInteractableActor, playerPawn, true);
+            }
+            else
+            {
+                UE_LOG(LogTemp, Log, TEXT("Curr Actor( %s ) Visible True | %s | Role: %s"),
+                    *NearestInteractableActor->GetName(),
+                    *GetName(),
+                    *UEnum::GetValueAsString(GetLocalRole()));
+
+                C2S_CanInteract(NearestInteractableActor, true);
+            }
+        }
+
+        PreviousInteractableActor = NearestInteractableActor;
+    }
+}
+
+void APCTestSZ::C2S_Interact_Implementation(UObject* interact)
+{
+    if (nullptr == interact)
+    {
+        return;
     }
 
-//#if WITH_EDITOR
-//    if (NearestInteractableActor)
-//    {
-//        DrawDebugSphere(
-//            GetWorld(),
-//            NearestInteractableActor->GetActorLocation(),
-//            100.0f,
-//            12,
-//            FColor::Green,
-//            false,
-//            -1.0f,
-//            0,
-//            1.0f
-//        );
-//    }
-//#endif
+    APawn* playerPawn = GetPawn();
+
+    if (interact->GetClass()->ImplementsInterface(UInteract::StaticClass()))
+    {
+        IInteract::Execute_OnInteractServer(interact, playerPawn);
+    }
+}
+
+void APCTestSZ::C2S_CanInteract_Implementation(UObject* interact, bool bIsNearest)
+{
+    if (nullptr == interact)
+    {
+        return;
+    }
+
+    APawn* playerPawn = GetPawn();
+
+    if (interact->GetClass()->ImplementsInterface(UInteract::StaticClass()))
+    {
+        IInteract::Execute_CanInteract(interact, playerPawn, bIsNearest);
+    }
 }

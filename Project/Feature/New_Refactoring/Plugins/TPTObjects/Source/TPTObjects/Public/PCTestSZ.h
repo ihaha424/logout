@@ -25,7 +25,10 @@ public:
     TObjectPtr<class UInputAction> InteractAction;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
-    TObjectPtr<class AActor> NearestInteractableActor;
+    TObjectPtr<class AActor> NearestInteractableActor = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
+    TObjectPtr<class AActor> PreviousInteractableActor = nullptr;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interaction")
     float InteractionDistance = 200.0f;
@@ -36,6 +39,15 @@ protected:
     virtual void Tick(float DeltaTime) override;
 
     void HandleInteractionInput();
-
     void FindNearestInteractableActor();
+    void UpdateInteractableActorState(APawn* playerPawn);
+
+	// NetWork
+	UFUNCTION(Server, Reliable)
+	void C2S_Interact(UObject* interact);
+	void C2S_Interact_Implementation(UObject* interact);
+
+    UFUNCTION(Server, Reliable)
+    void C2S_CanInteract(UObject* interact, bool bIsNearest);
+    void C2S_CanInteract_Implementation(UObject* interact, bool bIsNearest);
 };

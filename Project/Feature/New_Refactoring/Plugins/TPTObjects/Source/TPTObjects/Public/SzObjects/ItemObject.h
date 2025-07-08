@@ -66,4 +66,7 @@ class TPTOBJECTS_API AItemObject : public ABaseObject
 public:
 	AItemObject();
 
+protected:
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 };
