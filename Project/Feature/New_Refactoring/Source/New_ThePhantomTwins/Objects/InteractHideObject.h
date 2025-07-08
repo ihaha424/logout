@@ -38,10 +38,20 @@ protected:
 	void SetInputState(APlayerController* InteractorPC, bool bIgnoreInput);		// 입력 제어를 위한 함수
 	void SetViewTarget(APlayerController* InteractorPC, AActor* NewViewTarget); // 카메라 전환을 위한 함수
 
+
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_PlayEffect(APlayerController* InteractorPC);
+	void S2A_PlayEffect_Implementation(APlayerController* InteractorPC);
+
+	void OnEffectFinished(class UNiagaraComponent* PSystem);
+
 public:
 	// 카메라
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HideObject | Camera")
 	TObjectPtr<class UCameraComponent> HideCameraComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HideObject | Effects")
+	TObjectPtr<class UNiagaraComponent> HideEffectComp;
 
 	// 블렌드 시간 설정
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Camera")
@@ -58,4 +68,6 @@ public:
 	// 숨는 Player
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HideObject", Replicated)
 	TObjectPtr <AActor> HidePlayer = nullptr;
+
+
 };

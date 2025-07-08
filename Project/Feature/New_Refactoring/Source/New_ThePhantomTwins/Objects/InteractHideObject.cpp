@@ -2,7 +2,9 @@
 #include "InteractHideObject.h"
 #include "Net/UnrealNetwork.h"
 #include "Camera/CameraComponent.h"
-
+#include "NiagaraComponent.h" 
+#include "Engine/World.h"
+#include "TimerManager.h"
 
 AInteractHideObject::AInteractHideObject() : ABaseObject()
 {
@@ -14,11 +16,22 @@ AInteractHideObject::AInteractHideObject() : ABaseObject()
 	HideCameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("HideCamComponent"));
 	HideCameraComp->SetupAttachment(RootSceneComp);
 
+	// Effect
+	HideEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("HideEffectComponent"));
+	HideEffectComp->SetupAttachment(RootComponent);
+
 }
 
 void AInteractHideObject::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (HideEffectComp)
+	{
+		HideEffectComp->SetActive(false);
+		HideEffectComp->SetVisibility(false);
+		HideEffectComp->OnSystemFinished.AddDynamic(this, &AInteractHideObject::OnEffectFinished);
+	}
 
 }
 
@@ -59,6 +72,9 @@ void AInteractHideObject::OnInteractServer_Implementation(const APawn* Interacto
 
 	// 플레이어 컨트롤러 가져오기
 	APlayerController* PlayerController = CastChecked<APlayerController>(Interactor->GetController());
+	
+	S2A_PlayEffect(PlayerController);
+
 	CamLogicServer(PlayerController);
 }
 
@@ -153,9 +169,6 @@ void AInteractHideObject::SetViewTarget(APlayerController* InteractorPC, AActor*
 {
 	if (!InteractorPC->IsLocalController()) return;
 
-	//ULocalPlayer* LocalPlayer = InteractorPC->GetLocalPlayer();
-	//UE_LOG(LogTemp, Log, TEXT("LocalPlayer = %s"), *LocalPlayer->GetName());
-
 	if (InteractorPC && NewViewTarget)
 	{
 		InteractorPC->SetViewTargetWithBlend(NewViewTarget, CameraBlendTime);
@@ -165,3 +178,21 @@ void AInteractHideObject::SetViewTarget(APlayerController* InteractorPC, AActor*
 	}
 }
 
+void AInteractHideObject::S2A_PlayEffect_Implementation(APlayerController* InteractorPC)
+{
+	if (HideEffectComp)
+	{
+		// 이펙트 활성화 및 보이게 설정
+		HideEffectComp->SetActive(false);
+		HideEffectComp->SetVisibility(false);
+	}
+}
+
+void AInteractHideObject::OnEffectFinished(UNiagaraComponent* PSystem)
+{
+	if (HideEffectComp)
+	{
+		HideEffectComp->SetActive(false);
+		HideEffectComp->SetVisibility(false);
+	}
+}

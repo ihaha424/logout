@@ -20,7 +20,8 @@ public class New_ThePhantomTwins : ModuleRules
             "TPTObjects",
             "NavigationSystem",
             "Sockets",
-            "Networking"
+            "Networking",
+            "Niagara"
         });
 
         PrivateDependencyModuleNames.AddRange(new string[] {  });
