@@ -43,7 +43,7 @@ protected:
 	void S2A_PlayEffect(APlayerController* InteractorPC);
 	void S2A_PlayEffect_Implementation(APlayerController* InteractorPC);
 
-	void OnEffectFinished(class UNiagaraComponent* PSystem);
+	void OnEffectFinished();
 
 public:
 	// Ä«¸Þ¶ó

@@ -30,7 +30,7 @@ void AInteractHideObject::BeginPlay()
 	{
 		HideEffectComp->SetActive(false);
 		HideEffectComp->SetVisibility(false);
-		HideEffectComp->OnSystemFinished.AddDynamic(this, &AInteractHideObject::OnEffectFinished);
+		//HideEffectComp->OnSystemFinished.AddDynamic(this, &AInteractHideObject::OnEffectFinished);
 	}
 
 }
@@ -183,12 +183,22 @@ void AInteractHideObject::S2A_PlayEffect_Implementation(APlayerController* Inter
 	if (HideEffectComp)
 	{
 		// 이펙트 활성화 및 보이게 설정
-		HideEffectComp->SetActive(false);
-		HideEffectComp->SetVisibility(false);
+		HideEffectComp->SetActive(true);
+		HideEffectComp->SetVisibility(true);
+
+		// 3초 후에 이펙트 비활성화 및 숨기기
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(
+			TimerHandle,
+			this,
+			&AInteractHideObject::OnEffectFinished,
+			3.0f,
+			false
+		);
 	}
 }
 
-void AInteractHideObject::OnEffectFinished(UNiagaraComponent* PSystem)
+void AInteractHideObject::OnEffectFinished()
 {
 	if (HideEffectComp)
 	{
