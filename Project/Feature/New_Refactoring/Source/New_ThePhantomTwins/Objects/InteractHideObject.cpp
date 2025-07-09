@@ -80,11 +80,11 @@ void AInteractHideObject::OnInteractServer_Implementation(const APawn* Interacto
 
 void AInteractHideObject::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("InteractHideObject::OnInteractClient"));
-
 	if (HasAuthority()) return;
 
 	if (!Interactor->IsLocallyControlled()) return;
+
+	SetWidgetVisible(false);
 
 	// 플레이어 컨트롤러 가져오기
 	APlayerController* PlayerController = CastChecked<APlayerController>(Interactor->GetController());

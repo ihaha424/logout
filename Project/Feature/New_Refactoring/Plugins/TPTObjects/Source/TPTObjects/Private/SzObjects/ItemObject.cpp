@@ -42,24 +42,20 @@ bool AItemObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDe
 
 void AItemObject::OnInteractServer_Implementation(const APawn* Interactor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AItemObject::OnInteractServer"));
-
 	UseItemEffectServer();
 }
 
 void AItemObject::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AItemObject::OnInteractClient"));
-	
+	SetWidgetVisible(false);
+
 	UseItemEffectClient();
 }
 
 void AItemObject::UseItemEffectServer_Implementation()
 {
-	UE_LOG(LogTemp, Log, TEXT("AItemObject::UseItemEffect Server"));
 }
 
 void AItemObject::UseItemEffectClient_Implementation()
 {
-	UE_LOG(LogTemp, Log, TEXT("AItemObject::UseItemEffect Client"));
 }
