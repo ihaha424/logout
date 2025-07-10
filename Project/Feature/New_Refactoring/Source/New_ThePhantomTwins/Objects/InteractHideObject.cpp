@@ -6,10 +6,8 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 
-AInteractHideObject::AInteractHideObject() : ABaseObject()
+AInteractHideObject::AInteractHideObject() : AStaticObject()
 {
-	bReplicates = true;
-
 	MeshComp->SetCollisionProfileName(TEXT("BlockAll"));
 
 	// Camera

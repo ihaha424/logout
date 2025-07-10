@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SzObjects/BaseObject.h"
+#include "SzObjects/StaticObject.h"
 #include "SzInterface/Interact.h"
 #include "SzObjects/ObjectState.h"
 #include "InteractHideObject.generated.h"
@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class NEW_THEPHANTOMTWINS_API AInteractHideObject : public ABaseObject, public IInteract
+class NEW_THEPHANTOMTWINS_API AInteractHideObject : public AStaticObject, public IInteract
 {
 	GENERATED_BODY()
 
