@@ -62,7 +62,7 @@ EBTNodeResult::Type UBTT_PatrolSplineRoute::ExecuteTask(UBehaviorTreeComponent& 
 
 	FPathFollowingRequestResult MoveResult = AIController->MoveTo(MoveRequest);
 
-	return (MoveResult == EPathFollowingRequestResult::RequestSuccessful) ?
+	return (MoveResult == EPathFollowingRequestResult::RequestSuccessful || MoveResult == EPathFollowingRequestResult::AlreadyAtGoal) ?
 		EBTNodeResult::InProgress :
 		EBTNodeResult::Failed;
 }

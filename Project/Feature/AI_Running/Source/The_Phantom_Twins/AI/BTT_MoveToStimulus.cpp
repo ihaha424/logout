@@ -98,6 +98,7 @@ void UBTT_MoveToStimulus::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
     FBTMoveToStimulusMemory* MyMemory = (FBTMoveToStimulusMemory*)NodeMemory;
     if (!MyMemory->bPathValid)
     {
+        //UE_LOG(LogTemp, Error, TEXT("rkddlsrbrpdl Failed Failed"));
         FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
         return;
     }
@@ -126,7 +127,7 @@ void UBTT_MoveToStimulus::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
         {
             BlackboardComp->ClearValue("PlayerStimulusLocation");
             BlackboardComp->ClearValue("UpdatedStimulusLocation");
-           // UE_LOG(LogTemp, Error, TEXT("rkddlsrbrpdl Succ"));
+            //UE_LOG(LogTemp, Error, TEXT("rkddlsrbrpdl Succ"));
             FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
         }
         else
@@ -134,7 +135,7 @@ void UBTT_MoveToStimulus::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
             // 목표 지점에 도달하지 못했다면 실패 처리
             BlackboardComp->ClearValue("PlayerStimulusLocation");
             BlackboardComp->ClearValue("UpdatedStimulusLocation");
-           // UE_LOG(LogTemp, Error, TEXT("rkddlsrbrpdl Fail: %f"), DistanceToGoal);
+            //UE_LOG(LogTemp, Error, TEXT("rkddlsrbrpdl Fail: %f"), DistanceToGoal);
             BlackboardComp->SetValueAsEnum(TEXT("AIState"), static_cast<uint8>(EMyAIState::Default));
             FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
         }
@@ -146,6 +147,7 @@ void UBTT_MoveToStimulus::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint
     AMyAIController* MyAIController = Cast<AMyAIController>(OwnerComp.GetAIOwner());
     if (MyAIController)
     {
+        UE_LOG(LogTemp, Error, TEXT("OnTaskFinished %d"), TaskResult == EBTNodeResult::Failed);
         MyAIController->StopMovement();
 
         if (TaskResult == EBTNodeResult::Failed)

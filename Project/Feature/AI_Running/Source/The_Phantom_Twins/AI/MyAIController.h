@@ -30,6 +30,7 @@ public:
 	void StopAI();
 	virtual void Tick(float DeltaTime) override;
 	void ResetStimulus();
+	void SetSightForgetTime(float SightForgetTime);
 
 protected:
 	virtual void BeginPlay() override;
@@ -44,6 +45,14 @@ protected:
 	ASplinePathActor* FindNearestSplinePath(const FVector& StimulusLocation);
 	void CalculateSoundStimulus(FName Tag);
 
+
+
+	// 비헤이비어 트리와 블랙보드
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+	TObjectPtr<UBehaviorTree> BTAI;
+	UPROPERTY()
+	TObjectPtr<UBlackboardData> BBAI;
+
 private:
 	UPROPERTY(VisibleAnywhere, Category = "AI")
 	TObjectPtr<UAIPerceptionComponent> AIPerception;
@@ -55,12 +64,6 @@ private:
 	float HearingMaxPoint = 100;
 	UPROPERTY(EditAnywhere, Category = "AI")
 	float SightMaxTime = 1.1f;
-
-	// 비헤이비어 트리와 블랙보드
-	UPROPERTY()
-	TObjectPtr<UBehaviorTree> BTAI;
-	UPROPERTY()
-	TObjectPtr<UBlackboardData> BBAI;
 
 	UPROPERTY()
 	bool bSeeingPlayer = false;

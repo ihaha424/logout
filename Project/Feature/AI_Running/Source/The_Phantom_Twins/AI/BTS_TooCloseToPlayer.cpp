@@ -41,7 +41,11 @@ void UBTS_TooCloseToPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
         APlayerBase* Player = Cast<APlayerBase>(PC->GetPawn());
         if (!Player) continue;
 
-        float Distance = FVector::Dist(AIPawn->GetActorLocation(), Player->GetActorLocation());
+        FVector MyLocation = AIPawn->GetActorLocation();
+        FVector TargetLocation = Player->GetActorLocation();
+        MyLocation.Z = 0;
+        TargetLocation.Z = 0;
+        float Distance = FVector::Dist(MyLocation, TargetLocation);
         if (Distance < ClosestDistance)
         {
             ClosestDistance = Distance;
@@ -56,5 +60,6 @@ void UBTS_TooCloseToPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
     {
     	BB->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Combat));
         BB->SetValueAsObject("ChasingPlayer", ClosestPlayerPawn);
+        AIController->SetSightForgetTime(3.f);
     }
 }

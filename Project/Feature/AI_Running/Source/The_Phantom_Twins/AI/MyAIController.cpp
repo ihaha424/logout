@@ -22,17 +22,6 @@
 
 AMyAIController::AMyAIController()
 {
-	static ConstructorHelpers::FObjectFinder<UBlackboardData> BBAIRef(TEXT("/Script/AIModule.BlackboardData'/Game/Temp/BB_AI.BB_AI'"));
-	if (BBAIRef.Object != nullptr)
-	{
-		BBAI = BBAIRef.Object;
-	}
-	static ConstructorHelpers::FObjectFinder<UBehaviorTree> BTAIRef(TEXT("/Script/AIModule.BehaviorTree'/Game/Temp/BT_AI.BT_AI'"));
-	if (BTAIRef.Object != nullptr)
-	{
-		BTAI = BTAIRef.Object;
-	}
-
 	AIPerception = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
 
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
@@ -61,16 +50,29 @@ AMyAIController::AMyAIController()
 void AMyAIController::BeginPlay()
 { 
 	Super::BeginPlay();
-	UBlackboardComponent* BBComponent = Blackboard.Get();
-	if (UseBlackboard(BBAI, BBComponent))
-	{
-		Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
-	}
 }
 
 void AMyAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
+
+	if (!BTAI)
+	{
+		UE_LOG(LogTemp, Error, TEXT("BTAI is nullptr! Make sure it's set in the Controller BP."));
+		ensure(false);
+		return;
+	}
+
+	BBAI = BTAI->GetBlackboardAsset();
+	UBlackboardComponent* BBComponent = Blackboard.Get();
+	if (bool Result = UseBlackboard(BBAI, BBComponent))
+	{
+		Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Default));
+	}
+	else
+	{
+		ensure(Result);
+	}
 	RunAI();
 }
 
@@ -104,7 +106,7 @@ void AMyAIController::Tick(float DeltaTime)
 		if (SeenDuration >= SightMaxTime)
 		{
 			uint8 CurrentState = Blackboard->GetValueAsEnum("AIState");
-			if (CurrentState != static_cast<uint8>(EMyAIState::Combat))
+			if (CurrentState != static_cast<uint8>(EMyAIState::Combat) && CurrentState != static_cast<uint8>(EMyAIState::Hacked))
 			{
 				Blackboard->SetValueAsEnum("AIState", static_cast<uint8>(EMyAIState::Combat));
 				//UE_LOG(LogTemp, Warning, TEXT("This is FOR Sight Stimulus Target"));
@@ -129,7 +131,7 @@ void AMyAIController::Tick(float DeltaTime)
 	/*지금 문제가 시야자극에서 갱신이 안되기 떄문에..*/
 	AMyAICharacter* MyAICharacter = Cast<AMyAICharacter>(GetPawn());
 	// 전투상태 중이었는데 보이는것도 들리는것도 없으면 해제 하기.
-	if(CurrentState == static_cast<uint8>(EMyAIState::Combat)&& !bStillSeeing && HearingStimulus.IsEmpty())
+	if(CurrentState == static_cast<uint8>(EMyAIState::Combat) && !bStillSeeing && HearingStimulus.IsEmpty())
 	{
 		// 감지 시간이 모두 만료되었으면 상태 초기화
 		SightStartTime = -1.0f;
@@ -340,7 +342,7 @@ void AMyAIController::CalculateSoundStimulus(FName Tag)
 	float NoiseStrength = 0;
 	if (Tag == "PlayerRun")
 	{
-		NoiseStrength = 10.0f;
+		NoiseStrength = 50.0f;
 	}
 	else if (Tag == "PlayerWalk")
 	{
@@ -358,4 +360,9 @@ void AMyAIController::CalculateSoundStimulus(FName Tag)
 
 	//UE_LOG(LogTemp, Warning, TEXT(" HearingStrength : %f"), Blackboard->GetValueAsFloat(TEXT("HearingStimulusStack")));
 
+}
+
+void AMyAIController::SetSightForgetTime(float sightForgetTime)
+{
+	SightStartTime = sightForgetTime;
 }

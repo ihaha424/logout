@@ -20,6 +20,7 @@ public:
 protected:
 	virtual bool CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
 
+
 	// BT 에디터에서 선택할 수 있게 Enum Property 추가 (옵션)
 	UPROPERTY(EditAnywhere, Category = "Condition")
 	EMyAIState AIState;
