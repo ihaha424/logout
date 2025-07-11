@@ -39,7 +39,7 @@ void AInteractableObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-    DOREPLIFETIME(AInteractableObject, bActived);
+    DOREPLIFETIME(AInteractableObject, bIsActived);
 }
 
 bool AInteractableObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
@@ -72,4 +72,9 @@ void AInteractableObject::OnInteractClient_Implementation(const APawn* Interacto
 void AInteractableObject::SetWidgetVisible(bool bVisible)
 {
     InteractWidgetComp->SetVisibility(bVisible);
+}
+
+void AInteractableObject::OnRep_bIsActived()
+{
+
 }

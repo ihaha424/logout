@@ -30,7 +30,7 @@ public:
 	virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
 
 protected:
-    // 연결된 객체들(예: 레버)이 모두 활성화되었는지 확인
+    // trigger들이 모두 활성화되었는지 확인 (AInteractableObject의 bActived를 사용하는게 아니라면 override해서 작성)
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "ADoor")
 	bool AreAllTriggerActived() const;
 	bool AreAllTriggerActived_Implementation() const;

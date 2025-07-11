@@ -36,6 +36,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")
 	TSubclassOf<class UUserWidget> InteractWidgetClass;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject", Replicated)
-	bool bActived = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject", ReplicatedUsing = OnRep_bIsActived)
+	bool bIsActived = false;
+
+	UFUNCTION()
+	virtual void OnRep_bIsActived();
 };

@@ -115,7 +115,7 @@ bool ADoor::AreAllTriggerActived_Implementation() const
 	{
 		AInteractableObject* RequiredTrigger = Cast<AInteractableObject>(trigger);
 
-		if (RequiredTrigger && RequiredTrigger->bActived)
+		if (RequiredTrigger && RequiredTrigger->bIsActived)
 		{
 			triggerActive++;
 		}
