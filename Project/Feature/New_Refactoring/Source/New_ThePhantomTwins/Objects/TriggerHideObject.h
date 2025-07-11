@@ -3,12 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
-#include "SzObjects/ObjectState.h"
+#include "SzObjects/BaseObject.h"
 #include "TriggerHideObject.generated.h"
 
 UCLASS()
-class NEW_THEPHANTOMTWINS_API ATriggerHideObject : public AActor
+class NEW_THEPHANTOMTWINS_API ATriggerHideObject : public ABaseObject
 {
 	GENERATED_BODY()
 	
@@ -19,6 +18,8 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	UFUNCTION()
     void OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
 
@@ -31,24 +32,15 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | AI")
     TObjectPtr<class UAIPerceptionStimuliSourceComponent> StimuliSource;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Components")
-	TObjectPtr<class USceneComponent> RootSceneComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Components")
-	TObjectPtr<class UStaticMeshComponent> MeshComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Components")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | AI")
 	TObjectPtr<class USphereComponent> SphereCollisionComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Components")
-	TObjectPtr<class UOutlineComponent> OutlineComp;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Hide")
 	TObjectPtr<class UBoxComponent> BoxTriggerComp;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Hide")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Hide", Replicated)
 	bool bHasPlayer = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Hide")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Hide", Replicated)
 	int32 HidePlayerNum = 0;
 };

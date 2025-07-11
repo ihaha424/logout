@@ -6,10 +6,16 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 
-AInteractHideObject::AInteractHideObject() : AStaticObject()
-{
-	MeshComp->SetCollisionProfileName(TEXT("BlockAll"));
+#include "Components/SphereComponent.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Sight.h"
+#include "Perception/AISenseConfig_Sight.h"
+#include "Perception/AISense_Hearing.h"
+#include "Perception/AISenseConfig_Hearing.h"
 
+
+AInteractHideObject::AInteractHideObject() : AInteractableObject()
+{
 	// Camera
 	HideCameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("HideCamComponent"));
 	HideCameraComp->SetupAttachment(RootSceneComp);
@@ -17,6 +23,18 @@ AInteractHideObject::AInteractHideObject() : AStaticObject()
 	// Effect
 	HideEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("HideEffectComponent"));
 	HideEffectComp->SetupAttachment(RootComponent);
+
+	// AIPerception과 player안의 sphere만 감지하는 Object
+	SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
+	SphereCollisionComp->SetupAttachment(RootSceneComp);
+	SphereCollisionComp->SetSphereRadius(50.0f);
+	SphereCollisionComp->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
+
+	/// AI Perception
+	StimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource"));
+	StimuliSource->bAutoRegister = true;
+	StimuliSource->RegisterForSense(UAISense_Sight::StaticClass());
+	StimuliSource->RegisterForSense(UAISense_Hearing::StaticClass());
 
 }
 

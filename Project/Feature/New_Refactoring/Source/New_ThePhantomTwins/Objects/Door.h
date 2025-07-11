@@ -3,15 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SzObjects/StaticObject.h"
-#include "SzInterface/Interact.h"
+#include "SzObjects/InteractableObject.h"
 #include "Door.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class NEW_THEPHANTOMTWINS_API ADoor : public AStaticObject, public IInteract
+class NEW_THEPHANTOMTWINS_API ADoor : public AInteractableObject
 {
 	GENERATED_BODY()
 
@@ -42,17 +41,17 @@ protected:
     void S2A_OpenDoor_Implementation();
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | ObjectWidget")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")
 	TObjectPtr<class UWidgetComponent> LockWidgetComp;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | ObjectWidget")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")
 	TSubclassOf<class UUserWidget> LockWidgetClass;
 
 	// 문이 열리기 위해 필요한 Actor 목록 (제거)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
-	TArray<AActor*> Triggers;	// RequiredList
+	TArray<AActor*> RequiredList;
 
-	// 필요 활성화 수 (0이면 Triggers의 전체 수가 기본값)
+	// 필요 활성화 수 (0이면 RequiredList의 전체 수가 기본값)
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
-    int32 NeededActive = 0;	// MinRequiredCount
+    int32 MinRequiredCount = 0;
 };

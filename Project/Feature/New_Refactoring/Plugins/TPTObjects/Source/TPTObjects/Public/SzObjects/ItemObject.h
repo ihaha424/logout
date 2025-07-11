@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SzObjects/BaseObject.h"
+#include "SzObjects/InteractableObject.h"
 #include "SzInterface/Interact.h"
 #include "ItemObject.generated.h"
 
 UCLASS()
-class TPTOBJECTS_API AItemObject : public ABaseObject, public IInteract
+class TPTOBJECTS_API AItemObject : public AInteractableObject
 {
 	GENERATED_BODY()
 	
@@ -21,7 +21,6 @@ protected:
 public:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-    virtual bool CanInteract_Implementation(const APawn* Interactor, bool bIsDetected) override;
     virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
     virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
 

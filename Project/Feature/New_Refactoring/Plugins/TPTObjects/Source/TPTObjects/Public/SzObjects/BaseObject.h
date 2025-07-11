@@ -15,35 +15,14 @@ public:
 	ABaseObject();
 
 protected:
-	virtual void BeginPlay() override;
-
-	UFUNCTION(BlueprintCallable, Category = "BaseObject")
-	virtual void SetWidgetVisible(bool bVisible);
+	//virtual void BeginPlay() override;
 
 public:	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | Components")
 	TObjectPtr<class USceneComponent> RootSceneComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | Components")
-	TObjectPtr<class UStaticMeshComponent> MeshComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | Components")
-	TObjectPtr<class USphereComponent> SphereCollisionComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | Components")
 	TObjectPtr<class UOutlineComponent> OutlineComp;
-
-
-	// 가까운 오브젝트 확인용 위젯
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | ObjectWidget")
-	TObjectPtr<class UWidgetComponent> NearWidgetComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | ObjectWidget")
-	TSubclassOf<class UUserWidget> NearWidgetClass;
-	
-    // AI percrption(적이 사용)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | AI")
-    TObjectPtr<class UAIPerceptionStimuliSourceComponent> StimuliSource;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject")
 	bool bCanInteract = true;

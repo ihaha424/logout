@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SzObjects/StaticObject.h"
+#include "SzObjects/InteractableObject.h"
 #include "SzInterface/Interact.h"
 #include "SzObjects/ObjectState.h"
 #include "InteractHideObject.generated.h"
@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class NEW_THEPHANTOMTWINS_API AInteractHideObject : public AStaticObject, public IInteract
+class NEW_THEPHANTOMTWINS_API AInteractHideObject : public AInteractableObject
 {
 	GENERATED_BODY()
 
@@ -46,6 +46,13 @@ protected:
 	void OnEffectFinished();
 
 public:
+	// AI percrption(적이 사용 -> Hide랑 문에만 추가)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | AI")
+	TObjectPtr<class UAIPerceptionStimuliSourceComponent> StimuliSource;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | AI")
+	TObjectPtr<class USphereComponent> SphereCollisionComp;
+
 	// 카메라
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HideObject | Camera")
 	TObjectPtr<class UCameraComponent> HideCameraComp;

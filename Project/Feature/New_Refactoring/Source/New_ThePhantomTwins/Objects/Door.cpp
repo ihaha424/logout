@@ -6,10 +6,8 @@
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
 
-ADoor::ADoor() : AStaticObject()
+ADoor::ADoor() : AInteractableObject()
 {
-	bReplicates = true;
-
 	LockWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("LockWidget"));
 	LockWidgetComp->SetupAttachment(RootComponent);
 	LockWidgetComp->SetWidgetSpace(EWidgetSpace::Screen);
@@ -32,22 +30,22 @@ void ADoor::BeginPlay()
 	}
 
 	// 필요한 활성화 수가 0이라면 트리거 개수 전체를 사용
-	if (NeededActive == 0)
+	if (MinRequiredCount == 0)
 	{
-		NeededActive = Triggers.Num();
+		MinRequiredCount = RequiredList.Num();
 	}
 }
 
 void ADoor::SetWidgetVisible(bool bVisible)
 {
-	if (!NearWidgetComp || !LockWidgetComp)
+	if (!InteractWidgetComp || !LockWidgetComp)
 	{
 		return;
 	}
 
 	if (!bVisible)
 	{
-		NearWidgetComp->SetVisibility(false);
+		InteractWidgetComp->SetVisibility(false);
 		LockWidgetComp->SetVisibility(false);
 		return;
 	}
@@ -55,12 +53,12 @@ void ADoor::SetWidgetVisible(bool bVisible)
 	// bVisible == true이고 트리거들이 활성화되지 않은 경우 → LockWidget
 	if (!AreAllTriggerActived())
 	{
-		NearWidgetComp->SetVisibility(false);
+		InteractWidgetComp->SetVisibility(false);
 		LockWidgetComp->SetVisibility(true);
 	}
 	else // 트리거들이 활성화된 경우 → NearWidget
 	{
-		NearWidgetComp->SetVisibility(true);
+		InteractWidgetComp->SetVisibility(true);
 		LockWidgetComp->SetVisibility(false);
 	}
 }
@@ -102,7 +100,7 @@ void ADoor::OnInteractClient_Implementation(const APawn* Interactor)
 {
 	if (AreAllTriggerActived())
 	{
-		NearWidgetComp->SetVisibility(false);
+		InteractWidgetComp->SetVisibility(false);
 		LockWidgetComp->SetVisibility(false);
 	}
 }
@@ -113,17 +111,17 @@ bool ADoor::AreAllTriggerActived_Implementation() const
 	int32 triggerActive = 0;
 
 	// Door와 연결된 모든 trigger를 하나씩 순회
-	for (auto* trigger : Triggers)
+	for (auto* trigger : RequiredList)
 	{
-		AStaticObject* StaticTrigger = Cast<AStaticObject>(trigger);
+		AInteractableObject* RequiredTrigger = Cast<AInteractableObject>(trigger);
 
-		if (StaticTrigger && StaticTrigger->bActived)
+		if (RequiredTrigger && RequiredTrigger->bActived)
 		{
 			triggerActive++;
 		}
 	}
 
-	return triggerActive >= NeededActive;
+	return triggerActive >= MinRequiredCount;
 }
 
 void ADoor::S2A_OpenDoor_Implementation()

@@ -1,30 +1,24 @@
 ﻿
 #include "TriggerHideObject.h"
-#include "Components/SceneComponent.h"
-#include "Components/StaticMeshComponent.h"
-#include "Components/SphereComponent.h"
-#include "SzComponents/OutlineComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "Components/BoxComponent.h"
 
 //AI Perception
+#include "Components/SphereComponent.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISense_Hearing.h"
 #include "Perception/AISenseConfig_Hearing.h"
 
-ATriggerHideObject::ATriggerHideObject()
+ATriggerHideObject::ATriggerHideObject() : ABaseObject()
 {
-    PrimaryActorTick.bCanEverTick = false;
+    bReplicates = true;
 
-    // Root Scene
-    RootSceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("RootSceneComponent"));
-    SetRootComponent(RootSceneComp);
-
-    // Mesh
-    MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
-    MeshComp->SetupAttachment(RootSceneComp);
-    MeshComp->SetCollisionProfileName(TEXT("BlockAll"));
+    BoxTriggerComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxTriggerComponent"));
+    BoxTriggerComp->SetCollisionProfileName(TEXT("OverlapAll"));
+    BoxTriggerComp->SetGenerateOverlapEvents(true);
+    BoxTriggerComp->SetupAttachment(RootSceneComp);
 
     // AIPerception과 player안의 sphere만 감지하는 Object
     SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
@@ -32,22 +26,12 @@ ATriggerHideObject::ATriggerHideObject()
     SphereCollisionComp->SetSphereRadius(50.0f);
     SphereCollisionComp->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
 
-    // Outline
-    OutlineComp = CreateDefaultSubobject<UOutlineComponent>(TEXT("OutlineComponent"));
-
     // AI Perception
     StimuliSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource"));
     StimuliSource->bAutoRegister = true;
     StimuliSource->RegisterForSense(UAISense_Sight::StaticClass());
     StimuliSource->RegisterForSense(UAISense_Hearing::StaticClass());
 
-    // "Interactable" 태그 추가
-    Tags.Add(FName("Interactable"));
-
-    BoxTriggerComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxTriggerComponent"));
-    BoxTriggerComp->SetCollisionProfileName(TEXT("OverlapAll"));
-    BoxTriggerComp->SetGenerateOverlapEvents(true);
-    BoxTriggerComp->SetupAttachment(RootSceneComp);
 }
 
 void ATriggerHideObject::BeginPlay()
@@ -59,6 +43,14 @@ void ATriggerHideObject::BeginPlay()
         BoxTriggerComp->OnComponentBeginOverlap.AddDynamic(this, &ATriggerHideObject::OnTriggerBeginOverlap);
         BoxTriggerComp->OnComponentEndOverlap.AddDynamic(this, &ATriggerHideObject::OnTriggerEndOverlap);
     }
+}
+
+void ATriggerHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(ATriggerHideObject, bHasPlayer);
+    DOREPLIFETIME(ATriggerHideObject, HidePlayerNum);
 }
 
 void ATriggerHideObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

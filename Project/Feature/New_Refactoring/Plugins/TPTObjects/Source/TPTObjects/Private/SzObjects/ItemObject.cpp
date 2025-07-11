@@ -4,7 +4,7 @@
 #include "SzObjects/ItemObject.h"
 #include "Net/UnrealNetwork.h"
 
-AItemObject::AItemObject() : ABaseObject()
+AItemObject::AItemObject() : AInteractableObject()
 {
 	bReplicates = true;
 
@@ -23,23 +23,6 @@ void AItemObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	//DOREPLIFETIME(AItemObject, );
 }
 
-bool AItemObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
-{
-	if (!Interactor->IsLocallyControlled()) return false;
-
-	bCanInteract = bIsDetected;
-
-	UE_LOG(LogTemp, Log,
-		TEXT("AItemObject::CanInteract - %s | %s | Role: %s"),
-		bCanInteract ? TEXT("true") : TEXT("false"),
-		*Interactor->GetName(),
-		*UEnum::GetValueAsString(GetLocalRole()));
-
-	SetWidgetVisible(bCanInteract);
-
-	return bCanInteract;
-}
-
 void AItemObject::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	UseItemEffectServer();
@@ -47,7 +30,7 @@ void AItemObject::OnInteractServer_Implementation(const APawn* Interactor)
 
 void AItemObject::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	SetWidgetVisible(false);
+	Super::OnInteractClient(Interactor);
 
 	UseItemEffectClient();
 }
