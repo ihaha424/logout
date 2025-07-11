@@ -18,7 +18,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintCallable, Category = "BaseObject")
-	void SetWidgetVisible(bool Visible);
+	virtual void SetWidgetVisible(bool bVisible);
 
 public:	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | Components")
@@ -35,10 +35,10 @@ public:
 
 
 	// 가까운 오브젝트 확인용 위젯
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | NearWidget")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | ObjectWidget")
 	TObjectPtr<class UWidgetComponent> NearWidgetComp;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | NearWidget")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | ObjectWidget")
 	TSubclassOf<class UUserWidget> NearWidgetClass;
 	
     // AI percrption(적이 사용)

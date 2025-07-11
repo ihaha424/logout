@@ -23,5 +23,5 @@ public:
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "StaticObject", Replicated)
-	bool isActived = false;
+	bool bActived = false;
 };

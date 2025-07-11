@@ -13,5 +13,5 @@ void AStaticObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AStaticObject, isActived);
+	DOREPLIFETIME(AStaticObject, bActived);
 }

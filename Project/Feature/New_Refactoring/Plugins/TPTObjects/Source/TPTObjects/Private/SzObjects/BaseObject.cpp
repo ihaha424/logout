@@ -63,16 +63,16 @@ void ABaseObject::BeginPlay()
     // 위젯 설정 (필요할 때만)
     if (NearWidgetComp)
     {
-        if (NearWidgetClass)
-        {
-            NearWidgetComp->SetWidgetClass(NearWidgetClass);
+		if (NearWidgetClass)
+		{
+			NearWidgetComp->SetWidgetClass(NearWidgetClass);
             NearWidgetComp->SetVisibility(false);
         }
     }
 	
 }
 
-void ABaseObject::SetWidgetVisible(bool Visible)
+void ABaseObject::SetWidgetVisible(bool bVisible)
 {
-    NearWidgetComp->SetVisibility(Visible);
+    NearWidgetComp->SetVisibility(bVisible);
 }
