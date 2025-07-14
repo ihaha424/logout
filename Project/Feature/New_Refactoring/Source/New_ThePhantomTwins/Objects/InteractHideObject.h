@@ -29,24 +29,24 @@ public:
 	virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
 
 protected:
-	void CamLogicServer(APlayerController* InteractorPC);
-	void CamLogicClient(APlayerController* InteractorPC);
+	void CamLogicServer(const APawn* Interactor);
+	void CamLogicClient(const APawn* Interactor);
 
-	void EnterObject(APlayerController* InteractorPC);
-	void ExitObject(APlayerController* InteractorPC);
+	void EnterObject(const APawn* Interactor);
+	void ExitObject();
 
 	void SetInputState(APlayerController* InteractorPC, bool bIgnoreInput);		// 입력 제어를 위한 함수
 	void SetViewTarget(APlayerController* InteractorPC, AActor* NewViewTarget); // 카메라 전환을 위한 함수
 
 
 	UFUNCTION(NetMulticast, Reliable)
-	void S2A_PlayEffect(APlayerController* InteractorPC);
-	void S2A_PlayEffect_Implementation(APlayerController* InteractorPC);
+	void S2A_PlayEffect(const APawn* Interactor);
+	void S2A_PlayEffect_Implementation(const APawn* Interactor);
 
 	// 플레이어가 상호작용할때 S2A로 호출되는 로직(ex.문 여는 애니메이션/이펙트 발생 등). 블프에서 구현 해주세요.
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HideObject")
-	void PlayEffectLogic(APlayerController* InteractorPC);
-	void PlayEffectLogic_Implementation(APlayerController* InteractorPC);
+	void PlayEffectLogic(const APawn* Interactor);
+	void PlayEffectLogic_Implementation(const APawn* Interactor);
 
 
 
@@ -75,6 +75,6 @@ public:
 
 	// 숨는 Player
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HideObject", Replicated)
-	TObjectPtr <AActor> HidePlayer = nullptr;
+	TObjectPtr <APawn> HidePlayer = nullptr;
 
 };

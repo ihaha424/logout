@@ -90,9 +90,7 @@ void AInteractHideObject::OnInteractServer_Implementation(const APawn* Interacto
 
 	UE_LOG(LogTemp, Warning, TEXT("InteractHideObject::OnInteract Server"));
 
-	// 플레이어 컨트롤러 가져오기
-	APlayerController* PlayerController = CastChecked<APlayerController>(Interactor->GetController());
-	CamLogicServer(PlayerController);
+	CamLogicServer(Interactor);
 }
 
 void AInteractHideObject::OnInteractClient_Implementation(const APawn* Interactor)
@@ -105,18 +103,19 @@ void AInteractHideObject::OnInteractClient_Implementation(const APawn* Interacto
 
 	SetWidgetVisible(false);
 
-	// 플레이어 컨트롤러 가져오기
-	APlayerController* PlayerController = CastChecked<APlayerController>(Interactor->GetController());
-	CamLogicClient(PlayerController);
+	CamLogicClient(Interactor);
 }
 
-void AInteractHideObject::CamLogicServer(APlayerController* InteractorPC)
+void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 {
+	// 플레이어 컨트롤러 가져오기
+	APlayerController* InteractorPC = CastChecked<APlayerController>(Interactor->GetController());
+
 	if (!bIsActived)	// 플레이어가 밖에 있는 경우(아직 활성화X)
 	{
-		EnterObject(InteractorPC);
-
-		S2A_PlayEffect(InteractorPC);
+		S2A_PlayEffect(Interactor);
+		
+		EnterObject(Interactor);
 
 		// 클라이언트에게 입력 비활성화 명령 전달
 		SetInputState(InteractorPC, true);
@@ -126,11 +125,11 @@ void AInteractHideObject::CamLogicServer(APlayerController* InteractorPC)
 	}
 	else	// 플레이어가 안에 있는 경우(활성화O)
 	{
-		AActor* PlayerActor = HidePlayer;
+		APawn* PlayerActor = HidePlayer;
 
-		ExitObject(InteractorPC);
-
-		S2A_PlayEffect(InteractorPC);
+		S2A_PlayEffect(Interactor);
+		
+		ExitObject();
 
 		// 클라이언트에게 입력 활성화 명령 전달
 		SetInputState(InteractorPC, false);
@@ -140,8 +139,11 @@ void AInteractHideObject::CamLogicServer(APlayerController* InteractorPC)
 	}
 }
 
-void AInteractHideObject::CamLogicClient(APlayerController* InteractorPC)
+void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 {
+	// 플레이어 컨트롤러 가져오기
+	APlayerController* InteractorPC = CastChecked<APlayerController>(Interactor->GetController());
+
 	if (!bIsActived)
 	{
 		// 클라이언트에게 입력 비활성화 명령 전달
@@ -160,10 +162,10 @@ void AInteractHideObject::CamLogicClient(APlayerController* InteractorPC)
 	}
 }
 
-void AInteractHideObject::EnterObject(APlayerController* InteractorPC)
+void AInteractHideObject::EnterObject(const APawn* Interactor)
 {
 	bIsActived = true;
-	HidePlayer = InteractorPC->GetPawn();
+	HidePlayer = const_cast<APawn*>(Interactor);
 
 	// 플레이어 위치가 InPosBox로 변경
 	if (InPosBox && HidePlayer)
@@ -174,7 +176,7 @@ void AInteractHideObject::EnterObject(APlayerController* InteractorPC)
 	}
 }
 
-void AInteractHideObject::ExitObject(APlayerController* InteractorPC)
+void AInteractHideObject::ExitObject()
 {
 	if (OutPosBox && HidePlayer)
 	{
@@ -212,13 +214,13 @@ void AInteractHideObject::SetViewTarget(APlayerController* InteractorPC, AActor*
 	}
 }
 
-void AInteractHideObject::S2A_PlayEffect_Implementation(APlayerController* InteractorPC)
+void AInteractHideObject::S2A_PlayEffect_Implementation(const APawn* Interactor)
 {
-	PlayEffectLogic(InteractorPC);
+	PlayEffectLogic(Interactor);
 }
 
 
-void AInteractHideObject::PlayEffectLogic_Implementation(APlayerController* InteractorPC)
+void AInteractHideObject::PlayEffectLogic_Implementation(const APawn* Interactor)
 {
 	if (HideEffectComp)
 	{
