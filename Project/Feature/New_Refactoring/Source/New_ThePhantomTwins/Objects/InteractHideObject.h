@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "SzObjects/InteractableObject.h"
@@ -35,13 +35,20 @@ protected:
 	void EnterObject(APlayerController* InteractorPC);
 	void ExitObject(APlayerController* InteractorPC);
 
-	void SetInputState(APlayerController* InteractorPC, bool bIgnoreInput);		// ÀÔ·Â Á¦¾î¸¦ À§ÇÑ ÇÔ¼ö
-	void SetViewTarget(APlayerController* InteractorPC, AActor* NewViewTarget); // Ä«¸Ş¶ó ÀüÈ¯À» À§ÇÑ ÇÔ¼ö
+	void SetInputState(APlayerController* InteractorPC, bool bIgnoreInput);		// ì…ë ¥ ì œì–´ë¥¼ ìœ„í•œ í•¨ìˆ˜
+	void SetViewTarget(APlayerController* InteractorPC, AActor* NewViewTarget); // ì¹´ë©”ë¼ ì „í™˜ì„ ìœ„í•œ í•¨ìˆ˜
 
 
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_PlayEffect(APlayerController* InteractorPC);
 	void S2A_PlayEffect_Implementation(APlayerController* InteractorPC);
+
+	// í”Œë ˆì´ì–´ê°€ ìƒí˜¸ì‘ìš©í• ë•Œ S2Aë¡œ í˜¸ì¶œë˜ëŠ” ë¡œì§(ex.ë¬¸ ì—¬ëŠ” ì• ë‹ˆë©”ì´ì…˜/ì´í™íŠ¸ ë°œìƒ ë“±). ë¸”í”„ì—ì„œ êµ¬í˜„ í•´ì£¼ì„¸ìš”.
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HideObject")
+	void PlayEffectLogic(APlayerController* InteractorPC);
+	void PlayEffectLogic_Implementation(APlayerController* InteractorPC);
+
+
 
 	void OnEffectFinished();
 
@@ -52,25 +59,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject")
 	TObjectPtr<class UBoxComponent> OutPosBox;
 
-	// AI percrption(ÀûÀÌ »ç¿ë -> Hide¶û ¹®¿¡¸¸ Ãß°¡)
+	// AI percrption(ì ì´ ì‚¬ìš© -> Hideë‘ ë¬¸ì—ë§Œ ì¶”ê°€)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | AI")
 	TObjectPtr<class UAIPerceptionStimuliSourceComponent> StimuliSource;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | AI")
 	TObjectPtr<class USphereComponent> SphereCollisionComp;
 
-	// Ä«¸Ş¶ó
+	// ì¹´ë©”ë¼
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HideObject | Camera")
 	TObjectPtr<class UCameraComponent> HideCameraComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HideObject | Effects")
 	TObjectPtr<class UNiagaraComponent> HideEffectComp;
 
-	// Ä«¸Ş¶ó ÀüÈ¯À» À§ÇÑ Ãß°¡ º¯¼ö
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HideObject | Camera", Replicated)
-	bool bIsInHideView = false;
-
-	// ¼û´Â Player
+	// ìˆ¨ëŠ” Player
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HideObject", Replicated)
 	TObjectPtr <AActor> HidePlayer = nullptr;
 

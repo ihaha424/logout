@@ -60,7 +60,6 @@ void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AInteractHideObject, bIsInHideView);
 	DOREPLIFETIME(AInteractHideObject, HidePlayer);
 }
 
@@ -86,7 +85,10 @@ bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bo
 
 void AInteractHideObject::OnInteractServer_Implementation(const APawn* Interactor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("InteractHideObject::OnInteractServer"));
+	// 서버에서 실행되는 코드
+	if (!HasAuthority()) return;
+
+	UE_LOG(LogTemp, Warning, TEXT("InteractHideObject::OnInteract Server"));
 
 	// 플레이어 컨트롤러 가져오기
 	APlayerController* PlayerController = CastChecked<APlayerController>(Interactor->GetController());
@@ -99,6 +101,8 @@ void AInteractHideObject::OnInteractClient_Implementation(const APawn* Interacto
 
 	if (!Interactor->IsLocallyControlled()) return;
 
+	UE_LOG(LogTemp, Warning, TEXT("InteractHideObject::OnInteract Client"));
+
 	SetWidgetVisible(false);
 
 	// 플레이어 컨트롤러 가져오기
@@ -108,10 +112,7 @@ void AInteractHideObject::OnInteractClient_Implementation(const APawn* Interacto
 
 void AInteractHideObject::CamLogicServer(APlayerController* InteractorPC)
 {
-	// 서버에서 실행되는 코드
-	if (!HasAuthority()) return;
-
-	if (!bIsInHideView)
+	if (!bIsActived)	// 플레이어가 밖에 있는 경우(아직 활성화X)
 	{
 		EnterObject(InteractorPC);
 
@@ -123,7 +124,7 @@ void AInteractHideObject::CamLogicServer(APlayerController* InteractorPC)
 		// 클라이언트에게 카메라 전환 명령 전달 (플레이어 캠 -> 오브젝트 캠)
 		SetViewTarget(InteractorPC, this);
 	}
-	else
+	else	// 플레이어가 안에 있는 경우(활성화O)
 	{
 		AActor* PlayerActor = HidePlayer;
 
@@ -141,7 +142,7 @@ void AInteractHideObject::CamLogicServer(APlayerController* InteractorPC)
 
 void AInteractHideObject::CamLogicClient(APlayerController* InteractorPC)
 {
-	if (!bIsInHideView)
+	if (!bIsActived)
 	{
 		// 클라이언트에게 입력 비활성화 명령 전달
 		SetInputState(InteractorPC, true);
@@ -161,7 +162,7 @@ void AInteractHideObject::CamLogicClient(APlayerController* InteractorPC)
 
 void AInteractHideObject::EnterObject(APlayerController* InteractorPC)
 {
-	bIsInHideView = true;
+	bIsActived = true;
 	HidePlayer = InteractorPC->GetPawn();
 
 	// 플레이어 위치가 InPosBox로 변경
@@ -182,7 +183,7 @@ void AInteractHideObject::ExitObject(APlayerController* InteractorPC)
 		HidePlayer->SetActorLocationAndRotation(NewLocation, NewRotation);
 	}
 
-	bIsInHideView = false;
+	bIsActived = false;
 	HidePlayer = nullptr;
 }
 
@@ -212,6 +213,12 @@ void AInteractHideObject::SetViewTarget(APlayerController* InteractorPC, AActor*
 }
 
 void AInteractHideObject::S2A_PlayEffect_Implementation(APlayerController* InteractorPC)
+{
+	PlayEffectLogic(InteractorPC);
+}
+
+
+void AInteractHideObject::PlayEffectLogic_Implementation(APlayerController* InteractorPC)
 {
 	if (HideEffectComp)
 	{
