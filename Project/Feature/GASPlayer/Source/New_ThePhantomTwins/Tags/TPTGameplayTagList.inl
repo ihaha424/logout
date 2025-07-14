@@ -14,7 +14,8 @@ TPT_TAG_GEN(Ability, Heal, "Ability: Heal")
 TPT_TAG_GEN(Cooldown, Dash, "Cooldown: Dash")
 TPT_TAG_GEN(Cooldown, Heal, "Cooldown: Heal")
 
-TPT_TAG_GEN(State, Stunned, "Character is stunned")
+TPT_TAG_GEN(State, Confused, "Character is Confused")
+TPT_TAG_GEN(State, Downed, "Character is Downed")
 
 TPT_TAG_GEN(Data, StaminaRegen, "Stamina for delivering recovery")
 TPT_TAG_GEN(Data, MPRegen, "MP recovery for delivering recovery")

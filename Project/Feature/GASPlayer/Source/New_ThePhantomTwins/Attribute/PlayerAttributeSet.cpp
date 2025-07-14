@@ -3,6 +3,7 @@
 
 #include "PlayerAttributeSet.h"
 #include "GameplayEffectExtension.h"
+#include "../Tags/TPTGameplayTags.h"
 
 UPlayerAttributeSet::UPlayerAttributeSet() :
 	HP(100),
@@ -34,20 +35,47 @@ bool UPlayerAttributeSet::PreGameplayEffectExecute(struct FGameplayEffectModCall
 void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
-	float MinimumHealth = 0.0f;
+	float MinimumPoint = 0.0f;
 
 	if (Data.EvaluatedData.Attribute == GetHPAttribute())
 	{
-		SetHP(FMath::Clamp(GetHP(), MinimumHealth, GetMaxHP()));
+		SetHP(FMath::Clamp(GetHP(), MinimumPoint, GetMaxHP()));
 	}
+
 	if (Data.EvaluatedData.Attribute == GetMentalPointAttribute())
 	{
-		SetMentalPoint(FMath::Clamp(GetMentalPoint(), MinimumHealth, GetMaxMentalPoint()));
+		SetMentalPoint(FMath::Clamp(GetMentalPoint(), MinimumPoint, GetMaxMentalPoint()));
 	}
+
+	if (Data.EvaluatedData.Attribute == GetCoreEnergyAttribute())
+	{
+		SetCoreEnergy(FMath::Clamp(GetCoreEnergy(), MinimumPoint, GetMaxCoreEnergy()));
+	}
+
+	if (Data.EvaluatedData.Attribute == GetStaminaAttribute())
+	{
+		SetStamina(FMath::Clamp(GetStamina(), MinimumPoint, GetMaxStamina()));
+	}
+
+	if (Data.EvaluatedData.Attribute == GetSpeedAttribute())
+	{
+		SetSpeed(FMath::Clamp(GetSpeed(), MinimumPoint, 10000));
+	}
+
+
+	// 체력이 0이하라면 다운.
 	if (GetHP() <= 0.0f && !bPlayerDowned)
-	{// 적용하고 잇는 대상에다가 ASC로 명확하게 매뉴얼로 태그를 지정해주고 잇따.
-		//Data.Target.AddLooseGameplayTag(ABTAG_CHARACTER_ISDEAD); // 이게 부착이 될것이다.
+	{
+		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGamePlayTag_State_Downed);
 		OnPlayerDowned.Broadcast();
 	}
 	bPlayerDowned = GetHP() <= 0.0f;
+
+	// 정신력이 0이하라면 착란.
+	if (GetMentalPoint() <= 0.0f && !bPlayerConfused)
+	{
+		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGamePlayTag_State_Confused);
+		OnPlayerConfused.Broadcast();
+	}
+	bPlayerConfused = GetMentalPoint() <= 0.0f;
 }

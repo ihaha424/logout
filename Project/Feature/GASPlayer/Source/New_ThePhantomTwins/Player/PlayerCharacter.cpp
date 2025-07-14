@@ -33,7 +33,11 @@ APlayerCharacter::APlayerCharacter()
 	SpringArm->bUsePawnControlRotation = true;
 	SpringArm->bEnableCameraLag = true;
 	SpringArm->TargetArmLength = 150.0f;
-	Camera->SetupAttachment(SpringArm);}
+
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	Camera->bUsePawnControlRotation = false;
+	Camera->SetupAttachment(SpringArm);
+}
 
 // Called when the game starts or when spawned
 void APlayerCharacter::BeginPlay()
@@ -99,7 +103,7 @@ void APlayerCharacter::OnRep_PlayerState()
 		const UPlayerAttributeSet* CurrentAttributeSet = ASC->GetSet<UPlayerAttributeSet>();
 		if (CurrentAttributeSet)
 		{
-			CurrentAttributeSet->OnPlayerConfused.AddDynamic(this, &ThisClass::OnPlayerDowned);
+			CurrentAttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::OnPlayerDowned);
 			CurrentAttributeSet->OnPlayerConfused.AddDynamic(this, &ThisClass::OnPlayerConfused);
 		}
 		if (InitAttributeSetEffect)
