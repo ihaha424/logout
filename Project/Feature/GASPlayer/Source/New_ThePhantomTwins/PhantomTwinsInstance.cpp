@@ -2,4 +2,10 @@
 
 
 #include "PhantomTwinsInstance.h"
+#include "Tags/TPTGameplayTags.h"
 
+void UPhantomTwinsInstance::Init()
+{
+	Super::Init();
+	FTPTGameplayTags::Get();
+}

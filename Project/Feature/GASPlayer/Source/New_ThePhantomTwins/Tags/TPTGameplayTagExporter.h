@@ -7,7 +7,7 @@
 /**
  * 
  */
-class TPTGAS_API TPTGameplayTagExporter
+class NEW_THEPHANTOMTWINS_API TPTGameplayTagExporter
 {
 public:
 	static void ExportTagsToIni();

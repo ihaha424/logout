@@ -13,5 +13,6 @@ UCLASS()
 class NEW_THEPHANTOMTWINS_API UPhantomTwinsInstance : public UGameInstance
 {
 	GENERATED_BODY()
-	
+public:
+	virtual void Init() override;
 };
