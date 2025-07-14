@@ -13,9 +13,20 @@
 UENUM()
 enum class EFTPTGameplayTags : uint8
 {
-#define TPT_TAG_GEN(Type, Name, Desc) TPTGamePlayTag_##Type##_##Name UMETA(DisplayName = Desc),
-#include "TPTGameplayTagList.inl"
+//
+// ENUM_TAG_GEN
+//
+#define TAG true
+#define TPT_TAG_GEN(Type, Properties, Name, Description) TPTGameplay_##Type##_##Properties##_##Name UMETA(DisplayName = Description),
+#include "./Inline/TPTGameplayTagList.inl"
 #undef TPT_TAG_GEN
+#undef TAG
+
+#define CUETAG true
+#define TPT_TAG_GEN(Type, Name, Description) TPTGameplayCue_##Type##_##Name UMETA(DisplayName = Description),
+#include "./Inline/TPTGameplayTagList.inl"
+#undef TPT_TAG_GEN
+#undef CUETAG
 };
 
 struct FTPTGameplayTags
@@ -24,10 +35,20 @@ public:
     static const FTPTGameplayTags& Get();
     static void InitializeNativeTags();
 
-#define TPT_TAG_GEN(Type, Name, Desc) FGameplayTag TPTGamePlayTag_##Type##_##Name;
-#include "TPTGameplayTagList.inl"
+//
+// GAMEPLAY_TAG_GEN
+//
+#define TAG true
+#define TPT_TAG_GEN(Type, Properties, Name, Description) FGameplayTag TPTGameplay_##Type##_##Properties##_##Name;
+#include "./Inline/TPTGameplayTagList.inl"
 #undef TPT_TAG_GEN
-    //FGameplayTag TPTGamePlayTag_Type_Name;
+#undef TAG
+
+#define CUETAG true
+#define TPT_TAG_GEN(Type, Name, Description) FGameplayTag TPTGameplayCue_##Type##_##Name;
+#include "./Inline/TPTGameplayTagList.inl"
+#undef TPT_TAG_GEN
+#undef CUETAG
 
     TMap<FGameplayTag, EFTPTGameplayTags> TagMap;
 private:
