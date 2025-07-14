@@ -7,6 +7,7 @@
 #include "TimerManager.h"
 
 #include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
 #include "Perception/AISenseConfig_Sight.h"
@@ -36,6 +37,12 @@ AInteractHideObject::AInteractHideObject() : AInteractableObject()
 	StimuliSource->RegisterForSense(UAISense_Sight::StaticClass());
 	StimuliSource->RegisterForSense(UAISense_Hearing::StaticClass());
 
+	// Box
+	InPosBox = CreateDefaultSubobject<UBoxComponent>(TEXT("InPosBoxComp"));
+	InPosBox->SetupAttachment(RootComponent);
+
+	OutPosBox = CreateDefaultSubobject<UBoxComponent>(TEXT("OutPosBoxComp"));
+	OutPosBox->SetupAttachment(RootComponent);
 }
 
 void AInteractHideObject::BeginPlay()
@@ -46,9 +53,7 @@ void AInteractHideObject::BeginPlay()
 	{
 		HideEffectComp->SetActive(false);
 		HideEffectComp->SetVisibility(false);
-		//HideEffectComp->OnSystemFinished.AddDynamic(this, &AInteractHideObject::OnEffectFinished);
 	}
-
 }
 
 void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -56,7 +61,6 @@ void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AInteractHideObject, bIsInHideView);
-	DOREPLIFETIME(AInteractHideObject, PreviousViewTarget);
 	DOREPLIFETIME(AInteractHideObject, HidePlayer);
 }
 
@@ -130,7 +134,7 @@ void AInteractHideObject::CamLogicServer(APlayerController* InteractorPC)
 		SetInputState(InteractorPC, false);
 
 		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
-		SetViewTarget(InteractorPC, PreviousViewTarget);
+		SetViewTarget(InteractorPC, HidePlayer);
 	}
 }
 
@@ -150,21 +154,33 @@ void AInteractHideObject::CamLogicClient(APlayerController* InteractorPC)
 		SetInputState(InteractorPC, false);
 
 		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
-		SetViewTarget(InteractorPC, PreviousViewTarget);
+		SetViewTarget(InteractorPC, HidePlayer);
 	}
 }
 
 void AInteractHideObject::EnterObject(APlayerController* InteractorPC)
 {
-	// 현재 뷰 타겟 저장
-	PreviousViewTarget = InteractorPC->GetViewTarget();
-
 	bIsInHideView = true;
 	HidePlayer = InteractorPC->GetPawn();
+
+	// 플레이어 위치가 InPosBox로 변경
+	if (InPosBox && HidePlayer)
+	{
+		FVector NewLocation = InPosBox->GetComponentLocation();
+		FRotator NewRotation = InPosBox->GetComponentRotation();
+		HidePlayer->SetActorLocationAndRotation(NewLocation, NewRotation);
+	}
 }
 
 void AInteractHideObject::ExitObject(APlayerController* InteractorPC)
 {
+	if (OutPosBox && HidePlayer)
+	{
+		FVector NewLocation = OutPosBox->GetComponentLocation();
+		FRotator NewRotation = OutPosBox->GetComponentRotation();
+		HidePlayer->SetActorLocationAndRotation(NewLocation, NewRotation);
+	}
+
 	bIsInHideView = false;
 	HidePlayer = nullptr;
 }
@@ -187,7 +203,7 @@ void AInteractHideObject::SetViewTarget(APlayerController* InteractorPC, AActor*
 
 	if (InteractorPC && NewViewTarget)
 	{
-		InteractorPC->SetViewTargetWithBlend(NewViewTarget, CameraBlendTime);
+		InteractorPC->SetViewTarget(NewViewTarget);
 
 		UE_LOG(LogTemp, Log, TEXT("Client: SetViewTarget called with actor: %s"),
 			*NewViewTarget->GetName());

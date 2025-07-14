@@ -46,6 +46,12 @@ protected:
 	void OnEffectFinished();
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject")
+	TObjectPtr<class UBoxComponent> InPosBox;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject")
+	TObjectPtr<class UBoxComponent> OutPosBox;
+
 	// AI percrption(적이 사용 -> Hide랑 문에만 추가)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | AI")
 	TObjectPtr<class UAIPerceptionStimuliSourceComponent> StimuliSource;
@@ -60,21 +66,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HideObject | Effects")
 	TObjectPtr<class UNiagaraComponent> HideEffectComp;
 
-	// 블렌드 시간 설정
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Camera")
-	float CameraBlendTime = 0.75f;
-
 	// 카메라 전환을 위한 추가 변수
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HideObject | Camera", Replicated)
 	bool bIsInHideView = false;
 
-	// 이전 뷰 타겟 저장 (임시)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Camera", Replicated)
-	TObjectPtr <AActor> PreviousViewTarget = nullptr;
-
 	// 숨는 Player
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HideObject", Replicated)
 	TObjectPtr <AActor> HidePlayer = nullptr;
-
 
 };
