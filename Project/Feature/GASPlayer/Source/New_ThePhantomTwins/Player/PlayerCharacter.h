@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemInterface.h"
 #include "InputActionValue.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
@@ -22,18 +23,16 @@ class NEW_THEPHANTOMTWINS_API APlayerCharacter : public ACharacter, public IAbil
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
 	APlayerCharacter();
 
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
-	// Called every frame
+	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	void SetupPlayerInputByTag();
 
 	UFUNCTION()
 	void OnPlayerDowned();

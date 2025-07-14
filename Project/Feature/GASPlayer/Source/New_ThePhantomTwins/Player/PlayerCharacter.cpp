@@ -33,11 +33,7 @@ APlayerCharacter::APlayerCharacter()
 	SpringArm->bUsePawnControlRotation = true;
 	SpringArm->bEnableCameraLag = true;
 	SpringArm->TargetArmLength = 150.0f;
-
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	Camera->bUsePawnControlRotation = false;
-	Camera->SetupAttachment(SpringArm);
-}
+	Camera->SetupAttachment(SpringArm);}
 
 // Called when the game starts or when spawned
 void APlayerCharacter::BeginPlay()
@@ -75,14 +71,14 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 			CurrentAttributeSet->OnPlayerConfused.AddDynamic(this, &ThisClass::OnPlayerDowned);
 			CurrentAttributeSet->OnPlayerConfused.AddDynamic(this, &ThisClass::OnPlayerConfused);
 		}
-        //if (InitAttributeSetEffect)
-        //{
-        //    ASC->ApplyGameplayEffectToSelf(
-        //        InitAttributeSetEffect->GetDefaultObject<UGameplayEffect>(),
-        //        1.0f,
-        //        ASC->MakeEffectContext()
-        //    );
-        //}
+        if (InitAttributeSetEffect)
+        {
+            ASC->ApplyGameplayEffectToSelf(
+                InitAttributeSetEffect->GetDefaultObject<UGameplayEffect>(),
+                1.0f,
+                ASC->MakeEffectContext()
+            );
+        }
 
 		// 이렇게 하면 디버그 계속볼수있음.
 		APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
@@ -117,6 +113,11 @@ void APlayerCharacter::OnRep_PlayerState()
 	}
 }
 
+class UAbilitySystemComponent* APlayerCharacter::GetAbilitySystemComponent() const
+{
+	return ASC;
+}
+
 
 void APlayerCharacter::Tick(float DeltaTime)
 {
@@ -134,11 +135,14 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Interact);
 }
 
-UAbilitySystemComponent* APlayerCharacter::GetAbilitySystemComponent() const
+void APlayerCharacter::SetupPlayerInputByTag()
 {
-	return ASC;
+	if (IsValid(ASC) && IsValid(InputComponent))
+	{
+		UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
+	
+	}
 }
-
 void APlayerCharacter::OnPlayerDowned()
 {
 	// 기절 상태.

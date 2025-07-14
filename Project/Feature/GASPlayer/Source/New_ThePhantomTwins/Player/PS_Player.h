@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayTagContainer.h"
 #include "PS_Player.generated.h"
 
 /**
@@ -18,13 +19,21 @@ public:
 	APS_Player();
 
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
+	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
 protected:
 
-	UPROPERTY(EditAnywhere, Category = GAS)
+	UPROPERTY(Replicated, EditAnywhere, Category = GAS)
 	TObjectPtr<class UAbilitySystemComponent> ASC;
 
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	TObjectPtr<class UPlayerAttributeSet> AttributeSet;
 
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Skill")
+	FGameplayTag PassiveSkill;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Skill")
+	FGameplayTag ActiveSkill;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Inventory")
+	TArray< /* ¾ÆÀÌÅÛ Enum */ int32> ItemSlots;
 };

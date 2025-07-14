@@ -3,6 +3,7 @@
 
 #include "PS_Player.h"
 #include "AbilitySystemComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "New_ThePhantomTwins/Attribute/PlayerAttributeSet.h"
 
 APS_Player::APS_Player()
@@ -12,6 +13,16 @@ APS_Player::APS_Player()
 	ASC->SetIsReplicated(true);
 
 	AttributeSet = CreateDefaultSubobject<UPlayerAttributeSet>(TEXT("AttributeSet"));
+}
+
+void APS_Player::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APS_Player, ASC);
+	DOREPLIFETIME(APS_Player, PassiveSkill);
+	DOREPLIFETIME(APS_Player, ActiveSkill);
+	DOREPLIFETIME(APS_Player, ItemSlots);
 }
 
 class UAbilitySystemComponent* APS_Player::GetAbilitySystemComponent() const
