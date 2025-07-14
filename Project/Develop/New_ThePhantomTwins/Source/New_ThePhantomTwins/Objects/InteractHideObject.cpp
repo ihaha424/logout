@@ -22,8 +22,8 @@ AInteractHideObject::AInteractHideObject() : AInteractableObject()
 	HideCameraComp->SetupAttachment(RootSceneComp);
 
 	// Effect
-	HideEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("HideEffectComponent"));
-	HideEffectComp->SetupAttachment(RootComponent);
+	//HideEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("HideEffectComponent"));
+	//HideEffectComp->SetupAttachment(RootComponent);
 
 	// AIPerception과 player안의 sphere만 감지하는 Object
 	SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
@@ -49,11 +49,11 @@ void AInteractHideObject::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HideEffectComp)
-	{
-		HideEffectComp->SetActive(false);
-		HideEffectComp->SetVisibility(false);
-	}
+	//if (HideEffectComp)
+	//{
+	//	HideEffectComp->SetActive(false);
+	//	HideEffectComp->SetVisibility(false);
+	//}
 }
 
 void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -224,30 +224,30 @@ void AInteractHideObject::S2A_PlayEffect_Implementation(FVector EffectLocation)
 
 void AInteractHideObject::PlayEffectLogic_Implementation(FVector EffectLocation)
 {
-	if (!HideEffectComp) return;
+	//if (!HideEffectComp) return;
 
-	HideEffectComp->SetWorldLocation(EffectLocation);
+	//HideEffectComp->SetWorldLocation(EffectLocation);
 
-	// 이펙트 활성화 및 보이게 설정
-	HideEffectComp->SetActive(true);
-	HideEffectComp->SetVisibility(true);
+	//// 이펙트 활성화 및 보이게 설정
+	//HideEffectComp->SetActive(true);
+	//HideEffectComp->SetVisibility(true);
 
-	// 3초 후에 이펙트 비활성화 및 숨기기
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(
-		TimerHandle,
-		this,
-		&AInteractHideObject::OnEffectFinished,
-		3.0f,
-		false
-	);
+	//// 3초 후에 이펙트 비활성화 및 숨기기
+	//FTimerHandle TimerHandle;
+	//GetWorld()->GetTimerManager().SetTimer(
+	//	TimerHandle,
+	//	this,
+	//	&AInteractHideObject::OnEffectFinished,
+	//	3.0f,
+	//	false
+	//);
 }
 
-void AInteractHideObject::OnEffectFinished()
-{
-	if (HideEffectComp)
-	{
-		HideEffectComp->SetActive(false);
-		HideEffectComp->SetVisibility(false);
-	}
-}
+//void AInteractHideObject::OnEffectFinished()
+//{
+//	if (HideEffectComp)
+//	{
+//		HideEffectComp->SetActive(false);
+//		HideEffectComp->SetVisibility(false);
+//	}
+//}
