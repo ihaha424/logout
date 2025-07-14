@@ -40,13 +40,13 @@ protected:
 
 
 	UFUNCTION(NetMulticast, Reliable)
-	void S2A_PlayEffect(const APawn* Interactor);
-	void S2A_PlayEffect_Implementation(const APawn* Interactor);
+	void S2A_PlayEffect(FVector EffectLocation);
+	void S2A_PlayEffect_Implementation(FVector EffectLocation);
 
 	// 플레이어가 상호작용할때 S2A로 호출되는 로직(ex.문 여는 애니메이션/이펙트 발생 등). 블프에서 구현 해주세요.
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HideObject")
-	void PlayEffectLogic(const APawn* Interactor);
-	void PlayEffectLogic_Implementation(const APawn* Interactor);
+	void PlayEffectLogic(FVector EffectLocation);
+	void PlayEffectLogic_Implementation(FVector EffectLocation);
 
 
 

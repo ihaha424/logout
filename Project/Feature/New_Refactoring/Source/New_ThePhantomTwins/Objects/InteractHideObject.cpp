@@ -163,7 +163,8 @@ void AInteractHideObject::EnterObject(const APawn* Interactor)
 	bIsActived = true;
 	HidePlayer = const_cast<APawn*>(Interactor);
 
-	S2A_PlayEffect(HidePlayer);
+	FVector playerLocation = { HidePlayer->GetActorLocation().X, HidePlayer->GetActorLocation().Y, 0 };
+	S2A_PlayEffect(playerLocation);
 
 	// 플레이어 위치가 InPosBox로 변경
 	if (InPosBox && HidePlayer)
@@ -181,9 +182,10 @@ void AInteractHideObject::ExitObject()
 		FVector NewLocation = OutPosBox->GetComponentLocation();
 		FRotator NewRotation = OutPosBox->GetComponentRotation();
 		HidePlayer->SetActorLocationAndRotation(NewLocation, NewRotation);
+
+		S2A_PlayEffect(NewLocation);
 	}
 
-	S2A_PlayEffect(HidePlayer);
 
 	bIsActived = false;
 	HidePlayer = nullptr;
@@ -214,28 +216,17 @@ void AInteractHideObject::SetViewTarget(APlayerController* InteractorPC, AActor*
 	}
 }
 
-void AInteractHideObject::S2A_PlayEffect_Implementation(const APawn* Interactor)
+void AInteractHideObject::S2A_PlayEffect_Implementation(FVector EffectLocation)
 {
-	PlayEffectLogic(Interactor);
+	PlayEffectLogic(EffectLocation);
 }
 
 
-void AInteractHideObject::PlayEffectLogic_Implementation(const APawn* Interactor)
+void AInteractHideObject::PlayEffectLogic_Implementation(FVector EffectLocation)
 {
 	if (!HideEffectComp) return;
 
-	FVector PlayerLocation = {0,0,0};
-
-	if (!bIsActived)	// 플레이어가 밖에 있는 경우(아직 활성화X)
-	{
-		PlayerLocation = Interactor->GetActorLocation();
-	}
-	else	// 플레이어가 안에 있는 경우(활성화O)
-	{
-		PlayerLocation = OutPosBox->GetComponentLocation();
-	}
-
-	HideEffectComp->SetWorldLocation(PlayerLocation);
+	HideEffectComp->SetWorldLocation(EffectLocation);
 
 	// 이펙트 활성화 및 보이게 설정
 	HideEffectComp->SetActive(true);
