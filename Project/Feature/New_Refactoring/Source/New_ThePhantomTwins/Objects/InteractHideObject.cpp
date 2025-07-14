@@ -113,8 +113,6 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 
 	if (!bIsActived)	// 플레이어가 밖에 있는 경우(아직 활성화X)
 	{
-		S2A_PlayEffect(Interactor);
-		
 		EnterObject(Interactor);
 
 		// 클라이언트에게 입력 비활성화 명령 전달
@@ -127,8 +125,6 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 	{
 		APawn* PlayerActor = HidePlayer;
 
-		S2A_PlayEffect(Interactor);
-		
 		ExitObject();
 
 		// 클라이언트에게 입력 활성화 명령 전달
@@ -167,6 +163,8 @@ void AInteractHideObject::EnterObject(const APawn* Interactor)
 	bIsActived = true;
 	HidePlayer = const_cast<APawn*>(Interactor);
 
+	S2A_PlayEffect(HidePlayer);
+
 	// 플레이어 위치가 InPosBox로 변경
 	if (InPosBox && HidePlayer)
 	{
@@ -184,6 +182,8 @@ void AInteractHideObject::ExitObject()
 		FRotator NewRotation = OutPosBox->GetComponentRotation();
 		HidePlayer->SetActorLocationAndRotation(NewLocation, NewRotation);
 	}
+
+	S2A_PlayEffect(HidePlayer);
 
 	bIsActived = false;
 	HidePlayer = nullptr;
@@ -222,22 +222,34 @@ void AInteractHideObject::S2A_PlayEffect_Implementation(const APawn* Interactor)
 
 void AInteractHideObject::PlayEffectLogic_Implementation(const APawn* Interactor)
 {
-	if (HideEffectComp)
-	{
-		// 이펙트 활성화 및 보이게 설정
-		HideEffectComp->SetActive(true);
-		HideEffectComp->SetVisibility(true);
+	if (!HideEffectComp) return;
 
-		// 3초 후에 이펙트 비활성화 및 숨기기
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(
-			TimerHandle,
-			this,
-			&AInteractHideObject::OnEffectFinished,
-			3.0f,
-			false
-		);
+	FVector PlayerLocation = {0,0,0};
+
+	if (!bIsActived)	// 플레이어가 밖에 있는 경우(아직 활성화X)
+	{
+		PlayerLocation = Interactor->GetActorLocation();
 	}
+	else	// 플레이어가 안에 있는 경우(활성화O)
+	{
+		PlayerLocation = OutPosBox->GetComponentLocation();
+	}
+
+	HideEffectComp->SetWorldLocation(PlayerLocation);
+
+	// 이펙트 활성화 및 보이게 설정
+	HideEffectComp->SetActive(true);
+	HideEffectComp->SetVisibility(true);
+
+	// 3초 후에 이펙트 비활성화 및 숨기기
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(
+		TimerHandle,
+		this,
+		&AInteractHideObject::OnEffectFinished,
+		3.0f,
+		false
+	);
 }
 
 void AInteractHideObject::OnEffectFinished()
