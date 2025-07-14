@@ -88,13 +88,8 @@ void AInteractHideObject::OnInteractServer_Implementation(const APawn* Interacto
 {
 	UE_LOG(LogTemp, Warning, TEXT("InteractHideObject::OnInteractServer"));
 
-	//if (HidePlayer && HidePlayer != Interactor) return;
-
 	// 플레이어 컨트롤러 가져오기
 	APlayerController* PlayerController = CastChecked<APlayerController>(Interactor->GetController());
-	
-	S2A_PlayEffect(PlayerController);
-
 	CamLogicServer(PlayerController);
 }
 
@@ -120,6 +115,8 @@ void AInteractHideObject::CamLogicServer(APlayerController* InteractorPC)
 	{
 		EnterObject(InteractorPC);
 
+		S2A_PlayEffect(InteractorPC);
+
 		// 클라이언트에게 입력 비활성화 명령 전달
 		SetInputState(InteractorPC, true);
 
@@ -128,13 +125,17 @@ void AInteractHideObject::CamLogicServer(APlayerController* InteractorPC)
 	}
 	else
 	{
+		AActor* PlayerActor = HidePlayer;
+
 		ExitObject(InteractorPC);
+
+		S2A_PlayEffect(InteractorPC);
 
 		// 클라이언트에게 입력 활성화 명령 전달
 		SetInputState(InteractorPC, false);
 
 		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
-		SetViewTarget(InteractorPC, HidePlayer);
+		SetViewTarget(InteractorPC, PlayerActor);
 	}
 }
 
