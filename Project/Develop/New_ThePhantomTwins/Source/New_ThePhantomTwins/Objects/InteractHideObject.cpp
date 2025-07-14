@@ -7,6 +7,7 @@
 #include "TimerManager.h"
 
 #include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
 #include "Perception/AISenseConfig_Sight.h"
@@ -36,6 +37,12 @@ AInteractHideObject::AInteractHideObject() : AInteractableObject()
 	StimuliSource->RegisterForSense(UAISense_Sight::StaticClass());
 	StimuliSource->RegisterForSense(UAISense_Hearing::StaticClass());
 
+	// Box
+	InPosBox = CreateDefaultSubobject<UBoxComponent>(TEXT("InPosBoxComp"));
+	InPosBox->SetupAttachment(RootComponent);
+
+	OutPosBox = CreateDefaultSubobject<UBoxComponent>(TEXT("OutPosBoxComp"));
+	OutPosBox->SetupAttachment(RootComponent);
 }
 
 void AInteractHideObject::BeginPlay()
@@ -46,17 +53,13 @@ void AInteractHideObject::BeginPlay()
 	{
 		HideEffectComp->SetActive(false);
 		HideEffectComp->SetVisibility(false);
-		//HideEffectComp->OnSystemFinished.AddDynamic(this, &AInteractHideObject::OnEffectFinished);
 	}
-
 }
 
 void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AInteractHideObject, bIsInHideView);
-	DOREPLIFETIME(AInteractHideObject, PreviousViewTarget);
 	DOREPLIFETIME(AInteractHideObject, HidePlayer);
 }
 
@@ -82,16 +85,12 @@ bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bo
 
 void AInteractHideObject::OnInteractServer_Implementation(const APawn* Interactor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("InteractHideObject::OnInteractServer"));
+	// 서버에서 실행되는 코드
+	if (!HasAuthority()) return;
 
-	//if (HidePlayer && HidePlayer != Interactor) return;
+	UE_LOG(LogTemp, Warning, TEXT("InteractHideObject::OnInteract Server"));
 
-	// 플레이어 컨트롤러 가져오기
-	APlayerController* PlayerController = CastChecked<APlayerController>(Interactor->GetController());
-	
-	S2A_PlayEffect(PlayerController);
-
-	CamLogicServer(PlayerController);
+	CamLogicServer(Interactor);
 }
 
 void AInteractHideObject::OnInteractClient_Implementation(const APawn* Interactor)
@@ -100,22 +99,49 @@ void AInteractHideObject::OnInteractClient_Implementation(const APawn* Interacto
 
 	if (!Interactor->IsLocallyControlled()) return;
 
+	UE_LOG(LogTemp, Warning, TEXT("InteractHideObject::OnInteract Client"));
+
 	SetWidgetVisible(false);
 
+	CamLogicClient(Interactor);
+}
+
+void AInteractHideObject::CamLogicServer(const APawn* Interactor)
+{
 	// 플레이어 컨트롤러 가져오기
-	APlayerController* PlayerController = CastChecked<APlayerController>(Interactor->GetController());
-	CamLogicClient(PlayerController);
+	APlayerController* InteractorPC = CastChecked<APlayerController>(Interactor->GetController());
+
+	if (!bIsActived)	// 플레이어가 밖에 있는 경우(아직 활성화X)
+	{
+		EnterObject(Interactor);
+
+		// 클라이언트에게 입력 비활성화 명령 전달
+		SetInputState(InteractorPC, true);
+
+		// 클라이언트에게 카메라 전환 명령 전달 (플레이어 캠 -> 오브젝트 캠)
+		SetViewTarget(InteractorPC, this);
+	}
+	else	// 플레이어가 안에 있는 경우(활성화O)
+	{
+		APawn* PlayerActor = HidePlayer;
+
+		ExitObject();
+
+		// 클라이언트에게 입력 활성화 명령 전달
+		SetInputState(InteractorPC, false);
+
+		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
+		SetViewTarget(InteractorPC, PlayerActor);
+	}
 }
 
-void AInteractHideObject::CamLogicServer(APlayerController* InteractorPC)
+void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 {
-	// 서버에서 실행되는 코드
-	if (!HasAuthority()) return;
+	// 플레이어 컨트롤러 가져오기
+	APlayerController* InteractorPC = CastChecked<APlayerController>(Interactor->GetController());
 
-	if (!bIsInHideView)
+	if (!bIsActived)
 	{
-		EnterObject(InteractorPC);
-
 		// 클라이언트에게 입력 비활성화 명령 전달
 		SetInputState(InteractorPC, true);
 
@@ -124,48 +150,44 @@ void AInteractHideObject::CamLogicServer(APlayerController* InteractorPC)
 	}
 	else
 	{
-		ExitObject(InteractorPC);
-
 		// 클라이언트에게 입력 활성화 명령 전달
 		SetInputState(InteractorPC, false);
 
 		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
-		SetViewTarget(InteractorPC, PreviousViewTarget);
+		SetViewTarget(InteractorPC, HidePlayer);
 	}
 }
 
-void AInteractHideObject::CamLogicClient(APlayerController* InteractorPC)
+void AInteractHideObject::EnterObject(const APawn* Interactor)
 {
-	if (!bIsInHideView)
+	bIsActived = true;
+	HidePlayer = const_cast<APawn*>(Interactor);
+
+	FVector playerLocation = { HidePlayer->GetActorLocation().X, HidePlayer->GetActorLocation().Y, 0 };
+	S2A_PlayEffect(playerLocation);
+
+	// 플레이어 위치가 InPosBox로 변경
+	if (InPosBox && HidePlayer)
 	{
-		// 클라이언트에게 입력 비활성화 명령 전달
-		SetInputState(InteractorPC, true);
-
-		// 클라이언트에게 카메라 전환 명령 전달 (플레이어 캠 -> 오브젝트 캠)
-		SetViewTarget(InteractorPC, this);
+		FVector NewLocation = InPosBox->GetComponentLocation();
+		FRotator NewRotation = InPosBox->GetComponentRotation();
+		HidePlayer->SetActorLocationAndRotation(NewLocation, NewRotation);
 	}
-	else
+}
+
+void AInteractHideObject::ExitObject()
+{
+	if (OutPosBox && HidePlayer)
 	{
-		// 클라이언트에게 입력 활성화 명령 전달
-		SetInputState(InteractorPC, false);
+		FVector NewLocation = OutPosBox->GetComponentLocation();
+		FRotator NewRotation = OutPosBox->GetComponentRotation();
+		HidePlayer->SetActorLocationAndRotation(NewLocation, NewRotation);
 
-		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
-		SetViewTarget(InteractorPC, PreviousViewTarget);
+		S2A_PlayEffect(NewLocation);
 	}
-}
 
-void AInteractHideObject::EnterObject(APlayerController* InteractorPC)
-{
-	// 현재 뷰 타겟 저장
-	PreviousViewTarget = InteractorPC->GetViewTarget();
 
-	bIsInHideView = true;
-	HidePlayer = InteractorPC->GetPawn();
-}
-
-void AInteractHideObject::ExitObject(APlayerController* InteractorPC)
-{
-	bIsInHideView = false;
+	bIsActived = false;
 	HidePlayer = nullptr;
 }
 
@@ -187,31 +209,38 @@ void AInteractHideObject::SetViewTarget(APlayerController* InteractorPC, AActor*
 
 	if (InteractorPC && NewViewTarget)
 	{
-		InteractorPC->SetViewTargetWithBlend(NewViewTarget, CameraBlendTime);
+		InteractorPC->SetViewTarget(NewViewTarget);
 
 		UE_LOG(LogTemp, Log, TEXT("Client: SetViewTarget called with actor: %s"),
 			*NewViewTarget->GetName());
 	}
 }
 
-void AInteractHideObject::S2A_PlayEffect_Implementation(APlayerController* InteractorPC)
+void AInteractHideObject::S2A_PlayEffect_Implementation(FVector EffectLocation)
 {
-	if (HideEffectComp)
-	{
-		// 이펙트 활성화 및 보이게 설정
-		HideEffectComp->SetActive(true);
-		HideEffectComp->SetVisibility(true);
+	PlayEffectLogic(EffectLocation);
+}
 
-		// 3초 후에 이펙트 비활성화 및 숨기기
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(
-			TimerHandle,
-			this,
-			&AInteractHideObject::OnEffectFinished,
-			3.0f,
-			false
-		);
-	}
+
+void AInteractHideObject::PlayEffectLogic_Implementation(FVector EffectLocation)
+{
+	if (!HideEffectComp) return;
+
+	HideEffectComp->SetWorldLocation(EffectLocation);
+
+	// 이펙트 활성화 및 보이게 설정
+	HideEffectComp->SetActive(true);
+	HideEffectComp->SetVisibility(true);
+
+	// 3초 후에 이펙트 비활성화 및 숨기기
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(
+		TimerHandle,
+		this,
+		&AInteractHideObject::OnEffectFinished,
+		3.0f,
+		false
+	);
 }
 
 void AInteractHideObject::OnEffectFinished()
