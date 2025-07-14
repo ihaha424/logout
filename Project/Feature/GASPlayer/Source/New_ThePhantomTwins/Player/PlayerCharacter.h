@@ -5,10 +5,19 @@
 #include "CoreMinimal.h"
 #include "InputActionValue.h"
 #include "GameFramework/Character.h"
+#include "AbilitySystemInterface.h"
 #include "PlayerCharacter.generated.h"
 
+class UGameplayEffect;
+class APS_Player;
+class UAbilitySystemComponent;
+class UInputMappingContext;
+class UCameraComponent;
+class USpringArmComponent;
+class UInputAction;
+
 UCLASS()
-class NEW_THEPHANTOMTWINS_API APlayerCharacter : public ACharacter
+class NEW_THEPHANTOMTWINS_API APlayerCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -24,6 +33,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
 	UFUNCTION()
 	void OnPlayerDowned();
 
@@ -37,35 +48,33 @@ public:
 protected:
 
 	UPROPERTY()
-	TObjectPtr<class APS_Player> PS;
+	TObjectPtr<APS_Player> PS;
 
 	// GAS
 	UPROPERTY(EditAnywhere, Category = GAS)
-	TObjectPtr<class UAbilitySystemComponent> ASC;
+	TObjectPtr<UAbilitySystemComponent> ASC;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
-	TSubclassOf<class UGameplayEffect> InitAttributeSetEffect;
+	TSubclassOf<UGameplayEffect> InitAttributeSetEffect;
 
 	// ÀÎÇ²
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<class UInputMappingContext> IMC;
+	TObjectPtr<UInputMappingContext> IMC;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<class UInputAction> MoveAction;
+	TObjectPtr<UInputAction> MoveAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<class UInputAction> LookAction;
+	TObjectPtr<UInputAction> LookAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<class UInputAction> InteractAction;
+	TObjectPtr<UInputAction> InteractAction;
 
 	// Ä«¸Þ¶ó
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class USpringArmComponent> SpringArmComp;
+	TObjectPtr<USpringArmComponent> SpringArm;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<class UCameraComponent> CameraComp;
-
-
+	TObjectPtr<UCameraComponent> Camera;
 };
 

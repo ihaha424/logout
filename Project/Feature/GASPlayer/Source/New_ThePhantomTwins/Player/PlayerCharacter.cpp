@@ -28,17 +28,15 @@ APlayerCharacter::APlayerCharacter()
 	GetCharacterMovement()->MinAnalogWalkSpeed = 0.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 
-	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
-	SpringArmComp->SetupAttachment(GetMesh());
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->SetupAttachment(RootComponent);
+	SpringArm->bUsePawnControlRotation = true;
+	SpringArm->bEnableCameraLag = true;
+	SpringArm->TargetArmLength = 150.0f;
 
-	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
-	CameraComp->bUsePawnControlRotation = false;
-
-	SpringArmComp->bUsePawnControlRotation = true;
-	SpringArmComp->bEnableCameraLag = true;
-	SpringArmComp->TargetArmLength = 300.0f;
-
-	CameraComp->AttachToComponent(SpringArmComp, FAttachmentTransformRules::KeepRelativeTransform);
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	Camera->bUsePawnControlRotation = false;
+	Camera->SetupAttachment(SpringArm);
 }
 
 // Called when the game starts or when spawned
@@ -134,6 +132,11 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Move);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Look);
 	EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Interact);
+}
+
+UAbilitySystemComponent* APlayerCharacter::GetAbilitySystemComponent() const
+{
+	return ASC;
 }
 
 void APlayerCharacter::OnPlayerDowned()
