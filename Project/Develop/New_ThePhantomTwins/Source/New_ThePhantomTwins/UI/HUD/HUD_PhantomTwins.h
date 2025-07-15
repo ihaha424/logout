@@ -36,7 +36,6 @@ public:
     void UpdateStamina(int32 Stamina);    
 
 
-
 /* ClearItem */ 
     // 현재 클리어 아이템 갯수 변경
     UFUNCTION(BlueprintCallable, Category = "UI | ClearItem")
@@ -72,4 +71,21 @@ protected:
 
     UPROPERTY()
     TObjectPtr<class UClearItemCounterWidget> ClearItemCounterWidget;
+
+
+// Skill
+    UPROPERTY(EditDefaultsOnly, Category = "UI")
+    TSubclassOf<class UPlayerSkillWidget> PlayerSkillWidgetClass;
+
+    UPROPERTY()
+    TObjectPtr<class UPlayerSkillWidget> PlayerSkillWidget;
+
+
+// Inventory
+    UPROPERTY(EditDefaultsOnly, Category = "UI")
+    TSubclassOf<class UInventoryWidget> InventoryWidgetClass;
+
+    UPROPERTY()
+    TObjectPtr<class UInventoryWidget> InventoryWidget;
+
 };

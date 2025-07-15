@@ -5,6 +5,8 @@
 #include "PlayerStatusWidget.h"
 #include "ClearItemCounterWidget.h"
 #include "PlayerStaminaWidget.h"
+#include "PlayerSkillWidget.h"
+#include "InventoryWidget.h"
 #include "../../Log/TPTLog.h"
 
 
@@ -45,6 +47,24 @@ void AHUD_PhantomTwins::BeginPlay()
         if (ClearItemCounterWidget)
         {
             ClearItemCounterWidget->AddToViewport();
+        }
+    }
+
+    if (PlayerSkillWidgetClass)
+    {
+        PlayerSkillWidget = CreateWidget<UPlayerSkillWidget>(GetWorld(), PlayerSkillWidgetClass);
+        if (PlayerSkillWidget)
+        {
+            PlayerSkillWidget->AddToViewport();
+        }
+    }
+
+    if (InventoryWidgetClass)
+    {
+        InventoryWidget = CreateWidget<UInventoryWidget>(GetWorld(), InventoryWidgetClass);
+        if (InventoryWidget)
+        {
+            InventoryWidget->AddToViewport();
         }
     }
 }
