@@ -15,23 +15,31 @@ void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(StaminaDrainEffect, GetAbilityLevel());
-	if (EffectSpecHandle.IsValid())
+	FGameplayEffectSpecHandle StaminaDrainEffectSpecHandle = MakeOutgoingGameplayEffectSpec(StaminaDrainEffect, GetAbilityLevel());
+	if (StaminaDrainEffectSpecHandle.IsValid())
 	{
-		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle);
+		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, StaminaDrainEffectSpecHandle);
 	}
 
-
-	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
-	if (Character)
+	FGameplayEffectSpecHandle SetSpeedEffectSpecHandle = MakeOutgoingGameplayEffectSpec(SetSpeedEffect, 1.0f);
+	if (SetSpeedEffectSpecHandle.IsValid())
 	{
-		APS_Player* PS = Cast<APS_Player>(Character->GetPlayerState());
+		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SetSpeedEffectSpecHandle);
+	}
 
-		if (PS)
+	FTimerHandle TimerHandle;
+	ActorInfo->AvatarActor->GetWorldTimerManager().SetTimer(
+		TimerHandle, [this, ActorInfo]()
 		{
-			//Character->GetCharacterMovement()->MaxWalkSpeed = PS->AttributeSet->Speed;
-		}
-	}
+			APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
+			if (!Character) return;
+
+			const UPlayerAttributeSet* Attribute = Character->GetAbilitySystemComponent()->GetSet<UPlayerAttributeSet>();
+
+			float Speed = Attribute->GetFinalSpeed();
+
+			Character->GetCharacterMovement()->MaxWalkSpeed = Speed;
+		}, 0.05f, false); // 0.05초 정도 후에 반영
 
     // 몽타주 재생
 	//if (RunningMontage)

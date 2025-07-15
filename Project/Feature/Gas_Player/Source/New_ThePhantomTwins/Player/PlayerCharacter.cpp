@@ -86,6 +86,13 @@ void APlayerCharacter::PossessedBy(AController* NewController)
             );
         }
 
+		for (const auto& InputAbility : InputAbilities)
+		{
+			FGameplayAbilitySpec StartSpec(InputAbility.Value);
+			StartSpec.InputID = InputAbility.Key;
+			ASC->GiveAbility(StartSpec);
+		}
+
 		// 이렇게 하면 디버그 계속볼수있음.
 		APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
 		PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
@@ -139,6 +146,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Move);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Look);
 	EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Interact);
+
+	SetupPlayerInputByTag();
 }
 
 void APlayerCharacter::SetupPlayerInputByTag()
@@ -147,6 +156,7 @@ void APlayerCharacter::SetupPlayerInputByTag()
 	{
 		UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
 	
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &APlayerCharacter::GASInputPressed, 0);
 	}
 }
 void APlayerCharacter::OnPlayerDowned()
@@ -191,4 +201,34 @@ void APlayerCharacter::Look(const FInputActionValue& Value)
 
 void APlayerCharacter::Interact(const FInputActionValue& Value)
 {
+}
+
+void APlayerCharacter::GASInputPressed(int32 InputId)
+{
+	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputId);
+	if (Spec)
+	{
+		Spec->InputPressed = true;
+		if (Spec->IsActive())
+		{
+			ASC->AbilitySpecInputPressed(*Spec);
+		}
+		else
+		{
+			ASC->TryActivateAbility(Spec->Handle);
+		}
+	}
+}
+
+void APlayerCharacter::GASInputReleased(int32 InputId)
+{
+	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputId);
+	if (Spec)
+	{
+		Spec->InputPressed = false;
+		if (Spec->IsActive())
+		{
+			ASC->AbilitySpecInputReleased(*Spec);
+		}
+	}
 }
