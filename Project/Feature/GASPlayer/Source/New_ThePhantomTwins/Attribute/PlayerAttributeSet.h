@@ -33,6 +33,7 @@ public:
 	ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, MaxStamina);
 	ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, Speed);
 	ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, SpeedAdjustment);
+	ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, FinalSpeed);
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual bool PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data) override;
@@ -67,6 +68,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData SpeedAdjustment;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
+	FGameplayAttributeData FinalSpeed;
 
 	bool bPlayerDowned = false;
 	bool bPlayerConfused = false;

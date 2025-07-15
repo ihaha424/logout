@@ -14,7 +14,9 @@ UPlayerAttributeSet::UPlayerAttributeSet() :
 	MaxCoreEnergy(5),
 	Stamina(100),
 	MaxStamina(100),
-	Speed(120)
+	Speed(120),
+	SpeedAdjustment(0),
+	FinalSpeed(0)
 {
 }
 
@@ -56,12 +58,17 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	{
 		SetStamina(FMath::Clamp(GetStamina(), MinimumPoint, GetMaxStamina()));
 	}
-
+	// 스피드나 증감스피드가 변경될때 마다  final 스피드가 업데이트 되도록함.
 	if (Data.EvaluatedData.Attribute == GetSpeedAttribute())
 	{
 		SetSpeed(FMath::Clamp(GetSpeed(), MinimumPoint, 10000));
+		SetFinalSpeed(FMath::Clamp(GetSpeed() + GetSpeedAdjustment(), MinimumPoint, 10000));
 	}
 
+	if (Data.EvaluatedData.Attribute == GetSpeedAdjustmentAttribute())
+	{
+		SetFinalSpeed(FMath::Clamp(GetSpeed() + GetSpeedAdjustment(), MinimumPoint, 10000));
+	}
 
 	// 체력이 0이하라면 다운.
 	if (GetHP() <= 0.0f && !bPlayerDowned)
