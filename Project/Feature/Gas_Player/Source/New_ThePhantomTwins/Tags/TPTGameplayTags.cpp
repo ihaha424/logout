@@ -37,10 +37,10 @@ void FTPTGameplayTags::InitializeNativeTags()
 //
 #define TAG true
 #define TPT_TAG_GEN(Type, Properties, Name, Description) \
-    GameplayTags.TPTGameplay_##Type##_##Properties##_##Name = Manager.AddNativeGameplayTag(TEXT("TPTGamePlayTag." #Type "." #Name), TEXT(Description));   \
+    GameplayTags.TPTGameplay_##Type##_##Properties##_##Name = Manager.AddNativeGameplayTag(TEXT("TPTGamePlayTag." #Type "." #Properties "." #Name), TEXT(Description));   \
     if (!GameplayTags.TPTGameplay_##Type##_##Properties##_##Name.IsValid())                                                             \
     {                                                                                                                       \
-        GameplayTags.TPTGameplay_##Type##_##Properties##_##Name = FGameplayTag::RequestGameplayTag(TEXT("TPTGamePlayTag." #Type "." #Name));       \
+        GameplayTags.TPTGameplay_##Type##_##Properties##_##Name = FGameplayTag::RequestGameplayTag(TEXT("TPTGamePlayTag." #Type "." #Properties "." #Name));       \
     }                                                                                                                                   
 #include "./Inline/TPTGameplayTagList.inl"
 #undef TPT_TAG_GEN
@@ -48,10 +48,10 @@ void FTPTGameplayTags::InitializeNativeTags()
 
 #define CUETAG true
 #define TPT_TAG_GEN(Type, Name, Description) \
-    GameplayTags.TPTGameplayCue_##Type##_##Name = Manager.AddNativeGameplayTag(TEXT("TPTGamePlayTag." #Type "." #Name), TEXT(Description));   \
+    GameplayTags.TPTGameplayCue_##Type##_##Name = Manager.AddNativeGameplayTag(TEXT("TPTGamePlayCueTag." #Type "." #Name), TEXT(Description));   \
     if (!GameplayTags.TPTGameplayCue_##Type##_##Name.IsValid())                                                             \
     {                                                                                                                       \
-        GameplayTags.TPTGameplayCue_##Type##_##Name = FGameplayTag::RequestGameplayTag(TEXT("TPTGamePlayTag." #Type "." #Name));       \
+        GameplayTags.TPTGameplayCue_##Type##_##Name = FGameplayTag::RequestGameplayTag(TEXT("TPTGamePlayCueTag." #Type "." #Name));       \
     }                                                                                                                                   
 #include "./Inline/TPTGameplayTagList.inl"
 #undef TPT_TAG_GEN

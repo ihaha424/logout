@@ -5,6 +5,7 @@
 #include "../Player/PlayerCharacter.h"
 #include "../Player/PS_Player.h"
 #include "../Attribute/PlayerAttributeSet.h"
+#include "../Tags/TPTGameplayTags.h"
 
 UGA_Run::UGA_Run()
 {
@@ -24,6 +25,9 @@ void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	FGameplayEffectSpecHandle SetSpeedEffectSpecHandle = MakeOutgoingGameplayEffectSpec(SetSpeedEffect, 1.0f);
 	if (SetSpeedEffectSpecHandle.IsValid())
 	{
+		//FGameplayTag SpeedOverrideTag = FGameplayTag::RequestGameplayTag(FName("TPTGamePlayTag.InputTag.Player.Run"));
+		FGameplayTag SpeedOverrideTag = FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run;
+		SetSpeedEffectSpecHandle.Data->SetSetByCallerMagnitude(SpeedOverrideTag, RunSpeed);
 		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SetSpeedEffectSpecHandle);
 	}
 
