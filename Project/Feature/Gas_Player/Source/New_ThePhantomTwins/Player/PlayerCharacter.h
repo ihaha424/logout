@@ -63,8 +63,6 @@ protected:
 	TMap<int32, TSubclassOf<class UGameplayAbility>> InputAbilities;
 
 	// ¿Œ«≤
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	TObjectPtr<UInputMappingContext> IMC;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> MoveAction;

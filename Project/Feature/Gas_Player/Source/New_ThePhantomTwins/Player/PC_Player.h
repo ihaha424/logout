@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "PC_Player.generated.h"
 
+class UInputMappingContext;
 /**
  * 
  */
@@ -15,4 +16,7 @@ class NEW_THEPHANTOMTWINS_API APC_Player : public APlayerController
 	GENERATED_BODY()
 public:
 	virtual void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputMappingContext> IMC;
 };

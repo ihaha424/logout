@@ -44,19 +44,6 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	APlayerController* PlayerController = Cast<APlayerController>(GetController());
-	if (PlayerController)
-	{
-		if (ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer())
-		{
-			if (UEnhancedInputLocalPlayerSubsystem* SubSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
-			{
-				SubSystem->AddMappingContext(IMC, 0);
-				TPT_LOG(PlayerLog, Log, TEXT("~"));
-			}
-		}
-	}
 }
 
 void APlayerCharacter::PossessedBy(AController* NewController)
