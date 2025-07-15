@@ -1,13 +1,25 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
+﻿
 #include "HUD_PhantomTwins.h"
-#include "PlayerStatusWidget.h"
 #include "Blueprint/UserWidget.h"
+
+#include "PlayerStatusWidget.h"
+#include "ClearItemCounterWidget.h"
+#include "PlayerStaminaWidget.h"
+#include "../../Log/TPTLog.h"
+
 
 void AHUD_PhantomTwins::BeginPlay()
 {
     Super::BeginPlay();
+
+    if (AimDotWidgetClass)
+    {
+        AimDotWidget = CreateWidget<UUserWidget>(GetWorld(), AimDotWidgetClass);
+        if (AimDotWidget)
+        {
+            AimDotWidget->AddToViewport();
+        }
+    }
 
     if (PlayerStatusWidgetClass)
     {
@@ -17,12 +29,64 @@ void AHUD_PhantomTwins::BeginPlay()
             PlayerStatusWidget->AddToViewport();
         }
     }
+
+    if (PlayerStaminaWidgetClass)
+    {
+        PlayerStaminaWidget = CreateWidget<UPlayerStaminaWidget>(GetWorld(), PlayerStaminaWidgetClass);
+        if (PlayerStaminaWidget)
+        {
+            PlayerStaminaWidget->AddToViewport();
+        }
+    }
+
+    if (ClearItemCounterWidgetClass)
+    {
+        ClearItemCounterWidget = CreateWidget<UClearItemCounterWidget>(GetWorld(), ClearItemCounterWidgetClass);
+        if (ClearItemCounterWidget)
+        {
+            ClearItemCounterWidget->AddToViewport();
+        }
+    }
 }
 
-void AHUD_PhantomTwins::UpdateHP(float HP)
+/* PlayerStatus */
+void AHUD_PhantomTwins::UpdateHP(int32 HP)
 {
     if (PlayerStatusWidget)
     {
-        PlayerStatusWidget->SetHP(HP); // UHPBarWidget이 실제 UI에 반영
+        PlayerStatusWidget->SetHP(HP);
+    }
+}
+
+void AHUD_PhantomTwins::UpdateMental(int32 Mental)
+{
+    if (PlayerStatusWidget)
+    {
+        PlayerStatusWidget->SetMental(Mental);
+    }
+}
+
+void AHUD_PhantomTwins::SetCharPortrait(UTexture2D* PortraitTexture)
+{
+    if (PlayerStatusWidget)
+    {
+        PlayerStatusWidget->SetCharPortrait(PortraitTexture);
+    }
+}
+
+void AHUD_PhantomTwins::UpdateStamina(int32 Stamina)
+{
+    if (PlayerStaminaWidget)
+    {
+        PlayerStaminaWidget->SetStamina(Stamina);
+    }
+}
+
+/* ClearItem */
+void AHUD_PhantomTwins::UpdateClearItem(int32 CurrentClearItem)
+{
+    if (ClearItemCounterWidget)
+    {
+        ClearItemCounterWidget->SetClearItemCount(CurrentClearItem);
     }
 }

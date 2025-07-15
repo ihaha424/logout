@@ -1,9 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Engine/Texture2D.h"
 #include "PlayerStatusWidget.generated.h"
 
 /**
@@ -18,8 +17,9 @@ protected:
     virtual void NativeConstruct() override;
 
 public:
-    void SetHP(float HP);
-    void SetMental(float Mental);
+    void SetHP(int32 HP);
+    void SetMental(int32 Mental);
+    void SetCharPortrait(UTexture2D* PortraitTexture);
 
 protected:
     UPROPERTY(meta = (BindWidget))
@@ -28,6 +28,6 @@ protected:
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<class UProgressBar> MentalBar;
 
-    //UPROPERTY(meta = (BindWidget))
-    //TObjectPtr<class UImage> PlayerPortrait_Image;
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<class UImage> CharPortrait;
 };
