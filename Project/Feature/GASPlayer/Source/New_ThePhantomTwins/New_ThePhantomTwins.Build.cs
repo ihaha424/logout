@@ -17,12 +17,10 @@ public class New_ThePhantomTwins : ModuleRules
             "EnhancedInput",
             "AIModule",
             "UMG",
-			"TPTObjects",
             "NavigationSystem",
             "OnlineSubsystem",
             "Sockets",
-            "Networking",
-            "Niagara"
+            "Networking"
 
         });
 
