@@ -16,6 +16,7 @@ void UGA_ExecuteActiveSkill::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 	APlayerCharacter* AbilityUser = Cast< APlayerCharacter>(ActorInfo->AvatarActor.Get());
 	if (!AbilityUser)
 	{
+		
 		return;
 	}
 	//AbilityUser->

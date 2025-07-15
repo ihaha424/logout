@@ -10,6 +10,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "New_ThePhantomTwins/Attribute/PlayerAttributeSet.h"
+#include "New_ThePhantomTwins/Log/TPTLog.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -52,6 +53,7 @@ void APlayerCharacter::BeginPlay()
 			if (UEnhancedInputLocalPlayerSubsystem* SubSystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
 			{
 				SubSystem->AddMappingContext(IMC, 0);
+				TPT_LOG(PlayerLog, Log, TEXT("~"));
 			}
 		}
 	}
