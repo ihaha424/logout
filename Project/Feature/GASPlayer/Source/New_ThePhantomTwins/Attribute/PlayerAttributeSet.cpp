@@ -73,7 +73,7 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	// 체력이 0이하라면 다운.
 	if (GetHP() <= 0.0f && !bPlayerDowned)
 	{
-		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGamePlayTag_State_Downed);
+		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 		OnPlayerDowned.Broadcast();
 	}
 	bPlayerDowned = GetHP() <= 0.0f;
@@ -81,7 +81,7 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	// 정신력이 0이하라면 착란.
 	if (GetMentalPoint() <= 0.0f && !bPlayerConfused)
 	{
-		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGamePlayTag_State_Confused);
+		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused);
 		OnPlayerConfused.Broadcast();
 	}
 	bPlayerConfused = GetMentalPoint() <= 0.0f;
