@@ -5,10 +5,10 @@
 
 const UInputAction* UDA_InputConfig::FindInputActionForTag(const FGameplayTag& InputTag) const
 {
-    for (const FTaggedInputAction& Pair : TaggedInputActions)
+    for (const FTaggedInputAction& Action : TaggedInputActions)
     {
-        if (Pair.InputTag == InputTag)
-            return Pair.InputAction;
+        if (Action.InputTag == InputTag)
+            return Action.InputAction;
     }
     return nullptr;
 }
