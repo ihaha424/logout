@@ -31,14 +31,28 @@ public:
 
 protected:
     // trigger들이 모두 활성화되었는지 확인 (AInteractableObject의 bActived를 사용하는게 아니라면 override해서 작성)
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "ADoor")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Door")
 	bool AreAllTriggerActived() const;
 	bool AreAllTriggerActived_Implementation() const;
 
 
-    UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
+	virtual void OnRep_bIsActived() override;
+
+
+    UFUNCTION(NetMulticast, Reliable)
     void S2A_OpenDoor();
-    void S2A_OpenDoor_Implementation();
+
+	UFUNCTION(NetMulticast, Reliable)
+    void S2A_CloseDoor();
+
+    // 블루프린트에서 문을 여는 동작을 구현할 수 있도록 선언
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Door")
+	void OpenDoor();
+
+	// 블루프린트에서 문을 닫는 동작을 구현할 수 있도록 선언
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Door")
+    void CloseDoor();
+
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")
@@ -55,3 +69,4 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
     int32 MinRequiredCount = 0;
 };
+// Door 클래스 함수 중 블프에서 수정할 수 있는 함수 : AreAllTriggerActived(), OpenDoor(), CloseDoor()

@@ -2,6 +2,7 @@
 #include "TriggerHideObject.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/BoxComponent.h"
+#include "../Log/TPTLog.h"
 
 //AI Perception
 #include "Components/SphereComponent.h"
@@ -59,7 +60,7 @@ void ATriggerHideObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedCo
     HidePlayerNum = FMath::Clamp(HidePlayerNum + 1, 0, 2);
     bHasPlayer = (HidePlayerNum > 0);
 
-    UE_LOG(LogTemp, Log, TEXT("TriggerHide :: Begin"));
+    TPT_LOG(ObjectLog, Log, TEXT("TriggerHide :: Begin"));
 }
 
 void ATriggerHideObject::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -67,5 +68,5 @@ void ATriggerHideObject::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComp
     HidePlayerNum = FMath::Clamp(HidePlayerNum - 1, 0, 2);
 	bHasPlayer = (HidePlayerNum > 0);
 
-    UE_LOG(LogTemp, Log, TEXT("TriggerHide :: End"));
+    TPT_LOG(ObjectLog, Log, TEXT("TriggerHide :: End"));
 }
