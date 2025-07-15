@@ -13,5 +13,10 @@ UCLASS()
 class NEW_THEPHANTOMTWINS_API UGA_ExecuteActiveSkill : public UGameplayAbility
 {
 	GENERATED_BODY()
-	
+public:
+	UGA_ExecuteActiveSkill();
+
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+
 };
