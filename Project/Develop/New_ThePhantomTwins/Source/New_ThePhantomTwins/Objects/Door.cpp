@@ -5,6 +5,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
+#include "../Log/TPTLog.h"
 
 ADoor::ADoor() : AInteractableObject()
 {
@@ -14,6 +15,7 @@ ADoor::ADoor() : AInteractableObject()
 	LockWidgetComp->SetDrawSize(FVector2D(10, 10));
 	LockWidgetComp->SetRelativeLocation(FVector(0, 0, 100));
 	LockWidgetComp->SetVisibility(false);
+	//TPT_LOG(ObjectLog,Log,TEXT(""));
 }
 
 void ADoor::BeginPlay()
