@@ -44,6 +44,9 @@ public:
 	void Look(const FInputActionValue& Value);
 	void Interact(const FInputActionValue& Value);
 
+	void GASInputPressed(int32 InputId);
+	void GASInputReleased(int32 InputId);
+
 protected:
 
 	UPROPERTY()

@@ -2,7 +2,7 @@
 
 #include "GA_Run.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/Character.h"
+#include "../Player/PlayerCharacter.h"
 #include "../Player/PS_Player.h"
 #include "../Attribute/PlayerAttributeSet.h"
 
