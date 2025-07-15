@@ -47,6 +47,9 @@ public:
 	void GASInputPressed(int32 InputId);
 	void GASInputReleased(int32 InputId);
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float WalkSpeed = 300.f;
+
 protected:
 
 	UPROPERTY()
