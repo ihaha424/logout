@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Engine/Texture2D.h"
 #include "PlayerSkillWidget.generated.h"
 
 /**
@@ -14,4 +15,21 @@ class NEW_THEPHANTOMTWINS_API UPlayerSkillWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+protected:
+    virtual void NativeConstruct() override;
+
+public:
+    void SetActiveSkillIcon(UTexture2D* ActiveSkillIcon);
+    void SetPassiveSkillIcon(UTexture2D* PassiveSkillIcon);
+    void ShowSkillPoints(int32 ShowCnt);
+
+protected:
+	UPROPERTY(meta = (BindWidget))
+    TObjectPtr<class UImage> Img_ActiveSkillIcon;
+
+	UPROPERTY(meta = (BindWidget))
+    TObjectPtr<class UImage> Img_PassiveSkillIcon;
+
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<class UStackBox> SkillPointsStackBox;
 };

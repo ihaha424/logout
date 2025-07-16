@@ -69,6 +69,7 @@ void AHUD_PhantomTwins::BeginPlay()
     }
 }
 
+
 /* PlayerStatus */
 void AHUD_PhantomTwins::UpdateHP(int32 HP)
 {
@@ -102,11 +103,38 @@ void AHUD_PhantomTwins::UpdateStamina(int32 Stamina)
     }
 }
 
+
 /* ClearItem */
 void AHUD_PhantomTwins::UpdateClearItem(int32 CurrentClearItem)
 {
     if (ClearItemCounterWidget)
     {
         ClearItemCounterWidget->SetClearItemCount(CurrentClearItem);
+    }
+}
+
+
+/* Skill */
+void AHUD_PhantomTwins::SetActiveSkillIcon(UTexture2D* ActiveSkillIcon)
+{
+    if (PlayerSkillWidget)
+    {
+        PlayerSkillWidget->SetActiveSkillIcon(ActiveSkillIcon);
+    }
+}
+
+void AHUD_PhantomTwins::SetPassiveSkillIcon(UTexture2D* PassiveSkillIcon)
+{
+    if (PlayerSkillWidget)
+    {
+        PlayerSkillWidget->SetPassiveSkillIcon(PassiveSkillIcon);
+    }
+}
+
+void AHUD_PhantomTwins::UpdateSkillPoints(int32 SkillPointsNum)
+{
+    if (PlayerSkillWidget)
+    {
+        PlayerSkillWidget->ShowSkillPoints(SkillPointsNum);
     }
 }
