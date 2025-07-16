@@ -54,7 +54,7 @@ public:
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float WalkSpeed = 300.f;
+	float WalkSpeed = 200.f;
 
 protected:
 
