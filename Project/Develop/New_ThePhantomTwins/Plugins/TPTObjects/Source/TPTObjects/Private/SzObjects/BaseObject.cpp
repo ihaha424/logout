@@ -3,6 +3,7 @@
 
 #include "SzObjects/BaseObject.h"
 #include "Components/SceneComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "SzComponents/OutlineComponent.h"
 
 ABaseObject::ABaseObject()
@@ -20,7 +21,19 @@ ABaseObject::ABaseObject()
     Tags.Add(FName("Interactable"));
 }
 
-//void ABaseObject::BeginPlay()
-//{
-//	Super::BeginPlay();
-//}
+void ABaseObject::BeginPlay()
+{
+	Super::BeginPlay();
+
+    // StaticMesh를 찾아서 collision의 CanEverAffectNavigation를 해제
+    TArray<UStaticMeshComponent*> MeshComponents;
+    GetComponents<UStaticMeshComponent>(MeshComponents);
+
+    for (UStaticMeshComponent* MeshComp : MeshComponents)
+    {
+        if (MeshComp)
+        {
+            MeshComp->SetCanEverAffectNavigation(false);
+        }
+    }
+}
