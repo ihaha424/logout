@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(meta = (DisplayName = "TPTTask | Combat | Chase"))
 class THE_PHANTOM_TWINS_API UBTT_ChasePlayer : public UBTTaskNode
 {
 	GENERATED_BODY()

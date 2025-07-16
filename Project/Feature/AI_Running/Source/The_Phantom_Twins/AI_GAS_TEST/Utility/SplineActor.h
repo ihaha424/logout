@@ -5,15 +5,15 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/SplineComponent.h"
-#include "SplinePathActor.generated.h"
+#include "SplineActor.generated.h"
 
 UCLASS()
-class THE_PHANTOM_TWINS_API ASplinePathActor : public AActor
+class THE_PHANTOM_TWINS_API ASplineActor : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
-	ASplinePathActor();
+	ASplineActor();
 
 	UPROPERTY(VisibleAnywhere)
 	USplineComponent* SplineComponent;

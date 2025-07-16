@@ -13,6 +13,9 @@ class THE_PHANTOM_TWINS_API UPhantomTwinsInstance : public UGameInstance
 {
 	GENERATED_BODY()
 
+public:
+	virtual void Init() override;
+
 	UFUNCTION(BlueprintCallable, Category = "Story")
 	UStoryFlowManager* GetStoryFlowManager();
 };

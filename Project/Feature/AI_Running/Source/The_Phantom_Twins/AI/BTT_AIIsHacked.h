@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(meta = (DisplayName = "TPTTask | Stun | IsHacked"))
 class THE_PHANTOM_TWINS_API UBTT_AIIsHacked : public UBTTaskNode
 {
 	GENERATED_BODY()

@@ -5,12 +5,13 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
-#include "AbilitySystemComponent.h"
+#include "GameplayTagContainer.h"
 #include "AIBaseCharacter.generated.h"
 
 
 class UAbilitySystemComponent;
-class UAttributeSet;
+class UAIBaseAttributeSet;
+class ASplineActor;
 
 UCLASS()
 class THE_PHANTOM_TWINS_API AAIBaseCharacter : public ACharacter, public IAbilitySystemInterface
@@ -18,27 +19,39 @@ class THE_PHANTOM_TWINS_API AAIBaseCharacter : public ACharacter, public IAbilit
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
 	AAIBaseCharacter();
 
-protected:
-	// Called when the game starts or when spawned
+	//~ Begin ACharacter interface
 	virtual void BeginPlay() override;
-
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	//~ End ACharacter interface
+
+	//~ Begin IAbilitySystemInterface interface & Additional GAS System
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	UAIBaseAttributeSet* GetAIAttributeSet() const;
+	//~ End IAbilitySystemInterface interface & Additional GAS System
+
+	//~ Begin State Control
+	void ApplyStun();
+	void ResetToDefaultState();
+
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	FString  GetCurrentAIStateAsString() const;
+	//~ End State Control
+
+	//~ Begin AI Control(Patrol)
+	ASplineActor* GetBaseSplineActor() { return BaseSplineActor; }
+	UPROPERTY(EditAnywhere, Category = "AI")
+	TObjectPtr<ASplineActor> BaseSplineActor;
+	//~ End AI Control(Patrol)
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UAbilitySystemComponent> AbilitySystem;
 
 	UPROPERTY()
-	TObjectPtr<UAttributeSet> AttributeSet;
+	TObjectPtr<UAIBaseAttributeSet> AttributeSet;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FGameplayTagContainer AIStateTags;

@@ -9,7 +9,8 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(meta = (DisplayName = "TPTTask | Suspicion | ObjectRestoration"))
+
 class THE_PHANTOM_TWINS_API UBTT_ObjectRestoration : public UBTTaskNode
 {
 	GENERATED_BODY()

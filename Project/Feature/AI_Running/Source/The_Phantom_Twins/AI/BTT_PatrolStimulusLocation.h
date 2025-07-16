@@ -10,7 +10,7 @@ class USplineComponent;
 /**
  * 
  */
-UCLASS()
+UCLASS(meta = (DisplayName = "TPTTask | Suspicion | PatrolStimulusLocation"))
 class THE_PHANTOM_TWINS_API UBTT_PatrolStimulusLocation : public UBTTaskNode
 {
 	GENERATED_BODY()

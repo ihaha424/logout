@@ -9,7 +9,7 @@
 /**
  *
  */
-UCLASS()
+UCLASS(meta = (DisplayName = "TPTTask | Suspicion | LookAtStimulusLocation"))
 class THE_PHANTOM_TWINS_API UBTT_LookAtStimulusLocation : public UBTTaskNode
 {
 	GENERATED_BODY()

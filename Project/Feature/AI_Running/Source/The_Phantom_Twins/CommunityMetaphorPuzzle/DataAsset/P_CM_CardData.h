@@ -24,3 +24,4 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Community Metaphor Puzzle")
 	int32	EmotionValue;
 };
+ 

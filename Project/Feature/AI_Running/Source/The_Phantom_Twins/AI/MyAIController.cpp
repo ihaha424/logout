@@ -98,7 +98,7 @@ void AMyAIController::Tick(float DeltaTime)
 	// 플레이어가 움직임이 없어도 시야에 있는지 지속적인 검사를 위해서 쓴 코드.
 	AActor* TargetActor = Cast< AActor>(Blackboard->GetValueAsObject(TEXT("TargetPlayer")));
 	bSeeingPlayer = PerceptionComponent->HasActiveStimulus(*TargetActor, UAISense::GetSenseID<UAISense_Sight>());
-
+	
 	const float TickCurrentTime = GetWorld()->GetTimeSeconds();
 	if (bSeeingPlayer && SightStartTime > 0.f)
 	{

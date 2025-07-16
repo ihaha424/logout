@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "SplinePathActor.h"
+#include "SplineActor.h"
 
-ASplinePathActor::ASplinePathActor()
+ASplineActor::ASplineActor()
 {
 	SplineComponent = CreateDefaultSubobject<USplineComponent>(TEXT("DefaultSplineComponent"));
 	RootComponent = SplineComponent;

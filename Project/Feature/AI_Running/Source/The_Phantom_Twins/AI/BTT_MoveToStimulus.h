@@ -14,7 +14,7 @@ struct FBTMoveToStimulusMemory
 	bool bPathValid = false;
 };
 
-UCLASS()
+UCLASS(meta = (DisplayName = "TPTTask | Suspicion | MoveToStimulus"))
 class THE_PHANTOM_TWINS_API UBTT_MoveToStimulus : public UBTTaskNode
 {
 	GENERATED_BODY()

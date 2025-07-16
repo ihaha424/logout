@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(meta = (DisplayName = "TPTTask | Move | PatrolSplineRoute"))
 class THE_PHANTOM_TWINS_API UBTT_PatrolSplineRoute : public UBTTaskNode
 {
 	GENERATED_BODY()

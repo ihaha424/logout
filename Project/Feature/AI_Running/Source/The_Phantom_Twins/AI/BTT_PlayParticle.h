@@ -9,7 +9,7 @@
 
 class UNiagaraSystem;
 
-UCLASS()
+UCLASS(meta = (DisplayName = "TPTTask | PlayParticle"))
 class THE_PHANTOM_TWINS_API UBTT_PlayParticle : public UBTTaskNode
 {
 	GENERATED_BODY()
@@ -21,7 +21,7 @@ protected:
     
 
     void PlayParticle(ACharacter* Character);
-    UFUNCTION(NetMulticast, Reliable)
+    UFUNCTION(NetMulticast, Unreliable)
     void S2A_PlayParticle(ACharacter* Character);
     void S2A_PlayParticle_Implementation(ACharacter* Character);
 

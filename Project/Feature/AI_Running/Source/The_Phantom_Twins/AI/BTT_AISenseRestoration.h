@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(meta = (DisplayName = "TPTTask | Stun | SenseRestoration"))
 class THE_PHANTOM_TWINS_API UBTT_AISenseRestoration : public UBTTaskNode
 {
 	GENERATED_BODY()

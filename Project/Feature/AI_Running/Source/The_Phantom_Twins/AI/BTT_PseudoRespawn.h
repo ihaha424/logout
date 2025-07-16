@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(meta = (DisplayName = "TPTTask | PseudoRespawn"))
 class THE_PHANTOM_TWINS_API UBTT_PseudoRespawn : public UBTTaskNode
 {
 	GENERATED_BODY()

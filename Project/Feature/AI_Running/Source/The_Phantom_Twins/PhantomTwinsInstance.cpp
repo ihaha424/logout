@@ -3,6 +3,12 @@
 
 #include "PhantomTwinsInstance.h"
 #include "StoryFlow/StoryFlowManager.h"
+#include "AI_GAS_TEST/Tags/TPTGameplayTags.h"
+
+void UPhantomTwinsInstance::Init()
+{
+	FTPTGameplayTags::Get();
+}
 
 UStoryFlowManager* UPhantomTwinsInstance::GetStoryFlowManager()
 {
