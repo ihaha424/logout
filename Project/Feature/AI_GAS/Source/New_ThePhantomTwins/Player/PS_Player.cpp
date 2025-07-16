@@ -13,6 +13,8 @@ APS_Player::APS_Player()
 	ASC->SetIsReplicated(true);
 
 	AttributeSet = CreateDefaultSubobject<UPlayerAttributeSet>(TEXT("AttributeSet"));
+
+	TeamID = FGenericTeamId(1);
 }
 
 void APS_Player::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -23,6 +25,7 @@ void APS_Player::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	DOREPLIFETIME(APS_Player, PassiveSkill);
 	DOREPLIFETIME(APS_Player, ActiveSkill);
 	DOREPLIFETIME(APS_Player, ItemSlots);
+	DOREPLIFETIME(APS_Player, TeamID);
 }
 
 class UAbilitySystemComponent* APS_Player::GetAbilitySystemComponent() const

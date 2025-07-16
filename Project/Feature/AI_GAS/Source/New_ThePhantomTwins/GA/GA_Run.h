@@ -18,11 +18,17 @@ public:
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
+	virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility) override;
 
 protected:
-	UFUNCTION(BlueprintCallable)
-	void OnRunCallback();
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayEffect> StaminaDrainEffect;
+
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	TSubclassOf<UGameplayEffect> SetSpeedEffect;
+
+	FTimerHandle StaminaCheckHandle;
+
+	float RunSpeed = 600.0f;
 };

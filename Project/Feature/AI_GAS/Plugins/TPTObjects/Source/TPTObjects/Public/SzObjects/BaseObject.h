@@ -15,7 +15,7 @@ public:
 	ABaseObject();
 
 protected:
-	//virtual void BeginPlay() override;
+	virtual void BeginPlay() override;
 
 public:	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | Components")
