@@ -11,6 +11,7 @@
 #include "GenericTeamAgentInterface.h"
 #include "PlayerCharacter.generated.h"
 
+class UPlayerAttributeSet;
 class UGameplayAbility;
 class UTPTEnhancedInputComponent;
 class UDA_InputConfig;
@@ -38,13 +39,13 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	UFUNCTION()
 	void SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInputComponent);
-
 	UFUNCTION()
-	void OnPlayerDowned();
-
+	void ExecuteAbilityByTag(FGameplayTag InputTag);
 	UFUNCTION()
-	void OnPlayerConfused();
+	void BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet);
+
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -52,15 +53,14 @@ public:
 	void InputPressed(int32 InputID);
 	void InputReleased(int32 InputID);
 
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float WalkSpeed = 300.f;
+	float WalkSpeed = 200.f;
 
 protected:
 
 	UPROPERTY()
 	TObjectPtr<APS_Player> PS;
-	
+
 	// GAS
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<UAbilitySystemComponent> ASC;

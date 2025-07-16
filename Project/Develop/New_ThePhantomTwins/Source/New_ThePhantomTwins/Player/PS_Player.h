@@ -9,6 +9,7 @@
 #include "GenericTeamAgentInterface.h"
 #include "PS_Player.generated.h"
 
+class UPlayerAttributeSet;
 /**
  * 
  */
@@ -19,23 +20,25 @@ class NEW_THEPHANTOMTWINS_API APS_Player : public APlayerState, public IAbilityS
 public:
 	APS_Player();
 
-	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
 	virtual FGenericTeamId GetGenericTeamId() const override { return TeamID; }
+	FGameplayTag GetActiveSkillTag() const { return ActiveSkillTag;}
+	FGameplayTag GetPassiveSkillTag() const { return PassiveSkillTag;}
 
 protected:
 
 	UPROPERTY(Replicated, EditAnywhere, Category = GAS)
-	TObjectPtr<class UAbilitySystemComponent> ASC;
+	TObjectPtr<UAbilitySystemComponent> ASC;
 
 	UPROPERTY(Replicated)
-	TObjectPtr<class UPlayerAttributeSet> AttributeSet;
+	TObjectPtr<UPlayerAttributeSet> AttributeSet;
 
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Skill")
-	FGameplayTag PassiveSkill;
+	UPROPERTY(Replicated, EditAnywhere, Category = "Skill")
+	FGameplayTag PassiveSkillTag;
 
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Skill")
-	FGameplayTag ActiveSkill;
+	UPROPERTY(Replicated, EditAnywhere, Category = "Skill")
+	FGameplayTag ActiveSkillTag;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Inventory")
 	TArray< /* ¾ÆÀÌÅÛ Enum */ int32> ItemSlots;
