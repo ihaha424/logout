@@ -9,8 +9,10 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "New_ThePhantomTwins/Attribute/PlayerAttributeSet.h"
-#include "New_ThePhantomTwins/Log/TPTLog.h"
+#include "../Attribute/PlayerAttributeSet.h"
+#include "../Input/TPTEnhancedInputComponent.h"
+#include "../Log/TPTLog.h"
+#include "../Tags/TPTGameplayTags.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -67,20 +69,23 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 		}
         if (InitAttributeSetEffect)
         {
-            ASC->ApplyGameplayEffectToSelf(
+            ASC->ApplyGameplayEffectToSelf
+        	(
                 InitAttributeSetEffect->GetDefaultObject<UGameplayEffect>(),
                 1.0f,
                 ASC->MakeEffectContext()
             );
         }
-
-		for (const auto& InputAbility : InputAbilities)
+		for (const auto& Ability : PlayerAbilities)
 		{
-			FGameplayAbilitySpec StartSpec(InputAbility.Value);
-			StartSpec.InputID = InputAbility.Key;
+			const EFTPTGameplayTags* TagEnum = FTPTGameplayTags::Get().TagMap.Find(Ability.Key);
+			int32 InputID = static_cast<int32>(*TagEnum);
+
+			FGameplayAbilitySpec StartSpec(Ability.Value);
+			StartSpec.InputID = InputID;
 			ASC->GiveAbility(StartSpec);
 		}
-
+		
 		// 이렇게 하면 디버그 계속볼수있음.
 		APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
 		PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
@@ -119,6 +124,15 @@ class UAbilitySystemComponent* APlayerCharacter::GetAbilitySystemComponent() con
 	return ASC;
 }
 
+// AI의 감지를 위한 팀설정.
+FGenericTeamId APlayerCharacter::GetGenericTeamId() const
+{
+	if (PS) 
+	{
+		return PS->GetGenericTeamId();
+	}
+	return FGenericTeamId::NoTeam;
+}
 
 void APlayerCharacter::Tick(float DeltaTime)
 {
@@ -129,24 +143,64 @@ void APlayerCharacter::Tick(float DeltaTime)
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
+	UTPTEnhancedInputComponent* TPTInput = CastChecked<UTPTEnhancedInputComponent>(PlayerInputComponent);
+	check(TPTInput);
+	TPTInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Move);
+	TPTInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Look);
 
-	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Move);
-	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Look);
-	EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Interact);
-
-	SetupPlayerInputByTag();
+	SetupPlayerInputByTag(TPTInput);
 }
 
-void APlayerCharacter::SetupPlayerInputByTag()
+void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInput)
 {
-	if (IsValid(ASC) && IsValid(InputComponent))
+	if (IsValid(ASC) && IsValid(TPTInput))
 	{
-		UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
-	
-		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &APlayerCharacter::GASInputPressed, 0);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Triggered, this, &APlayerCharacter::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Completed, this, &APlayerCharacter::InputReleased);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch, ETriggerEvent::Triggered, this, &APlayerCharacter::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch, ETriggerEvent::Completed, this, &APlayerCharacter::InputReleased);
+
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Completed, this, &APlayerCharacter::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Completed, this, &APlayerCharacter::InputPressed);
+
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill, ETriggerEvent::Completed, this, &APlayerCharacter::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Completed, this, &APlayerCharacter::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Completed, this, &APlayerCharacter::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Completed, this, &APlayerCharacter::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Completed, this, &APlayerCharacter::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Completed, this, &APlayerCharacter::InputPressed);
 	}
 }
+
+void APlayerCharacter::InputPressed(int32 InputID)
+{
+	//const EFTPTGameplayTags* TagEnum = FTPTGameplayTags::Get().TagMap.Find(InputTag);
+
+	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
+	if (Spec)
+	{
+		Spec->InputPressed = true;
+		if (Spec->IsActive())
+		{
+			ASC->AbilitySpecInputPressed(*Spec);
+		}
+		else
+		{
+			ASC->TryActivateAbility(Spec->Handle);
+		}
+	}
+}
+
+void APlayerCharacter::InputReleased(int32 InputID)
+{
+	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
+	Spec->InputPressed = false;
+	if (Spec->IsActive())
+	{
+		ASC->AbilitySpecInputReleased(*Spec);
+	}
+}
+
 void APlayerCharacter::OnPlayerDowned()
 {
 	// 기절 상태.
@@ -184,39 +238,5 @@ void APlayerCharacter::Look(const FInputActionValue& Value)
 
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
-	}
-}
-
-void APlayerCharacter::Interact(const FInputActionValue& Value)
-{
-}
-
-void APlayerCharacter::GASInputPressed(int32 InputId)
-{
-	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputId);
-	if (Spec)
-	{
-		Spec->InputPressed = true;
-		if (Spec->IsActive())
-		{
-			ASC->AbilitySpecInputPressed(*Spec);
-		}
-		else
-		{
-			ASC->TryActivateAbility(Spec->Handle);
-		}
-	}
-}
-
-void APlayerCharacter::GASInputReleased(int32 InputId)
-{
-	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputId);
-	if (Spec)
-	{
-		Spec->InputPressed = false;
-		if (Spec->IsActive())
-		{
-			ASC->AbilitySpecInputReleased(*Spec);
-		}
 	}
 }

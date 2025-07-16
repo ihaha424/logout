@@ -6,6 +6,7 @@
 #include "DA_InputConfig.h"
 #include "EnhancedInputComponent.h"
 #include "GameplayTagContainer.h"
+#include "New_ThePhantomTwins/Tags/TPTGameplayTags.h"
 #include "TPTEnhancedInputComponent.generated.h"
 
 /**
@@ -23,7 +24,9 @@ public:
 		check(InputConfig);
 		if (const UInputAction* IA = InputConfig->FindInputActionForTag(InputTag))
 		{
-			BindAction(IA, TriggerEvent, Object, Func);
+			const EFTPTGameplayTags* TagEnum = FTPTGameplayTags::Get().TagMap.Find(InputTag);
+			int32 InputID = static_cast<int32>(*TagEnum);
+			BindAction(IA, TriggerEvent, Object, Func , InputID);
 		}
 	}
 };
