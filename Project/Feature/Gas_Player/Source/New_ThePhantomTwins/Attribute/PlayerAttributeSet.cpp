@@ -4,6 +4,7 @@
 #include "PlayerAttributeSet.h"
 #include "GameplayEffectExtension.h"
 #include "../Tags/TPTGameplayTags.h"
+#include "New_ThePhantomTwins/Player/PS_Player.h"
 
 UPlayerAttributeSet::UPlayerAttributeSet() :
 	HP(100),
@@ -16,7 +17,8 @@ UPlayerAttributeSet::UPlayerAttributeSet() :
 	MaxStamina(100),
 	Speed(120),
 	SpeedAdjustment(0),
-	FinalSpeed(0)
+	FinalSpeed(0),
+	ExecuteSkill(false)
 {
 }
 
@@ -74,7 +76,7 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	if (GetHP() <= 0.0f && !bPlayerDowned)
 	{
 		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-		OnPlayerDowned.Broadcast();
+		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 	}
 	bPlayerDowned = GetHP() <= 0.0f;
 
@@ -82,7 +84,14 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	if (GetMentalPoint() <= 0.0f && !bPlayerConfused)
 	{
 		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused);
-		OnPlayerConfused.Broadcast();
+		OnPlayerConfused.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused);
 	}
 	bPlayerConfused = GetMentalPoint() <= 0.0f;
+
+	// 스킬발동이 true가 되면 스킬실행.
+	if (GetExecuteSkill() > 0 && !bPlayerUseSkill)
+	{
+		OnPlayerUseSkill.Broadcast(Cast<APS_Player>(GetOwningActor())->GetActiveSkillTag());
+	}
+	bPlayerUseSkill = GetExecuteSkill() > 0;
 }
