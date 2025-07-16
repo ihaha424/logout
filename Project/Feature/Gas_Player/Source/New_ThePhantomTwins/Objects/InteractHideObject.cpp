@@ -5,6 +5,7 @@
 #include "NiagaraComponent.h" 
 #include "Engine/World.h"
 #include "TimerManager.h"
+#include "../Log/TPTLog.h"
 
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
@@ -20,10 +21,6 @@ AInteractHideObject::AInteractHideObject() : AInteractableObject()
 	// Camera
 	HideCameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("HideCamComponent"));
 	HideCameraComp->SetupAttachment(RootSceneComp);
-
-	// Effect
-	//HideEffectComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("HideEffectComponent"));
-	//HideEffectComp->SetupAttachment(RootComponent);
 
 	// AIPerception과 player안의 sphere만 감지하는 Object
 	SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
@@ -48,12 +45,6 @@ AInteractHideObject::AInteractHideObject() : AInteractableObject()
 void AInteractHideObject::BeginPlay()
 {
 	Super::BeginPlay();
-
-	//if (HideEffectComp)
-	//{
-	//	HideEffectComp->SetActive(false);
-	//	HideEffectComp->SetVisibility(false);
-	//}
 }
 
 void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -72,7 +63,7 @@ bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bo
 
 	bCanInteract = bIsDetected;
 
-	UE_LOG(LogTemp, Log,
+	TPT_LOG(ObjectLog, Log,
 		TEXT("InteractHideObject::CanInteract - %s | %s | Role: %s"),
 		bCanInteract ? TEXT("true") : TEXT("false"),
 		*Interactor->GetName(),
@@ -88,7 +79,7 @@ void AInteractHideObject::OnInteractServer_Implementation(const APawn* Interacto
 	// 서버에서 실행되는 코드
 	if (!HasAuthority()) return;
 
-	UE_LOG(LogTemp, Warning, TEXT("InteractHideObject::OnInteract Server"));
+	TPT_LOG(ObjectLog, Log, TEXT("InteractHideObject::OnInteract Server"));
 
 	CamLogicServer(Interactor);
 }
@@ -99,7 +90,7 @@ void AInteractHideObject::OnInteractClient_Implementation(const APawn* Interacto
 
 	if (!Interactor->IsLocallyControlled()) return;
 
-	UE_LOG(LogTemp, Warning, TEXT("InteractHideObject::OnInteract Client"));
+	TPT_LOG(ObjectLog, Log, TEXT("InteractHideObject::OnInteract Client"));
 
 	SetWidgetVisible(false);
 
@@ -198,7 +189,7 @@ void AInteractHideObject::SetInputState(APlayerController* InteractorPC, bool bI
 		InteractorPC->SetIgnoreMoveInput(bIgnoreInput);
 		InteractorPC->SetIgnoreLookInput(bIgnoreInput);
 
-		UE_LOG(LogTemp, Log, TEXT("Client: SetIgnoreInput called with value: %s"),
+		TPT_LOG(ObjectLog, Log, TEXT("Client: SetIgnoreInput called with value: %s"),
 			bIgnoreInput ? TEXT("True") : TEXT("False"));
 	}
 }
@@ -211,7 +202,7 @@ void AInteractHideObject::SetViewTarget(APlayerController* InteractorPC, AActor*
 	{
 		InteractorPC->SetViewTarget(NewViewTarget);
 
-		UE_LOG(LogTemp, Log, TEXT("Client: SetViewTarget called with actor: %s"),
+		TPT_LOG(ObjectLog, Log, TEXT("Client: SetViewTarget called with actor: %s"),
 			*NewViewTarget->GetName());
 	}
 }
@@ -224,30 +215,5 @@ void AInteractHideObject::S2A_PlayEffect_Implementation(FVector EffectLocation)
 
 void AInteractHideObject::PlayEffectLogic_Implementation(FVector EffectLocation)
 {
-	//if (!HideEffectComp) return;
 
-	//HideEffectComp->SetWorldLocation(EffectLocation);
-
-	//// 이펙트 활성화 및 보이게 설정
-	//HideEffectComp->SetActive(true);
-	//HideEffectComp->SetVisibility(true);
-
-	//// 3초 후에 이펙트 비활성화 및 숨기기
-	//FTimerHandle TimerHandle;
-	//GetWorld()->GetTimerManager().SetTimer(
-	//	TimerHandle,
-	//	this,
-	//	&AInteractHideObject::OnEffectFinished,
-	//	3.0f,
-	//	false
-	//);
 }
-
-//void AInteractHideObject::OnEffectFinished()
-//{
-//	if (HideEffectComp)
-//	{
-//		HideEffectComp->SetActive(false);
-//		HideEffectComp->SetVisibility(false);
-//	}
-//}

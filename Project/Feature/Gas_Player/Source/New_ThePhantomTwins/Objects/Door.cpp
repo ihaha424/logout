@@ -5,6 +5,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
+#include "../Log/TPTLog.h"
 
 ADoor::ADoor() : AInteractableObject()
 {
@@ -14,6 +15,7 @@ ADoor::ADoor() : AInteractableObject()
 	LockWidgetComp->SetDrawSize(FVector2D(10, 10));
 	LockWidgetComp->SetRelativeLocation(FVector(0, 0, 100));
 	LockWidgetComp->SetVisibility(false);
+	//TPT_LOG(ObjectLog,Log,TEXT(""));
 }
 
 void ADoor::BeginPlay()
@@ -91,8 +93,20 @@ void ADoor::OnInteractServer_Implementation(const APawn* Interactor)
 	// 모든 트리거가 활성화 되면
 	if (AreAllTriggerActived())
 	{
-		// 문을 열어라
-		S2A_OpenDoor();
+		bIsActived = !bIsActived;
+	}
+
+	if (HasAuthority())
+	{
+		if (bIsActived)
+		{
+			// 문을 열어라
+			S2A_OpenDoor();
+		}
+		else
+		{
+			S2A_CloseDoor();
+		}
 	}
 }
 
@@ -124,7 +138,25 @@ bool ADoor::AreAllTriggerActived_Implementation() const
 	return triggerActive >= MinRequiredCount;
 }
 
+void ADoor::OnRep_bIsActived()
+{
+	if (bIsActived)
+	{
+		// 문을 열어라
+		S2A_OpenDoor();
+	}
+	else
+	{
+		S2A_CloseDoor();
+	}
+}
+
 void ADoor::S2A_OpenDoor_Implementation()
 {
-	UE_LOG(LogTemp, Log, TEXT("OpenDoor"));
+	OpenDoor();
+}
+
+void ADoor::S2A_CloseDoor_Implementation()
+{
+	CloseDoor();
 }

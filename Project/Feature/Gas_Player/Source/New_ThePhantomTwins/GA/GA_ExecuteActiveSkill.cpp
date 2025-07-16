@@ -13,6 +13,8 @@ void UGA_ExecuteActiveSkill::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+
 	APlayerCharacter* AbilityUser = Cast< APlayerCharacter>(ActorInfo->AvatarActor.Get());
 	if (!AbilityUser)
 	{
