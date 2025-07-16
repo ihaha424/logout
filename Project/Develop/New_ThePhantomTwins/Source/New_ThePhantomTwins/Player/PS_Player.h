@@ -6,13 +6,14 @@
 #include "GameFramework/PlayerState.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
+#include "GenericTeamAgentInterface.h"
 #include "PS_Player.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class NEW_THEPHANTOMTWINS_API APS_Player : public APlayerState, public IAbilitySystemInterface
+class NEW_THEPHANTOMTWINS_API APS_Player : public APlayerState, public IAbilitySystemInterface, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 public:
@@ -20,6 +21,8 @@ public:
 
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
+	virtual FGenericTeamId GetGenericTeamId() const override { return TeamID; }
+
 protected:
 
 	UPROPERTY(Replicated, EditAnywhere, Category = GAS)
@@ -36,4 +39,8 @@ protected:
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Inventory")
 	TArray< /* ¾ÆÀÌÅÛ Enum */ int32> ItemSlots;
+
+private:
+	UPROPERTY(Replicated)
+	FGenericTeamId TeamID;
 };
