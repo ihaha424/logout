@@ -42,6 +42,18 @@ public:
     void UpdateClearItem(int32 CurrentClearItem);
 
 
+/* Skill */
+    UFUNCTION(BlueprintCallable, Category = "UI | Skill")
+    void SetActiveSkillIcon(UTexture2D* ActiveSkillIcon);
+
+    UFUNCTION(BlueprintCallable, Category = "UI | Skill")
+    void SetPassiveSkillIcon(UTexture2D* PassiveSkillIcon);
+
+    UFUNCTION(BlueprintCallable, Category = "UI | Skill")
+    void UpdateSkillPoints(int32 SkillPointsNum);
+
+
+
 protected:
 // 조준점 UI
     UPROPERTY(EditDefaultsOnly, Category = "UI")

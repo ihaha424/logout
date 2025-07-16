@@ -2,15 +2,14 @@
 
 #include "CoreMinimal.h"
 #include "SzObjects/InteractableObject.h"
-#include "SzInterface/Interact.h"
-#include "SzObjects/ObjectState.h"
+#include "SzInterface/Destroyable.h"
 #include "InteractHideObject.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class NEW_THEPHANTOMTWINS_API AInteractHideObject : public AInteractableObject
+class NEW_THEPHANTOMTWINS_API AInteractHideObject : public AInteractableObject, public IDestroyable
 {
 	GENERATED_BODY()
 

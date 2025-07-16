@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "SzObjects/BaseObject.h"
+#include "SzInterface/Destroyable.h"
 #include "TriggerHideObject.generated.h"
 
 UCLASS()
-class NEW_THEPHANTOMTWINS_API ATriggerHideObject : public ABaseObject
+class NEW_THEPHANTOMTWINS_API ATriggerHideObject : public ABaseObject, public IDestroyable
 {
 	GENERATED_BODY()
 	

@@ -94,20 +94,22 @@ void ADoor::OnInteractServer_Implementation(const APawn* Interactor)
 	if (AreAllTriggerActived())
 	{
 		bIsActived = !bIsActived;
+
+		if (HasAuthority())
+		{
+			if (bIsActived)
+			{
+				// 문을 열어라
+				S2A_OpenDoor();
+			}
+			else
+			{
+				S2A_CloseDoor();
+			}
+		}
 	}
 
-	if (HasAuthority())
-	{
-		if (bIsActived)
-		{
-			// 문을 열어라
-			S2A_OpenDoor();
-		}
-		else
-		{
-			S2A_CloseDoor();
-		}
-	}
+
 }
 
 void ADoor::OnInteractClient_Implementation(const APawn* Interactor)
@@ -117,6 +119,12 @@ void ADoor::OnInteractClient_Implementation(const APawn* Interactor)
 		InteractWidgetComp->SetVisibility(false);
 		LockWidgetComp->SetVisibility(false);
 	}
+}
+
+bool ADoor::CanBeDestroyed_Implementation(const APawn* Interactor)
+{
+	// bIsActived = false면 부술 수 있음
+	return !bIsActived;
 }
 
 bool ADoor::AreAllTriggerActived_Implementation() const
@@ -140,15 +148,19 @@ bool ADoor::AreAllTriggerActived_Implementation() const
 
 void ADoor::OnRep_bIsActived()
 {
-	if (bIsActived)
+	if (AreAllTriggerActived())
 	{
-		// 문을 열어라
-		S2A_OpenDoor();
+		if (bIsActived)
+		{
+			// 문을 열어라
+			S2A_OpenDoor();
+		}
+		else
+		{
+			S2A_CloseDoor();
+		}
 	}
-	else
-	{
-		S2A_CloseDoor();
-	}
+
 }
 
 void ADoor::S2A_OpenDoor_Implementation()
