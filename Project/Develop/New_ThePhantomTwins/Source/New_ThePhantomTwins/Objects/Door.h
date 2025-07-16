@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "SzObjects/InteractableObject.h"
+#include "SzInterface/Destroyable.h"
 #include "Door.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class NEW_THEPHANTOMTWINS_API ADoor : public AInteractableObject
+class NEW_THEPHANTOMTWINS_API ADoor : public AInteractableObject, public IDestroyable
 {
 	GENERATED_BODY()
 
@@ -28,6 +29,8 @@ public:
 	virtual bool CanInteract_Implementation(const APawn* Interactor, bool bIsDetected) override;
 	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
 	virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
+
+	virtual bool CanBeDestroyed_Implementation(const APawn* Interactor) override;
 
 protected:
     // trigger들이 모두 활성화되었는지 확인 (AInteractableObject의 bActived를 사용하는게 아니라면 override해서 작성)
