@@ -13,3 +13,15 @@ DECLARE_LOG_CATEGORY_EXTERN(PlayerLog, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(ObjectLog, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(HUDLog, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(AILog, Log, All);
+
+
+/*		NULLCHECK_LOG Please close the '}'		*/
+#define NULLCHECK_LOG(Target, CatecoryName, Verbosity) \
+	if(nullptr == Target) { TPT_LOG(CatecoryName, Verbosity, TEXT(#Target "is nullptr."));
+
+#define NULLCHECK_RETURN_LOG(Target, CatecoryName, Verbosity, ReturnValue) \
+	if(nullptr == Target) \
+	{ \
+		TPT_LOG(CatecoryName, Verbosity, TEXT(#Target "is nullptr.")); \
+		return ReturnValue; \
+	}
