@@ -19,9 +19,18 @@ DECLARE_LOG_CATEGORY_EXTERN(AILog, Log, All);
 #define NULLCHECK_LOG(Target, CatecoryName, Verbosity) \
 	if(nullptr == Target) { TPT_LOG(CatecoryName, Verbosity, TEXT(#Target "is nullptr."));
 
+/*		NULLCHECK_LOG Please close the '}'		*/
+#define NULLCHECK_CODE_LOG(Target, CatecoryName, Verbosity, CODE) \
+	NULLCHECK_LOG(Target, CatecoryName, Verbosity) \
+		CODE
+
+
 #define NULLCHECK_RETURN_LOG(Target, CatecoryName, Verbosity, ReturnValue) \
-	if(nullptr == Target) \
-	{ \
-		TPT_LOG(CatecoryName, Verbosity, TEXT(#Target "is nullptr.")); \
+	NULLCHECK_LOG(Target, CatecoryName, Verbosity) \
+		return ReturnValue; \
+	}
+
+#define NULLCHECK_CODE_RETURN_LOG(Target, CatecoryName, Verbosity, CODE, ReturnValue) \
+	NULLCHECK_CODE_LOG(Target, CatecoryName, Verbosity, CODE) \
 		return ReturnValue; \
 	}
