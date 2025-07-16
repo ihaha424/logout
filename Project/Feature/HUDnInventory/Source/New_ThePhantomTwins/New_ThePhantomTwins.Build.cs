@@ -28,6 +28,8 @@ public class New_ThePhantomTwins : ModuleRules
 
         PrivateDependencyModuleNames.AddRange(new string[] { "GameplayAbilities", "GameplayTags", "GameplayTasks", "Slate", "SlateCore" });
 
+        PublicIncludePaths.AddRange(new string[] { "New_ThePhantomTwins" });
+
         // Uncomment if you are using Slate UI
         // PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 
