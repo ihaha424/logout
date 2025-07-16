@@ -8,6 +8,7 @@
 #include "AIController.h"
 
 #include "../../../Utility/SplineActor.h"
+#include "Log/TPTLog.h"
 
 struct FSplineTaskData
 {
@@ -25,19 +26,16 @@ UBTT_PatrolBySpline::UBTT_PatrolBySpline()
 EBTNodeResult::Type UBTT_PatrolBySpline::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	UBlackboardComponent* BBComp = OwnerComp.GetBlackboardComponent();
-	if (!ensureMsgf(BBComp != nullptr, TEXT("[UBTT_PatrolBySpline] BlackboardComponent is missing!")))
-		return EBTNodeResult::Failed;
+	NULLCHECK_RETURN_LOG(BBComp, AILog, Warning, EBTNodeResult::Failed)
 
 	ASplineActor* SplineActor = Cast<ASplineActor>(BBComp->GetValueAsObject(SplineActorKey.SelectedKeyName));
-	if (!ensureMsgf(SplineActor != nullptr, TEXT("[UBTT_PatrolBySpline] SplineActorKey is Cast<ASplineActor> Fail!")))
-		return EBTNodeResult::Failed;
+	NULLCHECK_RETURN_LOG(SplineActor, AILog, Warning, EBTNodeResult::Failed)
 	
 	USplineComponent* SplineRoute = SplineActor->SplineComponent;
-	if (!ensureMsgf(SplineRoute != nullptr, TEXT("[UBTT_PatrolBySpline] SplineActorKey's Spline Component Casting Fail!")))
-		return EBTNodeResult::Failed;
+	NULLCHECK_RETURN_LOG(SplineRoute, AILog, Warning, EBTNodeResult::Failed)
 
 	AAIController* AIController = OwnerComp.GetAIOwner();
-	if (!AIController) return EBTNodeResult::Failed;
+	NULLCHECK_RETURN_LOG(AIController, AILog, Warning, EBTNodeResult::Failed)
 
 
 	FSplineTaskData* TaskData = (FSplineTaskData*)NodeMemory;
@@ -54,13 +52,16 @@ EBTNodeResult::Type UBTT_PatrolBySpline::ExecuteTask(UBehaviorTreeComponent& Own
 	switch (MoveResult)
 	{
 	case EPathFollowingRequestResult::RequestSuccessful:
-		/*
-			노드 메모리에 SplineTaskData 저장
-		*/
 		return EBTNodeResult::InProgress;
 
-	case EPathFollowingRequestResult::Failed:
 	case EPathFollowingRequestResult::AlreadyAtGoal:
+		if(TaskData->MaxIndex > 1)
+			return EBTNodeResult::InProgress;
+		else
+			return EBTNodeResult::Failed;
+		
+	case EPathFollowingRequestResult::Failed:
+		TPT_LOG(AILog, Warning, TEXT("EPathFollowingRequestResult: Failed."));
 	default:
 		return EBTNodeResult::Failed;
 	}
@@ -69,38 +70,22 @@ EBTNodeResult::Type UBTT_PatrolBySpline::ExecuteTask(UBehaviorTreeComponent& Own
 void UBTT_PatrolBySpline::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	FSplineTaskData* TaskData = (FSplineTaskData*)NodeMemory;
-	if (!TaskData)
-	{
-		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
-		return;
-	}
+	NULLCHECK_CODE_RETURN_LOG(TaskData, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, )
 
 	AAIController* AIController = OwnerComp.GetAIOwner();
-	if (!AIController)
-	{
-		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
-		return;
-	}
+	NULLCHECK_CODE_RETURN_LOG(AIController, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, )
 
 	EPathFollowingStatus::Type Status = AIController->GetPathFollowingComponent()->GetStatus();
 	if (Status == EPathFollowingStatus::Idle || Status == EPathFollowingStatus::Waiting)
 	{
 		UBlackboardComponent* BBComp = OwnerComp.GetBlackboardComponent();
-		if (!ensure(BBComp))
-		{
-			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
-			return;
-		}
+		NULLCHECK_CODE_RETURN_LOG(BBComp, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, )
 
 		ASplineActor* SplineActor = Cast<ASplineActor>(BBComp->GetValueAsObject(SplineActorKey.SelectedKeyName));
-		if (!SplineActor || !SplineActor->SplineComponent)
-		{
-			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
-			return;
-		}
+		NULLCHECK_CODE_RETURN_LOG(SplineActor, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, )
+		NULLCHECK_CODE_RETURN_LOG(SplineActor->SplineComponent, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, )
 
 		TaskData->CurIndex++;
-
 		if (TaskData->CurIndex >= TaskData->MaxIndex)
 		{
 			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
