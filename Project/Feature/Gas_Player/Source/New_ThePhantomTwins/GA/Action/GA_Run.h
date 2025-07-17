@@ -33,5 +33,7 @@ protected:
 
 	FTimerHandle StaminaCheckHandle;
 
+	FGameplayTagContainer CancelTags;
+
 	float RunSpeed = 800.0f;
 };

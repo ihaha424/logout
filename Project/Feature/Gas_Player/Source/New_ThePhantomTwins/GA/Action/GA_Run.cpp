@@ -11,6 +11,8 @@
 UGA_Run::UGA_Run()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+
+	CancelTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch);
 }
 
 void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -25,6 +27,8 @@ void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 
 	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
 	ActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffectBySourceEffect(StaminaRegenEffect, MyASC);
+
+	MyASC->CancelAbilities(&CancelTags);
 
 	// 스태미너 감소 GE 부여
 	FGameplayEffectSpecHandle StaminaDrainEffectSpecHandle = MakeOutgoingGameplayEffectSpec(StaminaDrainEffect, GetAbilityLevel());
@@ -71,6 +75,7 @@ void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 				CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
 			}
 		}, 0.1f, true); // 0.1초마다 체크
+
 
     // 몽타주 재생
 	//if (RunningMontage)
