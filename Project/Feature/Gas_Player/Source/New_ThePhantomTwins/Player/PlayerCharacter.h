@@ -54,7 +54,7 @@ public:
 	void InputReleased(int32 InputID);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float WalkSpeed = 200.f;
+	float WalkSpeed = 400.f;
 
 protected:
 
@@ -87,5 +87,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> Camera;
+
+private:
 };
 
