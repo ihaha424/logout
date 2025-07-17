@@ -53,8 +53,18 @@ public:
 	void InputPressed(int32 InputID);
 	void InputReleased(int32 InputID);
 
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float WalkSpeed = 400.f;
+
+
+public:
+	// 카메라
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USpringArmComponent> SpringArm;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCameraComponent> Camera;
 
 protected:
 
@@ -80,13 +90,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> LookAction;
-
-	// 카메라
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<USpringArmComponent> SpringArm;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UCameraComponent> Camera;
 
 private:
 };

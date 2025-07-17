@@ -9,7 +9,9 @@
 */
 // State
 TPT_TAG_GEN(Character, State, Downed, "Character is Downed")
-TPT_TAG_GEN(Character, State, Confused, "Character is Confused")
+TPT_TAG_GEN(Character, State, Confused1st, "Character is Confused 1st")
+TPT_TAG_GEN(Character, State, Confused2nd, "Character is Confused 2nd")
+TPT_TAG_GEN(Character, State, Confused3rd, "Character is Confused 3rd")
 
 
 
