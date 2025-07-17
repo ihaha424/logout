@@ -23,12 +23,17 @@ void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 		return;
 	}
 
+	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
+	ActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffectBySourceEffect(StaminaRegenEffect, MyASC);
+
+	// 스태미너 감소 GE 부여
 	FGameplayEffectSpecHandle StaminaDrainEffectSpecHandle = MakeOutgoingGameplayEffectSpec(StaminaDrainEffect, GetAbilityLevel());
 	if (StaminaDrainEffectSpecHandle.IsValid())
 	{
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, StaminaDrainEffectSpecHandle);
 	}
 
+	// 스피드 재정의 GE 부여
 	FGameplayEffectSpecHandle SetSpeedEffectSpecHandle = MakeOutgoingGameplayEffectSpec(SetSpeedEffect, 1.0f);
 	if (SetSpeedEffectSpecHandle.IsValid())
 	{
@@ -37,12 +42,13 @@ void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SetSpeedEffectSpecHandle);
 	}
 
+	// 재정의된 스피드 적용
 	FTimerHandle TimerHandle;
 	ActorInfo->AvatarActor->GetWorldTimerManager().SetTimer(
 		TimerHandle, [this, ActorInfo]()
 		{
 			APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
-			if (!Character) return;
+			NULLCHECK_RETURN_LOG(Character, GALog, Warning, )
 
 			const UPlayerAttributeSet* Attribute = Character->GetAbilitySystemComponent()->GetSet<UPlayerAttributeSet>();
 
@@ -52,11 +58,11 @@ void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 		}, 0.05f, false); // 0.05초 정도 후에 반영
 
 
-	// ActivateAbility 안에서
+	// 스태미너가 0이되면 강제 중지
 	GetWorld()->GetTimerManager().SetTimer(StaminaCheckHandle, [this]()
 		{
 			APlayerCharacter* Character = Cast<APlayerCharacter>(GetAvatarActorFromActorInfo());
-			if (!Character) return;
+			NULLCHECK_RETURN_LOG(Character, GALog, Warning, )
 
 			const UPlayerAttributeSet* Attr = Character->GetAbilitySystemComponent()->GetSet<UPlayerAttributeSet>();
 			if (Attr->GetStamina() <= 0.f)
@@ -92,20 +98,25 @@ void UGA_Run::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGame
 		return;
 	}
 
+	// 스태미너 감소 GE 제거
 	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
 	ActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffectBySourceEffect(StaminaDrainEffect, MyASC);
 
+	// 스태미너 재생 GE 부여
+	FGameplayEffectSpecHandle StaminaRegenEffectSpecHandle = MakeOutgoingGameplayEffectSpec(StaminaRegenEffect, GetAbilityLevel());
+	if (StaminaRegenEffectSpecHandle.IsValid())
+	{
+		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, StaminaRegenEffectSpecHandle);
+	}
+
+	// 스피드 재정의 GE 부여 & 재정의된 스피드 적용
 	FGameplayEffectSpecHandle WalkSpeedEffectSpecHandle = MakeOutgoingGameplayEffectSpec(SetSpeedEffect, 1.0f);
 	if (WalkSpeedEffectSpecHandle.IsValid())
 	{
 		FGameplayTag SpeedOverrideTag = FTPTGameplayTags::Get().TPTGameplay_Data_Effect_MoveSpeed;
 		APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
-
-		if (!Character)
-		{
-			TPT_LOG(GELog, Log, TEXT("Fail Find Character!"));
-			return;
-		}
+		NULLCHECK_RETURN_LOG(Character, GALog, Warning, )
+		
 
 		WalkSpeedEffectSpecHandle.Data->SetSetByCallerMagnitude(SpeedOverrideTag, Character->WalkSpeed);
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, WalkSpeedEffectSpecHandle);

@@ -26,9 +26,12 @@ protected:
 	TSubclassOf<UGameplayEffect> StaminaDrainEffect;
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
+	TSubclassOf<UGameplayEffect> StaminaRegenEffect;
+
+	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayEffect> SetSpeedEffect;
 
 	FTimerHandle StaminaCheckHandle;
 
-	float RunSpeed = 600.0f;
+	float RunSpeed = 800.0f;
 };

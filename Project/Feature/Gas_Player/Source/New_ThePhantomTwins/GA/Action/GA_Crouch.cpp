@@ -30,56 +30,53 @@ void UGA_Crouch::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SetSpeedEffectSpecHandle);
 	}
 
-	FTimerHandle TimerHandle;
-	ActorInfo->AvatarActor->GetWorldTimerManager().SetTimer(
-		TimerHandle, [this, ActorInfo]()
+	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
+	NULLCHECK_RETURN_LOG(Character, GALog, Warning, )
+
+	const UPlayerAttributeSet* Attribute = Character->GetAbilitySystemComponent()->GetSet<UPlayerAttributeSet>();
+	float Speed = Attribute->GetFinalSpeed();
+
+	Character->GetCharacterMovement()->MaxWalkSpeedCrouched = Speed;
+
+	// 현재 상태에 따라 반대로 토글
+	if (Character->bIsCrouched)
+	{
+		Character->UnCrouch();  // 서기
+
+		if (SetSpeedEffectSpecHandle.IsValid())
 		{
-			APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
-			if (!Character) return;
+			FGameplayTag SpeedOverrideTag = FTPTGameplayTags::Get().TPTGameplay_Data_Effect_MoveSpeed;
+			SetSpeedEffectSpecHandle.Data->SetSetByCallerMagnitude(SpeedOverrideTag, Character->WalkSpeed);
+			ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SetSpeedEffectSpecHandle);
+		}
 
-			const UPlayerAttributeSet* Attribute = Character->GetAbilitySystemComponent()->GetSet<UPlayerAttributeSet>();
+		float WalkSpeed = Attribute->GetFinalSpeed();
 
-			float Speed = Attribute->GetFinalSpeed();
+		Character->GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 
-			Character->GetCharacterMovement()->MaxWalkSpeedCrouched = Speed;
-			Character->bIsCrouched = true;
-			Character->Crouch();
-		}, 0.05f, false); // 0.05초 정도 후에 반영
+	}
+	else
+	{
+		Character->Crouch();    // 웅크리기
+	}
 
 	// 몽타주 재생
 	//if (CrouchingMontage)
 	//{
 	//    PlayMontage(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), RunningMontage);
 	//}
+
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
-void UGA_Crouch::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+void UGA_Crouch::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
-	bool bReplicatedEndAbility = true;
-	bool bWasCancelled = false;
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
-}
+	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 
-void UGA_Crouch::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
-{
-	FGameplayEffectSpecHandle WalkSpeedEffectSpecHandle = MakeOutgoingGameplayEffectSpec(SetSpeedEffect, 1.0f);
-	if (WalkSpeedEffectSpecHandle.IsValid())
-	{
-		FGameplayTag SpeedOverrideTag = FTPTGameplayTags::Get().TPTGameplay_Data_Effect_MoveSpeed;
-		APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
+	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
+	NULLCHECK_RETURN_LOG(Character, GALog, Warning, )
 
-		if (!Character)
-		{
-			TPT_LOG(GELog, Log, TEXT("Fail Find Character!"));
-			return;
-		}
+	Character->UnCrouch();
 
-		WalkSpeedEffectSpecHandle.Data->SetSetByCallerMagnitude(SpeedOverrideTag, Character->WalkSpeed);
-		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, WalkSpeedEffectSpecHandle);
-
-		const UPlayerAttributeSet* Attribute = Character->GetAbilitySystemComponent()->GetSet<UPlayerAttributeSet>();
-		float Speed = Attribute->GetFinalSpeed();
-		Character->bIsCrouched = false;
-		Character->UnCrouch();
-	}
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
