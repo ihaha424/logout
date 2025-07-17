@@ -19,12 +19,6 @@ void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	AActor* Avatar = GetAvatarActorFromActorInfo();
-	if (!Avatar->HasAuthority())
-	{
-		return;
-	}
-
 	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
 	ActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffectBySourceEffect(StaminaRegenEffect, MyASC);
 
@@ -86,22 +80,12 @@ void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 
 void UGA_Run::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
-	AActor* Avatar = GetAvatarActorFromActorInfo();
-	if (Avatar->HasAuthority())
-	{
-		CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
-	}
+	CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
 }
 
 void UGA_Run::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
-
-	AActor* Avatar = GetAvatarActorFromActorInfo();
-	if (!Avatar->HasAuthority())
-	{
-		return;
-	}
 
 	// 스태미너 감소 GE 제거
 	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();

@@ -4,6 +4,7 @@
 #include "PlayerAttributeSet.h"
 #include "GameplayEffectExtension.h"
 #include "../Tags/TPTGameplayTags.h"
+#include "Log/TPTLog.h"
 #include "New_ThePhantomTwins/Player/PS_Player.h"
 
 UPlayerAttributeSet::UPlayerAttributeSet() :

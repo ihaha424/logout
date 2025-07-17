@@ -4,20 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "GA_ExecuteActiveSkill.generated.h"
+#include "GA_HPBuff.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class NEW_THEPHANTOMTWINS_API UGA_ExecuteActiveSkill : public UGameplayAbility
+class NEW_THEPHANTOMTWINS_API UGA_HPBuff : public UGameplayAbility
 {
 	GENERATED_BODY()
 public:
-	UGA_ExecuteActiveSkill();
+	UGA_HPBuff();
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-
+	
 	UPROPERTY(EditAnywhere, Category = "GAS")
-	TSubclassOf<UGameplayEffect> ExecuteSkillEffect;
+	TSubclassOf<UGameplayEffect>HPBuffEffect;
 };

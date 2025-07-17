@@ -86,11 +86,21 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 			ASC->GiveAbility(StartSpec);
 		}
 
-		// 이렇게 하면 디버그 계속볼수있음.
-		APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
-		PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
+		APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+		//PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
 	}
 }
+
+void APlayerCharacter::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+	if (!HasAuthority())
+	{
+		APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+		//PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
+	}
+}
+
 
 void APlayerCharacter::OnRep_PlayerState()
 {
