@@ -2,11 +2,11 @@
 
 #include "GA_Run.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "../Player/PlayerCharacter.h"
-#include "../Player/PS_Player.h"
-#include "../Attribute/PlayerAttributeSet.h"
-#include "../Tags/TPTGameplayTags.h"
-#include "../Log/TPTLog.h"
+#include "Player/PlayerCharacter.h"
+#include "Player/PS_Player.h"
+#include "Attribute/PlayerAttributeSet.h"
+#include "Tags/TPTGameplayTags.h"
+#include "Log/TPTLog.h"
 
 UGA_Run::UGA_Run()
 {
@@ -16,6 +16,12 @@ UGA_Run::UGA_Run()
 void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	AActor* Avatar = GetAvatarActorFromActorInfo();
+	if (!Avatar->HasAuthority())
+	{
+		return;
+	}
 
 	FGameplayEffectSpecHandle StaminaDrainEffectSpecHandle = MakeOutgoingGameplayEffectSpec(StaminaDrainEffect, GetAbilityLevel());
 	if (StaminaDrainEffectSpecHandle.IsValid())
@@ -69,12 +75,22 @@ void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 
 void UGA_Run::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
-	CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
+	AActor* Avatar = GetAvatarActorFromActorInfo();
+	if (Avatar->HasAuthority())
+	{
+		CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
+	}
 }
 
 void UGA_Run::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+
+	AActor* Avatar = GetAvatarActorFromActorInfo();
+	if (!Avatar->HasAuthority())
+	{
+		return;
+	}
 
 	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
 	ActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffectBySourceEffect(StaminaDrainEffect, MyASC);

@@ -7,11 +7,11 @@
 
 #include "GA_Run.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "../Player/PlayerCharacter.h"
-#include "../Player/PS_Player.h"
-#include "../Attribute/PlayerAttributeSet.h"
-#include "../Tags/TPTGameplayTags.h"
-#include "../Log/TPTLog.h"
+#include "Player/PlayerCharacter.h"
+#include "Player/PS_Player.h"
+#include "Attribute/PlayerAttributeSet.h"
+#include "Tags/TPTGameplayTags.h"
+#include "Log/TPTLog.h"
 
 UGA_Crouch::UGA_Crouch()
 {
