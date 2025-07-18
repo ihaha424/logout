@@ -40,7 +40,9 @@ public:
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 
 	mutable FAttributeDelegate OnPlayerDowned;
-	mutable FAttributeDelegate OnPlayerConfused;
+	mutable FAttributeDelegate OnPlayerConfused1st;
+	mutable FAttributeDelegate OnPlayerConfused2nd;
+	mutable FAttributeDelegate OnPlayerConfused3rd;
 	mutable FAttributeDelegate OnPlayerUseSkill;
 
 protected:
@@ -77,6 +79,8 @@ protected:
 	FGameplayAttributeData ExecuteSkill;
 
 	bool bPlayerDowned = false;
-	bool bPlayerConfused = false;
+	bool bPlayerConfused1st = false;
+	bool bPlayerConfused2nd = false;
+	bool bPlayerConfused3rd = false;
 	bool bPlayerUseSkill = false;
 };

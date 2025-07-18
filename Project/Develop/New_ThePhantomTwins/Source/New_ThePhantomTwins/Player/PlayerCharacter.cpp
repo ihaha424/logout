@@ -9,10 +9,10 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "../Attribute/PlayerAttributeSet.h"
-#include "../Input/TPTEnhancedInputComponent.h"
-#include "../Log/TPTLog.h"
-#include "../Tags/TPTGameplayTags.h"
+#include "Attribute/PlayerAttributeSet.h"
+#include "Input/TPTEnhancedInputComponent.h"
+#include "Log/TPTLog.h"
+#include "Tags/TPTGameplayTags.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -30,6 +30,7 @@ APlayerCharacter::APlayerCharacter()
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 0.f;
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = 80.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
@@ -85,11 +86,21 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 			ASC->GiveAbility(StartSpec);
 		}
 
-		// 이렇게 하면 디버그 계속볼수있음.
-		APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
+		APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
 		PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
 	}
 }
+
+void APlayerCharacter::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+	if (!HasAuthority())
+	{
+		APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+		//PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
+	}
+}
+
 
 void APlayerCharacter::OnRep_PlayerState()
 {
@@ -134,29 +145,35 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
 
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Completed, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Completed, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
 
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill, ETriggerEvent::Completed, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Completed, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Completed, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Completed, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Completed, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Completed, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
 	}
 }
 
 void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 {
-	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
+	FGameplayAbilitySpec* temp = ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
+	
+	bool bo = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
+	TPT_LOG(GALog, Error, TEXT("%s   ::: %d ::: %d"),*InputTag.ToString(), bo, IsValid(temp->Ability));
 }
 
 void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)
 {
+	TPT_LOG(GALog, Error, TEXT("3"));
 	AttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-	AttributeSet->OnPlayerConfused.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+	AttributeSet->OnPlayerConfused1st.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+	AttributeSet->OnPlayerConfused2nd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+	AttributeSet->OnPlayerConfused3rd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnPlayerUseSkill.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 }
 

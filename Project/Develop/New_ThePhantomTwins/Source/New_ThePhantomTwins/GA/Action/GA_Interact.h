@@ -4,14 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "GA_Sprint.generated.h"
+#include "GA_Interact.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class NEW_THEPHANTOMTWINS_API UGA_Sprint : public UGameplayAbility
+class NEW_THEPHANTOMTWINS_API UGA_Interact : public UGameplayAbility
 {
 	GENERATED_BODY()
 	
+public:
+	void InteractiveObjectCheck();
 };
