@@ -7,33 +7,40 @@
 #include "Attribute/PlayerAttributeSet.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
+#include "Player/FocusTraceComponent.h"
+#include "SzInterface/Interact.h"
 
-void UGA_Interact::InteractiveObjectCheck()
+void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-//	FVector Start = GetActorLocation();
-//	FVector End = Sphere->GetComponentLocation();
-//
-//	FHitResult Hit;
-//	FCollisionQueryParams Params;
-//	Params.AddIgnoredActor(this); // 자기 자신은 무시
-//	Params.AddIgnoredComponent(this->RecoverySphere); // 자기 자신은 무시
-//
-//	FCollisionObjectQueryParams ObjParams;
-//	ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
-//	ObjParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
-//
-//	bool bHit = GetWorld()->LineTraceSingleByObjectType(
-//		Hit,
-//		Start,
-//		End,
-//		ObjParams,
-//		Params
-//	);
-//
-//#if WITH_EDITOR
-//	//DrawDebugLine(GetWorld(), Start, End, Hit.GetActor() == TargetActor ? FColor::Blue : FColor::Silver, false, 1.0f, 0, 0.3f);
-//#endif
-//
-//	// Ray가 정확히 TargetActor에 부딪혔는지 확인
-//	bHit && Hit.GetActor() == TargetActor;
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
+	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
+
+	AActor* TargetActor = Character->FocusTrace->GetFocusedActor();
+	NULLCHECK_RETURN_LOG(TargetActor, GALog, Warning, );
+	// 플레이어가 상호작용할 수 있는 오브젝트가 있는지 확인
+	if (TargetActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
+	{
+		TPT_LOG(GALog, Log, TEXT("Active Interact GA"));
+
+		if (IInteract::Execute_CanInteract(TargetActor, Character, true))
+		{
+			IInteract::Execute_OnInteractClient(TargetActor, Character);
+		}
+	}
+	else
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	}
+}
+
+void UGA_Interact::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+	TPT_LOG(GALog, Log, TEXT("Cancel Interact GA"));
+	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+}
+
+void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	CancelAbility(Handle, ActorInfo, ActivationInfo, true);
 }

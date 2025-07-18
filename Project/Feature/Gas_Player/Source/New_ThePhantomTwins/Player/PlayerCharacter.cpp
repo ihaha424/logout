@@ -13,6 +13,8 @@
 #include "Input/TPTEnhancedInputComponent.h"
 #include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
+#include "FocusTraceComponent.h"
+#include "../GA/Action/GA_Interact.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -42,6 +44,8 @@ APlayerCharacter::APlayerCharacter()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->bUsePawnControlRotation = false;
 	Camera->SetupAttachment(SpringArm);
+
+	FocusTrace = CreateDefaultSubobject<UFocusTraceComponent>(TEXT("FocusTrace"));
 }
 
 // Called when the game starts or when spawned
@@ -98,6 +102,19 @@ void APlayerCharacter::OnRep_Controller()
 	{
 		APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
 		//PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
+		if (FocusTrace)
+		{
+			FVector2D ViewportSize;
+			GEngine->GameViewport->GetViewportSize(ViewportSize);
+
+			FVector WorldLocation;
+			FVector WorldDirection;
+
+			PlayerController->DeprojectScreenPositionToWorld(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, WorldLocation, WorldDirection);
+
+			FocusTrace->SetStart(WorldLocation);
+			FocusTrace->SetDirection(WorldDirection);
+		}
 	}
 }
 
