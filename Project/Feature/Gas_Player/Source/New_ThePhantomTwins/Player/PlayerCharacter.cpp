@@ -56,8 +56,6 @@ void APlayerCharacter::BeginPlay()
 
 void APlayerCharacter::PossessedBy(AController* NewController)
 {
-	// PossessedBy는 플레이어가 컨트롤러에 의해 소유될 때 호출된다. 즉, 빙의 될때 호출된다.
-	// 그리고 이거는 서버에서만 호출되기 때문에 Onrep_PossessedBy를 이용해야한다. -> 3감에 있음
 	Super::PossessedBy(NewController);
 	PS = GetPlayerState<APS_Player>();
 
@@ -73,6 +71,7 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 		}
 		if (InitAttributeSetEffect)
 		{
+			TPT_LOG(GALog, Error, TEXT(""))
 			ASC->ApplyGameplayEffectToSelf
 			(
 				InitAttributeSetEffect->GetDefaultObject<UGameplayEffect>(),
@@ -91,7 +90,7 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 		}
 
 		APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
-		PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
+		//PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
 	}
 }
 
@@ -179,14 +178,15 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 {
 	FGameplayAbilitySpec* temp = ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
-	
-	bool bo = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
-	TPT_LOG(GALog, Error, TEXT("%s   ::: %d ::: %d"),*InputTag.ToString(), bo, IsValid(temp->Ability));
+	bool Tempbool = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
+	TPT_LOG(GALog, Log, TEXT("Tag  :::  %s / Activate ::: %d / IsValid::: %d"),*InputTag.ToString(), Tempbool, IsValid(temp->Ability));
+
+	// TODO : HandleGameplayEvent
 }
 
 void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)
 {
-	TPT_LOG(GALog, Error, TEXT("3"));
+	//TPT_LOG(GALog, Error, TEXT("3"));
 	AttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnPlayerConfused1st.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnPlayerConfused2nd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);

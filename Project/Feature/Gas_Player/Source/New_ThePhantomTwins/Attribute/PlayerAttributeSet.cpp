@@ -25,7 +25,22 @@ UPlayerAttributeSet::UPlayerAttributeSet() :
 
 void UPlayerAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
-
+	if (Attribute == GetMaxHPAttribute())
+	{
+		SetHP(NewValue);
+	}
+	if (Attribute == GetMaxMentalPointAttribute())
+	{
+		SetMentalPoint(NewValue);
+	}
+	if (Attribute == GetMaxStaminaAttribute())
+	{
+		SetStamina(NewValue);
+	}
+	if (Attribute == GetMaxCoreEnergyAttribute())
+	{
+		SetCoreEnergy(NewValue);
+	}
 }
 
 bool UPlayerAttributeSet::PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data)
@@ -77,7 +92,6 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	if (GetHP() <= 0.0f && !bPlayerDowned)
 	{
 		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-		TPT_LOG(GALog, Error, TEXT("bPlayerDowned"))
 		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 	}
 	bPlayerDowned = GetHP() <= 0.0f;
@@ -109,7 +123,6 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	// 스킬발동이 true가 되면 스킬실행.
 	if (GetExecuteSkill() > 0 && !bPlayerUseSkill)
 	{
-		TPT_LOG(GALog, Error, TEXT("2,%s"), *Cast<APS_Player>(GetOwningActor())->GetActiveSkillTag().ToString());
 		OnPlayerUseSkill.Broadcast(Cast<APS_Player>(GetOwningActor())->GetActiveSkillTag());
 	}
 	bPlayerUseSkill = GetExecuteSkill() > 0;

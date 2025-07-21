@@ -22,7 +22,6 @@ public:
 
 	void SetSpeed(float Speed, const FGameplayAbilityActorInfo* ActorInfo);
 	void OnSprintTagChanged(const FGameplayTag Tag, int32 TotalCount);
-	void UpdateMoveSpeed();
 
 protected:
 
