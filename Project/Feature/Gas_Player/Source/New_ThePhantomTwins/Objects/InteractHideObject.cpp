@@ -57,17 +57,17 @@ void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
 	// 다른 사람이 이미 들어가 있을 때 return
-	if (HidePlayer && HidePlayer != Interactor) return false;
+	if (HidePlayer != nullptr && HidePlayer != Interactor) return false;
 
 	if (!Interactor->IsLocallyControlled()) return false;
 
 	bCanInteract = bIsDetected;
 
-	TPT_LOG(ObjectLog, Log,
+	/*TPT_LOG(ObjectLog, Log,
 		TEXT("InteractHideObject::CanInteract - %s | %s | Role: %s"),
 		bCanInteract ? TEXT("true") : TEXT("false"),
 		*Interactor->GetName(),
-		*UEnum::GetValueAsString(GetLocalRole()));
+		*UEnum::GetValueAsString(GetLocalRole()));*/
 
 	SetWidgetVisible(bCanInteract);
 

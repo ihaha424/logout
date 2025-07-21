@@ -46,6 +46,8 @@ APlayerCharacter::APlayerCharacter()
 	Camera->SetupAttachment(SpringArm);
 
 	FocusTrace = CreateDefaultSubobject<UFocusTraceComponent>(TEXT("FocusTrace"));
+
+	bReplicates = true;
 }
 
 // Called when the game starts or when spawned
@@ -101,19 +103,6 @@ void APlayerCharacter::OnRep_Controller()
 	{
 		APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
 		//PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
-		if (FocusTrace)
-		{
-			FVector2D ViewportSize;
-			GEngine->GameViewport->GetViewportSize(ViewportSize);
-
-			FVector WorldLocation;
-			FVector WorldDirection;
-
-			PlayerController->DeprojectScreenPositionToWorld(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, WorldLocation, WorldDirection);
-
-			FocusTrace->SetStart(WorldLocation);
-			FocusTrace->SetDirection(WorldDirection);
-		}
 	}
 }
 
@@ -141,6 +130,22 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+
+	if (FocusTrace && PlayerController)
+	{
+		FVector2D ViewportSize;
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+
+		FVector WorldLocation;
+		FVector WorldDirection;
+
+		PlayerController->DeprojectScreenPositionToWorld(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, WorldLocation, WorldDirection);
+
+		FocusTrace->SetStart(WorldLocation);
+		FocusTrace->SetDirection(WorldDirection);
+		FocusTrace->SetCollisionType(ECC_WorldDynamic);
+	}
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -163,6 +168,7 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
 
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Started, this, &ThisClass::InputPressed);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
 
@@ -202,10 +208,12 @@ void APlayerCharacter::InputPressed(int32 InputID)
 		Spec->InputPressed = true;
 		if (Spec->IsActive())
 		{
+			//TPT_LOG(GALog, Log, TEXT("AbilitySpecInputPressed"));
 			ASC->AbilitySpecInputPressed(*Spec);
 		}
 		else
 		{
+			//TPT_LOG(GALog, Log, TEXT("TryActivateAbility"));
 			ASC->TryActivateAbility(Spec->Handle);
 		}
 	}

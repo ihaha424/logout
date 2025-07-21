@@ -20,7 +20,7 @@ public:
 
     void SetStart(FVector& Vector);
     void SetDirection(FVector& Vector);
-    void SetCollisionType(ECollisionChannel& CollisionChannel);
+    void SetCollisionType(ECollisionChannel CollisionChannel);
 
 protected:
     virtual void BeginPlay() override;

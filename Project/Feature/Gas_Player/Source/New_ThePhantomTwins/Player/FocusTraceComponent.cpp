@@ -6,6 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
 #include "Log/TPTLog.h"
+#include "Player/PlayerCharacter.h"
+#include "SzInterface/Interact.h"
+#include "Net/UnrealNetwork.h"
 
 UFocusTraceComponent::UFocusTraceComponent()
 {
@@ -13,6 +16,8 @@ UFocusTraceComponent::UFocusTraceComponent()
     Start = FVector::ZeroVector;
     Direction = FVector::ZeroVector;
     CollisionType = ECC_Visibility;
+
+    PrimaryComponentTick.bCanEverTick = true;
 }
 
 void UFocusTraceComponent::BeginPlay()
@@ -36,7 +41,7 @@ void UFocusTraceComponent::SetDirection(FVector& Vector)
     Direction = Vector;
 }
 
-void UFocusTraceComponent::SetCollisionType(ECollisionChannel& CollisionChannel)
+void UFocusTraceComponent::SetCollisionType(ECollisionChannel CollisionChannel)
 {
     CollisionType = CollisionChannel;
 }
@@ -59,9 +64,29 @@ void UFocusTraceComponent::PerformTrace()
     CollisionType, 
     Params);
 
+    AActor* PrevActor = FocusedActor;
     FocusedActor = bHit ? Hit.GetActor() : nullptr;
+
+    APlayerCharacter* Character = Cast<APlayerCharacter>(Owner);
+    NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
 
 #if WITH_EDITOR
     DrawDebugLine(GetWorld(), Start, End, Hit.GetActor() == FocusedActor ? FColor::Blue : FColor::Silver, false, 1.0f, 0, 0.3f);
 #endif
+
+	if (PrevActor != nullptr && FocusedActor != PrevActor)
+	{
+        if (PrevActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
+        {
+            IInteract::Execute_CanInteract(PrevActor, Character, false);
+        }
+	}
+
+	if (FocusedActor != nullptr)
+	{
+        if (FocusedActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
+        {
+            IInteract::Execute_CanInteract(FocusedActor, Character, true);
+        }
+	}
 }
