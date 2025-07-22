@@ -39,6 +39,7 @@ public:
 	virtual bool PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data) override;
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 
+	mutable FAttributeDelegate OnPlayerLowHP;
 	mutable FAttributeDelegate OnPlayerDowned;
 	mutable FAttributeDelegate OnPlayerConfused1st;
 	mutable FAttributeDelegate OnPlayerConfused2nd;
@@ -78,6 +79,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData ExecuteSkill;
 
+	bool bPlayerLowHP = false;
 	bool bPlayerDowned = false;
 	bool bPlayerConfused1st = false;
 	bool bPlayerConfused2nd = false;
