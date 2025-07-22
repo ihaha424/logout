@@ -57,17 +57,17 @@ void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
 	// 다른 사람이 이미 들어가 있을 때 return
-	if (HidePlayer != nullptr && HidePlayer != Interactor) return false;
+	if (HidePlayer && HidePlayer != Interactor) return false;
 
 	if (!Interactor->IsLocallyControlled()) return false;
 
 	bCanInteract = bIsDetected;
 
-	/*TPT_LOG(ObjectLog, Log,
-		TEXT("InteractHideObject::CanInteract - %s | %s | Role: %s"),
-		bCanInteract ? TEXT("true") : TEXT("false"),
-		*Interactor->GetName(),
-		*UEnum::GetValueAsString(GetLocalRole()));*/
+	//TPT_LOG(ObjectLog, Log,
+	//	TEXT("InteractHideObject::CanInteract - %s | %s | Role: %s"),
+	//	bCanInteract ? TEXT("true") : TEXT("false"),
+	//	*Interactor->GetName(),
+	//	*UEnum::GetValueAsString(GetLocalRole()));
 
 	SetWidgetVisible(bCanInteract);
 
@@ -79,7 +79,7 @@ void AInteractHideObject::OnInteractServer_Implementation(const APawn* Interacto
 	// 서버에서 실행되는 코드
 	if (!HasAuthority()) return;
 
-	TPT_LOG(ObjectLog, Log, TEXT("InteractHideObject::OnInteract Server"));
+	//TPT_LOG(ObjectLog, Log, TEXT("InteractHideObject::OnInteract Server"));
 
 	CamLogicServer(Interactor);
 }
@@ -90,7 +90,7 @@ void AInteractHideObject::OnInteractClient_Implementation(const APawn* Interacto
 
 	if (!Interactor->IsLocallyControlled()) return;
 
-	TPT_LOG(ObjectLog, Log, TEXT("InteractHideObject::OnInteract Client"));
+	//TPT_LOG(ObjectLog, Log, TEXT("InteractHideObject::OnInteract Client"));
 
 	SetWidgetVisible(false);
 
@@ -189,8 +189,8 @@ void AInteractHideObject::SetInputState(APlayerController* InteractorPC, bool bI
 		InteractorPC->SetIgnoreMoveInput(bIgnoreInput);
 		InteractorPC->SetIgnoreLookInput(bIgnoreInput);
 
-		TPT_LOG(ObjectLog, Log, TEXT("Client: SetIgnoreInput called with value: %s"),
-			bIgnoreInput ? TEXT("True") : TEXT("False"));
+		//TPT_LOG(ObjectLog, Log, TEXT("Client: SetIgnoreInput called with value: %s"),
+		//	bIgnoreInput ? TEXT("True") : TEXT("False"));
 	}
 }
 
@@ -202,8 +202,8 @@ void AInteractHideObject::SetViewTarget(APlayerController* InteractorPC, AActor*
 	{
 		InteractorPC->SetViewTarget(NewViewTarget);
 
-		TPT_LOG(ObjectLog, Log, TEXT("Client: SetViewTarget called with actor: %s"),
-			*NewViewTarget->GetName());
+		//TPT_LOG(ObjectLog, Log, TEXT("Client: SetViewTarget called with actor: %s"),
+		//	*NewViewTarget->GetName());
 	}
 }
 

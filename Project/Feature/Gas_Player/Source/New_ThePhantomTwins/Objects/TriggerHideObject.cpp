@@ -60,7 +60,7 @@ void ATriggerHideObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedCo
     HidePlayerNum = FMath::Clamp(HidePlayerNum + 1, 0, 2);
     bHasPlayer = (HidePlayerNum > 0);
 
-    TPT_LOG(ObjectLog, Log, TEXT("TriggerHide :: Begin"));
+    //TPT_LOG(ObjectLog, Log, TEXT("TriggerHide :: Begin"));
 }
 
 void ATriggerHideObject::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -68,5 +68,5 @@ void ATriggerHideObject::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComp
     HidePlayerNum = FMath::Clamp(HidePlayerNum - 1, 0, 2);
 	bHasPlayer = (HidePlayerNum > 0);
 
-    TPT_LOG(ObjectLog, Log, TEXT("TriggerHide :: End"));
+    //TPT_LOG(ObjectLog, Log, TEXT("TriggerHide :: End"));
 }
