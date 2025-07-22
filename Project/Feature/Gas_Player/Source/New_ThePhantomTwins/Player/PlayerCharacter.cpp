@@ -14,7 +14,9 @@
 #include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
 #include "FocusTraceComponent.h"
+#include "PC_Player.h"
 #include "../GA/Action/GA_Interact.h"
+#include "UI/HUD/HUD_PhantomTwins.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -54,6 +56,7 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	TPT_LOG(GALog, Error, TEXT("1"));
 }
 
 void APlayerCharacter::PossessedBy(AController* NewController)
@@ -73,7 +76,6 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 		}
 		if (InitAttributeSetEffect)
 		{
-			TPT_LOG(GALog, Error, TEXT(""))
 			ASC->ApplyGameplayEffectToSelf
 			(
 				InitAttributeSetEffect->GetDefaultObject<UGameplayEffect>(),
@@ -92,7 +94,7 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 		}
 
 		APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
-		//PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
+		
 	}
 }
 
@@ -101,11 +103,22 @@ void APlayerCharacter::OnRep_Controller()
 	Super::OnRep_Controller();
 	if (!HasAuthority())
 	{
-		APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
-		//PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
+		//APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+		//AHUD_PhantomTwins* PlayerHUD = Cast<AHUD_PhantomTwins>(PlayerController->GetHUD());
+		//PlayerHUD->UpdateHP(/*HP값을 int값으로 넣어주면됨*/);
+		//PlayerHUD->UpdateMental();
+		//PlayerHUD->UpdateStamina();
+		//PlayerHUD->UpdateSkillPoints();
+
+
+		//PlayerHUD->UpdateClearItem();// 데이터조각(같이공유하는거)
+
+		//// 태그이용
+		//PlayerHUD->SetActiveSkillIcon();
+		//PlayerHUD->SetPassiveSkillIcon();
+		//PlayerHUD->SetCharPortrait();// 초상화
 	}
 }
-
 
 void APlayerCharacter::OnRep_PlayerState()
 {

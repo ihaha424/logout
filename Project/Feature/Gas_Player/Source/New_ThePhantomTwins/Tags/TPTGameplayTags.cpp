@@ -48,10 +48,10 @@ void FTPTGameplayTags::InitializeNativeTags()
 
 #define CUETAG true
 #define TPT_TAG_GEN(Type, Name, Description) \
-    GameplayTags.TPTGameplayCue_##Type##_##Name = Manager.AddNativeGameplayTag(TEXT("TPTGamePlayCueTag." #Type "." #Name), TEXT(Description));   \
-    if (!GameplayTags.TPTGameplayCue_##Type##_##Name.IsValid())                                                             \
+    GameplayTags.GameplayCue_##Type##_##Name = Manager.AddNativeGameplayTag(TEXT("GamePlayCue." #Type "." #Name), TEXT(Description));   \
+    if (!GameplayTags.GameplayCue_##Type##_##Name.IsValid())                                                             \
     {                                                                                                                       \
-        GameplayTags.TPTGameplayCue_##Type##_##Name = FGameplayTag::RequestGameplayTag(TEXT("TPTGamePlayCueTag." #Type "." #Name));       \
+        GameplayTags.GameplayCue_##Type##_##Name = FGameplayTag::RequestGameplayTag(TEXT("GamePlayCue." #Type "." #Name));       \
     }                                                                                                                                   
 #include "./Inline/TPTGameplayTagList.inl"
 #undef TPT_TAG_GEN
@@ -69,7 +69,7 @@ void FTPTGameplayTags::InitializeNativeTags()
 
 #define CUETAG true
 #define TPT_TAG_GEN(Type, Name, Description) \
-    GameplayTags.TagMap.Add(GameplayTags.TPTGameplayCue_##Type##_##Name, EFTPTGameplayTags::TPTGameplayCue_##Type##_##Name);
+    GameplayTags.TagMap.Add(GameplayTags.GameplayCue_##Type##_##Name, EFTPTGameplayTags::GameplayCue_##Type##_##Name);
 #include "./Inline/TPTGameplayTagList.inl"
 #undef TPT_TAG_GEN
 #undef CUETAG

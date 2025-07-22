@@ -21,5 +21,5 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SFX")
-	USoundBase* SoundEffect2;
+	TSubclassOf<UGameplayEffect> SoundEffect;
 };
