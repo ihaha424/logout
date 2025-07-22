@@ -4,25 +4,43 @@
 #include "PlayerAttributeSet.h"
 #include "GameplayEffectExtension.h"
 #include "../Tags/TPTGameplayTags.h"
+#include "Log/TPTLog.h"
+#include "New_ThePhantomTwins/Player/PS_Player.h"
 
 UPlayerAttributeSet::UPlayerAttributeSet() :
-	HP(100),
 	MaxHP(100),
-	MentalPoint(100),
 	MaxMentalPoint(100),
-	CoreEnergy(5),
 	MaxCoreEnergy(5),
-	Stamina(100),
 	MaxStamina(100),
 	Speed(120),
 	SpeedAdjustment(0),
-	FinalSpeed(0)
+	FinalSpeed(0),
+	ExecuteSkill(-1)
 {
+	InitHP(GetMaxHP());
+	InitMentalPoint(GetMaxMentalPoint());
+	InitCoreEnergy(GetMaxCoreEnergy());
+	InitStamina(GetMaxStamina());
 }
 
 void UPlayerAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
-
+	if (Attribute == GetMaxHPAttribute())
+	{
+		SetHP(NewValue);
+	}
+	if (Attribute == GetMaxMentalPointAttribute())
+	{
+		SetMentalPoint(NewValue);
+	}
+	if (Attribute == GetMaxStaminaAttribute())
+	{
+		SetStamina(NewValue);
+	}
+	if (Attribute == GetMaxCoreEnergyAttribute())
+	{
+		SetCoreEnergy(NewValue);
+	}
 }
 
 bool UPlayerAttributeSet::PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data)
@@ -30,6 +48,17 @@ bool UPlayerAttributeSet::PreGameplayEffectExecute(struct FGameplayEffectModCall
 	if (!Super::PreGameplayEffectExecute(Data))
 	{
 		return false;
+	}
+	if (Data.EvaluatedData.Attribute == GetHPAttribute())
+	{	
+		if (Data.EvaluatedData.Magnitude > 0.0f)
+		{	// 현재 착란 3단계면 체력회복이 불가하도록 막음.
+			if (Data.Target.HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd))
+			{
+				Data.EvaluatedData.Magnitude = 0.0f;
+				return false; // 이 이펙트의 실행을 전부 중지시키기 위해서 false 반환.
+			}
+		}
 	}
 	return true;
 }
@@ -70,19 +99,49 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 		SetFinalSpeed(FMath::Clamp(GetSpeed() + GetSpeedAdjustment(), MinimumPoint, 10000));
 	}
 
+	// 체력이 MaxHp의 30%이하라면 Low HP 효과 발동.
+	if (GetHP() < GetMaxHP() * 0.3f && !bPlayerDowned)
+	{
+		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
+		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
+	}
+	bPlayerDowned = GetHP() < GetMaxHP() * 0.3f;
 	// 체력이 0이하라면 다운.
 	if (GetHP() <= 0.0f && !bPlayerDowned)
 	{
 		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-		OnPlayerDowned.Broadcast();
+		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 	}
 	bPlayerDowned = GetHP() <= 0.0f;
 
-	// 정신력이 0이하라면 착란.
-	if (GetMentalPoint() <= 0.0f && !bPlayerConfused)
+	// 정신력이 50 이하라면 착란 1단계
+	if (GetMentalPoint() > 25.0f && GetMentalPoint() <= 50.0f && !bPlayerConfused1st)
 	{
-		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused);
-		OnPlayerConfused.Broadcast();
+		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
+		OnPlayerConfused1st.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
 	}
-	bPlayerConfused = GetMentalPoint() <= 0.0f;
+	bPlayerConfused1st = (GetMentalPoint() > 25.0f && GetMentalPoint() <= 50.0f);
+
+	// 정신력이 25 이하라면 착란 2단계
+	if (GetMentalPoint() > 0.0f && GetMentalPoint() <= 25.0f && !bPlayerConfused2nd)
+	{
+		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
+		OnPlayerConfused2nd.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
+	}
+	bPlayerConfused2nd = (GetMentalPoint() > 0.0f && GetMentalPoint() <= 25.0f);
+
+	// 정신력이 0 이라면 착란 3단계
+	if (GetMentalPoint() <= 0.0f && !bPlayerConfused3rd)
+	{
+		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
+		OnPlayerConfused3rd.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
+	}
+	bPlayerConfused3rd = GetMentalPoint() <= 0.0f;
+
+	// 스킬발동이 true가 되면 스킬실행.
+	if (GetExecuteSkill() > 0 && !bPlayerUseSkill)
+	{
+		OnPlayerUseSkill.Broadcast(Cast<APS_Player>(GetOwningActor())->GetActiveSkillTag());
+	}
+	bPlayerUseSkill = GetExecuteSkill() > 0;
 }

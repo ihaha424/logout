@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "GA_Crouch.generated.h"
+#include "GA_LowHP.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class NEW_THEPHANTOMTWINS_API UGA_Crouch : public UGameplayAbility
+class NEW_THEPHANTOMTWINS_API UGA_LowHP : public UGameplayAbility
 {
 	GENERATED_BODY()
 	

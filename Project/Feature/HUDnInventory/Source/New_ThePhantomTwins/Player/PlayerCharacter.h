@@ -11,6 +11,7 @@
 #include "GenericTeamAgentInterface.h"
 #include "PlayerCharacter.generated.h"
 
+class UPlayerAttributeSet;
 class UGameplayAbility;
 class UTPTEnhancedInputComponent;
 class UDA_InputConfig;
@@ -21,6 +22,7 @@ class UInputMappingContext;
 class UCameraComponent;
 class USpringArmComponent;
 class UInputAction;
+class UFocusTraceComponent;
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API APlayerCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface
@@ -32,19 +34,19 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_Controller() override;
 	virtual void OnRep_PlayerState() override;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual FGenericTeamId GetGenericTeamId() const override;
 
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	UFUNCTION()
 	void SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInputComponent);
-
 	UFUNCTION()
-	void OnPlayerDowned();
-
+	void ExecuteAbilityByTag(FGameplayTag InputTag);
 	UFUNCTION()
-	void OnPlayerConfused();
+	void BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet);
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -52,15 +54,26 @@ public:
 	void InputPressed(int32 InputID);
 	void InputReleased(int32 InputID);
 
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float WalkSpeed = 300.f;
+	float WalkSpeed = 400.f;
+
+
+public:
+	// 카메라
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USpringArmComponent> SpringArm;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCameraComponent> Camera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "FocusTrace")
+	TObjectPtr<UFocusTraceComponent> FocusTrace;
 
 protected:
 
 	UPROPERTY()
 	TObjectPtr<APS_Player> PS;
-	
+
 	// GAS
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<UAbilitySystemComponent> ASC;
@@ -81,11 +94,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> LookAction;
 
-	// 카메라
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<USpringArmComponent> SpringArm;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UCameraComponent> Camera;
+private:
 };
 

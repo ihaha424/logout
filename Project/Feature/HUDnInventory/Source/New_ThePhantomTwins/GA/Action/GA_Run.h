@@ -20,15 +20,30 @@ public:
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility) override;
 
+	void SetSpeed(float Speed, const FGameplayAbilityActorInfo* ActorInfo);
+	void OnSprintTagChanged(const FGameplayTag Tag, int32 TotalCount);
+
 protected:
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayEffect> StaminaDrainEffect;
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
+	TSubclassOf<UGameplayEffect> StaminaRegenEffect;
+
+	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayEffect> SetSpeedEffect;
 
 	FTimerHandle StaminaCheckHandle;
 
-	float RunSpeed = 600.0f;
+	FGameplayTagContainer CancelTags;
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	float BaseRunSpeed = 800.0f;
+
+	float OutPutRunSpeed = 800.0f;
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	float SprintMultiplier = 1.5;
+	bool bHasSprintTag = false;
+
+	const FGameplayAbilityActorInfo* GAActorInfo;
 };
