@@ -29,6 +29,20 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	// 플레이어가 상호작용할 수 있는 오브젝트가 있는지 확인
 	if (TargetActor != nullptr && TargetActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
 	{
+		if (APlayerCharacter* Player = Cast<APlayerCharacter>(TargetActor))
+		{
+			if (Player->GetAbilitySystemComponent()->HasMatchingGameplayTag
+			(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
+			{
+				return;
+			}
+			else if (Player->GetAbilitySystemComponent()->HasMatchingGameplayTag
+			(FTPTGameplayTags::Get().TPTGameplay_Character_State_Recovery))
+			{
+				EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+			}
+		}
+
 		C2S_Interact(TargetActor, Character);
 		IInteract::Execute_OnInteractClient(TargetActor, Character);
 		//TPT_LOG(GALog, Log, TEXT("OnInteract Client"));
@@ -48,6 +62,17 @@ void UGA_Interact::CancelAbility(const FGameplayAbilitySpecHandle Handle, const 
 void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	CancelAbility(Handle, ActorInfo, ActivationInfo, true);
+
+	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
+	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
+
+	AActor* TargetActor = Character->FocusTrace->GetFocusedActor();
+	NULLCHECK_RETURN_LOG(TargetActor, GALog, Warning, );
+
+	if (APlayerCharacter* OtherPlayer = Cast<APlayerCharacter>(TargetActor))
+	{
+		OtherPlayer->GetWorld()->GetTimerManager().ClearTimer(OtherPlayer->RecoveryTimerHandle);
+	}
 }
 
 void UGA_Interact::C2S_Interact_Implementation(UObject* interact, AActor* Owner)

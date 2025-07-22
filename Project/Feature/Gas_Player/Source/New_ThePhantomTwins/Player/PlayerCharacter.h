@@ -8,6 +8,7 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
+#include "SzInterface/Interact.h"
 #include "GenericTeamAgentInterface.h"
 #include "PlayerCharacter.generated.h"
 
@@ -25,7 +26,7 @@ class UInputAction;
 class UFocusTraceComponent;
 
 UCLASS()
-class NEW_THEPHANTOMTWINS_API APlayerCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface
+class NEW_THEPHANTOMTWINS_API APlayerCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IInteract
 {
 	GENERATED_BODY()
 
@@ -57,10 +58,20 @@ public:
 	void InputPressed(int32 InputID);
 	void InputReleased(int32 InputID);
 
+	// 게이지 시작
+	UFUNCTION()
+	void OnRecoveryCompelete();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
+	bool bIsRecovery = false;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float WalkSpeed = 400.f;
 
-
+public:
+	virtual bool CanInteract_Implementation(const APawn* Interactor, bool bIsDetected) override;
+	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
+	virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
 public:
 	// 카메라
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))
@@ -69,8 +80,17 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> Camera;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "FocusTrace")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FocusTrace")
 	TObjectPtr<UFocusTraceComponent> FocusTrace;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
+	TObjectPtr<UUserWidget> RecoveryWidget;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Recovery")
+	FTimerHandle RecoveryTimerHandle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
+	TObjectPtr<UGameplayEffect> RecoveryGE;
 
 protected:
 

@@ -4,6 +4,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "PS_Player.h"
+#include "PC_Player.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -16,6 +17,9 @@
 #include "FocusTraceComponent.h"
 #include "PC_Player.h"
 #include "../GA/Action/GA_Interact.h"
+#include "Blueprint/UserWidget.h"
+#include "Kismet/GameplayStatics.h"
+#include "UIManager/UIManager.h"
 #include "UI/HUD/HUD_PhantomTwins.h"
 
 // Sets default values
@@ -118,6 +122,12 @@ void APlayerCharacter::OnRep_Controller()
 		//PlayerHUD->SetPassiveSkillIcon();
 		//PlayerHUD->SetCharPortrait();// 초상화
 	}
+
+	APC_Player* PC = GetController<APC_Player>();
+	if (PC)
+	{
+		PC->RegisterWidget(TEXT("RecoveryGauge"), RecoveryWidget);
+	}
 }
 
 void APlayerCharacter::OnRep_PlayerState()
@@ -139,7 +149,20 @@ void APlayerCharacter::OnRep_PlayerState()
 }
 
 
-void APlayerCharacter::Tick(float DeltaTime)
+UAbilitySystemComponent* APlayerCharacter::GetAbilitySystemComponent() const
+{
+	return ASC;
+}
+
+// AI의 감지를 위한 팀설정.
+FGenericTeamId APlayerCharacter::GetGenericTeamId() const
+{
+	if (PS)
+	{
+		return PS->GetGenericTeamId();
+	}
+	return FGenericTeamId::NoTeam;
+}void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
@@ -198,6 +221,7 @@ void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 {
 	FGameplayAbilitySpec* temp = ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
 	bool Tempbool = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
+	NULLCHECK_RETURN_LOG(temp, PlayerLog, Error, );
 	TPT_LOG(GALog, Log, TEXT("Tag  :::  %s / Activate ::: %d / IsValid::: %d"),*InputTag.ToString(), Tempbool, IsValid(temp->Ability));
 
 	// TODO : HandleGameplayEvent
@@ -212,6 +236,34 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 	AttributeSet->OnPlayerConfused2nd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnPlayerConfused3rd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnPlayerUseSkill.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+}
+
+void APlayerCharacter::Move(const FInputActionValue& Value)
+{
+	if (PS && Controller)
+	{
+		FVector2D MovementVector = Value.Get<FVector2D>();
+
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		AddMovementInput(ForwardDirection, MovementVector.Y);
+		AddMovementInput(RightDirection, MovementVector.X);
+	}
+}
+
+void APlayerCharacter::Look(const FInputActionValue& Value)
+{
+	if (Controller)
+	{
+		FVector2D LookAxisVector = Value.Get<FVector2D>();
+
+		AddControllerYawInput(LookAxisVector.X);
+		AddControllerPitchInput(LookAxisVector.Y);
+	}
 }
 
 void APlayerCharacter::InputPressed(int32 InputID)
@@ -243,45 +295,64 @@ void APlayerCharacter::InputReleased(int32 InputID)
 	}
 }
 
-void APlayerCharacter::Move(const FInputActionValue& Value)
+void APlayerCharacter::OnRecoveryCompelete()
 {
-	if (PS && Controller)
+	bIsRecovery = true;
+}
+
+bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
+{
+	if (bIsDetected && ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
 	{
-		FVector2D MovementVector = Value.Get<FVector2D>();
-
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-		AddMovementInput(ForwardDirection, MovementVector.Y);
-		AddMovementInput(RightDirection, MovementVector.X);
+		return true;
+	}
+	else
+	{
+		return false;
 	}
 }
 
-void APlayerCharacter::Look(const FInputActionValue& Value)
+void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 {
-	if (Controller)
+	if (bIsRecovery)
 	{
-		FVector2D LookAxisVector = Value.Get<FVector2D>();
+		// 내 태그 제거 후 리커버리 완료 태그 주기
+		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
+		ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Recovery);
 
-		AddControllerYawInput(LookAxisVector.X);
-		AddControllerPitchInput(LookAxisVector.Y);
+		GetWorld()->GetTimerManager().ClearTimer(RecoveryTimerHandle);
+
+		// 회복 효과
+		if (RecoveryGE)
+		{
+			FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
+			FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(RecoveryGE->GetClass(), 1.f, Context);
+
+			if (SpecHandle.IsValid())
+			{
+				ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
+		}
 	}
 }
 
-UAbilitySystemComponent* APlayerCharacter::GetAbilitySystemComponent() const
+void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	return ASC;
+	APC_Player* PC = GetController<APC_Player>();
+	if (PC)
+	{
+		PC->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
+	}
+
+	const APlayerCharacter* OtherPlayer = Cast<APlayerCharacter>(Interactor);
+	NULLCHECK_RETURN_LOG(OtherPlayer, PlayerLog, Error, )
+
+	GetWorld()->GetTimerManager().SetTimer(
+		RecoveryTimerHandle,               // 핸들
+		this,                              // 호출 대상
+		&APlayerCharacter::OnRecoveryCompelete, // 실행할 함수
+		5.0f,                              // 딜레이 시간 (초)
+		false                              // 반복 여부 (false = 1회 실행)
+	);
 }
 
-// AI의 감지를 위한 팀설정.
-FGenericTeamId APlayerCharacter::GetGenericTeamId() const
-{
-	if (PS)
-	{
-		return PS->GetGenericTeamId();
-	}
-	return FGenericTeamId::NoTeam;
-}
