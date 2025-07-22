@@ -4,11 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "SzObjects/InteractableObject.h"
-#include "SzInterface/Interact.h"
+//#include "SzInterface/Interact.h"
+#include "AbilitySystemInterface.h"
 #include "ItemObject.generated.h"
 
 UCLASS()
-class TPTOBJECTS_API AItemObject : public AInteractableObject
+class TPTOBJECTS_API AItemObject : public AInteractableObject, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 	
@@ -19,6 +20,7 @@ protected:
     virtual void BeginPlay() override;
 
 public:
+	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
     virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
@@ -33,4 +35,13 @@ public:
     UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "ItemObject")
 	void UseItemEffectClient();
 	virtual void UseItemEffectClient_Implementation();
+
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "ItemObject")
+	void DestroyItem();
+	virtual void DestroyItem_Implementation();
+
+
+protected:
+	UPROPERTY()
+	TObjectPtr<class UAbilitySystemComponent> ASC;
 };
