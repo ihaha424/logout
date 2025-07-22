@@ -13,6 +13,8 @@
 #include "Input/TPTEnhancedInputComponent.h"
 #include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
+#include "FocusTraceComponent.h"
+#include "../GA/Action/GA_Interact.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -42,6 +44,10 @@ APlayerCharacter::APlayerCharacter()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->bUsePawnControlRotation = false;
 	Camera->SetupAttachment(SpringArm);
+
+	FocusTrace = CreateDefaultSubobject<UFocusTraceComponent>(TEXT("FocusTrace"));
+
+	bReplicates = true;
 }
 
 // Called when the game starts or when spawned
@@ -52,8 +58,6 @@ void APlayerCharacter::BeginPlay()
 
 void APlayerCharacter::PossessedBy(AController* NewController)
 {
-	// PossessedBy는 플레이어가 컨트롤러에 의해 소유될 때 호출된다. 즉, 빙의 될때 호출된다.
-	// 그리고 이거는 서버에서만 호출되기 때문에 Onrep_PossessedBy를 이용해야한다. -> 3감에 있음
 	Super::PossessedBy(NewController);
 	PS = GetPlayerState<APS_Player>();
 
@@ -69,6 +73,7 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 		}
 		if (InitAttributeSetEffect)
 		{
+			TPT_LOG(GALog, Error, TEXT(""))
 			ASC->ApplyGameplayEffectToSelf
 			(
 				InitAttributeSetEffect->GetDefaultObject<UGameplayEffect>(),
@@ -87,7 +92,7 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 		}
 
 		APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
-		PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
+		//PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
 	}
 }
 
@@ -125,6 +130,22 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+
+	if (FocusTrace && PlayerController)
+	{
+		FVector2D ViewportSize;
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+
+		FVector WorldLocation;
+		FVector WorldDirection;
+
+		PlayerController->DeprojectScreenPositionToWorld(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, WorldLocation, WorldDirection);
+
+		FocusTrace->SetStart(WorldLocation);
+		FocusTrace->SetDirection(WorldDirection);
+		FocusTrace->SetCollisionType(ECC_WorldDynamic);
+	}
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -147,6 +168,7 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
 
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Started, this, &ThisClass::InputPressed);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
 
@@ -162,14 +184,16 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 {
 	FGameplayAbilitySpec* temp = ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
-	
-	bool bo = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
-	TPT_LOG(GALog, Error, TEXT("%s   ::: %d ::: %d"),*InputTag.ToString(), bo, IsValid(temp->Ability));
+	bool Tempbool = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
+	TPT_LOG(GALog, Log, TEXT("Tag  :::  %s / Activate ::: %d / IsValid::: %d"),*InputTag.ToString(), Tempbool, IsValid(temp->Ability));
+
+	// TODO : HandleGameplayEvent
 }
 
 void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)
 {
-	TPT_LOG(GALog, Error, TEXT("3"));
+	//TPT_LOG(GALog, Error, TEXT("3"));
+	AttributeSet->OnPlayerLowHP.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnPlayerConfused1st.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnPlayerConfused2nd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
@@ -185,10 +209,12 @@ void APlayerCharacter::InputPressed(int32 InputID)
 		Spec->InputPressed = true;
 		if (Spec->IsActive())
 		{
+			//TPT_LOG(GALog, Log, TEXT("AbilitySpecInputPressed"));
 			ASC->AbilitySpecInputPressed(*Spec);
 		}
 		else
 		{
+			//TPT_LOG(GALog, Log, TEXT("TryActivateAbility"));
 			ASC->TryActivateAbility(Spec->Handle);
 		}
 	}

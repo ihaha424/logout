@@ -11,12 +11,17 @@
 UGA_Run::UGA_Run()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-
+	//NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalOnly;
 	CancelTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch);
 }
 
 void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
+	if (!Super::CommitAbility(Handle, ActorInfo, ActivationInfo))
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		return;
+	}
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
@@ -25,8 +30,9 @@ void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 
 	MyASC->CancelAbilities(&CancelTags);
 	// 스프린트로 인한 달리기 속도 변경을 태그바인딩을 통해 실행.
-	MyASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_Sprint).AddUObject(this, &UGA_Run::OnSprintTagChanged);
-	TPT_LOG(GALog, Error, TEXT("6"));
+	MyASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_Sprinting).AddUObject(this, &UGA_Run::OnSprintTagChanged);
+
+
 	// 스태미너 감소 GE 부여
 	FGameplayEffectSpecHandle StaminaDrainEffectSpecHandle = MakeOutgoingGameplayEffectSpec(StaminaDrainEffect, GetAbilityLevel());
 	if (StaminaDrainEffectSpecHandle.IsValid())
@@ -118,15 +124,10 @@ void UGA_Run::SetSpeed(float Speed, const FGameplayAbilityActorInfo* ActorInfo)
 
 }
 
-void UGA_Run::OnSprintTagChanged(const FGameplayTag Tag, int32 TotalCount)
+void UGA_Run::OnSprintTagChanged(const FGameplayTag Tag, int32 TagCount)
 {
-	bHasSprintTag = TotalCount > 0; // 태그가 붙었으면 true, 없으면 false
-	TPT_LOG(GALog, Error, TEXT("7    %d"), bHasSprintTag);
-	UpdateMoveSpeed();
-}
+	bHasSprintTag = TagCount > 0; // 태그가 붙었으면 true, 없으면 false
 
-void UGA_Run::UpdateMoveSpeed()
-{
 	float FinalSpeed = bHasSprintTag ? BaseRunSpeed * SprintMultiplier : BaseRunSpeed;
 	OutPutRunSpeed = FinalSpeed;
 	SetSpeed(OutPutRunSpeed, GAActorInfo);

@@ -22,6 +22,7 @@ class UInputMappingContext;
 class UCameraComponent;
 class USpringArmComponent;
 class UInputAction;
+class UFocusTraceComponent;
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API APlayerCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface
@@ -47,13 +48,11 @@ public:
 	UFUNCTION()
 	void BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet);
 
-
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 
 	void InputPressed(int32 InputID);
 	void InputReleased(int32 InputID);
-
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float WalkSpeed = 400.f;
@@ -66,6 +65,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> Camera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "FocusTrace")
+	TObjectPtr<UFocusTraceComponent> FocusTrace;
 
 protected:
 

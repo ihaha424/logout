@@ -20,4 +20,12 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayEffect> SprintEffect;
+
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	TSubclassOf<UGameplayEffect> CoolDownEffect;
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	float CoolDownValue = 5.0f;
+
+	bool bHasCoolDownTag = false;
+
 };

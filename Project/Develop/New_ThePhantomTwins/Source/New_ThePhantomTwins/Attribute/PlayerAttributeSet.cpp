@@ -25,7 +25,22 @@ UPlayerAttributeSet::UPlayerAttributeSet() :
 
 void UPlayerAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
-
+	if (Attribute == GetMaxHPAttribute())
+	{
+		SetHP(NewValue);
+	}
+	if (Attribute == GetMaxMentalPointAttribute())
+	{
+		SetMentalPoint(NewValue);
+	}
+	if (Attribute == GetMaxStaminaAttribute())
+	{
+		SetStamina(NewValue);
+	}
+	if (Attribute == GetMaxCoreEnergyAttribute())
+	{
+		SetCoreEnergy(NewValue);
+	}
 }
 
 bool UPlayerAttributeSet::PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data)
@@ -33,6 +48,17 @@ bool UPlayerAttributeSet::PreGameplayEffectExecute(struct FGameplayEffectModCall
 	if (!Super::PreGameplayEffectExecute(Data))
 	{
 		return false;
+	}
+	if (Data.EvaluatedData.Attribute == GetHPAttribute())
+	{	
+		if (Data.EvaluatedData.Magnitude > 0.0f)
+		{	// 현재 착란 3단계면 체력회복이 불가하도록 막음.
+			if (Data.Target.HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd))
+			{
+				Data.EvaluatedData.Magnitude = 0.0f;
+				return false; // 이 이펙트의 실행을 전부 중지시키기 위해서 false 반환.
+			}
+		}
 	}
 	return true;
 }
@@ -73,11 +99,17 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 		SetFinalSpeed(FMath::Clamp(GetSpeed() + GetSpeedAdjustment(), MinimumPoint, 10000));
 	}
 
+	// 체력이 MaxHp의 30%이하라면 Low HP 효과 발동.
+	if (GetHP() < GetMaxHP() * 0.3f && !bPlayerDowned)
+	{
+		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
+		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
+	}
+	bPlayerDowned = GetHP() < GetMaxHP() * 0.3f;
 	// 체력이 0이하라면 다운.
 	if (GetHP() <= 0.0f && !bPlayerDowned)
 	{
 		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-		TPT_LOG(GALog, Error, TEXT("bPlayerDowned"))
 		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 	}
 	bPlayerDowned = GetHP() <= 0.0f;
@@ -109,7 +141,6 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	// 스킬발동이 true가 되면 스킬실행.
 	if (GetExecuteSkill() > 0 && !bPlayerUseSkill)
 	{
-		TPT_LOG(GALog, Error, TEXT("2,%s"), *Cast<APS_Player>(GetOwningActor())->GetActiveSkillTag().ToString());
 		OnPlayerUseSkill.Broadcast(Cast<APS_Player>(GetOwningActor())->GetActiveSkillTag());
 	}
 	bPlayerUseSkill = GetExecuteSkill() > 0;
