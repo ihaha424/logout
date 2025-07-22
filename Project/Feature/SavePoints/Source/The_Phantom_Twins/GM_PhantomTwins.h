@@ -6,6 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "GM_PhantomTwins.generated.h"
 
+struct FPlayerSaveData;
 class UUserWidget;
 
 UCLASS()
@@ -31,4 +32,12 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	void RestartLevelWithDelay(float Delay);
+
+	virtual AActor* FindPlayerStart_Implementation(AController* Player, const FString& IncomingName) override;
+
+	// 게임 시작 시 GameInstance에서 데이터를 가져오기 위한 변수
+	UPROPERTY()
+	TArray<FPlayerSaveData> OverrideSpawnDatas;
+
+	bool bShouldOverrideSpawns = false;
 };

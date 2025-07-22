@@ -18,7 +18,9 @@ public class The_Phantom_Twins : ModuleRules
             "AIModule",
             "UMG",
             "Object_Plugins",
-			"NavigationSystem"
+			"NavigationSystem",
+            "OnlineSubsystem",
+			"CoreOnline"
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

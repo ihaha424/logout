@@ -3,6 +3,10 @@
 
 #include "StoryFlowManager.h"
 #include "StorySaveState.h"
+#include "GameFramework/GameStateBase.h"
+#include "GameFramework/PlayerState.h"
+#include "The_Phantom_Twins/Chapter/IdentifyChracterData.h"
+#include "The_Phantom_Twins/OutGame/SaveGame/TPTSaveGame.h"
 
 DEFINE_LOG_CATEGORY(LogStoryFlow);
 
@@ -187,4 +191,88 @@ void UStoryFlowManager::LoadFromDisk()
             }
         }
     }
+}
+
+void UStoryFlowManager::SaveGameData(const FString& SlotName)
+{
+    // 1. SaveGame 객체를 생성합니다.
+    UTPTSaveGame* SaveGameObject = Cast<UTPTSaveGame>(UGameplayStatics::CreateSaveGameObject(UTPTSaveGame::StaticClass()));
+    if (!SaveGameObject)
+    {
+        UE_LOG(LogStoryFlow, Error, TEXT("Failed to create SaveGameObject."));
+        return;
+    }
+
+    // 2. 캐릭터 선택 정보를 가져와서 SaveGameObject에 직접 저장합니다.
+    UIdentifyChracterData* SelectedCharacterData = GetDataAs<UIdentifyChracterData>(FName("IdentifyChractor"));
+    if (SelectedCharacterData)
+    {
+        SaveGameObject->HostSelectedCharacter = SelectedCharacterData->Host;
+        SaveGameObject->ClientSelectedCharacter = SelectedCharacterData->Client;
+    }
+    else
+    {
+        UE_LOG(LogStoryFlow, Warning, TEXT("Character select data not found. Saving without it."));
+    }
+
+    // 3. 각 플레이어의 ID, 위치, 회전 정보만 FPlayerSaveData에 저장합니다.
+    UWorld* World = GetWorld();
+    if (!World || !World->GetGameState()) return;
+
+    for (const APlayerState* PS : World->GetGameState()->PlayerArray)
+    {
+        if (PS)
+        {
+            FPlayerSaveData PlayerData;
+
+            // 고유 ID 저장
+            const FUniqueNetIdRepl& UniqueId = PS->GetUniqueId();
+            if (UniqueId.IsValid())
+            {
+                PlayerData.PlayerID = UniqueId.ToString();
+            }
+            else
+            {
+                PlayerData.PlayerID = PS->GetPlayerName(); // 대체 수단
+            }
+
+            // 위치 및 회전값 저장
+            APawn* Pawn = PS->GetPawn();
+            if (Pawn)
+            {
+                PlayerData.PlayerLocation = Pawn->GetActorLocation();
+                PlayerData.PlayerRotation = Pawn->GetActorRotation();
+            }
+
+            // *** 중요: 이 루프 안에서는 더 이상 캐릭터 선택 정보를 저장하지 않습니다! ***
+            
+            SaveGameObject->Players.Add(PlayerData);
+        }
+    }
+
+    // 4. 데이터를 슬롯에 저장합니다.
+    UGameplayStatics::SaveGameToSlot(SaveGameObject, SlotName, 0);
+    UE_LOG(LogStoryFlow, Log, TEXT("Game data saved to slot: %s"), *SlotName);
+}
+
+void UStoryFlowManager::LoadGameData(const FString& SlotName)
+{
+    UTPTSaveGame* LoadedGame = Cast<UTPTSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, 0));
+    if (!LoadedGame)
+    {
+        UE_LOG(LogStoryFlow, Warning, TEXT("Save file not found in slot: %s."), *SlotName);
+        return;
+    }
+
+    // 새 데이터 객체를 만들고, 저장된 값으로 채웁니다.
+    UIdentifyChracterData* CharData = NewObject<UIdentifyChracterData>(this);
+    CharData->Host = LoadedGame->HostSelectedCharacter;
+    CharData->Client = LoadedGame->ClientSelectedCharacter;
+
+    // 매니저에 등록
+    RegisterData(FName("CharacterSelect"), CharData);
+    SetData(FName("CharacterSelect"), CharData);
+
+    // 참고: 플레이어 위치 등은 GameMode에서 LoadedGame->Players 배열을 직접 참조하여 사용 가능
+    UE_LOG(LogStoryFlow, Log, TEXT("Character selection data loaded successfully."));
 }

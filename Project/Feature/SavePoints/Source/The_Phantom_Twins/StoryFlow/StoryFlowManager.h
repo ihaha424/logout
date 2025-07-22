@@ -79,6 +79,14 @@ public:
     UFUNCTION(BlueprintCallable, Category = "StoryFlow")
     void LoadFromDisk();
 
+    UFUNCTION(BlueprintCallable, Category = "StoryFlow")
+    void SaveGameData(const FString& SlotName);
+
+    UFUNCTION(BlueprintCallable, Category = "StoryFlow")
+    void LoadGameData(const FString& SlotName);
+
+
+
 private:
     TMap<FName, TObjectPtr<UObject>> DataMap;
     TMap<FName, TArray<TPair<FGuid, FCallback>>> Subscribers;

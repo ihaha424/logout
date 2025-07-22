@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "TPTSaveGameData.h"
 #include "GameFramework/SaveGame.h"
 #include "TPTSaveGame.generated.h"
 
@@ -17,16 +18,11 @@ public:
 	UTPTSaveGame();
 
 	UPROPERTY()
-	FVector PlayerCheckpointLocation;
+	TArray<FPlayerSaveData> Players;
 
 	UPROPERTY()
-	FRotator PlayerCheckpointRotation;
+	ECharacterType HostSelectedCharacter;
 
-	UPROPERTY(VisibleAnywhere, Category = Basic)
-	FString PlayerName;
-
-	UPROPERTY(VisibleAnywhere, Category = Basic)
-	TArray<FString> CardKeys;
-
-
+	UPROPERTY()
+	ECharacterType ClientSelectedCharacter;
 };
