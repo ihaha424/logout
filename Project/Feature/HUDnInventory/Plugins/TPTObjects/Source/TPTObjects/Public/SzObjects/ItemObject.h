@@ -4,12 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "SzObjects/InteractableObject.h"
-#include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
 #include "ItemObject.generated.h"
 
 UCLASS()
-class TPTOBJECTS_API AItemObject : public AInteractableObject, public IAbilitySystemInterface
+class TPTOBJECTS_API AItemObject : public AInteractableObject//, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 	
@@ -20,9 +19,7 @@ protected:
     virtual void BeginPlay() override;
 
 public:
-	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual void PostInitializeComponents() override;
 
     virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
     virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
@@ -49,9 +46,6 @@ public:
 	void InvokeGameplayCue(const APawn* Interactor);		
 
 protected:
-	UPROPERTY()
-	TObjectPtr<class UAbilitySystemComponent> ASC;
-
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TSubclassOf<class UGameplayEffect> GameplayEffectClass;
 

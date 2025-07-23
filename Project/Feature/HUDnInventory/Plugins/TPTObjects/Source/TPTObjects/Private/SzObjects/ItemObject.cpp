@@ -8,9 +8,6 @@
 AItemObject::AItemObject() : AInteractableObject()
 {
 	bReplicates = true;
-
-	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
-	ASC->SetIsReplicated(true);
 }
 
 void AItemObject::BeginPlay()
@@ -19,23 +16,11 @@ void AItemObject::BeginPlay()
 
 }
 
-class UAbilitySystemComponent* AItemObject::GetAbilitySystemComponent() const
-{
-	return ASC;
-}
-
 void AItemObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	//DOREPLIFETIME(AItemObject, );
-}
-
-void AItemObject::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-
-	ASC->InitAbilityActorInfo(this, this);
 }
 
 void AItemObject::OnInteractServer_Implementation(const APawn* Interactor)
@@ -103,11 +88,19 @@ void AItemObject::ApplyEffectToTarget(const APawn* Interactor)
 void AItemObject::InvokeGameplayCue(const APawn* Interactor)
 {  // 자기 자신에게 특수효과를 재생
 
+	if (!Interactor)
+		return;
+
 	AActor* TargetActor = const_cast<APawn*>(Interactor);
 
-	FGameplayCueParameters Param;
-	Param.SourceObject = this;
-	Param.Instigator = TargetActor;
-	Param.Location = GetActorLocation();
-	ASC->ExecuteGameplayCue(GameplayCueTag, Param);
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+
+	if (TargetASC)
+	{
+		FGameplayCueParameters Param;
+		Param.SourceObject = this;
+		Param.Instigator = TargetActor;
+		Param.Location = GetActorLocation();
+		TargetASC->ExecuteGameplayCue(GameplayCueTag, Param);
+	}
 }
