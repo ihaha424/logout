@@ -146,11 +146,11 @@ void APCTestSZ::UpdateInteractableActorState(APawn* playerPawn)
         // 이전 액터의 위젯 끄기
 		if (PreviousInteractableActor && PreviousInteractableActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
 		{
-            UE_LOG(LogTemp, Log,
-                TEXT("Prev Actor( %s ) Visible False | %s | Role: %s"),
-                *PreviousInteractableActor->GetName(),
-                *GetName(),
-                *UEnum::GetValueAsString(GetLocalRole()));
+            //UE_LOG(LogTemp, Log,
+            //    TEXT("Prev Actor( %s ) Visible False | %s | Role: %s"),
+            //    *PreviousInteractableActor->GetName(),
+            //    *GetName(),
+            //    *UEnum::GetValueAsString(GetLocalRole()));
 
             IInteract::Execute_CanInteract(PreviousInteractableActor, playerPawn, false);
         }
@@ -158,11 +158,11 @@ void APCTestSZ::UpdateInteractableActorState(APawn* playerPawn)
         // 현재 액터의 위젯 켜기
         if (NearestInteractableActor && NearestInteractableActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
         {
-            UE_LOG(LogTemp, Log,
-                TEXT("Curr Actor( %s ) Visible True | %s | Role: %s"),
-                *NearestInteractableActor->GetName(),
-                *GetName(),
-                *UEnum::GetValueAsString(GetLocalRole()));
+            //UE_LOG(LogTemp, Log,
+            //    TEXT("Curr Actor( %s ) Visible True | %s | Role: %s"),
+            //    *NearestInteractableActor->GetName(),
+            //    *GetName(),
+            //    *UEnum::GetValueAsString(GetLocalRole()));
 
             IInteract::Execute_CanInteract(NearestInteractableActor, playerPawn, true);
         }

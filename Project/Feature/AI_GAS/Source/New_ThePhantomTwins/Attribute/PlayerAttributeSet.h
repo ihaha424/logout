@@ -13,8 +13,7 @@
 		GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 		GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerDownedDelegate);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerConfusedDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAttributeDelegate, const FGameplayTag, InputTag);
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UPlayerAttributeSet : public UAttributeSet
@@ -34,13 +33,18 @@ public:
 	ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, Speed);
 	ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, SpeedAdjustment);
 	ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, FinalSpeed);
+	ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, ExecuteSkill);
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual bool PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data) override;
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 
-	mutable FPlayerDownedDelegate OnPlayerDowned;
-	mutable FPlayerConfusedDelegate OnPlayerConfused;
+	mutable FAttributeDelegate OnPlayerLowHP;
+	mutable FAttributeDelegate OnPlayerDowned;
+	mutable FAttributeDelegate OnPlayerConfused1st;
+	mutable FAttributeDelegate OnPlayerConfused2nd;
+	mutable FAttributeDelegate OnPlayerConfused3rd;
+	mutable FAttributeDelegate OnPlayerUseSkill;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
@@ -72,6 +76,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData FinalSpeed;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
+	FGameplayAttributeData ExecuteSkill;
+
+	bool bPlayerLowHP = false;
 	bool bPlayerDowned = false;
-	bool bPlayerConfused = false;
+	bool bPlayerConfused1st = false;
+	bool bPlayerConfused2nd = false;
+	bool bPlayerConfused3rd = false;
+	bool bPlayerUseSkill = false;
 };

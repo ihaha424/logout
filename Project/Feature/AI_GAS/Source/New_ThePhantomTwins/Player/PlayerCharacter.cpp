@@ -9,15 +9,17 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "../Attribute/PlayerAttributeSet.h"
-#include "../Input/TPTEnhancedInputComponent.h"
-#include "../Log/TPTLog.h"
-#include "../Tags/TPTGameplayTags.h"
+#include "Attribute/PlayerAttributeSet.h"
+#include "Input/TPTEnhancedInputComponent.h"
+#include "Log/TPTLog.h"
+#include "Tags/TPTGameplayTags.h"
+#include "FocusTraceComponent.h"
+#include "../GA/Action/GA_Interact.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 {
-    ASC = nullptr;
+	ASC = nullptr;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -30,6 +32,7 @@ APlayerCharacter::APlayerCharacter()
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 0.f;
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = 80.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
@@ -41,6 +44,10 @@ APlayerCharacter::APlayerCharacter()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->bUsePawnControlRotation = false;
 	Camera->SetupAttachment(SpringArm);
+
+	FocusTrace = CreateDefaultSubobject<UFocusTraceComponent>(TEXT("FocusTrace"));
+
+	bReplicates = true;
 }
 
 // Called when the game starts or when spawned
@@ -51,8 +58,6 @@ void APlayerCharacter::BeginPlay()
 
 void APlayerCharacter::PossessedBy(AController* NewController)
 {
-	// PossessedBy는 플레이어가 컨트롤러에 의해 소유될 때 호출된다. 즉, 빙의 될때 호출된다.
-	// 그리고 이거는 서버에서만 호출되기 때문에 Onrep_PossessedBy를 이용해야한다. -> 3감에 있음
 	Super::PossessedBy(NewController);
 	PS = GetPlayerState<APS_Player>();
 
@@ -61,21 +66,21 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 		ASC = PS->GetAbilitySystemComponent();
 		ASC->InitAbilityActorInfo(PS, this);
 
-		const UPlayerAttributeSet* CurrentAttributeSet = ASC->GetSet<UPlayerAttributeSet>();
-		if (CurrentAttributeSet)
+		const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
+		if (AttributeSet)
 		{
-			CurrentAttributeSet->OnPlayerConfused.AddDynamic(this, &ThisClass::OnPlayerDowned);
-			CurrentAttributeSet->OnPlayerConfused.AddDynamic(this, &ThisClass::OnPlayerConfused);
+			BindAttributeDelegates(AttributeSet);
 		}
-        if (InitAttributeSetEffect)
-        {
-            ASC->ApplyGameplayEffectToSelf
-        	(
-                InitAttributeSetEffect->GetDefaultObject<UGameplayEffect>(),
-                1.0f,
-                ASC->MakeEffectContext()
-            );
-        }
+		if (InitAttributeSetEffect)
+		{
+			TPT_LOG(GALog, Error, TEXT(""))
+			ASC->ApplyGameplayEffectToSelf
+			(
+				InitAttributeSetEffect->GetDefaultObject<UGameplayEffect>(),
+				1.0f,
+				ASC->MakeEffectContext()
+			);
+		}
 		for (const auto& Ability : PlayerAbilities)
 		{
 			const EFTPTGameplayTags* TagEnum = FTPTGameplayTags::Get().TagMap.Find(Ability.Key);
@@ -85,14 +90,24 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 			StartSpec.InputID = InputID;
 			ASC->GiveAbility(StartSpec);
 		}
-		
-		// 이렇게 하면 디버그 계속볼수있음.
-		APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
-		PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
+
+		APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+		//PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
 
 		ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
 	}
 }
+
+void APlayerCharacter::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+	if (!HasAuthority())
+	{
+		APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
+		//PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
+	}
+}
+
 
 void APlayerCharacter::OnRep_PlayerState()
 {
@@ -104,42 +119,35 @@ void APlayerCharacter::OnRep_PlayerState()
 		ASC = PS->GetAbilitySystemComponent();
 		ASC->InitAbilityActorInfo(PS, this);
 
-		const UPlayerAttributeSet* CurrentAttributeSet = ASC->GetSet<UPlayerAttributeSet>();
-		if (CurrentAttributeSet)
+		const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
+		if (AttributeSet)
 		{
-			CurrentAttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::OnPlayerDowned);
-			CurrentAttributeSet->OnPlayerConfused.AddDynamic(this, &ThisClass::OnPlayerConfused);
-		}
-		if (InitAttributeSetEffect)
-		{
-			ASC->ApplyGameplayEffectToSelf(
-				InitAttributeSetEffect->GetDefaultObject<UGameplayEffect>(),
-				1.0f,
-				ASC->MakeEffectContext()
-			);
+			BindAttributeDelegates(AttributeSet);
 		}
 	}
 }
 
-class UAbilitySystemComponent* APlayerCharacter::GetAbilitySystemComponent() const
-{
-	return ASC;
-}
-
-// AI의 감지를 위한 팀설정.
-FGenericTeamId APlayerCharacter::GetGenericTeamId() const
-{
-	if (PS) 
-	{
-		return PS->GetGenericTeamId();
-	}
-	return FGenericTeamId::NoTeam;
-}
 
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+
+	if (FocusTrace && PlayerController)
+	{
+		FVector2D ViewportSize;
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+
+		FVector WorldLocation;
+		FVector WorldDirection;
+
+		PlayerController->DeprojectScreenPositionToWorld(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, WorldLocation, WorldDirection);
+
+		FocusTrace->SetStart(WorldLocation);
+		FocusTrace->SetDirection(WorldDirection);
+		FocusTrace->SetCollisionType(ECC_WorldDynamic);
+	}
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -147,8 +155,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	UTPTEnhancedInputComponent* TPTInput = CastChecked<UTPTEnhancedInputComponent>(PlayerInputComponent);
 	check(TPTInput);
-	TPTInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Move);
-	TPTInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Look);
+	TPTInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
+	TPTInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
 
 	SetupPlayerInputByTag(TPTInput);
 }
@@ -157,37 +165,58 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 {
 	if (IsValid(ASC) && IsValid(TPTInput))
 	{
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Triggered, this, &APlayerCharacter::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Completed, this, &APlayerCharacter::InputReleased);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch, ETriggerEvent::Triggered, this, &APlayerCharacter::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch, ETriggerEvent::Completed, this, &APlayerCharacter::InputReleased);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
 
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Completed, this, &APlayerCharacter::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Completed, this, &APlayerCharacter::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
 
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill, ETriggerEvent::Completed, this, &APlayerCharacter::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Completed, this, &APlayerCharacter::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Completed, this, &APlayerCharacter::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Completed, this, &APlayerCharacter::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Completed, this, &APlayerCharacter::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Completed, this, &APlayerCharacter::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
 	}
+}
+
+void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
+{
+	FGameplayAbilitySpec* temp = ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
+	bool Tempbool = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
+	TPT_LOG(GALog, Log, TEXT("Tag  :::  %s / Activate ::: %d / IsValid::: %d"),*InputTag.ToString(), Tempbool, IsValid(temp->Ability));
+
+	// TODO : HandleGameplayEvent
+}
+
+void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)
+{
+	//TPT_LOG(GALog, Error, TEXT("3"));
+	AttributeSet->OnPlayerLowHP.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+	AttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+	AttributeSet->OnPlayerConfused1st.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+	AttributeSet->OnPlayerConfused2nd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+	AttributeSet->OnPlayerConfused3rd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+	AttributeSet->OnPlayerUseSkill.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 }
 
 void APlayerCharacter::InputPressed(int32 InputID)
 {
-	//const EFTPTGameplayTags* TagEnum = FTPTGameplayTags::Get().TagMap.Find(InputTag);
-
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
 	if (Spec)
 	{
 		Spec->InputPressed = true;
 		if (Spec->IsActive())
 		{
+			//TPT_LOG(GALog, Log, TEXT("AbilitySpecInputPressed"));
 			ASC->AbilitySpecInputPressed(*Spec);
 		}
 		else
 		{
+			//TPT_LOG(GALog, Log, TEXT("TryActivateAbility"));
 			ASC->TryActivateAbility(Spec->Handle);
 		}
 	}
@@ -203,17 +232,6 @@ void APlayerCharacter::InputReleased(int32 InputID)
 	}
 }
 
-void APlayerCharacter::OnPlayerDowned()
-{
-	// 기절 상태.
-}
-
-void APlayerCharacter::OnPlayerConfused()
-{
-	// 착란 상태.
-}
-
-
 void APlayerCharacter::Move(const FInputActionValue& Value)
 {
 	if (PS && Controller)
@@ -228,7 +246,6 @@ void APlayerCharacter::Move(const FInputActionValue& Value)
 
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
-
 	}
 }
 
@@ -241,4 +258,19 @@ void APlayerCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+UAbilitySystemComponent* APlayerCharacter::GetAbilitySystemComponent() const
+{
+	return ASC;
+}
+
+// AI의 감지를 위한 팀설정.
+FGenericTeamId APlayerCharacter::GetGenericTeamId() const
+{
+	if (PS)
+	{
+		return PS->GetGenericTeamId();
+	}
+	return FGenericTeamId::NoTeam;
 }

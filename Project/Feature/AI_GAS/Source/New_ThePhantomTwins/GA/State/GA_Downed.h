@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "GA_Sprint.generated.h"
+#include "GA_Downed.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class NEW_THEPHANTOMTWINS_API UGA_Sprint : public UGameplayAbility
+class NEW_THEPHANTOMTWINS_API UGA_Downed : public UGameplayAbility
 {
 	GENERATED_BODY()
 	
