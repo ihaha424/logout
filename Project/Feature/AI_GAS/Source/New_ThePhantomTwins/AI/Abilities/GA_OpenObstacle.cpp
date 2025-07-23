@@ -1,38 +1,39 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GA_SmashObstacle.h"
-#include "SzInterface/Destroyable.h"
+#include "GA_OpenObstacle.h"
+#include "SzInterface/Interact.h"
 #include "AbilitySystemComponent.h"
 #include "Tags/TPTGameplayTags.h"
+#include "Log/TPTLog.h"
 
-UGA_SmashObstacle::UGA_SmashObstacle()
+UGA_OpenObstacle::UGA_OpenObstacle()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerExecution;
 
-    AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_SmashObstacle);
+    AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_OpenObstacle);
     ActivationBlockedTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
 
     FAbilityTriggerData TriggerData;
-    TriggerData.TriggerTag = FTPTGameplayTags::Get().TPTGameplay_Character_Action_SmashObstacle;
+    TriggerData.TriggerTag = FTPTGameplayTags::Get().TPTGameplay_Character_Action_OpenObstacle;
     TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
     AbilityTriggers.Add(TriggerData);
 }
 
-void UGA_SmashObstacle::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+void UGA_OpenObstacle::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
     AActor* Target = TriggerEventData ? const_cast<AActor*>(TriggerEventData->Target.Get()) : nullptr;
-    if (Target && Target->GetClass()->ImplementsInterface(UDestroyable::StaticClass()))
+    if (Target && Target->GetClass()->ImplementsInterface(UInteract::StaticClass()))
     {
-        if (IDestroyable::Execute_CanBeDestroyed(Target, Cast<APawn>(ActorInfo->AvatarActor.Get())))
+        if (IInteract::Execute_CanInteract(Target, Cast<APawn>(ActorInfo->AvatarActor.Get()), true))
         {
-            IDestroyable::Execute_OnDestroy(Target, Cast<APawn>(ActorInfo->AvatarActor.Get()));
+            IInteract::Execute_OnInteractServer(Target, Cast<APawn>(ActorInfo->AvatarActor.Get()));
         }
     }
     if (UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo())
     {
-        MyASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_SmashObstacle);
+        MyASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_OpenObstacle);
         MyASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
     }
 
@@ -42,7 +43,7 @@ void UGA_SmashObstacle::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
     // 위 과업을 하기 전까지 사용할 테스트용 코드 1초후 종료
     FTimerHandle TimerHandle;
-    FTimerDelegate EndDelegate = FTimerDelegate::CreateUObject(this, &UGA_SmashObstacle::EndAbility,
+    FTimerDelegate EndDelegate = FTimerDelegate::CreateUObject(this, &UGA_OpenObstacle::EndAbility,
         Handle, ActorInfo, ActivationInfo, true, false);
     if (UWorld* World = GetWorld())
     {
@@ -50,13 +51,13 @@ void UGA_SmashObstacle::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
     }
 }
 
-void UGA_SmashObstacle::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+void UGA_OpenObstacle::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
     Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
     if (UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo())
     {
-        MyASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_SmashObstacle);
+        MyASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_OpenObstacle);
         MyASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
     }
 }

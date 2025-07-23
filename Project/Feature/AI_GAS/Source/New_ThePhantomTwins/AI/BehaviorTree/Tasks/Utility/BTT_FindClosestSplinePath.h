@@ -3,28 +3,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../BTT_GASBaseTask.h"
-#include "../../../Utility/AIBaseState.h"
-#include "BTT_SetState.generated.h"
+#include "AI/BehaviorTree/Tasks/BTT_GASBaseTask.h"
+#include "BTT_FindClosestSplinePath.generated.h"
 
 /**
  * 
  */
-UCLASS(meta = (DisplayName = "TPTTask | Utility | SetState"))
-class NEW_THEPHANTOMTWINS_API UBTT_SetState : public UBTT_GASBaseTask
+UCLASS(meta = (DisplayName = "TPTTask | Utility | FindClosestSplinePath"))
+class NEW_THEPHANTOMTWINS_API UBTT_FindClosestSplinePath : public UBTT_GASBaseTask
 {
 	GENERATED_BODY()
-
 public:
-	UBTT_SetState();
+	UBTT_FindClosestSplinePath();
 
 	virtual EBTNodeResult::Type Execute_Task(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	virtual FString GetStaticDescription() const override;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	FBlackboardKeySelector AIStateKey;
-
-	UPROPERTY(EditAnywhere, Category = "AI")
-	EAIBaseState StateValue;
+	FBlackboardKeySelector SplineActorKey;
 };

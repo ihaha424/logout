@@ -3,7 +3,7 @@
 
 #include "GA_MeleeAttack.h"
 #include "GameFramework/Character.h"
-
+#include "AbilitySystemComponent.h"
 #include "Tags/TPTGameplayTags.h"
 
 UGA_MeleeAttack::UGA_MeleeAttack()
@@ -12,6 +12,11 @@ UGA_MeleeAttack::UGA_MeleeAttack()
 
     AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_MeleeAttack);
     ActivationOwnedTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Combat);
+
+    FAbilityTriggerData TriggerData;
+    TriggerData.TriggerTag = FTPTGameplayTags::Get().TPTGameplay_Character_Action_MeleeAttack;
+    TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+    AbilityTriggers.Add(TriggerData);
 }
 
 void UGA_MeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -25,6 +30,13 @@ void UGA_MeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
         UE_LOG(LogTemp, Log, TEXT("Melee Attack Target: %s"), *Target->GetName());
     }
 
+    if (UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo())
+    {
+        MyASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_MeleeAttack);
+        MyASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
+    }
+
+
     // 애니메이션 재생 예시
     if (AttackMontage && ActorInfo->AvatarActor.IsValid())
     {
@@ -35,5 +47,23 @@ void UGA_MeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
         }
     }
 
-    EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+    // 위 과업을 하기 전까지 사용할 테스트용 코드 1초후 종료
+    FTimerHandle TimerHandle;
+    FTimerDelegate EndDelegate = FTimerDelegate::CreateUObject(this, &UGA_MeleeAttack::EndAbility,
+        Handle, ActorInfo, ActivationInfo, true, false);
+    if (UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().SetTimer(TimerHandle, EndDelegate, 1.0f, false);
+    }
+}
+
+void UGA_MeleeAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+    Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+    if (UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo())
+    {
+        MyASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_MeleeAttack);
+        MyASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
+    }
 }

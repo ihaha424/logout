@@ -89,6 +89,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 		// 이렇게 하면 디버그 계속볼수있음.
 		APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
 		PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
+
+		ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
 	}
 }
 
