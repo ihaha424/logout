@@ -12,6 +12,7 @@
 #include "GenericTeamAgentInterface.h"
 #include "PlayerCharacter.generated.h"
 
+class APC_Player;
 class AHUD_PhantomTwins;
 class UPlayerAttributeSet;
 class UGameplayAbility;
@@ -101,7 +102,7 @@ protected:
 	TObjectPtr<APS_Player> PS;
 
 	UPROPERTY()
-	APlayerController* PlayerController;
+	APC_Player* PlayerController;
 
 	UPROPERTY()
 	AHUD_PhantomTwins* PlayerHUD;
@@ -139,6 +140,7 @@ public:
 	void Look(const FInputActionValue& Value);
 
 	void InputPressed(int32 InputID);
+	void InputPressedWithNum(int32 InputID);
 	void InputReleased(int32 InputID);
 };
 

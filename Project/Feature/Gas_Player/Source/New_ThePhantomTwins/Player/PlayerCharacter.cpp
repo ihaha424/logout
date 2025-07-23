@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PlayerCharacter.h"
 
@@ -17,6 +17,12 @@
 #include "PC_Player.h"
 #include "../GA/Action/GA_Interact.h"
 #include "UI/HUD/HUD_PhantomTwins.h"
+#include "Blueprint/UserWidget.h"
+#include "Kismet/GameplayStatics.h"
+#include "UIManager/UIManager.h"
+#include "Components/WidgetComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "UIManager/UIManager.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -48,6 +54,9 @@ APlayerCharacter::APlayerCharacter()
 	Camera->SetupAttachment(SpringArm);
 
 	FocusTrace = CreateDefaultSubobject<UFocusTraceComponent>(TEXT("FocusTrace"));
+
+	InteractWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractWidget"));
+	InteractWidget->SetRelativeLocation(GetMesh()->GetRelativeLocation());
 
 	bReplicates = true;
 }
@@ -89,8 +98,15 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 		StartSpec.InputID = InputID;
 		ASC->GiveAbility(StartSpec);
 	}
-	PlayerController = CastChecked<APC_Player>(GetController());
+	PlayerController = GetController<APC_Player>();
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
+
+	PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
+	//RecoveryWidget->SetWidgetClass(RecoveryWidgetClass);
+	if (InteractWidget)
+	{
+		InteractWidget->SetWidgetClass(InteractWidgetClass);
+	}
 }
 
 void APlayerCharacter::OnRep_Controller()
@@ -155,11 +171,11 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 {
 	if (IsValid(ASC) && IsValid(TPTInput))
 	{
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Started, this, &ThisClass::InputPressed);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
 
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Started, this, &ThisClass::InputPressed);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Started, this, &ThisClass::InputPressed);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
@@ -190,7 +206,24 @@ void APlayerCharacter::InputPressed(int32 InputID)
 		}
 	}
 }
-
+void APlayerCharacter::InputPressedWithNum(int32 InputID)
+{
+	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
+	if (Spec)
+	{
+		Spec->InputPressed = true;
+		if (Spec->IsActive())
+		{
+			//TPT_LOG(GALog, Log, TEXT("AbilitySpecInputPressed"));
+			ASC->AbilitySpecInputPressed(*Spec);
+		}
+		else
+		{
+			//TPT_LOG(GALog, Log, TEXT("TryActivateAbility"));
+			ASC->TryActivateAbility(Spec->Handle);
+		}
+	}
+}
 void APlayerCharacter::InputReleased(int32 InputID)
 {
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
@@ -216,9 +249,71 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 	AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
 	AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
 }
+
+void APlayerCharacter::OnRecoveryCompelete()
+{
+	bIsRecovery = true;
+}
+
+bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
+{
+	if (ASC == nullptr) return false;
+
+	bool bIsTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
+	if (bIsDetected && bIsTag)
+	{
+		if (InteractWidget)
+		{
+			InteractWidget->SetVisibility(true);
+		}
+		return true;
+	}
+	else
+	{
+		if (InteractWidget)
+		{
+			InteractWidget->SetVisibility(false);
+		}
+		return false;
+	}
+}
+
+void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
+{
+	TPT_LOG(LogTemp, Log, TEXT("Player Interact"));
+
+	GetWorld()->GetTimerManager().SetTimer(
+		RecoveryTimerHandle,               // ï¿½Úµï¿½
+		this,                              // È£ï¿½ï¿½ ï¿½ï¿½ï¿½
+		&APlayerCharacter::OnRecoveryCompelete, // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
+		5.0f,                              // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ (ï¿½ï¿½)
+		false                              // ï¿½İºï¿½ ï¿½ï¿½ï¿½ï¿½ (false = 1È¸ ï¿½ï¿½ï¿½ï¿½)
+	);
+
+	if (bIsRecovery)
+	{
+		// ï¿½ï¿½ ï¿½Â±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ ï¿½Â±ï¿½ ï¿½Ö±ï¿½
+		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
+		ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Recovery);
+
+		GetWorld()->GetTimerManager().ClearTimer(RecoveryTimerHandle);
+
+		// TODO: íšŒë³µGE
+	}
+}
+
+void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
+{
+	if (PlayerController)
+	{
+		PlayerController->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
+	}
+}
+
 void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 {
 	FGameplayAbilitySpec* TagID = ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
+	NULLCHECK_RETURN_LOG(TagID, PlayerLog, Error, );
 	bool CanActivate = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
 	TPT_LOG(PlayerLog, Log, TEXT("Tag  :::  %s / Activate success ? ::: %d / IsValid ? ::: %d"), *InputTag.ToString(), CanActivate, IsValid(TagID->Ability));
 
@@ -229,11 +324,11 @@ void APlayerCharacter::PlayerHUDHPSet(int32 value)
 {
 	PlayerHUD->UpdateHP(value);
 
-	//PlayerHUD->UpdateClearItem();// µ¥ÀÌÅÍÁ¶°¢(°°ÀÌ°øÀ¯ÇÏ´Â°Å)
-	//// ÅÂ±×ÀÌ¿ë
+	//PlayerHUD->UpdateClearItem();// ë°ì´í„°ì¡°ê°(ê°™ì´ê³µìœ í•˜ëŠ”ê±°)
+	//// íƒœê·¸ì´ìš©
 	//PlayerHUD->SetActiveSkillIcon();
 	//PlayerHUD->SetPassiveSkillIcon();
-	//PlayerHUD->SetCharPortrait();// ÃÊ»óÈ­
+	//PlayerHUD->SetCharPortrait();// ì´ˆìƒí™”
 }
 void APlayerCharacter::PlayerHUDMentalSet(int32 value)
 {
@@ -280,7 +375,7 @@ UAbilitySystemComponent* APlayerCharacter::GetAbilitySystemComponent() const
 	return ASC;
 }
 
-// AIÀÇ °¨Áö¸¦ À§ÇÑ ÆÀ¼³Á¤.
+// AIì˜ ê°ì§€ë¥¼ ìœ„í•œ íŒ€ì„¤ì •.
 FGenericTeamId APlayerCharacter::GetGenericTeamId() const
 {
 	if (PS)
