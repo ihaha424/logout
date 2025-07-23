@@ -71,21 +71,25 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	if (Data.EvaluatedData.Attribute == GetHPAttribute())
 	{
 		SetHP(FMath::Clamp(GetHP(), MinimumPoint, GetMaxHP()));
+		OnChangedHP.Broadcast(GetHP());
 	}
 
 	if (Data.EvaluatedData.Attribute == GetMentalPointAttribute())
 	{
 		SetMentalPoint(FMath::Clamp(GetMentalPoint(), MinimumPoint, GetMaxMentalPoint()));
+		OnChangedMentalPoint.Broadcast(GetMentalPoint());
 	}
 
 	if (Data.EvaluatedData.Attribute == GetCoreEnergyAttribute())
 	{
 		SetCoreEnergy(FMath::Clamp(GetCoreEnergy(), MinimumPoint, GetMaxCoreEnergy()));
+		OnChangedCoreEnergy.Broadcast(GetCoreEnergy());
 	}
 
 	if (Data.EvaluatedData.Attribute == GetStaminaAttribute())
 	{
 		SetStamina(FMath::Clamp(GetStamina(), MinimumPoint, GetMaxStamina()));
+		OnChangedStamina.Broadcast(GetStamina());
 	}
 	// 스피드나 증감스피드가 변경될때 마다  final 스피드가 업데이트 되도록함.
 	if (Data.EvaluatedData.Attribute == GetSpeedAttribute())

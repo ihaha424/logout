@@ -12,6 +12,7 @@
 #include "GenericTeamAgentInterface.h"
 #include "PlayerCharacter.generated.h"
 
+class AHUD_PhantomTwins;
 class UPlayerAttributeSet;
 class UGameplayAbility;
 class UTPTEnhancedInputComponent;
@@ -43,20 +44,12 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-	void PlayerHUDSet();
-
 	UFUNCTION()
 	void SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInputComponent);
 	UFUNCTION()
 	void ExecuteAbilityByTag(FGameplayTag InputTag);
 	UFUNCTION()
 	void BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet);
-
-	void Move(const FInputActionValue& Value);
-	void Look(const FInputActionValue& Value);
-
-	void InputPressed(int32 InputID);
-	void InputReleased(int32 InputID);
 
 	// 게이지 시작
 	UFUNCTION()
@@ -97,6 +90,11 @@ protected:
 	UPROPERTY()
 	TObjectPtr<APS_Player> PS;
 
+	UPROPERTY()
+	APlayerController* PlayerController;
+
+	UPROPERTY()
+	AHUD_PhantomTwins* PlayerHUD;
 	// GAS
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<UAbilitySystemComponent> ASC;
@@ -117,6 +115,20 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> LookAction;
 
-private:
+public:
+	UFUNCTION()
+	void PlayerHUDHPSet(int32 value);
+	UFUNCTION()
+	void PlayerHUDMentalSet(int32 value);
+	UFUNCTION()
+	void PlayerHUDStaminaSet(int32 value);
+	UFUNCTION()
+	void PlayerHUDCoreEnergySet(int32 value);
+
+	void Move(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
+
+	void InputPressed(int32 InputID);
+	void InputReleased(int32 InputID);
 };
 

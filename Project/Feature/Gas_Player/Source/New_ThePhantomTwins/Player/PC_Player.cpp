@@ -4,6 +4,8 @@
 #include "PC_Player.h"
 
 #include "EnhancedInputSubsystems.h"
+#include "Log/TPTLog.h"
+#include "UI/HUD/HUD_PhantomTwins.h"
 
 void APC_Player::PostInitializeComponents()
 {
@@ -19,7 +21,6 @@ void APC_Player::PostInitializeComponents()
 void APC_Player::BeginPlay()
 {
 	Super::BeginPlay();
-
 	FInputModeGameOnly GameOnlyInputMode;
 	SetInputMode(GameOnlyInputMode);
 
