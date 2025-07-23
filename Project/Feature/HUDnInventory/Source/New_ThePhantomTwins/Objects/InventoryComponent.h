@@ -1,40 +1,32 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+Ôªø// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "GameplayTagContainer.h"
+#include "Engine/DataTable.h"
+#include "ItemData.h"
 #include "InventoryComponent.generated.h"
 
-// ¿Œ∫•≈‰∏Æ ΩΩ∑‘ ±∏¡∂√º
-//USTRUCT(BlueprintType)
-//struct FInventorySlot
-//{
-//    GENERATED_BODY()
-//
-//    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-//    TSubclassOf<class AItemObject> ItemClass;
-//
-//    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-//    int32 StackCount = 0;
-//
-//    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-//    int32 MaxStackSize = 1;
-//
-//    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-//    FGameplayTag ItemTag;
-//
-//    FInventorySlot()
-//    {
-//        ItemClass = nullptr;
-//        StackCount = 0;
-//        MaxStackSize = 1;
-//    }
-//
-//    bool IsEmpty() const { return ItemClass == nullptr || StackCount <= 0; }
-//    bool CanStack(TSubclassOf<AItemObject> OtherItemClass, int32 Amount) const;
-//};
+
+// Ïù∏Î≤§ÌÜ†Î¶¨ Ïä¨Î°Ø Íµ¨Ï°∞Ï≤¥
+USTRUCT(BlueprintType)
+struct FItemSlot
+{
+    GENERATED_BODY()
+
+public:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    EItemType ItemType;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 Quantity = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TObjectPtr<class UTexture2D> ItemIcon;
+};
+
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class NEW_THEPHANTOMTWINS_API UInventoryComponent : public UActorComponent
@@ -47,39 +39,21 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-//protected:
-//// 5∞≥ ΩΩ∑‘ ¿Œ∫•≈‰∏Æ πËø≠
-//    UPROPERTY(ReplicatedUsing = OnRep_InventorySlots, BlueprintReadOnly)
-//    TArray<FInventorySlot> InventorySlots;
-//
-//    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-//    int32 MaxInventorySlots = 5;
-//
-//public:
-//    // º≠πˆ «‘ºˆµÈ
-//    UFUNCTION(Server, Reliable, BlueprintCallable)
-//    void Server_AddItem(TSubclassOf<AItemObject> ItemClass, int32 Amount = 1);
-//
-//    UFUNCTION(Server, Reliable, BlueprintCallable)
-//    void Server_UseItem(int32 SlotIndex);
-//
-//    UFUNCTION(Server, Reliable, BlueprintCallable)
-//    void Server_RemoveItem(int32 SlotIndex, int32 Amount = 1);
-//
-//    // ≈¨∂Û¿Ãæ∆Æ æ˜µ•¿Ã∆Æ
-//    UFUNCTION()
-//    void OnRep_InventorySlots();
-//
-//    // ¿Ø∆ø∏Æ∆º «‘ºˆµÈ
-//    UFUNCTION(BlueprintCallable)
-//    bool HasRoom(TSubclassOf<AItemObject> ItemClass, int32 Amount) const;
-//
-//    UFUNCTION(BlueprintCallable)
-//    int32 FindItemSlot(TSubclassOf<AItemObject> ItemClass) const;
-//
-//    // UI æ˜µ•¿Ã∆Æ µ®∏Æ∞‘¿Ã∆Æ
-//    DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInventoryUpdated, int32, SlotIndex);
-//    UPROPERTY(BlueprintAssignable)
-//    FOnInventoryUpdated OnInventoryUpdated;
+protected:
+    UPROPERTY(EditDefaultsOnly)
+    TObjectPtr<UDataTable> ItemAbilityTable;
+
+    TArray<FItemSlot> InventorySlots;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+    int32 MaxInventorySlots = 5;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+    int32 MaxQuantity = 5;  // ÏïÑÏù¥ÌÖú Îãπ ÏµúÎåÄ Ïä§ÌÉù Ïàò
+
+public:
+    UFUNCTION()
+    void AddItem(EItemType ItemType);
+    void UseItem(int32 SlotIndex);
 		
 };

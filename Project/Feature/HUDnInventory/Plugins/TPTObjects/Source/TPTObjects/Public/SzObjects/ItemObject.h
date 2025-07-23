@@ -8,7 +8,7 @@
 #include "ItemObject.generated.h"
 
 UCLASS()
-class TPTOBJECTS_API AItemObject : public AInteractableObject//, public IAbilitySystemInterface
+class TPTOBJECTS_API AItemObject : public AInteractableObject
 {
 	GENERATED_BODY()
 	
