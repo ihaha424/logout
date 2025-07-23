@@ -57,6 +57,18 @@ void APC_Player::SetWidget(const FString& UIKey, bool bActive, EMessageTargetTyp
 		NetSetWidget(UIKey, bActive, TargetType);
 }
 
+UUserWidget* APC_Player::GetWidget(const FString& UIKey) const
+{
+	UUserWidget* Widget = nullptr;
+
+	if (nullptr != UIManager)
+	{
+		Widget = UIManager->GetWidget(UIKey);
+	}
+
+	return Widget;
+}
+
 void APC_Player::RegisterWidget(const FString& Key, UUserWidget* Widget, int32 Order)
 {
 	if (IsLocalController())

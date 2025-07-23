@@ -46,6 +46,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UIManager")
 	void SetWidget(const FString& UIKey, bool bActive, EMessageTargetType TargetType);
 	UFUNCTION(BlueprintCallable, Category = "UIManager")
+	UUserWidget* GetWidget(const FString& UIKey) const;
+	UFUNCTION(BlueprintCallable, Category = "UIManager")
 	void RegisterWidget(const FString& Key, UUserWidget* Widget, int32 Order = 0);
 	UFUNCTION(BlueprintCallable, Category = "UIManager")
 	void UnregisterWidget(const FString& Key, UUserWidget* Widget);
