@@ -28,7 +28,7 @@ void UBTS_PriorityStimulus::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 		BB->SetValueAsBool(RevaluationKey.SelectedKeyName, true);
 		return;
 	}
-	else if (HearingSum == CurPriority)
+	/*else if (HearingSum == CurPriority)
 	{
 		AAIController* AIController = OwnerComp.GetAIOwner();
 		NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
@@ -54,7 +54,7 @@ void UBTS_PriorityStimulus::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 			BB->SetValueAsBool(RevaluationKey.SelectedKeyName, true);
 			return;
 		}
-	}
+	}*/
 }
 
 FString UBTS_PriorityStimulus::GetStaticDescription() const

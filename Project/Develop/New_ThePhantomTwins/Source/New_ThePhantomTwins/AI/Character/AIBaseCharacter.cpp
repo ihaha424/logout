@@ -94,11 +94,9 @@ FString AAIBaseCharacter::GetCurrentAIStateAsString() const
 
 void AAIBaseCharacter::CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    TPT_LOG(AILog, Error, TEXT("CombatRangeBeginOverlap"));
     UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
     NULLCHECK_RETURN_LOG(ASC, AILog, Log, );
     // Player
-    TPT_LOG(AILog, Error, TEXT("CombatRangeBeginOverlapASC"));
     if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player))
     {
         AAIController* AIController = Cast<AAIController>(GetController());
