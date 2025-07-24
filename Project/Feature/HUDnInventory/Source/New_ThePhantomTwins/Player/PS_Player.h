@@ -25,9 +25,12 @@ public:
 	virtual FGenericTeamId GetGenericTeamId() const override { return TeamID; }
 	FGameplayTag GetActiveSkillTag() const { return ActiveSkillTag;}
 	FGameplayTag GetPassiveSkillTag() const { return PassiveSkillTag;}
+	
+public:
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TObjectPtr<class UInventoryComponent> InventoryComp;
 
 protected:
-
 	UPROPERTY(Replicated, EditAnywhere, Category = GAS)
 	TObjectPtr<UAbilitySystemComponent> ASC;
 
@@ -42,6 +45,7 @@ protected:
 
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Inventory")
 	TArray< /* ¾ÆÀÌÅÛ Enum */ int32> ItemSlots;
+
 
 private:
 	UPROPERTY(Replicated)

@@ -18,13 +18,13 @@ struct FItemSlot
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    EItemType ItemType;
+    EItemType ItemType = EItemType::None;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    int32 Quantity = 0;
+    int32 ItemQuantity = 0;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    TObjectPtr<class UTexture2D> ItemIcon;
+    //UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    //TObjectPtr<class UTexture2D> ItemIcon;
 };
 
 
@@ -46,14 +46,14 @@ protected:
     TArray<FItemSlot> InventorySlots;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-    int32 MaxInventorySlots = 5;
+    int32 MaxInventorySlots = 5;    // InventorySlots의 원소 수.
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     int32 MaxQuantity = 5;  // 아이템 당 최대 스택 수
 
 public:
-    UFUNCTION()
-    void AddItem(EItemType ItemType);
-    void UseItem(int32 SlotIndex);
+    void AddItem(EItemType eItemType);
+
+    //void UseItem(int32 SlotIndex);
 		
 };

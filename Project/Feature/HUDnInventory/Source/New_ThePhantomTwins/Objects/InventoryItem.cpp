@@ -1,7 +1,7 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
+﻿
 #include "InventoryItem.h"
+#include "InventoryComponent.h"
+#include "../Player/PS_Player.h"
 
 AInventoryItem::AInventoryItem()
 {
@@ -9,10 +9,19 @@ AInventoryItem::AInventoryItem()
 
 void AInventoryItem::OnInteractServer_Implementation(const APawn* Interactor)
 {
-	InvokeGameplayCue(Interactor);			// 자기 자신 이펙트 재생
+	InvokeGameplayCue(Interactor);	// 자기 자신 이펙트 재생
 	
-	// 플레이어한테 EItemType 넘김.
-	UE_LOG(LogTemp, Log, TEXT("플레이어한테 EItemType 넘김"));
+	// 상호작용한 플레이어의 Inventory에 EItemType 넘김.
+    if (Interactor)
+    {
+        if (APS_Player* PS = Interactor->GetPlayerState<APS_Player>())
+        {
+            if (PS->InventoryComp)
+            {
+                PS->InventoryComp->AddItem(ItemType);
+            }
+        }
+    }
 
 	DestroyItem();
 }
