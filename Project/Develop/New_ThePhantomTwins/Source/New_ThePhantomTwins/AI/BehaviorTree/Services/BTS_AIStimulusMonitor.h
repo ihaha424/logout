@@ -32,6 +32,8 @@ protected:
     FBlackboardKeySelector HearingSumKey;
     UPROPERTY(EditAnywhere, Category = "Blackboard")
     FBlackboardKeySelector LastHearingTimeKey;
+    UPROPERTY(EditAnywhere, Category = "Blackboard")
+    FBlackboardKeySelector InCombatRangeKey;
     //~ End Blackboard Key
 
     //~ Begin Options related to sensory retention
@@ -39,13 +41,13 @@ protected:
     UPROPERTY(EditAnywhere, Category = "Stimulus")
     float SightDetectionThreshold   = 0.2f;
 
+    // 시야 누적 최댓값(단위: 초)
+    UPROPERTY(EditAnywhere, Category = "Stimulus")
+    float MaxSightDuration = 3.f;
+
     // 시야 누적 감쇠율
     UPROPERTY(EditAnywhere, Category = "Stimulus")  
     float SightDecayRate            = 1.0f;
-
-    // 청각 누적 감쇠율
-    UPROPERTY(EditAnywhere, Category = "Stimulus")  
-    float HearingDecayPerSecond     = 50.f;
     
     // 전투 상태 시야 임계값
     UPROPERTY(EditAnywhere, Category = "Stimulus")  
@@ -58,6 +60,14 @@ protected:
     // 의심 상태 청각 임계값
     UPROPERTY(EditAnywhere, Category = "Stimulus")
     float HearingSuspicionThreshold = 100.f;
+
+    // 청각 누적 최댓값(단위: 초)
+    UPROPERTY(EditAnywhere, Category = "Stimulus")
+    float MaxHearingSum = 100.f;
+
+    // 청각 누적 감쇠율
+    UPROPERTY(EditAnywhere, Category = "Stimulus")  
+    float HearingDecayPerSecond     = 50.f;
 
     // 전투 지속 시간
     UPROPERTY(EditAnywhere, Category = "Stimulus")
@@ -74,6 +84,7 @@ private:
                                         , UBlackboardComponent* BB);
     /**
      * @brief : 상태 전이 판단
+                TODO: 효과 실행까지 묶어서 함수하나더 만들고 실행하기
      */
     inline void DetermineStateTransition(UBlackboardComponent* BB
         , EAIBaseState CurrentState

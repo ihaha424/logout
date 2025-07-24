@@ -3,30 +3,32 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../BTT_GASBaseTask.h"
-#include "BTT_PatrolBySpline.generated.h"
+#include "AI/BehaviorTree/Tasks/BTT_GASBaseTask.h"
+#include "BTT_ChaseTarget.generated.h"
 
 /**
- *
+ * 
  */
-UCLASS(meta = (DisplayName = "TPTTask | Move | PatrolBySpline"))
-class NEW_THEPHANTOMTWINS_API UBTT_PatrolBySpline : public UBTT_GASBaseTask
+UCLASS(meta = (DisplayName = "TPTTask | Move | ChaseTarget"))
+class NEW_THEPHANTOMTWINS_API UBTT_ChaseTarget : public UBTT_GASBaseTask
 {
 	GENERATED_BODY()
+	
 public:
-	UBTT_PatrolBySpline();
+	UBTT_ChaseTarget();
 
 	virtual EBTNodeResult::Type Execute_Task(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	virtual void Execute_TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 	virtual void Execute_TickTaskException(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
-	virtual FString GetStaticDescription() const override;
-	virtual uint16 GetInstanceMemorySize() const override;
+	virtual EBTNodeResult::Type Execute_TaskException(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	virtual void OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult) override;
+	virtual uint16 GetInstanceMemorySize() const override;
+	virtual FString GetStaticDescription() const override;
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	FBlackboardKeySelector SplineActorKey;
+	FBlackboardKeySelector TargetActor;
 
-    UPROPERTY(EditAnywhere, Category = "Patrol")
-    float AcceptableRadius;
+	UPROPERTY(EditAnywhere, Category = "Chase")
+	float AcceptableRadius = 50.f;
 };

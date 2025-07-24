@@ -93,6 +93,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 
 		APlayerController* PlayerController = CastChecked<APlayerController>(GetController());
 		//PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
+
+		ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
 	}
 }
 
