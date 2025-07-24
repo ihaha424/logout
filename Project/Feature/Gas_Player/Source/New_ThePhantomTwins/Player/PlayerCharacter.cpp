@@ -56,11 +56,7 @@ APlayerCharacter::APlayerCharacter()
 	FocusTrace = CreateDefaultSubobject<UFocusTraceComponent>(TEXT("FocusTrace"));
 
 	InteractWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractWidget"));
-	InteractWidget->SetupAttachment(GetMesh());
-	InteractWidget->SetWidgetSpace(EWidgetSpace::Screen);
-	InteractWidget->SetDrawSize(FVector2D(10, 10));
-	InteractWidget->SetRelativeLocation(FVector(0, 0, 100));
-	InteractWidget->SetVisibility(false);
+	InteractWidget->SetRelativeLocation(GetMesh()->GetRelativeLocation());
 
 	bReplicates = true;
 }
@@ -107,7 +103,6 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 
 	PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
 	//RecoveryWidget->SetWidgetClass(RecoveryWidgetClass);
-
 	if (InteractWidget)
 	{
 		InteractWidget->SetWidgetClass(InteractWidgetClass);
@@ -219,7 +214,7 @@ void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 Number)
 	FGameplayEventData EventPayload;
 	EventPayload.EventTag = EventTag;
 	EventPayload.Instigator = this;
-	//EventPayload.OptionalInt = Number; // 슬롯 번호
+	EventPayload. OptionalInt32 = Number; // 슬롯 번호
 
 	ASC->HandleGameplayEvent(EventTag, &EventPayload);
 }
@@ -258,14 +253,12 @@ void APlayerCharacter::OnRecoveryCompelete()
 bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
 	if (ASC == nullptr) return false;
-	if (!Interactor->IsLocallyControlled()) return false;
 
 	bool bIsTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 	if (bIsDetected && bIsTag)
 	{
 		if (InteractWidget)
 		{
-		TPT_LOG(LogTemp, Error, TEXT("%f, %f, %f"), InteractWidget->GetComponentToWorld().GetLocation().X, InteractWidget->GetComponentToWorld().GetLocation().Y, InteractWidget->GetComponentToWorld().GetLocation().Z);
 			InteractWidget->SetVisibility(true);
 		}
 		return true;
@@ -306,9 +299,9 @@ void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 
 void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	if (APC_Player* PC = Interactor->GetController<APC_Player>())
+	if (PlayerController)
 	{
-		PC->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
+		PlayerController->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
 	}
 }
 
