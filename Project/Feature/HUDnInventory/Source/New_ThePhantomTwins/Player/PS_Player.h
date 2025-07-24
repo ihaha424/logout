@@ -40,9 +40,6 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere, Category = "Skill")
 	FGameplayTag ActiveSkillTag;
 
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Inventory")
-	TArray< /* ¾ÆÀÌÅÛ Enum */ int32> ItemSlots;
-
 private:
 	UPROPERTY(Replicated)
 	FGenericTeamId TeamID;
