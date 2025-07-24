@@ -186,11 +186,11 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
 
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill, ETriggerEvent::Started, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum,1);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum,2);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum,3);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum,4);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum,5);
 	}
 }
 void APlayerCharacter::InputPressed(int32 InputID)
@@ -198,6 +198,7 @@ void APlayerCharacter::InputPressed(int32 InputID)
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
 	if (Spec)
 	{
+		//Spec->GameplayEventData
 		Spec->InputPressed = true;
 		if (Spec->IsActive())
 		{
@@ -211,24 +212,18 @@ void APlayerCharacter::InputPressed(int32 InputID)
 		}
 	}
 }
-void APlayerCharacter::InputPressedWithNum(int32 InputID)
+
+void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 Number)
 {
-	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
-	if (Spec)
-	{
-		Spec->InputPressed = true;
-		if (Spec->IsActive())
-		{
-			//TPT_LOG(GALog, Log, TEXT("AbilitySpecInputPressed"));
-			ASC->AbilitySpecInputPressed(*Spec);
-		}
-		else
-		{
-			//TPT_LOG(GALog, Log, TEXT("TryActivateAbility"));
-			ASC->TryActivateAbility(Spec->Handle);
-		}
-	}
+	FGameplayTag EventTag = FGameplayTag::RequestGameplayTag(TEXT("Event.UseItemSlot"));
+	FGameplayEventData EventPayload;
+	EventPayload.EventTag = EventTag;
+	EventPayload.Instigator = this;
+	//EventPayload.OptionalInt = Number; // 슬롯 번호
+
+	ASC->HandleGameplayEvent(EventTag, &EventPayload);
 }
+
 void APlayerCharacter::InputReleased(int32 InputID)
 {
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
@@ -290,16 +285,16 @@ void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 	TPT_LOG(LogTemp, Log, TEXT("Player Interact"));
 
 	GetWorld()->GetTimerManager().SetTimer(
-		RecoveryTimerHandle,               // �ڵ�
-		this,                              // ȣ�� ���
-		&APlayerCharacter::OnRecoveryCompelete, // ������ �Լ�
-		5.0f,                              // ������ �ð� (��)
-		false                              // �ݺ� ���� (false = 1ȸ ����)
+		RecoveryTimerHandle,               
+		this,                              
+		&APlayerCharacter::OnRecoveryCompelete, 
+		5.0f,                              
+		false                              
 	);
 
 	if (bIsRecovery)
 	{
-		// �� �±� ���� �� ��Ŀ���� �Ϸ� �±� �ֱ�
+		
 		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 		ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Recovery);
 

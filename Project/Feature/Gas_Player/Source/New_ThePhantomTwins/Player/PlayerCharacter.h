@@ -140,7 +140,7 @@ public:
 	void Look(const FInputActionValue& Value);
 
 	void InputPressed(int32 InputID);
-	void InputPressedWithNum(int32 InputID);
+	void InputPressedWithNum(int32 InputID, int32 Number);
 	void InputReleased(int32 InputID);
 };
 
