@@ -1,5 +1,5 @@
 // TPTGameplayTagList.inl
 
 
-// 형식: TPT_TAG_GEN(Type, Properties, Name, "Description")UseItemSlot
-TPT_TAG_GEN(Event, UseItemSlot, Name, "Description")
+// 형식: TPT_TAG_GEN(Type, Properties, Name, "Description")
+TPT_TAG_GEN(Event, Character, UseItemSlot, "Character use Itemslot")
