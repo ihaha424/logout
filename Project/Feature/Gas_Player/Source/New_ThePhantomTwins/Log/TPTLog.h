@@ -16,6 +16,8 @@ DECLARE_LOG_CATEGORY_EXTERN(HUDLog, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(AILog, Log, All);
 
 
+/*		NULLCHECK_LOG		*/
+
 /*		NULLCHECK_LOG Please close the '}'		*/
 #define NULLCHECK_LOG(Target, CatecoryName, Verbosity) \
 	if(nullptr == Target) { TPT_LOG(CatecoryName, Verbosity, TEXT(#Target "is nullptr."));
@@ -35,3 +37,17 @@ DECLARE_LOG_CATEGORY_EXTERN(AILog, Log, All);
 	NULLCHECK_CODE_LOG(Target, CatecoryName, Verbosity, CODE) \
 		return ReturnValue; \
 	}
+
+/*		CONDITIONCHECK_LOG		*/
+
+#define CONDITIONCHECK_RETURN_LOG(Condition, CatecoryName, Verbosity, ReturnValue) \
+	if(Condition) { TPT_LOG(CatecoryName, Verbosity, TEXT(#Condition "is nullptr.")); \
+		return ReturnValue; \
+	}
+
+#define CONDITIONCHECK_CODE_RETURN_LOG(Condition, CatecoryName, Verbosity, CODE, ReturnValue) \
+	if(Condition) { TPT_LOG(CatecoryName, Verbosity, TEXT(#Condition "is nullptr.")); \
+		CODE \
+		return ReturnValue; \
+	}
+

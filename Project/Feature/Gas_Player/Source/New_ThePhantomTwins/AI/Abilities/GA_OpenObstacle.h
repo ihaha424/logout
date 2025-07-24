@@ -4,21 +4,27 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "GA_OpenDoor.generated.h"
+#include "GA_OpenObstacle.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class NEW_THEPHANTOMTWINS_API UGA_OpenDoor : public UGameplayAbility
+class NEW_THEPHANTOMTWINS_API UGA_OpenObstacle : public UGameplayAbility
 {
 	GENERATED_BODY()
-
+	
 public:
-    UGA_OpenDoor();
+    UGA_OpenObstacle();
 
     virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle,
         const FGameplayAbilityActorInfo* ActorInfo,
         const FGameplayAbilityActivationInfo ActivationInfo,
         const FGameplayEventData* TriggerEventData) override;
+
+    virtual void EndAbility(const FGameplayAbilitySpecHandle Handle,
+        const FGameplayAbilityActorInfo* ActorInfo,
+        const FGameplayAbilityActivationInfo ActivationInfo,
+        bool bReplicateEndAbility,
+        bool bWasCancelled) override;
 };

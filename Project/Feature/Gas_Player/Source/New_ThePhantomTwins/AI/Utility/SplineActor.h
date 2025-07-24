@@ -15,6 +15,8 @@ class NEW_THEPHANTOMTWINS_API ASplineActor : public AActor
 public:	
 	ASplineActor();
 
+	virtual void BeginPlay() override;
+
 	UPROPERTY(VisibleAnywhere)
 	USplineComponent* SplineComponent;
 };

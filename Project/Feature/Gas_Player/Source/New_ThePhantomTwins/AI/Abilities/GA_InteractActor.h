@@ -4,27 +4,27 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "GA_SmashObstacle.generated.h"
+#include "GA_InteractActor.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class NEW_THEPHANTOMTWINS_API UGA_SmashObstacle : public UGameplayAbility
+class NEW_THEPHANTOMTWINS_API UGA_InteractActor : public UGameplayAbility
 {
 	GENERATED_BODY()
 
 public:
-    UGA_SmashObstacle();
+    UGA_InteractActor();
 
     virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle,
         const FGameplayAbilityActorInfo* ActorInfo,
         const FGameplayAbilityActivationInfo ActivationInfo,
         const FGameplayEventData* TriggerEventData) override;
 
-    virtual void EndAbility(const FGameplayAbilitySpecHandle Handle,
-        const FGameplayAbilityActorInfo* ActorInfo,
-        const FGameplayAbilityActivationInfo ActivationInfo,
-        bool bReplicateEndAbility,
+    virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, 
+        const FGameplayAbilityActorInfo* ActorInfo, 
+        const FGameplayAbilityActivationInfo ActivationInfo, 
+        bool bReplicateEndAbility, 
         bool bWasCancelled) override;
 };

@@ -9,12 +9,16 @@
 
 #include "../../../Character/AIBaseCharacter.h"
 
+
 UBTT_PlayAbility::UBTT_PlayAbility()
 {
 	NodeName = TEXT("Play GAS Ability");
+    AbilityTag = FGameplayTag();
+    bHasTarget = false;
+    TargetActorKey = FBlackboardKeySelector();
 }
 
-EBTNodeResult::Type UBTT_PlayAbility::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+EBTNodeResult::Type UBTT_PlayAbility::Execute_Task(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
     AAIController* AICon = OwnerComp.GetAIOwner();
     AAIBaseCharacter* AIPawn = Cast<AAIBaseCharacter>(AICon ? AICon->GetPawn() : nullptr);

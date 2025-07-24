@@ -98,6 +98,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 		FGameplayAbilitySpec StartSpec(Ability.Value);
 		StartSpec.InputID = InputID;
 		ASC->GiveAbility(StartSpec);
+
+		ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
 	}
 	PlayerController = GetController<APC_Player>();
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
