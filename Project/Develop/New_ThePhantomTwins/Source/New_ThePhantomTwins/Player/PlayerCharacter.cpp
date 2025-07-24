@@ -141,19 +141,22 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
-	NULLCHECK_RETURN_LOG(FocusTrace, PlayerLog, Error, );
-	FVector2D ViewportSize;
-	GEngine->GameViewport->GetViewportSize(ViewportSize);
+	//NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
+	//NULLCHECK_RETURN_LOG(FocusTrace, PlayerLog, Error, );
+	if (PlayerController&& FocusTrace)
+	{
+		FVector2D ViewportSize;
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
 
-	FVector WorldLocation;
-	FVector WorldDirection;
+		FVector WorldLocation;
+		FVector WorldDirection;
 
-	PlayerController->DeprojectScreenPositionToWorld(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, WorldLocation, WorldDirection);
+		PlayerController->DeprojectScreenPositionToWorld(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, WorldLocation, WorldDirection);
 
-	FocusTrace->SetStart(WorldLocation);
-	FocusTrace->SetDirection(WorldDirection);
-	FocusTrace->SetCollisionType(ECC_WorldDynamic);
+		FocusTrace->SetStart(WorldLocation);
+		FocusTrace->SetDirection(WorldDirection);
+		FocusTrace->SetCollisionType(ECC_WorldDynamic);
+	}
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
