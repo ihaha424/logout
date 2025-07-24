@@ -26,23 +26,18 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 	AActor* TargetActor = Character->FocusTrace->GetFocusedActor();
 
+	if (APlayerCharacter* Player = Cast<APlayerCharacter>(TargetActor))
+	{
+		if (Player->GetAbilitySystemComponent()->HasMatchingGameplayTag
+		(FTPTGameplayTags::Get().TPTGameplay_Character_State_Recovery))
+		{
+			EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		}
+	}
+
 	// 플레이어가 상호작용할 수 있는 오브젝트가 있는지 확인
 	if (TargetActor != nullptr && TargetActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
 	{
-		if (APlayerCharacter* Player = Cast<APlayerCharacter>(TargetActor))
-		{
-			if (Player->GetAbilitySystemComponent()->HasMatchingGameplayTag
-			(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
-			{
-				return;
-			}
-			else if (Player->GetAbilitySystemComponent()->HasMatchingGameplayTag
-			(FTPTGameplayTags::Get().TPTGameplay_Character_State_Recovery))
-			{
-				EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-			}
-		}
-
 		C2S_Interact(TargetActor, Character);
 		IInteract::Execute_OnInteractClient(TargetActor, Character);
 		//TPT_LOG(GALog, Log, TEXT("OnInteract Client"));
