@@ -69,7 +69,6 @@ void APlayerCharacter::BeginPlay()
 
 void APlayerCharacter::PossessedBy(AController* NewController)
 {
-	UKismetSystemLibrary::PrintString(this, FString("ddsaf2"));
 	Super::PossessedBy(NewController);
 	PS = GetPlayerState<APS_Player>();
 	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
@@ -119,28 +118,22 @@ void APlayerCharacter::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
 	PS = GetPlayerState<APS_Player>();
+	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
 
-	if (PS)
-	{
-		ASC = PS->GetAbilitySystemComponent();
-		ASC->InitAbilityActorInfo(PS, this);
-		NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
-		const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
-		NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
-		BindAttributeDelegates(AttributeSet);
-	}
+	ASC = PS->GetAbilitySystemComponent();
+	ASC->InitAbilityActorInfo(PS, this);
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
+	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
+	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
+	BindAttributeDelegates(AttributeSet);
 
-	if (InteractWidget)
-	{
-		UKismetSystemLibrary::PrintString(this, FString("ddsaf"));
-		//InteractWidget->SetWidgetClass(InteractWidgetClass);
-		InteractWidget->SetVisibility(false);
-	}
+	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
+	UKismetSystemLibrary::PrintString(this, FString("ddsaf"));
+	//InteractWidget->SetWidgetClass(InteractWidgetClass);
+	InteractWidget->SetVisibility(false);
 
-	if (PlayerController != nullptr)
-	{
-		PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
-	}
+	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
+	PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
 }
 
 
@@ -148,20 +141,19 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (FocusTrace && PlayerController)
-	{
-		FVector2D ViewportSize;
-		GEngine->GameViewport->GetViewportSize(ViewportSize);
+	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(FocusTrace, PlayerLog, Error, );
+	FVector2D ViewportSize;
+	GEngine->GameViewport->GetViewportSize(ViewportSize);
 
-		FVector WorldLocation;
-		FVector WorldDirection;
+	FVector WorldLocation;
+	FVector WorldDirection;
 
-		PlayerController->DeprojectScreenPositionToWorld(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, WorldLocation, WorldDirection);
+	PlayerController->DeprojectScreenPositionToWorld(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, WorldLocation, WorldDirection);
 
-		FocusTrace->SetStart(WorldLocation);
-		FocusTrace->SetDirection(WorldDirection);
-		FocusTrace->SetCollisionType(ECC_WorldDynamic);
-	}
+	FocusTrace->SetStart(WorldLocation);
+	FocusTrace->SetDirection(WorldDirection);
+	FocusTrace->SetCollisionType(ECC_WorldDynamic);
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -223,7 +215,7 @@ void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 Number)
 	Payload.EventTag = EventTag;
 	Payload.Instigator = this;	// 이벤트를 유발한 주체 
 	Payload.EventMagnitude = static_cast<float>(Number);
-	TPT_LOG(PlayerLog, Warning, TEXT("슬롯 번호: %f"), Payload.EventMagnitude);
+	//TPT_LOG(PlayerLog, Log, TEXT("슬롯 번호: %f"), Payload.EventMagnitude);
 
 	ASC->HandleGameplayEvent(EventTag, &Payload);
 }
@@ -256,7 +248,8 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 
 void APlayerCharacter::OnRecoveryCompelete()
 {
-	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, )
+	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
 	PS->SetRecovery(true);
 
 	FGameplayTag DownedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed;
@@ -271,12 +264,12 @@ void APlayerCharacter::OnRecoveryCompelete()
 
 	// TODO : 회복 GE
 	UKismetSystemLibrary::PrintString(this, FString("Recovery"));
-	TPT_LOG(LogTemp, Log, TEXT("Recovery %s"), *this->GetFName().ToString());
+	TPT_LOG(PlayerLog, Log, TEXT("Recovery %s"), *this->GetFName().ToString());
 }
 
 bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
-	if (ASC == nullptr) return false;
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, false);
 	if (!Interactor->IsLocallyControlled()) return false;
 
 	if (bIsDetected)
@@ -291,7 +284,6 @@ bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool 
 			}
 			return true;
 		}
-
 	}
 	
 	if (InteractWidget)
@@ -305,9 +297,9 @@ bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool 
 
 void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 {
-	UKismetSystemLibrary::PrintString(this, FString("Downed"));
-	UKismetSystemLibrary::PrintString(Interactor, FString("Interact"));
-	TPT_LOG(LogTemp, Log, TEXT("Downed PS : %s"), *this->PS.GetFName().ToString());
+	UKismetSystemLibrary::PrintString(this, FString("Downed Character"));
+	UKismetSystemLibrary::PrintString(Interactor, FString("Interact Character"));
+	TPT_LOG(PlayerLog, Log, TEXT("Downed PS : %s"), *this->PS.GetFName().ToString());
 
 	GetWorld()->GetTimerManager().SetTimer(
 		RecoveryTimerHandle,               
@@ -320,10 +312,8 @@ void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 
 void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	if (PlayerController)
-	{
-		PlayerController->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
-	}
+	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
+	PlayerController->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
 }
 
 void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
@@ -331,7 +321,7 @@ void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 	FGameplayAbilitySpec* TagID = ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
 	NULLCHECK_RETURN_LOG(TagID, PlayerLog, Error, );
 	bool CanActivate = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
-	TPT_LOG(PlayerLog, Log, TEXT("Tag  :::  %s / Activate success ? ::: %d / IsValid ? ::: %d"), *InputTag.ToString(), CanActivate, IsValid(TagID->Ability));
+	TPT_LOG(PlayerLog, Log, TEXT("Tag :::  %s / Activate Ability success ? ::: %d / Ability IsValid ? ::: %d"), *InputTag.ToString(), CanActivate, IsValid(TagID->Ability));
 
 	// TODO : HandleGameplayEvent // 
 }
@@ -379,7 +369,6 @@ void APlayerCharacter::Move(const FInputActionValue& Value)
 void APlayerCharacter::Look(const FInputActionValue& Value)
 {
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
-	
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
 	AddControllerYawInput(LookAxisVector.X);
