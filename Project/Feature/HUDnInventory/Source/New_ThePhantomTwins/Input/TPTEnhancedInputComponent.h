@@ -29,4 +29,16 @@ public:
 			BindAction(IA, TriggerEvent, Object, Func , InputID);
 		}
 	}
+
+	template<class UserClass, typename FuncType>
+	void BindActionByTag(const UDA_InputConfig* InputConfig, const FGameplayTag& InputTag, ETriggerEvent TriggerEvent, UserClass* Object, FuncType Func, int32 Number)
+	{
+		check(InputConfig);
+		if (const UInputAction* IA = InputConfig->FindInputActionForTag(InputTag))
+		{
+			const EFTPTGameplayTags* TagEnum = FTPTGameplayTags::Get().TagMap.Find(InputTag);
+			int32 InputID = static_cast<int32>(*TagEnum);
+			BindAction(IA, TriggerEvent, Object, Func, InputID, Number);
+		}
+	}
 };

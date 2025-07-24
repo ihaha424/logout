@@ -26,6 +26,9 @@ public:
 	FGameplayTag GetActiveSkillTag() const { return ActiveSkillTag;}
 	FGameplayTag GetPassiveSkillTag() const { return PassiveSkillTag;}
 
+	bool IsRecovery() {return bIsRecovery;}
+	void SetRecovery(bool IsRecovery) {bIsRecovery = IsRecovery;}
+
 protected:
 
 	UPROPERTY(Replicated, EditAnywhere, Category = GAS)
@@ -40,12 +43,12 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere, Category = "Skill")
 	FGameplayTag ActiveSkillTag;
 
+	UPROPERTY(Replicated, EditAnywhere, Category = "Recovery")
+	bool bIsRecovery = false;
 private:
 	UPROPERTY(Replicated)
 	FGenericTeamId TeamID;
-
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 	TObjectPtr<class UInventoryComponent> InventoryComp;
-
 };

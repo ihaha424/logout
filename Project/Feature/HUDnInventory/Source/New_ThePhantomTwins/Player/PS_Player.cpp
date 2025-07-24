@@ -28,6 +28,7 @@ void APS_Player::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	DOREPLIFETIME(APS_Player, PassiveSkillTag);
 	DOREPLIFETIME(APS_Player, ActiveSkillTag);
 	DOREPLIFETIME(APS_Player, TeamID);
+	DOREPLIFETIME(APS_Player, bIsRecovery);
 }
 
 class UAbilitySystemComponent* APS_Player::GetAbilitySystemComponent() const

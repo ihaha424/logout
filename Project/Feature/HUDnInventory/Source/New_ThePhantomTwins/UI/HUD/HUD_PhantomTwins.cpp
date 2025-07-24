@@ -142,19 +142,19 @@ void AHUD_PhantomTwins::InitHUD_Internal(APC_Player* PC, APlayerCharacter* Pawn,
     // 기타 위젯 바인딩, 이벤트 바인드 등등
 }
 /* PlayerStatus */
-void AHUD_PhantomTwins::UpdateHP(int32 HP)
+void AHUD_PhantomTwins::UpdateHP(const int32 val)
 {
     if (PlayerStatusWidget)
     {
-        PlayerStatusWidget->SetHP(HP);
+        PlayerStatusWidget->SetHP(val);
     }
 }
 
-void AHUD_PhantomTwins::UpdateMental(int32 Mental)
+void AHUD_PhantomTwins::UpdateMental(const int32 val)
 {
     if (PlayerStatusWidget)
     {
-        PlayerStatusWidget->SetMental(Mental);
+        PlayerStatusWidget->SetMental(val);
     }
 }
 
@@ -166,11 +166,11 @@ void AHUD_PhantomTwins::SetCharPortrait(UTexture2D* PortraitTexture)
     }
 }
 
-void AHUD_PhantomTwins::UpdateStamina(int32 Stamina)
+void AHUD_PhantomTwins::UpdateStamina(const int32 val)
 {
     if (PlayerStaminaWidget)
     {
-        PlayerStaminaWidget->SetStamina(Stamina);
+        PlayerStaminaWidget->SetStamina(val);
     }
 }
 

@@ -48,6 +48,17 @@ void UGA_Interact::CancelAbility(const FGameplayAbilitySpecHandle Handle, const 
 void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	CancelAbility(Handle, ActorInfo, ActivationInfo, true);
+
+	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
+	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
+
+	AActor* TargetActor = Character->FocusTrace->GetFocusedActor();
+	NULLCHECK_RETURN_LOG(TargetActor, GALog, Warning, );
+
+	if (APlayerCharacter* OtherPlayer = Cast<APlayerCharacter>(TargetActor))
+	{
+		OtherPlayer->GetWorld()->GetTimerManager().ClearTimer(OtherPlayer->RecoveryTimerHandle);
+	}
 }
 
 void UGA_Interact::C2S_Interact_Implementation(UObject* interact, AActor* Owner)

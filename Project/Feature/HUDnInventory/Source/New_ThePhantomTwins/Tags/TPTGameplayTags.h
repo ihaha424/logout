@@ -23,7 +23,7 @@ enum class EFTPTGameplayTags : uint8
 #undef TAG
 
 #define CUETAG true
-#define TPT_TAG_GEN(Type, Name, Description) TPTGameplayCue_##Type##_##Name UMETA(DisplayName = Description),
+#define TPT_TAG_GEN(Type, Name, Description) GameplayCue_##Type##_##Name UMETA(DisplayName = Description),
 #include "./Inline/TPTGameplayTagList.inl"
 #undef TPT_TAG_GEN
 #undef CUETAG
@@ -45,7 +45,7 @@ public:
 #undef TAG
 
 #define CUETAG true
-#define TPT_TAG_GEN(Type, Name, Description) FGameplayTag TPTGameplayCue_##Type##_##Name;
+#define TPT_TAG_GEN(Type, Name, Description) FGameplayTag GameplayCue_##Type##_##Name;
 #include "./Inline/TPTGameplayTagList.inl"
 #undef TPT_TAG_GEN
 #undef CUETAG

@@ -8,9 +8,12 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
+#include "SzInterface/Interact.h"
 #include "GenericTeamAgentInterface.h"
 #include "PlayerCharacter.generated.h"
 
+class APC_Player;
+class AHUD_PhantomTwins;
 class UPlayerAttributeSet;
 class UGameplayAbility;
 class UTPTEnhancedInputComponent;
@@ -23,9 +26,10 @@ class UCameraComponent;
 class USpringArmComponent;
 class UInputAction;
 class UFocusTraceComponent;
+class UWidgetComponent;
 
 UCLASS()
-class NEW_THEPHANTOMTWINS_API APlayerCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface
+class NEW_THEPHANTOMTWINS_API APlayerCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IInteract
 {
 	GENERATED_BODY()
 
@@ -41,6 +45,7 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+
 	UFUNCTION()
 	void SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInputComponent);
 	UFUNCTION()
@@ -48,16 +53,17 @@ public:
 	UFUNCTION()
 	void BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet);
 
-	void Move(const FInputActionValue& Value);
-	void Look(const FInputActionValue& Value);
-
-	void InputPressed(int32 InputID);
-	void InputReleased(int32 InputID);
+	// 게이지 시작
+	UFUNCTION()
+	void OnRecoveryCompelete();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float WalkSpeed = 400.f;
 
-
+public:
+	virtual bool CanInteract_Implementation(const APawn* Interactor, bool bIsDetected) override;
+	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
+	virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
 public:
 	// 카메라
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))
@@ -66,14 +72,37 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> Camera;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "FocusTrace")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FocusTrace")
 	TObjectPtr<UFocusTraceComponent> FocusTrace;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
+	TObjectPtr<UWidgetComponent> InteractWidget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
+	TObjectPtr<UWidgetComponent> RecoveryWidget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
+	TSubclassOf<UUserWidget> RecoveryWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
+	TSubclassOf<UUserWidget> InteractWidgetClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Recovery")
+	FTimerHandle RecoveryTimerHandle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
+	TObjectPtr<UGameplayEffect> RecoveryGE;
 
 protected:
 
 	UPROPERTY()
 	TObjectPtr<APS_Player> PS;
 
+	UPROPERTY()
+	APC_Player* PlayerController;
+
+	UPROPERTY()
+	AHUD_PhantomTwins* PlayerHUD;
 	// GAS
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<UAbilitySystemComponent> ASC;
@@ -94,6 +123,21 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> LookAction;
 
-private:
+public:
+	UFUNCTION()
+	void PlayerHUDHPSet(int32 value);
+	UFUNCTION()
+	void PlayerHUDMentalSet(int32 value);
+	UFUNCTION()
+	void PlayerHUDStaminaSet(int32 value);
+	UFUNCTION()
+	void PlayerHUDCoreEnergySet(int32 value);
+
+	void Move(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
+
+	void InputPressed(int32 InputID);
+	void InputPressedWithNum(int32 InputID, int32 Number);
+	void InputReleased(int32 InputID);
 };
 
