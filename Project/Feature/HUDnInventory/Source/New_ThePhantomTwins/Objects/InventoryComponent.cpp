@@ -47,22 +47,41 @@ void UInventoryComponent::AddItem(EItemType eItemType)
         InventorySlots[EmptySlotIndex].ItemQuantity = 1;
         return;
     }
-
-    // 여기까지 왔으면 빈 칸도 없고, 기존 아이템도 스택 꽉 창 상태! => 더 이상 넣을 수 없음
+    
+    // 여기까지 왔으면 빈 칸도 없고, 기존 아이템도 스택 꽉 찬 상태 => 더 이상 넣을 수 없음
 }
 
-/*
-	1. 빈 칸이 없는 경우
-		- 아이템이 이미 있다
-			- 스택이 최대치(이상)면 넘김(다음 슬롯 확인)
-			- 스택이 최대치 "미만"이면 해당 슬롯의 수량을 증가 (Quantity++)
-		- 아이템이 없다
-			- 아무것도 하지 않고 return
+EItemType UInventoryComponent::UseItem(int32 SlotIndex)
+{
+    // 예외처리 (슬롯 인덱스 제외한 숫자가 들어 온 경우.)
+    if (SlotIndex <= 0 || SlotIndex > InventorySlots.Num())
+    {
+        return EItemType::None;
+    }
 
-	2. 빈 칸이 있는 경우
-		- 아이템이 이미 있다
-			- 스택이 최대치(이상)면, 비어있는 슬롯에 새로운 아이템 추가 (Quantity=1)
-			- 스택이 최대치 "미만"이면 해당 슬롯의 수량을 증가시키기 (Quantity++)
-		- 아이템이 없다
-			- 비어있는 슬롯에 새로운 아이템 추가 (Quantity=1)
-*/
+    FItemSlot& itemSlot = InventorySlots[SlotIndex - 1];
+
+    // itemSlot.ItemQuantity가 0 이면(빈 슬롯이면) : return EItemType::None;
+    if (itemSlot.ItemQuantity <= 0 || itemSlot.ItemType == EItemType::None)
+    {
+        return EItemType::None;
+    }
+
+    // 현재 아이템 타입 반환 (사용한 아이템 종류)
+    EItemType usedItemType = itemSlot.ItemType;
+
+    // itemSlot.ItemQuantity가 2 이상이면 아이템 수량 감소 처리
+    if (itemSlot.ItemQuantity > 1)
+    {
+        itemSlot.ItemQuantity--;
+    }
+    else
+    {
+        // 수량이 1이면 아이템 제거, 슬롯 초기화
+        itemSlot.ItemType = EItemType::None;
+        itemSlot.ItemQuantity = 0;
+    }
+
+    return usedItemType;
+}
+

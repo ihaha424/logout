@@ -27,7 +27,7 @@ public:
 	FGameplayTag GetPassiveSkillTag() const { return PassiveSkillTag;}
 	
 public:
-	UPROPERTY(EditAnywhere, Category = "Inventory")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	TObjectPtr<class UInventoryComponent> InventoryComp;
 
 protected:
