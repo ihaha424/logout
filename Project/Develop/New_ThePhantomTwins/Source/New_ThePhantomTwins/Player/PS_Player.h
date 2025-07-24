@@ -46,4 +46,9 @@ protected:
 private:
 	UPROPERTY(Replicated)
 	FGenericTeamId TeamID;
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
+	TObjectPtr<class UInventoryComponent> InventoryComp;
+
 };
