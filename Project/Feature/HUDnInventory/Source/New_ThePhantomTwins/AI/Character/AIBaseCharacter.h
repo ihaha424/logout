@@ -8,10 +8,11 @@
 #include "GameplayTagContainer.h"
 #include "AIBaseCharacter.generated.h"
 
-
+class UGameplayAbility;
 class UAbilitySystemComponent;
 class UAIBaseAttributeSet;
 class ASplineActor;
+class USphereComponent;
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API AAIBaseCharacter : public ACharacter, public IAbilitySystemInterface
@@ -47,12 +48,22 @@ public:
 	//~ End AI Control(Patrol)
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystem;
 
 	UPROPERTY()
 	TObjectPtr<UAIBaseAttributeSet> AttributeSet;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
 	FGameplayTagContainer AIStateTags;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
+	TMap<FGameplayTag, TSubclassOf<UGameplayAbility>>Abilities;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
+	TObjectPtr<USphereComponent> CombatRange;
+
+	UFUNCTION()
+	void CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

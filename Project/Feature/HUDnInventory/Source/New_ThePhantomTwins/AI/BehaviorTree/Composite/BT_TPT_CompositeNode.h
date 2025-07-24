@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(Abstract)
 class NEW_THEPHANTOMTWINS_API UBT_TPT_CompositeNode : public UBTCompositeNode
 {
 	GENERATED_BODY()

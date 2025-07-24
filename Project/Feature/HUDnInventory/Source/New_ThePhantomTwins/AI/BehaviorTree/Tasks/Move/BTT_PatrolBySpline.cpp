@@ -15,22 +15,25 @@ struct FSplineTaskData
 	int32 MaxIndex = 0;
 	int32 CurIndex = 0;
 	FVector Location = FVector::ZeroVector;
+	FAIRequestID MoveId = FAIRequestID();
 };
 
 UBTT_PatrolBySpline::UBTT_PatrolBySpline()
 {
 	NodeName = TEXT("PatrolBySpline");
 	bNotifyTick = true;
+	SplineActorKey = FBlackboardKeySelector();
+	AcceptableRadius = 50.f;
 }
 
-EBTNodeResult::Type UBTT_PatrolBySpline::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+EBTNodeResult::Type UBTT_PatrolBySpline::Execute_Task(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	UBlackboardComponent* BBComp = OwnerComp.GetBlackboardComponent();
 	NULLCHECK_RETURN_LOG(BBComp, AILog, Warning, EBTNodeResult::Failed)
 
 	ASplineActor* SplineActor = Cast<ASplineActor>(BBComp->GetValueAsObject(SplineActorKey.SelectedKeyName));
 	NULLCHECK_RETURN_LOG(SplineActor, AILog, Warning, EBTNodeResult::Failed)
-	
+
 	USplineComponent* SplineRoute = SplineActor->SplineComponent;
 	NULLCHECK_RETURN_LOG(SplineRoute, AILog, Warning, EBTNodeResult::Failed)
 
@@ -48,26 +51,26 @@ EBTNodeResult::Type UBTT_PatrolBySpline::ExecuteTask(UBehaviorTreeComponent& Own
 	MoveRequest.SetAcceptanceRadius(AcceptableRadius);
 
 	FPathFollowingRequestResult MoveResult = AIController->MoveTo(MoveRequest);
-
+	TaskData->MoveId = MoveResult.MoveId;
 	switch (MoveResult)
 	{
 	case EPathFollowingRequestResult::RequestSuccessful:
 		return EBTNodeResult::InProgress;
 
 	case EPathFollowingRequestResult::AlreadyAtGoal:
-		if(TaskData->MaxIndex > 1)
+		if (TaskData->MaxIndex > 1)
 			return EBTNodeResult::InProgress;
 		else
 			return EBTNodeResult::Failed;
-		
+
 	case EPathFollowingRequestResult::Failed:
 		TPT_LOG(AILog, Warning, TEXT("EPathFollowingRequestResult: Failed."));
 	default:
 		return EBTNodeResult::Failed;
 	}
-
 }
-void UBTT_PatrolBySpline::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+
+void UBTT_PatrolBySpline::Execute_TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	FSplineTaskData* TaskData = (FSplineTaskData*)NodeMemory;
 	NULLCHECK_CODE_RETURN_LOG(TaskData, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, )
@@ -99,11 +102,29 @@ void UBTT_PatrolBySpline::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 		MoveRequest.SetAcceptanceRadius(AcceptableRadius);
 
 		FPathFollowingRequestResult MoveResult = AIController->MoveTo(MoveRequest);
-		if (MoveResult.Code != EPathFollowingRequestResult::RequestSuccessful)
+		TaskData->MoveId = MoveResult.MoveId;
+		if (MoveResult.Code == EPathFollowingRequestResult::Failed)
 		{
 			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		}
 	}
+	else if (Status == EPathFollowingStatus::Paused)
+	{
+		AIController->ResumeMove(TaskData->MoveId);
+	}
+}
+
+void UBTT_PatrolBySpline::Execute_TickTaskException(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+{
+	FSplineTaskData* TaskData = (FSplineTaskData*)NodeMemory;
+	NULLCHECK_CODE_RETURN_LOG(TaskData, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, )
+
+	AAIController* AIController = OwnerComp.GetAIOwner();
+	NULLCHECK_CODE_RETURN_LOG(AIController, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, )
+
+	EPathFollowingStatus::Type Status = AIController->GetPathFollowingComponent()->GetStatus();
+	if(Status == EPathFollowingStatus::Moving)
+		AIController->PauseMove(TaskData->MoveId);
 }
 
 FString UBTT_PatrolBySpline::GetStaticDescription() const
@@ -114,4 +135,15 @@ FString UBTT_PatrolBySpline::GetStaticDescription() const
 uint16 UBTT_PatrolBySpline::GetInstanceMemorySize() const
 {
 	return sizeof(FSplineTaskData);
+}
+
+void UBTT_PatrolBySpline::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult)
+{
+	if (TaskResult == EBTNodeResult::Aborted)
+	{
+		AAIController* AIController = OwnerComp.GetAIOwner();
+		NULLCHECK_CODE_RETURN_LOG(AIController, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, )
+
+		AIController->StopMovement();
+	}
 }

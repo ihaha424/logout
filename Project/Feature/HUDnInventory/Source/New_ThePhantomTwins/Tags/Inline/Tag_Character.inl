@@ -48,10 +48,20 @@ TPT_TAG_GEN(Character, AIState, PerformingAction, "AI State: PerformingAction")
 // AI Action
 TPT_TAG_GEN(Character, Action, MeleeAttack, "AI Action: MeleeAttack")
 TPT_TAG_GEN(Character, Action, SmashObstacle, "AI Action: SmashObstacle")
+TPT_TAG_GEN(Character, Action, OpenObstacle, "AI Action: OpenObstacle")
 
 
 
 /*
 	Common
 */
-TPT_TAG_GEN(Character, Action, OpenDoor, "Action: OpenDoor")
+// Action
+TPT_TAG_GEN(Character, Action, InteractActor, "Action: GA_InteractActor")
+
+
+
+// Identifier
+TPT_TAG_GEN(Character, Identifier, Player, "Identifier: Player")
+TPT_TAG_GEN(Character, Identifier, AI, "Identifier: AI")
+TPT_TAG_GEN(Character, Identifier, Object, "Identifier: Object")
+
