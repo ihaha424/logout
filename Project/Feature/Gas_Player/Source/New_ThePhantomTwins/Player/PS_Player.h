@@ -26,6 +26,9 @@ public:
 	FGameplayTag GetActiveSkillTag() const { return ActiveSkillTag;}
 	FGameplayTag GetPassiveSkillTag() const { return PassiveSkillTag;}
 
+	bool IsRecovery() {return bIsRecovery;}
+	void SetRecovery(bool IsRecovery) {bIsRecovery = IsRecovery;}
+
 protected:
 
 	UPROPERTY(Replicated, EditAnywhere, Category = GAS)
@@ -43,7 +46,10 @@ protected:
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Inventory")
 	TArray< /* ¾ÆÀÌÅÛ Enum */ int32> ItemSlots;
 
+	UPROPERTY(Replicated, EditAnywhere, Category = "Inventory")
+	bool bIsRecovery = false;
 private:
 	UPROPERTY(Replicated)
 	FGenericTeamId TeamID;
+
 };

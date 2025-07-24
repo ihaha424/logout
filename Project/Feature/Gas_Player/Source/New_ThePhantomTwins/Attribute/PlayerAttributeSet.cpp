@@ -108,6 +108,7 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	{
 		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
 		OnPlayerLowHP.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
+
 	}
 	bPlayerLowHP = GetHP() < GetMaxHP() * 0.3f && GetHP() > 0.0;
 	// 체력이 0이하라면 다운.
@@ -115,6 +116,7 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	{
 		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
+		TPT_LOG(PlayerLog,Error,TEXT(" %s "), *GetNameSafe(Data.Target.GetOwner()));
 	}
 	bPlayerDowned = GetHP() <= 0.0f;
 

@@ -101,15 +101,6 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	}
 	PlayerController = GetController<APC_Player>();
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
-
-	PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
-	//RecoveryWidget->SetWidgetClass(RecoveryWidgetClass);
-	if (InteractWidget)
-	{
-		UKismetSystemLibrary::PrintString(this, FString("ddsaf"));
-		//InteractWidget->SetWidgetClass(InteractWidgetClass);
-		InteractWidget->SetVisibility(false);
-	}
 }
 
 void APlayerCharacter::OnRep_Controller()
@@ -135,6 +126,18 @@ void APlayerCharacter::OnRep_PlayerState()
 		const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
 		NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
 		BindAttributeDelegates(AttributeSet);
+	}
+
+	if (InteractWidget)
+	{
+		UKismetSystemLibrary::PrintString(this, FString("ddsaf"));
+		//InteractWidget->SetWidgetClass(InteractWidgetClass);
+		InteractWidget->SetVisibility(false);
+	}
+
+	if (PlayerController != nullptr)
+	{
+		PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
 	}
 }
 
@@ -250,7 +253,22 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 
 void APlayerCharacter::OnRecoveryCompelete()
 {
-	bIsRecovery = true;
+	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, )
+	PS->SetRecovery(true);
+
+	FGameplayTag DownedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed;
+
+	int32 Count = ASC->GetTagCount(DownedTag);
+	for (int32 i = 0; i < Count; ++i)
+	{
+		ASC->RemoveLooseGameplayTag(DownedTag);
+	}
+
+	GetWorld()->GetTimerManager().ClearTimer(RecoveryTimerHandle);
+
+	// TODO : 회복 GE
+	UKismetSystemLibrary::PrintString(this, FString("Recovery"));
+	TPT_LOG(LogTemp, Log, TEXT("Recovery %s"), *this->GetFName().ToString());
 }
 
 bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
@@ -258,49 +276,43 @@ bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool 
 	if (ASC == nullptr) return false;
 	if (!Interactor->IsLocallyControlled()) return false;
 
-	UKismetSystemLibrary::PrintString(this, FString("ddsaf3"));
+	if (bIsDetected)
+	{
+		bool bIsTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
+		if (bIsTag)
+		{
+			if (InteractWidget)
+			{
+				//UKismetSystemLibrary::PrintString(this, FString("True"));
+				InteractWidget->SetVisibility(true);
+			}
+			return true;
+		}
 
-	bool bIsTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-	if (bIsDetected && bIsTag)
-	{
-		if (InteractWidget)
-		{
-			InteractWidget->SetVisibility(true);
-		}
-		return true;
 	}
-	else
+	
+	if (InteractWidget)
 	{
-		if (InteractWidget)
-		{
-			InteractWidget->SetVisibility(false);
-		}
+		InteractWidget->SetVisibility(false);
 		return false;
 	}
+
+	return false;
 }
 
 void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 {
-	TPT_LOG(LogTemp, Log, TEXT("Player Interact"));
+	UKismetSystemLibrary::PrintString(this, FString("Downed"));
+	UKismetSystemLibrary::PrintString(Interactor, FString("Interact"));
+	TPT_LOG(LogTemp, Log, TEXT("Downed PS : %s"), *this->PS.GetFName().ToString());
 
 	GetWorld()->GetTimerManager().SetTimer(
 		RecoveryTimerHandle,               
 		this,                              
 		&APlayerCharacter::OnRecoveryCompelete, 
-		5.0f,                              
+		2.0f,                              
 		false                              
 	);
-
-	if (bIsRecovery)
-	{
-		
-		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-		ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Recovery);
-
-		GetWorld()->GetTimerManager().ClearTimer(RecoveryTimerHandle);
-
-		// TODO: 회복GE
-	}
 }
 
 void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)

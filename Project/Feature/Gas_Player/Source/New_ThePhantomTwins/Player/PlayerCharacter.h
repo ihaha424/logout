@@ -57,9 +57,6 @@ public:
 	UFUNCTION()
 	void OnRecoveryCompelete();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
-	bool bIsRecovery = false;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float WalkSpeed = 400.f;
 
