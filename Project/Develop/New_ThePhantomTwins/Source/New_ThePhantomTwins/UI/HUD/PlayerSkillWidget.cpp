@@ -37,14 +37,14 @@ void UPlayerSkillWidget::SetPassiveSkillIcon(UTexture2D* PassiveSkillIcon)
 	}
 }
 
-void UPlayerSkillWidget::ShowSkillPoints(int32 ShowCnt)
+void UPlayerSkillWidget::ShowCoreEnergy(int32 ShowCnt)
 {
-	if (!SkillPointsStackBox) return;
+	if (!CoreEnergyStackBox) return;
 
-	int32 ChildrenNum = SkillPointsStackBox->GetChildrenCount();
+	int32 ChildrenNum = CoreEnergyStackBox->GetChildrenCount();
 	for (int32 i = 0; i < ChildrenNum; ++i)
 	{
-		UWidget* Child = SkillPointsStackBox->GetChildAt(i);
+		UWidget* Child = CoreEnergyStackBox->GetChildAt(i);
 
 		if (Child)
 		{

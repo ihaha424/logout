@@ -27,7 +27,7 @@ void UGA_Confused1st::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		FGameplayCueParameters CueParam;
 		CueParam.EffectContext = CueContextHandle;
 
-		ASC->ExecuteGameplayCue(FTPTGameplayTags::Get().TPTGameplayCue_Sound_Confused, CueParam);
+		ASC->ExecuteGameplayCue(FTPTGameplayTags::Get().GameplayCue_Sound_Confused, CueParam);
 	}
 }
 

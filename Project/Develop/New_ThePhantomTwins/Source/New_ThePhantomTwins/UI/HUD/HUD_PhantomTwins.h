@@ -4,6 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "GameplayEffectTypes.h"
+#include "Attribute/PlayerAttributeSet.h"
+#include "Player/PC_Player.h"
+#include "Player/PlayerCharacter.h"
 #include "HUD_PhantomTwins.generated.h"
 
 /**
@@ -18,22 +22,24 @@ protected:
     virtual void BeginPlay() override;
 
 public:
-/* PlayerStatus */
+
+    void TryInitHUD();
+	void ScheduleNextInit();
+	void InitHUD_Internal(APC_Player* PC, APlayerCharacter* Pawn, APlayerState* PS, UAbilitySystemComponent* ASC,
+	                      const UPlayerAttributeSet* AttSet);
+	/* PlayerStatus */
     // Player HP 변경
-	UFUNCTION(BlueprintCallable, Category = "UI | PlayerStatus")
-    void UpdateHP(int32 HP);    
+    void UpdateHP(const int32 val);
 
     // Player Mental 변경
-    UFUNCTION(BlueprintCallable, Category = "UI | PlayerStatus")
-    void UpdateMental(int32 Mental);    
+    void UpdateMental(const int32 val);
 
     // Player 초상화 세팅
     UFUNCTION(BlueprintCallable, Category = "UI | PlayerStatus")
     void SetCharPortrait(UTexture2D* PortraitTexture);    
 
     // Player Stamina 변경
-    UFUNCTION(BlueprintCallable, Category = "UI | PlayerStatus")
-    void UpdateStamina(int32 Stamina);    
+    void UpdateStamina(const int32 val);
 
 
 /* ClearItem */ 
@@ -49,11 +55,10 @@ public:
     UFUNCTION(BlueprintCallable, Category = "UI | Skill")
     void SetPassiveSkillIcon(UTexture2D* PassiveSkillIcon);
 
-    UFUNCTION(BlueprintCallable, Category = "UI | Skill")
-    void UpdateSkillPoints(int32 SkillPointsNum);
+    void UpdateCoreEnergy(const  int32 val);
 
 
-
+    bool bIsHUDInitDone = false;
 protected:
 // 조준점 UI
     UPROPERTY(EditDefaultsOnly, Category = "UI")

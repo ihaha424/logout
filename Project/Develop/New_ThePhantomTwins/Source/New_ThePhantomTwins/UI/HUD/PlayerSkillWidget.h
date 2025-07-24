@@ -21,7 +21,7 @@ protected:
 public:
     void SetActiveSkillIcon(UTexture2D* ActiveSkillIcon);
     void SetPassiveSkillIcon(UTexture2D* PassiveSkillIcon);
-    void ShowSkillPoints(int32 ShowCnt);
+    void ShowCoreEnergy(int32 ShowCnt);
 
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -31,5 +31,5 @@ protected:
     TObjectPtr<class UImage> Img_PassiveSkillIcon;
 
     UPROPERTY(meta = (BindWidget))
-    TObjectPtr<class UStackBox> SkillPointsStackBox;
+    TObjectPtr<class UStackBox> CoreEnergyStackBox;
 };

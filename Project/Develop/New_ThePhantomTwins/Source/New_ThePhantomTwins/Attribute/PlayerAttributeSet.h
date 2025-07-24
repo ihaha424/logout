@@ -13,6 +13,7 @@
 		GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 		GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHUDDelegate, const int32, value);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAttributeDelegate, const FGameplayTag, InputTag);
 
 UCLASS()
@@ -45,6 +46,12 @@ public:
 	mutable FAttributeDelegate OnPlayerConfused2nd;
 	mutable FAttributeDelegate OnPlayerConfused3rd;
 	mutable FAttributeDelegate OnPlayerUseSkill;
+
+	mutable FHUDDelegate OnChangedHP;
+	mutable FHUDDelegate OnChangedMentalPoint;
+	mutable FHUDDelegate OnChangedCoreEnergy;
+	mutable FHUDDelegate OnChangedStamina;
+
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))

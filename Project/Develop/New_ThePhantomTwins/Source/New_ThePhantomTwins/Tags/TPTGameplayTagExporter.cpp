@@ -18,7 +18,7 @@ static const TCHAR* GeneratedTagLines =
 #undef TAG
 
 #define CUETAG true
-#define TPT_TAG_GEN(Type, Name, Description) TEXT("GameplayTagList=(Tag=\"TPTGamePlayCueTag." #Type "." #Name "\", DevComment=\"" Description "\")\n")
+#define TPT_TAG_GEN(Type, Name, Description) TEXT("GameplayTagList=(Tag=\"GamePlayCue." #Type "." #Name "\", DevComment=\"" Description "\")\n")
 static const TCHAR* GeneratedCueTagLines =
 #include "./Inline/TPTGameplayTagList.inl"
 ;
