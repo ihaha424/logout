@@ -56,7 +56,7 @@ APlayerCharacter::APlayerCharacter()
 	FocusTrace = CreateDefaultSubobject<UFocusTraceComponent>(TEXT("FocusTrace"));
 
 	InteractWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractWidget"));
-	InteractWidget->SetRelativeLocation(GetMesh()->GetRelativeLocation());
+	InteractWidget->SetupAttachment(GetMesh());
 
 	bReplicates = true;
 }
@@ -69,6 +69,7 @@ void APlayerCharacter::BeginPlay()
 
 void APlayerCharacter::PossessedBy(AController* NewController)
 {
+	UKismetSystemLibrary::PrintString(this, FString("ddsaf2"));
 	Super::PossessedBy(NewController);
 	PS = GetPlayerState<APS_Player>();
 	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
@@ -105,7 +106,9 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	//RecoveryWidget->SetWidgetClass(RecoveryWidgetClass);
 	if (InteractWidget)
 	{
-		InteractWidget->SetWidgetClass(InteractWidgetClass);
+		UKismetSystemLibrary::PrintString(this, FString("ddsaf"));
+		//InteractWidget->SetWidgetClass(InteractWidgetClass);
+		InteractWidget->SetVisibility(false);
 	}
 }
 
@@ -214,7 +217,7 @@ void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 Number)
 	FGameplayEventData EventPayload;
 	EventPayload.EventTag = EventTag;
 	EventPayload.Instigator = this;
-	EventPayload. OptionalInt32 = Number; // 슬롯 번호
+//	EventPayload. OptionalInt32 = Number; // 슬롯 번호
 
 	ASC->HandleGameplayEvent(EventTag, &EventPayload);
 }
@@ -253,6 +256,9 @@ void APlayerCharacter::OnRecoveryCompelete()
 bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
 	if (ASC == nullptr) return false;
+	if (!Interactor->IsLocallyControlled()) return false;
+
+	UKismetSystemLibrary::PrintString(this, FString("ddsaf3"));
 
 	bool bIsTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 	if (bIsDetected && bIsTag)
