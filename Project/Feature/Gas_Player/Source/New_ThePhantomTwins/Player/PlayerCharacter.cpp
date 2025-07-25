@@ -21,8 +21,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "UIManager/UIManager.h"
 #include "Components/WidgetComponent.h"
-#include "Kismet/GameplayStatics.h"
-#include "UIManager/UIManager.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -54,9 +52,11 @@ APlayerCharacter::APlayerCharacter()
 	Camera->SetupAttachment(SpringArm);
 
 	FocusTrace = CreateDefaultSubobject<UFocusTraceComponent>(TEXT("FocusTrace"));
+	FocusTrace->SetIsReplicated(true);
 
 	InteractWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractWidget"));
 	InteractWidget->SetupAttachment(GetMesh());
+	InteractWidget->SetIsReplicated(true);
 
 	bReplicates = true;
 }
@@ -65,11 +65,19 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
+	InteractWidget->SetVisibility(false);
+	InteractWidget->SetIsReplicated(true);
+	InteractWidget->SetOwnerNoSee(true);
+	InteractWidget->SetOnlyOwnerSee(false);
+
+	FocusTrace->SetIsReplicated(true);
 }
 
 void APlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+	
 	PS = GetPlayerState<APS_Player>();
 	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
 	
@@ -127,11 +135,10 @@ void APlayerCharacter::OnRep_PlayerState()
 	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
 	BindAttributeDelegates(AttributeSet);
 
-	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
-	InteractWidget->SetVisibility(false);
 
-	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
-	PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
+	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
+	if (IsLocallyControlled()) { InteractWidget->SetVisibility(false); }
+	InteractWidget->SetVisibility(false);
 }
 
 
@@ -164,6 +171,9 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	check(TPTInput);
 	TPTInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
 	TPTInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
+
+	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
+	PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
 
 	SetupPlayerInputByTag(TPTInput);
 }
@@ -265,40 +275,44 @@ void APlayerCharacter::OnRecoveryCompelete()
 	UKismetSystemLibrary::PrintString(this, FString("Recovery"));
 }
 
+void APlayerCharacter::SetWidgetVisibility(bool bNewVisibility)
+{
+	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
+	InteractWidget->SetVisibility(bNewVisibility);
+}
+
 bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, false);
-	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, false);
-	
-	if (!Interactor->IsLocallyControlled()) return false;
 
-	if (bIsDetected)
+	bool bIsTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
+	//TPT_LOG(PlayerLog,Error,TEXT("Has Tag? : %d // Interactor Name : %s "), bIsTag, *Interactor->GetFName().ToString());
+	if (bIsTag && bIsDetected)
 	{
-		bool bIsTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-		if (bIsTag)
-		{
-			InteractWidget->SetVisibility(true);
-			return true;
-		}
+		SetWidgetVisibility(true);
+		return true;
 	}
-	
-	InteractWidget->SetVisibility(false);
+	SetWidgetVisibility(false);
 	return false;
 }
 
 void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 {
+	TPT_LOG(PlayerLog,Error,TEXT(""));
+	//UKismetSystemLibrary::PrintString(this, FString("Sever Interact"));
 	GetWorld()->GetTimerManager().SetTimer(
 		RecoveryTimerHandle,               
 		this,                              
 		&APlayerCharacter::OnRecoveryCompelete, 
-		2.0f,                              
+		5.0f,                              
 		false                              
 	);
 }
 
 void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 {
+	TPT_LOG(PlayerLog, Error, TEXT(""));
+	//UKismetSystemLibrary::PrintString(this, FString("Client Interact"));
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 	PlayerController->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
 }

@@ -9,6 +9,7 @@
 #include "Log/TPTLog.h"
 #include "Player/FocusTraceComponent.h"
 #include "SzInterface/Interact.h"
+#include "Kismet/GameplayStatics.h"
 
 UGA_Interact::UGA_Interact()
 {
@@ -25,10 +26,12 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
 
 	AActor* TargetActor = Character->FocusTrace->GetFocusedActor();
+	//TPT_LOG(GALog, Error,TEXT("TargetActor : %s"), *TargetActor->GetFName().ToString());
 
 	// 플레이어가 상호작용할 수 있는 오브젝트가 있는지 확인
 	if (TargetActor != nullptr && TargetActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
 	{
+		//UKismetSystemLibrary::PrintString(this, FString("Activate Interact Ability"));
 		C2S_Interact(TargetActor, Character);
 		IInteract::Execute_OnInteractClient(TargetActor, Character);
 		//TPT_LOG(GALog, Log, TEXT("OnInteract Client"));
@@ -65,6 +68,8 @@ void UGA_Interact::C2S_Interact_Implementation(UObject* interact, AActor* Owner)
 {
 	const APlayerCharacter* Character = Cast<APlayerCharacter>(Owner);
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
+
+	UKismetSystemLibrary::PrintString(this, FString("C2S_Interact"));
 
 	if (interact != nullptr && interact->GetClass()->ImplementsInterface(UInteract::StaticClass()))
 	{

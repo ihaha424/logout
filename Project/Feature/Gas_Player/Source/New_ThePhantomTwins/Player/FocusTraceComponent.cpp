@@ -9,6 +9,7 @@
 #include "Player/PlayerCharacter.h"
 #include "SzInterface/Interact.h"
 #include "Net/UnrealNetwork.h"
+#include "Kismet/GameplayStatics.h"
 
 UFocusTraceComponent::UFocusTraceComponent()
 {
@@ -86,7 +87,10 @@ void UFocusTraceComponent::PerformTrace()
 	{
         if (FocusedActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
         {
-            IInteract::Execute_CanInteract(FocusedActor, Character, true);
+            if (!IInteract::Execute_CanInteract(FocusedActor, Character, true))
+            {
+                FocusedActor = nullptr;
+            }
         }
 	}
 }
