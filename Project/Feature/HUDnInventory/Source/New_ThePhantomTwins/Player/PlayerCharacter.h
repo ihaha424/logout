@@ -123,6 +123,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> LookAction;
 
+	// HUD Widget
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class UPlayerHUDWidget> PlayerHUDWidgetClass;
+	
+	UPROPERTY()
+	TObjectPtr<class UPlayerHUDWidget> PlayerHUDWidget;
+
+
 public:
 	UFUNCTION()
 	void PlayerHUDHPSet(int32 value);
@@ -139,5 +147,8 @@ public:
 	void InputPressed(int32 InputID);
 	void InputPressedWithNum(int32 InputID, int32 Number);
 	void InputReleased(int32 InputID);
+
+private:
+	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);
 };
 

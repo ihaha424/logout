@@ -21,8 +21,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "UIManager/UIManager.h"
 #include "Components/WidgetComponent.h"
-#include "Kismet/GameplayStatics.h"
-#include "UIManager/UIManager.h"
+#include "../UI/HUD/PlayerHUDWidget.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -65,6 +64,19 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// PlayerHUDWidget 생성
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	
+	if (PC && PlayerHUDWidgetClass)
+	{
+		PlayerHUDWidget = CreateWidget<UPlayerHUDWidget>(PC, PlayerHUDWidgetClass);
+
+		if (PlayerHUDWidget)
+		{
+			PlayerHUDWidget->AddToViewport();
+		}
+	}
 }
 
 void APlayerCharacter::PossessedBy(AController* NewController)
@@ -79,7 +91,6 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	ASC->InitAbilityActorInfo(PS, this);
 	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
 	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
-
 	BindAttributeDelegates(AttributeSet);
 	NULLCHECK_RETURN_LOG(InitAttributeSetEffect, PlayerLog, Error, );
 	ASC->ApplyGameplayEffectToSelf
@@ -102,6 +113,10 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	}
 	PlayerController = GetController<APC_Player>();
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
+
+	// 서버 위젯 Init
+	//InitHUDWidget(AttributeSet);
+
 }
 
 void APlayerCharacter::OnRep_Controller()
@@ -134,6 +149,9 @@ void APlayerCharacter::OnRep_PlayerState()
 
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 	PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
+
+	// Client 위젯 Init
+	//InitHUDWidget(AttributeSet);
 }
 
 
@@ -391,4 +409,14 @@ FGenericTeamId APlayerCharacter::GetGenericTeamId() const
 		return PS->GetGenericTeamId();
 	}
 	return FGenericTeamId::NoTeam;
+}
+
+void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
+{
+	int32 HP = AttributeSet->GetHP();
+	int32 Mental = AttributeSet->GetMentalPoint();
+	int32 Stamina = AttributeSet->GetStamina();
+	int32 CoreEnergy = AttributeSet->GetCoreEnergy();
+
+	PlayerHUDWidget->InitializeWidgets(HP, Mental, Stamina, CoreEnergy);
 }
