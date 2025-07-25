@@ -65,17 +65,9 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// PlayerHUDWidget 생성
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	
-	if (PC && PlayerHUDWidgetClass)
+	if (PlayerHUDWidget)
 	{
-		PlayerHUDWidget = CreateWidget<UPlayerHUDWidget>(PC, PlayerHUDWidgetClass);
-
-		if (PlayerHUDWidget)
-		{
-			PlayerHUDWidget->AddToViewport();
-		}
+		PlayerHUDWidget->AddToViewport();
 	}
 }
 
@@ -115,7 +107,7 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 
 	// 서버 위젯 Init
-	//InitHUDWidget(AttributeSet);
+	InitHUDWidget(AttributeSet);
 
 }
 
@@ -151,7 +143,7 @@ void APlayerCharacter::OnRep_PlayerState()
 	PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
 
 	// Client 위젯 Init
-	//InitHUDWidget(AttributeSet);
+	InitHUDWidget(AttributeSet);
 }
 
 
@@ -413,6 +405,50 @@ FGenericTeamId APlayerCharacter::GetGenericTeamId() const
 
 void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 {
+	// AttributeSet이 없으면 바로 반환
+	if (!AttributeSet) return;
+
+	if (!IsLocallyControlled())
+	{
+		// 로그로 어느 객체에서 호출됐는지 안내
+		TPT_LOG(HUDLog, Warning, TEXT("InitHUDWidget: Not locally controlled, skipping widget creation (Actor: %s)"), *GetName());
+		return;
+	}
+
+	// PlayerHUDWidget이 아직 생성되지 않았다면 생성
+	if (!PlayerHUDWidget)
+	{
+		APlayerController* PC = Cast<APlayerController>(GetController());
+
+		if (PC && PlayerHUDWidgetClass)
+		{
+			PlayerHUDWidget = CreateWidget<UPlayerHUDWidget>(PC, PlayerHUDWidgetClass);
+			if (PlayerHUDWidget)
+			{
+				PlayerHUDWidget->AddToViewport();
+			}
+			else
+			{
+				TPT_LOG(HUDLog, Error, TEXT("InitHUDWidget: Failed to create PlayerHUDWidget"));
+				return;
+			}
+		}
+		else
+		{
+			TPT_LOG(HUDLog, Error, TEXT("InitHUDWidget: Invalid PlayerController or PlayerHUDWidgetClass"));
+			return;
+		}
+	}
+	else
+	{
+		// 이미 생성되어 있다면 뷰포트에 없을 경우 AddToViewport() 호출
+		if (!PlayerHUDWidget->IsInViewport())
+		{
+			PlayerHUDWidget->AddToViewport();
+		}
+	}
+
+	// AttributeSet에서 값 가져와 위젯 초기화 호출
 	int32 HP = AttributeSet->GetHP();
 	int32 Mental = AttributeSet->GetMentalPoint();
 	int32 Stamina = AttributeSet->GetStamina();
