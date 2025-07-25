@@ -120,6 +120,13 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	}
 	bPlayerDowned = GetHP() <= 0.0f;
 
+	// 정신력이 MAX가 아니라면 거리별회복 GA 호출
+	if (GetMentalPoint() < GetMaxMentalPoint() && !bMentalPointNotMax)
+	{
+		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalRecovery);
+		OnMentalPointNotMax.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalRecovery);
+	}
+	bMentalPointNotMax = GetMentalPoint() < GetMaxMentalPoint();
 	// 정신력이 50 이하라면 착란 1단계
 	if (GetMentalPoint() > 25.0f && GetMentalPoint() <= 50.0f && !bPlayerConfused1st)
 	{
