@@ -18,9 +18,10 @@ public:
 
     // OnActive에서 ASC의 태그를 판별하여 각각의 사운드 재생
     virtual bool OnActive_Implementation(AActor* MyTarget,const FGameplayCueParameters& Parameters) override;
+    virtual bool OnRemove_Implementation(AActor* Target, const FGameplayCueParameters& Parameters) override;
 
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SFX")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SFX")
     USoundBase* SoundConfused1st;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SFX")
@@ -31,4 +32,7 @@ public:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SFX")
     USoundBase* PlayTarget;
+
+    UPROPERTY()
+    UAudioComponent* ConfusedAudioComponent = nullptr;
 };

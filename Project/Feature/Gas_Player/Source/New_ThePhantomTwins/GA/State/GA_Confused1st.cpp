@@ -5,6 +5,7 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
 
 UGA_Confused1st::UGA_Confused1st()
@@ -13,26 +14,23 @@ UGA_Confused1st::UGA_Confused1st()
 	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
 }
 
-void UGA_Confused1st::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-	const FGameplayEventData* TriggerEventData)
+void UGA_Confused1st::ActivateAbility(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,const FGameplayEventData* TriggerEventData)
 {
+	TPT_LOG(GALog, Error, TEXT(""));
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo_Ensured();
-	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(SoundEffect, 1.0f);
-	if (EffectSpecHandle.IsValid())
-	{
-		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, EffectSpecHandle);
-		FGameplayEffectContextHandle CueContextHandle = UAbilitySystemBlueprintLibrary::GetEffectContext(EffectSpecHandle);
-		FGameplayCueParameters CueParam;
-		CueParam.EffectContext = CueContextHandle;
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	NULLCHECK_RETURN_LOG(ASC, GALog, Error, );
+	// 점차 정신력이 좋아질때를 대비해서 태그 떼기.
+	ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
 
-		ASC->ExecuteGameplayCue(FTPTGameplayTags::Get().GameplayCue_Sound_Confused, CueParam);
-	}
+	ASC->AddGameplayCue(SoundCueTag, FGameplayCueParameters());
 }
 
-void UGA_Confused1st::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+void UGA_Confused1st::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	TPT_LOG(GALog, Error, TEXT(""));
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	NULLCHECK_RETURN_LOG(ASC, GALog, Error, );
+	ASC->RemoveGameplayCue(SoundCueTag);
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
