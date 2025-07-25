@@ -128,8 +128,6 @@ void APlayerCharacter::OnRep_PlayerState()
 	BindAttributeDelegates(AttributeSet);
 
 	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
-	UKismetSystemLibrary::PrintString(this, FString("ddsaf"));
-	//InteractWidget->SetWidgetClass(InteractWidgetClass);
 	InteractWidget->SetVisibility(false);
 
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
@@ -200,12 +198,10 @@ void APlayerCharacter::InputPressed(int32 InputID)
 		Spec->InputPressed = true;
 		if (Spec->IsActive())
 		{
-			//TPT_LOG(GALog, Log, TEXT("AbilitySpecInputPressed"));
 			ASC->AbilitySpecInputPressed(*Spec);
 		}
 		else
 		{
-			//TPT_LOG(GALog, Log, TEXT("TryActivateAbility"));
 			ASC->TryActivateAbility(Spec->Handle);
 		}
 	}
@@ -235,7 +231,6 @@ void APlayerCharacter::InputReleased(int32 InputID)
 
 void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)
 {
-	//TPT_LOG(GALog, Error, TEXT("3"));
 	AttributeSet->OnPlayerLowHP.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnPlayerConfused1st.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
@@ -267,12 +262,13 @@ void APlayerCharacter::OnRecoveryCompelete()
 
 	// TODO : 회복 GE
 	UKismetSystemLibrary::PrintString(this, FString("Recovery"));
-	TPT_LOG(PlayerLog, Log, TEXT("Recovery %s"), *this->GetFName().ToString());
 }
 
 bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, false);
+	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, false);
+	
 	if (!Interactor->IsLocallyControlled()) return false;
 
 	if (bIsDetected)
@@ -280,30 +276,17 @@ bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool 
 		bool bIsTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 		if (bIsTag)
 		{
-			if (InteractWidget)
-			{
-				//UKismetSystemLibrary::PrintString(this, FString("True"));
-				InteractWidget->SetVisibility(true);
-			}
+			InteractWidget->SetVisibility(true);
 			return true;
 		}
 	}
 	
-	if (InteractWidget)
-	{
-		InteractWidget->SetVisibility(false);
-		return false;
-	}
-
+	InteractWidget->SetVisibility(false);
 	return false;
 }
 
 void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 {
-	UKismetSystemLibrary::PrintString(this, FString("Downed Character"));
-	UKismetSystemLibrary::PrintString(Interactor, FString("Interact Character"));
-	TPT_LOG(PlayerLog, Log, TEXT("Downed PS : %s"), *this->PS.GetFName().ToString());
-
 	GetWorld()->GetTimerManager().SetTimer(
 		RecoveryTimerHandle,               
 		this,                              
