@@ -71,6 +71,7 @@ void AHUD_PhantomTwins::BeginPlay()
         if (InventoryWidget)
         {
             InventoryWidget->AddToViewport();
+            InventoryWidget->LoadInventory(nullptr);       // 테스트용 임시 코드
         }
     }
 
