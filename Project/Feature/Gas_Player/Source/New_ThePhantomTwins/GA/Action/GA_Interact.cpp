@@ -25,7 +25,7 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
 
-	APlayerCharacter* TargetActor = Cast<APlayerCharacter>(Character->FocusTrace->GetFocusedActor());
+	AActor* TargetActor = Cast<AActor>(Character->FocusTrace->GetFocusedActor());
 	//TPT_LOG(GALog, Error,TEXT("TargetActor : %s"), *TargetActor->GetFName().ToString());
 
 	// 플레이어가 상호작용할 수 있는 오브젝트가 있는지 확인
