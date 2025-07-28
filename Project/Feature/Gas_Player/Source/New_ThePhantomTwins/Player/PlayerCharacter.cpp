@@ -143,7 +143,6 @@ void APlayerCharacter::OnRep_PlayerState()
 	InteractWidget->SetVisibility(false);
 }
 
-
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -269,6 +268,7 @@ void APlayerCharacter::OnRecoveryCompelete()
 	for (int32 i = 0; i < Count; ++i)
 	{
 		ASC->RemoveLooseGameplayTag(DownedTag);
+		ASC->RemoveReplicatedLooseGameplayTag(DownedTag);
 	}
 
 	GetWorld()->GetTimerManager().ClearTimer(RecoveryTimerHandle);
@@ -288,7 +288,7 @@ bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool 
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, false);
 
 	bool bIsTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-	//TPT_LOG(PlayerLog,Error,TEXT("Has Tag? : %d // Interactor Name : %s "), bIsTag, *Interactor->GetFName().ToString());
+	TPT_LOG(PlayerLog,Error,TEXT("Has Tag? : %d // Interactor Name : %s "), bIsTag, *Interactor->GetFName().ToString());
 	if (bIsTag && bIsDetected)
 	{
 		SetWidgetVisibility(true);

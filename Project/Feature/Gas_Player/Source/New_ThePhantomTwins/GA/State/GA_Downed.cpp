@@ -11,6 +11,7 @@
 UGA_Downed::UGA_Downed()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 }
 
 void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -67,7 +68,7 @@ void UGA_Downed::OnDownedTagChanged(const FGameplayTag Tag, int32 TagCount)
 	if (!bHasDownedTag)
 	{
 		bool bReplicatedEndAbility = true;
-		bool bWasCancelled = true;
+		bool bWasCancelled = false;
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
 	}
 }
