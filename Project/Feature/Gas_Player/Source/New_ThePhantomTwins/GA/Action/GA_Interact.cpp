@@ -3,18 +3,18 @@
 
 #include "GA/Action/GA_Interact.h"
 #include "Player/PlayerCharacter.h"
-#include "Player/PS_Player.h"
 #include "Attribute/PlayerAttributeSet.h"
-#include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
 #include "Player/FocusTraceComponent.h"
 #include "SzInterface/Interact.h"
 #include "Kismet/GameplayStatics.h"
+#include "Tags/TPTGameplayTags.h"
 
 UGA_Interact::UGA_Interact()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact);
 }
 
 void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

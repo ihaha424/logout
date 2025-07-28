@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GA/PassiveSkill/GA_MentalBuff.h"
+#include "GA_MentalBuff.h"
 
 UGA_MentalBuff::UGA_MentalBuff()
 {

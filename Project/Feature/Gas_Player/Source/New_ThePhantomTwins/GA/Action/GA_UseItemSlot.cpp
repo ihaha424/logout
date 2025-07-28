@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GA/Action/GA_UseItemSlot.h"
+#include "GA_UseItemSlot.h"
 
 #include "Log/TPTLog.h"
 

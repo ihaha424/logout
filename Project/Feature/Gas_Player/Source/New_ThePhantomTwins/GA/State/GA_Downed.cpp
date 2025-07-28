@@ -1,10 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GA/State/GA_Downed.h"
+#include "GA_Downed.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Player/PlayerCharacter.h"
-#include "Player/PS_Player.h"
 #include "Attribute/PlayerAttributeSet.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
