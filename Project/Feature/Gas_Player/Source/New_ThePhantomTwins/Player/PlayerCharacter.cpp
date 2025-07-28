@@ -3,6 +3,7 @@
 #include "PlayerCharacter.h"
 
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
 #include "PS_Player.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -73,6 +74,7 @@ void APlayerCharacter::BeginPlay()
 
 	FocusTrace->SetIsReplicated(true);
 }
+
 
 void APlayerCharacter::PossessedBy(AController* NewController)
 {
