@@ -102,8 +102,8 @@ protected:
 	UPROPERTY()
 	APC_Player* PlayerController;
 
-	UPROPERTY()
-	AHUD_PhantomTwins* PlayerHUD;
+	//UPROPERTY()
+	//AHUD_PhantomTwins* PlayerHUD;
 	// GAS
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<UAbilitySystemComponent> ASC;
@@ -133,14 +133,14 @@ protected:
 
 
 public:
-	//UFUNCTION()
-	//void PlayerHUDHPSet(int32 value);
-	//UFUNCTION()
-	//void PlayerHUDMentalSet(int32 value);
-	//UFUNCTION()
-	//void PlayerHUDStaminaSet(int32 value);
-	//UFUNCTION()
-	//void PlayerHUDCoreEnergySet(int32 value);
+	UFUNCTION()
+	void PlayerHUDHPSet(int32 value);
+	UFUNCTION()
+	void PlayerHUDMentalSet(int32 value);
+	UFUNCTION()
+	void PlayerHUDStaminaSet(int32 value);
+	UFUNCTION()
+	void PlayerHUDCoreEnergySet(int32 value);
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);

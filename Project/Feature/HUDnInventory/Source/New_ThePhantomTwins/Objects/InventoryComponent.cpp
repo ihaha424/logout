@@ -4,6 +4,9 @@
 #include "../UI/HUD/PlayerHUDWidget.h"
 #include "../UI/HUD/InventoryWidget.h"
 #include "../UI/HUD/ItemSlotWidget.h"
+#include "../Player/PS_Player.h"
+#include <Log/TPTLog.h>
+#include "../Player/PC_Player.h"
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -34,7 +37,7 @@ void UInventoryComponent::AddItem(EItemType eItemType)
                 InventorySlots[i].ItemQuantity++;
 
                 // 인벤토리 위젯 : 수량 텍스트 변경
-                if (PlayerHUDWidget.IsValid())
+                if (PlayerHUDWidget)
                 {
                     PlayerHUDWidget->SetItemQuantity(i, InventorySlots[i].ItemQuantity);
                 }
@@ -58,7 +61,7 @@ void UInventoryComponent::AddItem(EItemType eItemType)
         InventorySlots[EmptySlotIndex].ItemQuantity = 1;
 
         // 인벤토리 위젯 변경
-        if (PlayerHUDWidget.IsValid())
+        if (PlayerHUDWidget)
         {
             // 아이템 아이콘 변경
             PlayerHUDWidget->SetItemIcon(EmptySlotIndex, eItemType);
@@ -99,8 +102,8 @@ EItemType UInventoryComponent::UseItem(int32 SlotIndex)
         itemSlot.ItemQuantity--;
 
         // 인벤토리 위젯 : 수량 텍스트 변경
-        if (PlayerHUDWidget.IsValid())
-        {
+		if (PlayerHUDWidget)
+		{
             PlayerHUDWidget->SetItemQuantity(SlotIndex - 1, itemSlot.ItemQuantity);
         }
     }
@@ -123,13 +126,19 @@ bool UInventoryComponent::SetPlayerHUDWidget(class UPlayerHUDWidget* HUDWidget)
     PlayerHUDWidget = HUDWidget;
 
     // OwnerPlayer에서 현재 위젯을 다시 받아옴
-    APlayerCharacter* OwnerPlayer = Cast<APlayerCharacter>(GetOwner());
-    if (!OwnerPlayer)
-    {
-        return false; // Owner가 없으면 false
-    }
+    
+    NULLCHECK_RETURN_LOG(GetOwner(),PlayerLog,Error, false);
 
-    UPlayerHUDWidget* TempWidget = OwnerPlayer->GetPlayerHUDWidget();
+    APS_Player* PS = Cast<APS_Player>(GetOwner());
+
+	if (!PS)
+	{
+		return false; // Owner가 없으면 false
+	}
+
+   APC_Player* PC = Cast<APC_Player>(PS->GetPlayerController());
+   APlayerCharacter* OwnerPlayer = Cast<APlayerCharacter>(PC->GetCharacter());
+   UPlayerHUDWidget* TempWidget = OwnerPlayer->GetPlayerHUDWidget();
 
     // 두 포인터가 같은 객체를 가리키는지 비교해서 반환
     return (PlayerHUDWidget.Get() == TempWidget);

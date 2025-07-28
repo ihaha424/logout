@@ -66,7 +66,6 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     int32 MaxQuantity = 5;  // 아이템 당 최대 스택 수
-
-    // InventoryWidget 달아주고 로직 추가해야 함
-    TWeakObjectPtr<class UPlayerHUDWidget> PlayerHUDWidget;
+    UPROPERTY()
+    TObjectPtr<class UPlayerHUDWidget> PlayerHUDWidget;  // InventoryWidget 달아주고 로직 추가해야 함
 };

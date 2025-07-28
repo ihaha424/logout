@@ -253,10 +253,10 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 	AttributeSet->OnPlayerConfused3rd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnPlayerUseSkill.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 
-	//AttributeSet->OnChangedHP.AddDynamic(this, &ThisClass::PlayerHUDHPSet);
-	//AttributeSet->OnChangedMentalPoint.AddDynamic(this, &ThisClass::PlayerHUDMentalSet);
-	//AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
-	//AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
+	AttributeSet->OnChangedHP.AddDynamic(this, &ThisClass::PlayerHUDHPSet);
+	AttributeSet->OnChangedMentalPoint.AddDynamic(this, &ThisClass::PlayerHUDMentalSet);
+	AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
+	AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
 }
 
 void APlayerCharacter::OnRecoveryCompelete()
@@ -339,28 +339,32 @@ void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 	// TODO : HandleGameplayEvent // 
 }
 
-//void APlayerCharacter::PlayerHUDHPSet(int32 value)
-//{
-//	PlayerHUD->UpdateHP(value);
-//
-//	//PlayerHUD->UpdateClearItem();// 데이터조각(같이공유하는거)
-//	//// 태그이용
-//	//PlayerHUD->SetActiveSkillIcon();
-//	//PlayerHUD->SetPassiveSkillIcon();
-//	//PlayerHUD->SetCharPortrait();// 초상화
-//}
-//void APlayerCharacter::PlayerHUDMentalSet(int32 value)
-//{
-//	PlayerHUD->UpdateMental(value);
-//}
-//void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
-//{
-//	PlayerHUD->UpdateStamina(value);
-//}
-//void APlayerCharacter::PlayerHUDCoreEnergySet(int32 value)
-//{
-//	PlayerHUD->UpdateCoreEnergy(value);
-//}
+void APlayerCharacter::PlayerHUDHPSet(int32 value)
+{
+	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
+	PlayerHUDWidget->UpdateHP(value);
+
+	//PlayerHUD->UpdateClearItem();// 데이터조각(같이공유하는거)
+	//// 태그이용
+	//PlayerHUD->SetActiveSkillIcon();
+	//PlayerHUD->SetPassiveSkillIcon();
+	//PlayerHUD->SetCharPortrait();// 초상화
+}
+void APlayerCharacter::PlayerHUDMentalSet(int32 value)
+{
+	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
+	PlayerHUDWidget->UpdateMental(value);
+}
+void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
+{
+	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
+	PlayerHUDWidget->UpdateStamina(value);
+}
+void APlayerCharacter::PlayerHUDCoreEnergySet(int32 value)
+{
+	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
+	PlayerHUDWidget->UpdateCoreEnergy(value);
+}
 
 void APlayerCharacter::Move(const FInputActionValue& Value)
 {
