@@ -24,22 +24,26 @@ protected:
 public:
 
     void TryInitHUD();
-	void ScheduleNextInit();
-	void InitHUD_Internal(APC_Player* PC, APlayerCharacter* Pawn, APlayerState* PS, UAbilitySystemComponent* ASC,
-	                      const UPlayerAttributeSet* AttSet);
-	/* PlayerStatus */
+    void ScheduleNextInit();
+    void InitHUD_Internal(APC_Player* PC, APlayerCharacter* Pawn, APlayerState* PS, UAbilitySystemComponent* ASC,
+        const UPlayerAttributeSet* AttSet);
+
+/* PlayerStatus */
     // Player HP 변경
-    void UpdateHP(const int32 val);
+	UFUNCTION(BlueprintCallable, Category = "UI | PlayerStatus")
+    void UpdateHP(int32 HP);    
 
     // Player Mental 변경
-    void UpdateMental(const int32 val);
+    UFUNCTION(BlueprintCallable, Category = "UI | PlayerStatus")
+    void UpdateMental(int32 Mental);    
 
     // Player 초상화 세팅
     UFUNCTION(BlueprintCallable, Category = "UI | PlayerStatus")
     void SetCharPortrait(UTexture2D* PortraitTexture);    
 
     // Player Stamina 변경
-    void UpdateStamina(const int32 val);
+    UFUNCTION(BlueprintCallable, Category = "UI | PlayerStatus")
+    void UpdateStamina(int32 Stamina);    
 
 
 /* ClearItem */ 
@@ -55,7 +59,8 @@ public:
     UFUNCTION(BlueprintCallable, Category = "UI | Skill")
     void SetPassiveSkillIcon(UTexture2D* PassiveSkillIcon);
 
-    void UpdateCoreEnergy(const  int32 val);
+    UFUNCTION(BlueprintCallable, Category = "UI | Skill")
+    void UpdateCoreEnergy(int32 SkillPointsNum);
 
 
     bool bIsHUDInitDone = false;

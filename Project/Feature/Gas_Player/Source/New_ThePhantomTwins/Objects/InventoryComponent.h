@@ -39,18 +39,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-protected:
-    UPROPERTY(EditDefaultsOnly)
-    TObjectPtr<UDataTable> ItemAbilityTable;
-
-    TArray<FItemSlot> InventorySlots;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-    int32 MaxInventorySlots = 5;    // InventorySlots의 원소 수.
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-    int32 MaxQuantity = 5;  // 아이템 당 최대 스택 수
-
+    
 public:
     UFUNCTION()
     void AddItem(EItemType eItemType);
@@ -58,5 +47,20 @@ public:
     // 플레이어에서 1~MaxInventorySlots 숫자 키를 누르면 호출되는 함수. 슬롯에 있는 아이템의 EItemType이 반환됨
     UFUNCTION(BlueprintCallable, Category = "Inventory") 
     EItemType UseItem(int32 SlotIndex);
-		
+
+public:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+    int32 MaxInventorySlots = 5;    // InventorySlots의 원소 수.
+
+protected:
+    UPROPERTY(EditDefaultsOnly)
+    TObjectPtr<UDataTable> ItemAbilityTable;
+
+    UPROPERTY(EditDefaultsOnly)
+    TArray<FItemSlot> InventorySlots;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+    int32 MaxQuantity = 5;  // 아이템 당 최대 스택 수
+
+    // InventoryWidget 달아주고 로직 추가해야 함
 };
