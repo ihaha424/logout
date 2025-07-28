@@ -1,5 +1,9 @@
 ﻿
 #include "InventoryComponent.h"
+#include "../Player/PlayerCharacter.h"
+#include "../UI/HUD/PlayerHUDWidget.h"
+#include "../UI/HUD/InventoryWidget.h"
+#include "../UI/HUD/ItemSlotWidget.h"
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -28,6 +32,13 @@ void UInventoryComponent::AddItem(EItemType eItemType)
             {
                 // 스택 증가
                 InventorySlots[i].ItemQuantity++;
+
+                // 인벤토리 위젯 : 수량 텍스트 변경
+                if (PlayerHUDWidget.IsValid())
+                {
+                    PlayerHUDWidget->SetItemQuantity(i, InventorySlots[i].ItemQuantity);
+                }
+
                 return;
             }
             // 스택이 가득 찬 동일 아이템이어도, 처리하지 않고 계속 탐색
@@ -45,6 +56,18 @@ void UInventoryComponent::AddItem(EItemType eItemType)
     {
         InventorySlots[EmptySlotIndex].ItemType = eItemType;
         InventorySlots[EmptySlotIndex].ItemQuantity = 1;
+
+        // 인벤토리 위젯 변경
+        if (PlayerHUDWidget.IsValid())
+        {
+            // 아이템 아이콘 변경
+            PlayerHUDWidget->SetItemIcon(EmptySlotIndex, eItemType);
+
+            // 수량 텍스트 변경
+            PlayerHUDWidget->SetItemQuantity(EmptySlotIndex, 1);
+        }
+
+
         return;
     }
     
@@ -74,14 +97,41 @@ EItemType UInventoryComponent::UseItem(int32 SlotIndex)
     if (itemSlot.ItemQuantity > 1)
     {
         itemSlot.ItemQuantity--;
+
+        // 인벤토리 위젯 : 수량 텍스트 변경
+        if (PlayerHUDWidget.IsValid())
+        {
+            PlayerHUDWidget->SetItemQuantity(SlotIndex - 1, itemSlot.ItemQuantity);
+        }
     }
     else
     {
         // 수량이 1이면 아이템 제거, 슬롯 초기화
         itemSlot.ItemType = EItemType::None;
         itemSlot.ItemQuantity = 0;
+
+        // 인벤토리 위젯 : 초기화
+        PlayerHUDWidget->ResetItemSlot(SlotIndex - 1);
     }
 
     return usedItemType;
+}
+
+bool UInventoryComponent::SetPlayerHUDWidget(class UPlayerHUDWidget* HUDWidget)
+{
+    // 인자로 받은 위젯을 먼저 저장
+    PlayerHUDWidget = HUDWidget;
+
+    // OwnerPlayer에서 현재 위젯을 다시 받아옴
+    APlayerCharacter* OwnerPlayer = Cast<APlayerCharacter>(GetOwner());
+    if (!OwnerPlayer)
+    {
+        return false; // Owner가 없으면 false
+    }
+
+    UPlayerHUDWidget* TempWidget = OwnerPlayer->GetPlayerHUDWidget();
+
+    // 두 포인터가 같은 객체를 가리키는지 비교해서 반환
+    return (PlayerHUDWidget.Get() == TempWidget);
 }
 

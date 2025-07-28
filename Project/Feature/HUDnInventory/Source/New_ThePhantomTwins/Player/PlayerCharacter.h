@@ -9,6 +9,7 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
 #include "SzInterface/Interact.h"
+#include "../UI/HUD/PlayerHUDWidget.h"
 #include "GenericTeamAgentInterface.h"
 #include "PlayerCharacter.generated.h"
 
@@ -125,21 +126,21 @@ protected:
 
 	// HUD Widget
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	TSubclassOf<class UPlayerHUDWidget> PlayerHUDWidgetClass;
+	TSubclassOf<UPlayerHUDWidget> PlayerHUDWidgetClass;
 	
 	UPROPERTY()
-	TObjectPtr<class UPlayerHUDWidget> PlayerHUDWidget;
+	TObjectPtr<UPlayerHUDWidget> PlayerHUDWidget;
 
 
 public:
-	UFUNCTION()
-	void PlayerHUDHPSet(int32 value);
-	UFUNCTION()
-	void PlayerHUDMentalSet(int32 value);
-	UFUNCTION()
-	void PlayerHUDStaminaSet(int32 value);
-	UFUNCTION()
-	void PlayerHUDCoreEnergySet(int32 value);
+	//UFUNCTION()
+	//void PlayerHUDHPSet(int32 value);
+	//UFUNCTION()
+	//void PlayerHUDMentalSet(int32 value);
+	//UFUNCTION()
+	//void PlayerHUDStaminaSet(int32 value);
+	//UFUNCTION()
+	//void PlayerHUDCoreEnergySet(int32 value);
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -147,6 +148,8 @@ public:
 	void InputPressed(int32 InputID);
 	void InputPressedWithNum(int32 InputID, int32 Number);
 	void InputReleased(int32 InputID);
+
+	UPlayerHUDWidget* GetPlayerHUDWidget(){ return PlayerHUDWidget; }
 
 private:
 	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);

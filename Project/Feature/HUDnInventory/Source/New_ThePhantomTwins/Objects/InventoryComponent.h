@@ -48,6 +48,11 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Inventory") 
     EItemType UseItem(int32 SlotIndex);
 
+    // HUD 위젯을 InventoryComponent에 등록
+    UFUNCTION()
+    bool SetPlayerHUDWidget(class UPlayerHUDWidget* HUDWidget);
+
+
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     int32 MaxInventorySlots = 5;    // InventorySlots의 원소 수.
@@ -63,4 +68,5 @@ protected:
     int32 MaxQuantity = 5;  // 아이템 당 최대 스택 수
 
     // InventoryWidget 달아주고 로직 추가해야 함
+    TWeakObjectPtr<class UPlayerHUDWidget> PlayerHUDWidget;
 };

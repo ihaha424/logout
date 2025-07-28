@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "../../Objects/ItemData.h"
 #include "PlayerHUDWidget.generated.h"
 
 /**
@@ -60,6 +61,19 @@ public:
     // 인벤토리 최대 슬롯 갯수
     UFUNCTION(BlueprintCallable, Category = "UI | Inventory")
     void SetMaxInventorySlots(const int32 MaxInventorySlots);
+
+    // 아이템 아이콘 변경
+    UFUNCTION(BlueprintCallable, Category = "UI | Inventory")
+    void SetItemIcon(int32 SlotIndex, EItemType eItemType);
+
+    // 아이템 수량 설정
+    UFUNCTION(BlueprintCallable, Category = "UI | Inventory")
+    void SetItemQuantity(int32 SlotIndex, int32 ItemStack);
+
+    // 슬롯 초기화 - 아이콘과 수량 모두 비움
+    UFUNCTION(BlueprintCallable, Category = "UI | Inventory")
+    void ResetItemSlot(int32 SlotIndex);
+
 
 protected:
 // 조준점 UI

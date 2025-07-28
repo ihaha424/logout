@@ -16,12 +16,12 @@
 #include "FocusTraceComponent.h"
 #include "PC_Player.h"
 #include "../GA/Action/GA_Interact.h"
-#include "UI/HUD/HUD_PhantomTwins.h"
+// #include "UI/HUD/HUD_PhantomTwins.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "UIManager/UIManager.h"
 #include "Components/WidgetComponent.h"
-#include "../UI/HUD/PlayerHUDWidget.h"
+#include "../Objects/InventoryComponent.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -339,28 +339,28 @@ void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 	// TODO : HandleGameplayEvent // 
 }
 
-void APlayerCharacter::PlayerHUDHPSet(int32 value)
-{
-	PlayerHUD->UpdateHP(value);
-
-	//PlayerHUD->UpdateClearItem();// 데이터조각(같이공유하는거)
-	//// 태그이용
-	//PlayerHUD->SetActiveSkillIcon();
-	//PlayerHUD->SetPassiveSkillIcon();
-	//PlayerHUD->SetCharPortrait();// 초상화
-}
-void APlayerCharacter::PlayerHUDMentalSet(int32 value)
-{
-	PlayerHUD->UpdateMental(value);
-}
-void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
-{
-	PlayerHUD->UpdateStamina(value);
-}
-void APlayerCharacter::PlayerHUDCoreEnergySet(int32 value)
-{
-	PlayerHUD->UpdateCoreEnergy(value);
-}
+//void APlayerCharacter::PlayerHUDHPSet(int32 value)
+//{
+//	PlayerHUD->UpdateHP(value);
+//
+//	//PlayerHUD->UpdateClearItem();// 데이터조각(같이공유하는거)
+//	//// 태그이용
+//	//PlayerHUD->SetActiveSkillIcon();
+//	//PlayerHUD->SetPassiveSkillIcon();
+//	//PlayerHUD->SetCharPortrait();// 초상화
+//}
+//void APlayerCharacter::PlayerHUDMentalSet(int32 value)
+//{
+//	PlayerHUD->UpdateMental(value);
+//}
+//void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
+//{
+//	PlayerHUD->UpdateStamina(value);
+//}
+//void APlayerCharacter::PlayerHUDCoreEnergySet(int32 value)
+//{
+//	PlayerHUD->UpdateCoreEnergy(value);
+//}
 
 void APlayerCharacter::Move(const FInputActionValue& Value)
 {
@@ -455,4 +455,7 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 	int32 CoreEnergy = AttributeSet->GetCoreEnergy();
 
 	PlayerHUDWidget->InitializeWidgets(HP, Mental, Stamina, CoreEnergy);
+
+	//PS에 있는 Inventory의 SetPlayerHUDWidget 호출
+	PS->InventoryComp->SetPlayerHUDWidget(PlayerHUDWidget);
 }

@@ -9,6 +9,7 @@
 #include "PlayerStaminaWidget.h"
 #include "PlayerSkillWidget.h"
 #include "InventoryWidget.h"
+#include "ItemSlotWidget.h"
 
 #include "../../Log/TPTLog.h"
 
@@ -108,5 +109,29 @@ void UPlayerHUDWidget::SetMaxInventorySlots(const int32 MaxInventorySlots)
     if (InventoryWidget)
     {
         InventoryWidget->LoadInventory(MaxInventorySlots);
+    }
+}
+
+void UPlayerHUDWidget::SetItemIcon(int32 SlotIndex, EItemType eItemType)
+{
+    if (InventoryWidget)
+    {
+        InventoryWidget->GetItemSlotWidget(SlotIndex)->SetItemIcon(eItemType);
+    }
+}
+
+void UPlayerHUDWidget::SetItemQuantity(int32 SlotIndex, int32 ItemStack)
+{
+    if (InventoryWidget)
+    {
+        InventoryWidget->GetItemSlotWidget(SlotIndex)->SetItemQuantity(ItemStack);
+    }
+}
+
+void UPlayerHUDWidget::ResetItemSlot(int32 SlotIndex)
+{
+    if (InventoryWidget)
+    {
+        InventoryWidget->GetItemSlotWidget(SlotIndex)->ResetItemSlot();
     }
 }
