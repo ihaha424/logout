@@ -426,29 +426,14 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 
 		if (PC && PlayerHUDWidgetClass)
 		{
-			PlayerHUDWidget = CreateWidget<UPlayerHUDWidget>(PC, PlayerHUDWidgetClass);
-			if (PlayerHUDWidget)
-			{
-				PlayerHUDWidget->AddToViewport();
-			}
-			else
-			{
-				TPT_LOG(HUDLog, Error, TEXT("InitHUDWidget: Failed to create PlayerHUDWidget"));
-				return;
-			}
+			PlayerController->RegisterWidget(TEXT("PlayerHUDWidget"), CreateWidget<UPlayerHUDWidget>(GetWorld(), PlayerHUDWidgetClass));
+			PlayerController->SetWidget(TEXT("PlayerHUDWidget"), true, EMessageTargetType::LocalClient);
+			PlayerHUDWidget = Cast<UPlayerHUDWidget>(PlayerController->GetWidget(TEXT("PlayerHUDWidget")));
 		}
 		else
 		{
 			TPT_LOG(HUDLog, Error, TEXT("InitHUDWidget: Invalid PlayerController or PlayerHUDWidgetClass"));
 			return;
-		}
-	}
-	else
-	{
-		// 이미 생성되어 있다면 뷰포트에 없을 경우 AddToViewport() 호출
-		if (!PlayerHUDWidget->IsInViewport())
-		{
-			PlayerHUDWidget->AddToViewport();
 		}
 	}
 
