@@ -53,9 +53,10 @@ public:
 	UFUNCTION()
 	void BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet);
 
-	// 게이지 시작
 	UFUNCTION()
 	void OnRecoveryCompelete();
+
+	void SetWidgetVisibility(bool bNewVisibility);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float WalkSpeed = 400.f;
