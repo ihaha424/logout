@@ -19,7 +19,7 @@ void UPlayerHUDWidget::NativeConstruct()
 	Super::NativeConstruct();
 }
 
-void UPlayerHUDWidget::InitializeWidgets(int32 HP/*=100*/, int32 Mental/*=100*/, int32 Stamina/*=100*/, int32 CoreEnergyNum/*=5*/, int32 MaxInventorySlots/*=5*/, UTexture2D* PortraitTexture/*=nullptr*/, UTexture2D* ActiveSkillIcon /*= nullptr*/, UTexture2D* PassiveSkillIcon /*= nullptr*/)
+void UPlayerHUDWidget::InitializeWidgets(int32 HP/*=200*/, int32 Mental/*=100*/, int32 Stamina/*=100*/, int32 CoreEnergyNum/*=5*/, int32 MaxInventorySlots/*=5*/, UTexture2D* PortraitTexture/*=nullptr*/, UTexture2D* ActiveSkillIcon /*= nullptr*/, UTexture2D* PassiveSkillIcon /*= nullptr*/)
 {
 /* PlayerStatus */
     UpdateHP(HP);
@@ -34,6 +34,11 @@ void UPlayerHUDWidget::InitializeWidgets(int32 HP/*=100*/, int32 Mental/*=100*/,
 
 /* Inventory */
     SetMaxInventorySlots(MaxInventorySlots);
+
+// Max Setting
+    PlayerStatusWidget->MaxHP = HP;
+    PlayerStatusWidget->MaxMental = Mental;
+    PlayerStaminaWidget->MaxStamina = Stamina;
 }
 
 /* PlayerStatus */

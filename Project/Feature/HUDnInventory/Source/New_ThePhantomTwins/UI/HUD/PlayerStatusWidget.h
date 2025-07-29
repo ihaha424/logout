@@ -31,6 +31,7 @@ protected:
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<class UImage> CharPortrait;
 
+public:
     UPROPERTY()
     float MaxHP = 100.0f;
 

@@ -5,6 +5,7 @@
 #include "NiagaraComponent.h" 
 #include "Engine/World.h"
 #include "TimerManager.h"
+#include "../Player/PlayerCharacter.h"
 #include "../Log/TPTLog.h"
 
 #include "Components/SphereComponent.h"
@@ -69,7 +70,11 @@ bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bo
 	//	*Interactor->GetName(),
 	//	*UEnum::GetValueAsString(GetLocalRole()));
 
-	SetWidgetVisible(bCanInteract);
+	const APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(const_cast<APawn*>(Interactor));
+	if (PlayerChar)
+	{
+		SetWidgetVisible(bCanInteract);
+	}
 
 	return bCanInteract;
 }
