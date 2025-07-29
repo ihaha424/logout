@@ -81,13 +81,29 @@ void UPlayerAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME_CONDITION_NOTIFY(UPlayerAttributeSet, ExecuteSkill, COND_None, REPNOTIFY_Always);
 }
 
-void UPlayerAttributeSet::OnRep_HP(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, HP, OldValue); }
+void UPlayerAttributeSet::OnRep_HP(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, HP, OldValue);
+	OnChangedHP.Broadcast(GetHP());
+}
 void UPlayerAttributeSet::OnRep_MaxHP(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, MaxHP, OldValue); }
-void UPlayerAttributeSet::OnRep_Stamina(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, Stamina, OldValue); }
+void UPlayerAttributeSet::OnRep_Stamina(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, Stamina, OldValue);
+	OnChangedStamina.Broadcast(GetStamina());
+}
 void UPlayerAttributeSet::OnRep_MaxStamina(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, MaxStamina, OldValue); }
-void UPlayerAttributeSet::OnRep_MentalPoint(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, MentalPoint, OldValue); }
+void UPlayerAttributeSet::OnRep_MentalPoint(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, MentalPoint, OldValue);
+	OnChangedMentalPoint.Broadcast(GetMentalPoint());
+}
 void UPlayerAttributeSet::OnRep_MaxMentalPoint(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, MaxMentalPoint, OldValue); }
-void UPlayerAttributeSet::OnRep_CoreEnergy(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, CoreEnergy, OldValue); }
+void UPlayerAttributeSet::OnRep_CoreEnergy(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, CoreEnergy, OldValue);
+	OnChangedCoreEnergy.Broadcast(GetCoreEnergy());
+}
 void UPlayerAttributeSet::OnRep_MaxCoreEnergy(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, MaxCoreEnergy, OldValue); }
 void UPlayerAttributeSet::OnRep_Speed(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, Speed, OldValue); }
 void UPlayerAttributeSet::OnRep_SpeedAdjustment(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, SpeedAdjustment, OldValue); }
