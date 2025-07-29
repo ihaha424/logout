@@ -28,6 +28,9 @@ ATestItemBox::ATestItemBox()
 	}
 	Mesh->SetRelativeLocation(FVector(0.0f, -3.5f, -30.0f));
 	Mesh->SetCollisionProfileName(TEXT("NoCollision"));
+
+	bReplicates = true;
+	bNetLoadOnClient = true;
 }
 
 void ATestItemBox::NotifyActorBeginOverlap(AActor* OtherActor)
