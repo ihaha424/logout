@@ -13,6 +13,7 @@
 #include "PlayerCharacter.generated.h"
 
 
+class UPlayerHUDWidget;
 class USphereComponent;
 class APC_Player;
 class AHUD_PhantomTwins;
@@ -68,7 +69,7 @@ public:
 	UFUNCTION()
 	void OnRecoveryCompleted();
 
-	void SetWidgetVisibility(bool bNewVisibility);
+	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float WalkSpeed = 400.f;
@@ -113,10 +114,6 @@ protected:
 
 	UPROPERTY()
 	APC_Player* PlayerController;
-
-	UPROPERTY()
-	AHUD_PhantomTwins* PlayerHUD;
-
 	// GAS
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<UAbilitySystemComponent> ASC;
@@ -136,6 +133,13 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> LookAction;
+
+	// HUD Widget
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UPlayerHUDWidget> PlayerHUDWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UPlayerHUDWidget> PlayerHUDWidget;
 
 	// ¹Ý°æ
 	UPROPERTY(VisibleAnywhere)

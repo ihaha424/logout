@@ -18,13 +18,14 @@
 #include "PC_Player.h"
 #include "../GA/Action/GA_Interact.h"
 #include "AI/Character/AIBaseCharacter.h"
-#include "UI/HUD/HUD_PhantomTwins.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "UIManager/UIManager.h"
 #include "Components/WidgetComponent.h"
+#include "Objects/InventoryComponent.h"
+#include "UI/HUD/PlayerHUDWidget.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -94,6 +95,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	}
 	PlayerController = GetController<APC_Player>();
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
+
+	InitHUDWidget(AttributeSet);
 }
 
 void APlayerCharacter::OnRep_Controller()
@@ -118,6 +121,8 @@ void APlayerCharacter::OnRep_PlayerState()
 	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
 	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
 	BindAttributeDelegates(AttributeSet);
+
+	InitHUDWidget(AttributeSet);
 }
 
 void APlayerCharacter::Tick(float DeltaTime)
@@ -229,10 +234,10 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 	AttributeSet->OnPlayerUseSkill.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnMentalPointNotMax.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 
-	//AttributeSet->OnChangedHP.AddDynamic(this, &ThisClass::PlayerHUDHPSet);
-	//AttributeSet->OnChangedMentalPoint.AddDynamic(this, &ThisClass::PlayerHUDMentalSet);
-	//AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
-	//AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
+	AttributeSet->OnChangedHP.AddDynamic(this, &ThisClass::PlayerHUDHPSet);
+	AttributeSet->OnChangedMentalPoint.AddDynamic(this, &ThisClass::PlayerHUDMentalSet);
+	AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
+	AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
 }
 
 void APlayerCharacter::OnRecoveryCompleted()
@@ -255,6 +260,47 @@ void APlayerCharacter::OnRecoveryCompleted()
 
 	// TODO : 회복 GE
 	UKismetSystemLibrary::PrintString(this, FString("Recovery"));
+}
+
+void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
+{// AttributeSet이 없으면 바로 반환
+	if (!AttributeSet) return;
+
+	if (!IsLocallyControlled())
+	{
+		// 로그로 어느 객체에서 호출됐는지 안내
+		TPT_LOG(HUDLog, Warning, TEXT("InitHUDWidget: Not locally controlled, skipping widget creation (Actor: %s)"), *GetName());
+		return;
+	}
+
+	// PlayerHUDWidget이 아직 생성되지 않았다면 생성
+	if (!PlayerHUDWidget)
+	{
+		APlayerController* PC = Cast<APlayerController>(GetController());
+
+		if (PC && PlayerHUDWidgetClass)
+		{
+			PlayerController->RegisterWidget(TEXT("PlayerHUDWidget"), CreateWidget<UPlayerHUDWidget>(GetWorld(), PlayerHUDWidgetClass));
+			PlayerController->SetWidget(TEXT("PlayerHUDWidget"), true, EMessageTargetType::LocalClient);
+			PlayerHUDWidget = Cast<UPlayerHUDWidget>(PlayerController->GetWidget(TEXT("PlayerHUDWidget")));
+		}
+		else
+		{
+			TPT_LOG(HUDLog, Error, TEXT("InitHUDWidget: Invalid PlayerController or PlayerHUDWidgetClass"));
+			return;
+		}
+	}
+
+	// AttributeSet에서 값 가져와 위젯 초기화 호출
+	int32 HP = AttributeSet->GetMaxHP();
+	int32 Mental = AttributeSet->GetMaxMentalPoint();
+	int32 Stamina = AttributeSet->GetMaxStamina();
+	int32 CoreEnergy = AttributeSet->GetMaxCoreEnergy();
+
+	PlayerHUDWidget->InitializeWidgets(HP, Mental, Stamina, CoreEnergy);
+
+	//PS에 있는 Inventory의 SetPlayerHUDWidget 호출
+	PS->InventoryComp->SetPlayerHUDWidget(PlayerHUDWidget);
 }
 
 bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
@@ -299,7 +345,9 @@ void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 
 void APlayerCharacter::PlayerHUDHPSet(int32 value)
 {
-	PlayerHUD->UpdateHP(value);
+	//UKismetSystemLibrary::PrintString(this, TEXT("PlayerHUDHPSet"));
+	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
+	PlayerHUDWidget->UpdateHP(value);
 
 	//PlayerHUD->UpdateClearItem();// 데이터조각(같이공유하는거)
 	//// 태그이용
@@ -309,15 +357,18 @@ void APlayerCharacter::PlayerHUDHPSet(int32 value)
 }
 void APlayerCharacter::PlayerHUDMentalSet(int32 value)
 {
-	PlayerHUD->UpdateMental(value);
+	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
+	PlayerHUDWidget->UpdateMental(value);
 }
 void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
 {
-	PlayerHUD->UpdateStamina(value);
+	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
+	PlayerHUDWidget->UpdateStamina(value);
 }
 void APlayerCharacter::PlayerHUDCoreEnergySet(int32 value)
 {
-	PlayerHUD->UpdateCoreEnergy(value);
+	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
+	PlayerHUDWidget->UpdateCoreEnergy(value);
 }
 
 void APlayerCharacter::Move(const FInputActionValue& Value)
