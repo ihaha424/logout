@@ -6,14 +6,18 @@
 #include "../UI/HUD/InventoryWidget.h"
 #include "../UI/HUD/ItemSlotWidget.h"
 #include "../Player/PS_Player.h"
-#include "Log/TPTLog.h"
 #include "../Player/PC_Player.h"
+#include "Log/TPTLog.h"
+
+#include "GameplayCueNotify_Static.h"
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
 
 UInventoryComponent::UInventoryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
-    SetIsReplicated(true);
+    SetIsReplicatedByDefault(true);
 }
 
 
@@ -129,6 +133,9 @@ EItemType UInventoryComponent::UseItem(int32 SlotIndex)
         PlayerHUDWidget->ResetItemSlot(SlotIndex - 1);
     }
 
+    // 아이템 효과 발동
+    ExecuteItemEffects(usedItemType);
+
     return usedItemType;
 }
 
@@ -149,7 +156,10 @@ bool UInventoryComponent::SetPlayerHUDWidget(class UPlayerHUDWidget* HUDWidget)
 	}
 
    APC_Player* PC = Cast<APC_Player>(PS->GetPlayerController());
-   APlayerCharacter* OwnerPlayer = Cast<APlayerCharacter>(PC->GetCharacter());
+
+   OwnerPlayer = Cast<APlayerCharacter>(PC->GetCharacter());
+   OwnerASC = OwnerPlayer->GetAbilitySystemComponent();
+
    UPlayerHUDWidget* TempWidget = OwnerPlayer->GetPlayerHUDWidget();
 
     // 두 포인터가 같은 객체를 가리키는지 비교해서 반환
@@ -179,3 +189,91 @@ void UInventoryComponent::OnRep_InventorySlots()
     }
 }
 
+void UInventoryComponent::ExecuteItemEffects(EItemType ItemType)
+{
+    TPT_LOG(HUDLog, Log, TEXT("UInventoryComponent::ExecuteItemEffects: %d"), (int32)ItemType);
+
+    // 아이템 유효성 검사
+    if (ItemType == EItemType::None) return;
+
+
+    // DataTable에서 아이템 데이터 가져오기
+    FItemDataTable* ItemData = GetItemAbilityData(ItemType);
+
+    if (!ItemData)
+    {
+        TPT_LOG(HUDLog, Warning, TEXT("ItemAbilityData not found for ItemType: %d"), (int32)ItemType);
+        return;
+    }
+
+    if (!OwnerPlayer) return;
+    if (!OwnerASC) return;
+
+
+    // GameplayAbility 실행
+    if (ItemData->GameAbility)
+    {
+        ExecuteGameplayAbility(ItemData->GameAbility);
+    }
+
+    // GameplayEffect 적용
+    if (ItemData->GameEffect)
+    {
+        ApplyGameplayEffect(ItemData->GameEffect);
+    }
+}
+
+FItemDataTable* UInventoryComponent::GetItemAbilityData(EItemType ItemType)
+{
+    if(!ItemAbilityTable) return nullptr;
+
+    // EItemType을 문자열로 변환 (예: "EItemType::FireCracker")
+    FString FullEnumName = UEnum::GetValueAsString(ItemType);
+
+    // "::" 기준으로 분리해서 enum 이름만 남기기
+    FString EnumName;
+    if (!FullEnumName.Split(TEXT("::"), nullptr, &EnumName))
+    {
+        // Split 실패 시 바로 전체 이용
+        EnumName = FullEnumName;
+    }
+
+    // 디버그 로그 (실제 RowName과 일치하는지 꼭 확인)
+    TPT_LOG(HUDLog, Log, TEXT("Looking for RowName: %s"), *EnumName);
+
+    // DataTable에서 검색
+    return ItemAbilityTable->FindRow<FItemDataTable>(FName(*EnumName), TEXT("GetItemAbilityData"));
+}
+
+void UInventoryComponent::ExecuteGameplayAbility(TSubclassOf<UGameplayAbility> AbilityClass)
+{
+    if (!OwnerPlayer) return;
+    if (!OwnerASC) return;
+
+    // 임시로 Ability를 부여하고 즉시 실행
+    FGameplayAbilitySpec AbilitySpec(AbilityClass, 1);
+    FGameplayAbilitySpecHandle Handle = OwnerASC->GiveAbility(AbilitySpec);
+
+    if (Handle.IsValid())
+    {
+        OwnerASC->TryActivateAbility(Handle);
+        // 사용 후 제거 (일회성 아이템의 경우)
+        OwnerASC->ClearAbility(Handle);
+    }
+}
+
+void UInventoryComponent::ApplyGameplayEffect(TSubclassOf<UGameplayEffect> EffectClass)
+{
+    if (!OwnerPlayer) return;
+    if (!OwnerASC) return;
+
+    // GameplayEffect 적용
+    FGameplayEffectContextHandle EffectContext = OwnerASC->MakeEffectContext();
+    EffectContext.AddSourceObject(OwnerPlayer);
+
+    FGameplayEffectSpecHandle EffectSpecHandle = OwnerASC->MakeOutgoingSpec(EffectClass, 1, EffectContext);
+    if (EffectSpecHandle.IsValid())
+    {
+        OwnerASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
+    }
+}

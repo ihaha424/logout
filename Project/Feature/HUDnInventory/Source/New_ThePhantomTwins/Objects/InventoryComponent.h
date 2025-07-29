@@ -57,7 +57,7 @@ protected:
     UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_InventorySlots)
     TArray<FItemSlot> InventorySlots;
 
-    UPROPERTY(EditDefaultsOnly)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     TObjectPtr<UDataTable> ItemAbilityTable;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
@@ -65,7 +65,29 @@ protected:
     UPROPERTY()
     TObjectPtr<class UPlayerHUDWidget> PlayerHUDWidget;  // InventoryWidget 달아주고 로직 추가해야 함
 
+    UPROPERTY()
+    TObjectPtr<class APlayerCharacter> OwnerPlayer;
+
+    UPROPERTY()
+    TObjectPtr<class UAbilitySystemComponent> OwnerASC;
+
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     int32 MaxInventorySlots = 5;    // InventorySlots의 원소 수.
+
+
+public:
+    // 아이템 효과 실행 함수
+    UFUNCTION(BlueprintCallable, Category = "Inventory")
+    void ExecuteItemEffects(EItemType ItemType);
+
+private:
+    // DataTable에서 아이템 데이터 가져오기
+    FItemDataTable* GetItemAbilityData(EItemType ItemType);
+
+    // GameplayAbility 실행
+    void ExecuteGameplayAbility(TSubclassOf<UGameplayAbility> AbilityClass);
+
+    // GameplayEffect 적용
+    void ApplyGameplayEffect(TSubclassOf<UGameplayEffect> EffectClass);
 };
