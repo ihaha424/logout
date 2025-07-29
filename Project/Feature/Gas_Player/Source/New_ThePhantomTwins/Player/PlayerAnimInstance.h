@@ -6,9 +6,9 @@
 #include "Animation/AnimInstance.h"
 #include "PlayerAnimInstance.generated.h"
 
-/**
- * 
- */
+class APlayerCharacter;
+class UAbilitySystemComponent;
+class APS_Player;
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UPlayerAnimInstance : public UAnimInstance
 {
@@ -17,9 +17,15 @@ class NEW_THEPHANTOMTWINS_API UPlayerAnimInstance : public UAnimInstance
 public:
 	UPlayerAnimInstance();
 
+	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+	virtual void NativePostEvaluateAnimation() override;
 
 protected:
+	TObjectPtr<APlayerCharacter> Owner;
+	TObjectPtr<UAbilitySystemComponent> ASC;
+	TObjectPtr<APS_Player> PS;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AnimProperty")
 	float Speed;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AnimProperty")

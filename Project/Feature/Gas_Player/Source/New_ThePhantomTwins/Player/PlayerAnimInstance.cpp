@@ -12,22 +12,30 @@ UPlayerAnimInstance::UPlayerAnimInstance()
 {
 }
 
+void UPlayerAnimInstance::NativeInitializeAnimation()
+{
+	Owner = Cast<APlayerCharacter>(TryGetPawnOwner());
+	NULLCHECK_RETURN_LOG(Owner, PlayerLog, Warning, )
+	ASC = Owner->GetAbilitySystemComponent();
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Warning, )
+	PS = Cast<APS_Player>(Owner->GetPlayerState());
+	NULLCHECK_RETURN_LOG(PS, PlayerLog, Warning, )
+}
+
 void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	APlayerCharacter* Owner = Cast<APlayerCharacter>(GetOwningActor());
-	NULLCHECK_RETURN_LOG(Owner, PlayerLog, Log, )
-
-	UAbilitySystemComponent* ASC = Owner->GetAbilitySystemComponent();
-	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Log, )
-
-	APS_Player* PS = Cast<APS_Player>(Owner->GetPlayerState());
-	NULLCHECK_RETURN_LOG(PS, PlayerLog, Log, )
-	
+	NULLCHECK_RETURN_LOG(Owner, PlayerLog, Warning, )
 	Speed = Owner->GetVelocity().Length();
 
-	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Warning, )
+	NULLCHECK_RETURN_LOG(PS, PlayerLog, Warning, )
+
+	FGameplayTagContainer OwnedTags;
+	ASC->GetOwnedGameplayTags(OwnedTags);
+
+	if (OwnedTags.HasTagExact(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
 	{
 		bIsGroggy = true;
 		bIsRecovery = false;
@@ -39,7 +47,7 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	bIsRecovery = PS->IsRecovery();
 
-	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch))
+	if (OwnedTags.HasTagExact(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch))
 	{
 		bIsCrouch = true;
 	}
@@ -48,7 +56,7 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsCrouch = false;
 	}
 
-	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact))
+	if (OwnedTags.HasTagExact(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact))
 	{
 		bIsInteractive = true;
 		bIsInteract = true;
@@ -59,7 +67,7 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsInteract = false;
 	}
 
-	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill))
+	if (OwnedTags.HasTagExact(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill))
 	{
 		bIsActiveSkill = true;
 	}
@@ -67,4 +75,9 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	{
 		bIsActiveSkill = false;
 	}
+}
+
+void UPlayerAnimInstance::NativePostEvaluateAnimation()
+{
+	Super::NativePostEvaluateAnimation();
 }

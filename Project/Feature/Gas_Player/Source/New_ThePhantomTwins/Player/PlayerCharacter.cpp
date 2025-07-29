@@ -40,7 +40,6 @@ APlayerCharacter::APlayerCharacter()
 
 	InteractWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractWidget"));
 	InteractWidget->SetupAttachment(GetMesh());
-	InteractWidget->SetIsReplicated(true);
 }
 
 // Called when the game starts or when spawned
@@ -48,14 +47,19 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
-	InteractWidget->SetVisibility(false);
-	InteractWidget->SetIsReplicated(true);
-	InteractWidget->SetOwnerNoSee(true);
-	InteractWidget->SetOnlyOwnerSee(false);
+
+	UUserWidget* Widget = CreateWidget(GetWorld(), InteractWidgetClass);
+	InteractWidget->SetWidget(Widget);
+	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
 	FocusTrace->SetIsReplicated(true);
 }
 
+
+void APlayerCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+}
 
 void APlayerCharacter::PossessedBy(AController* NewController)
 {
@@ -112,10 +116,6 @@ void APlayerCharacter::OnRep_PlayerState()
 	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
 	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
 	BindAttributeDelegates(AttributeSet);
-
-	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
-	if (IsLocallyControlled()) { InteractWidget->SetVisibility(false); }
-	InteractWidget->SetVisibility(false);
 }
 
 void APlayerCharacter::Tick(float DeltaTime)
@@ -249,15 +249,10 @@ void APlayerCharacter::OnRecoveryCompleted()
 	}
 
 	GetWorld()->GetTimerManager().ClearTimer(RecoveryTimerHandle);
+	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
 	// TODO : 회복 GE
 	UKismetSystemLibrary::PrintString(this, FString("Recovery"));
-}
-
-void APlayerCharacter::SetWidgetVisibility(bool bNewVisibility)
-{
-	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
-	InteractWidget->SetVisibility(bNewVisibility);
 }
 
 bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
@@ -268,10 +263,10 @@ bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool 
 	TPT_LOG(PlayerLog,Error,TEXT("Has Tag? : %d // Interactor Name : %s "), bIsTag, *Interactor->GetFName().ToString());
 	if (bIsTag && bIsDetected)
 	{
-		SetWidgetVisibility(true);
+		InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
 		return true;
 	}
-	SetWidgetVisibility(false);
+	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 	return false;
 }
 
