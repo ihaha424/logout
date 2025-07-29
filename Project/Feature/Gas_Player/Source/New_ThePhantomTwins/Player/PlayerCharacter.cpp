@@ -207,7 +207,7 @@ void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 Number)
 	Payload.EventTag = EventTag;
 	Payload.Instigator = this;	// 이벤트를 유발한 주체 
 	Payload.EventMagnitude = static_cast<float>(Number);
-	//TPT_LOG(PlayerLog, Log, TEXT("슬롯 번호: %f"), Payload.EventMagnitude);
+	TPT_LOG(HUDLog, Log, TEXT("슬롯 번호: %f"), Payload.EventMagnitude);
 
 	ASC->HandleGameplayEvent(EventTag, &Payload);
 }
