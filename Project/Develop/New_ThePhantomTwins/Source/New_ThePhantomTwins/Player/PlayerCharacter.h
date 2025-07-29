@@ -70,9 +70,6 @@ public:
 	void OnRecoveryCompleted();
 
 	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);
-	
-	UFUNCTION()
-	UPlayerHUDWidget* GetPlayerHUDWidget(){return PlayerHUDWidget; }
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float WalkSpeed = 400.f;
@@ -107,8 +104,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Recovery")
 	FTimerHandle RecoveryTimerHandle;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
-	TObjectPtr<UGameplayEffect> RecoveryGE;
+	UPROPERTY(EditAnywhere, Category = "Recovery")
+	TSubclassOf<UGameplayEffect> RecoveryGE;
 
 protected:
 
