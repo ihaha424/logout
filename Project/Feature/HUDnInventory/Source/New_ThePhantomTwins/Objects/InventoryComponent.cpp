@@ -7,11 +7,13 @@
 #include "../UI/HUD/ItemSlotWidget.h"
 #include "../Player/PS_Player.h"
 #include "../Player/PC_Player.h"
-#include "Log/TPTLog.h"
 
 #include "GameplayCueNotify_Static.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+
+#include "Log/TPTLog.h"
+#include "Kismet/GameplayStatics.h"
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -130,7 +132,10 @@ EItemType UInventoryComponent::UseItem(int32 SlotIndex)
         itemSlot.ItemQuantity = 0;
 
         // 인벤토리 위젯 : 초기화
-        PlayerHUDWidget->ResetItemSlot(SlotIndex - 1);
+        if (PlayerHUDWidget)
+        {
+            PlayerHUDWidget->ResetItemSlot(SlotIndex - 1);
+        }
     }
 
     // 아이템 효과 발동
@@ -192,6 +197,7 @@ void UInventoryComponent::OnRep_InventorySlots()
 void UInventoryComponent::ExecuteItemEffects(EItemType ItemType)
 {
     TPT_LOG(HUDLog, Log, TEXT("UInventoryComponent::ExecuteItemEffects: %d"), (int32)ItemType);
+    UKismetSystemLibrary::PrintString(this, FString("ExecuteItemEffects"));
 
     // 아이템 유효성 검사
     if (ItemType == EItemType::None) return;
