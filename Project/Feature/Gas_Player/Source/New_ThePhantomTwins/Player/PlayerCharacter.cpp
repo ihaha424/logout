@@ -17,8 +17,10 @@
 #include "FocusTraceComponent.h"
 #include "PC_Player.h"
 #include "../GA/Action/GA_Interact.h"
+#include "AI/Character/AIBaseCharacter.h"
 #include "UI/HUD/HUD_PhantomTwins.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "UIManager/UIManager.h"
 #include "Components/WidgetComponent.h"
@@ -27,30 +29,11 @@
 APlayerCharacter::APlayerCharacter()
 {
 	ASC = nullptr;
+	bReplicates = true;
 
-	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
-	bUseControllerRotationRoll = false;
-
-	// movement setting
-	GetCharacterMovement()->bOrientRotationToMovement = true;
-	GetCharacterMovement()->RotationRate = FRotator(0, 500, 0);
-	GetCharacterMovement()->JumpZVelocity = 500.f;
-	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->MinAnalogWalkSpeed = 0.f;
-	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-	GetCharacterMovement()->MaxWalkSpeedCrouched = 80.f;
-	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
-
-	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->bUsePawnControlRotation = true;
-	SpringArm->bEnableCameraLag = true;
-	SpringArm->TargetArmLength = 150.0f;
-
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	Camera->bUsePawnControlRotation = false;
-	Camera->SetupAttachment(SpringArm);
+	MovementSetting();
+	CameraSetting();
+	OverlapRangeSetting();
 
 	FocusTrace = CreateDefaultSubobject<UFocusTraceComponent>(TEXT("FocusTrace"));
 	FocusTrace->SetIsReplicated(true);
@@ -58,8 +41,6 @@ APlayerCharacter::APlayerCharacter()
 	InteractWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractWidget"));
 	InteractWidget->SetupAttachment(GetMesh());
 	InteractWidget->SetIsReplicated(true);
-
-	bReplicates = true;
 }
 
 // Called when the game starts or when spawned
@@ -92,12 +73,7 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 
 	BindAttributeDelegates(AttributeSet);
 	NULLCHECK_RETURN_LOG(InitAttributeSetEffect, PlayerLog, Error, );
-	ASC->ApplyGameplayEffectToSelf
-	(
-		InitAttributeSetEffect->GetDefaultObject<UGameplayEffect>(),
-		1.0f,
-		ASC->MakeEffectContext()
-	);
+	ASC->ApplyGameplayEffectToSelf(InitAttributeSetEffect->GetDefaultObject<UGameplayEffect>(),1.0f, ASC->MakeEffectContext());
 	
 	for (const auto& Ability : PlayerAbilities)
 	{
@@ -136,7 +112,6 @@ void APlayerCharacter::OnRep_PlayerState()
 	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
 	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
 	BindAttributeDelegates(AttributeSet);
-
 
 	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
 	if (IsLocallyControlled()) { InteractWidget->SetVisibility(false); }
@@ -240,6 +215,8 @@ void APlayerCharacter::InputReleased(int32 InputID)
 	}
 }
 
+
+
 void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)
 {
 	AttributeSet->OnPlayerLowHP.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
@@ -256,7 +233,7 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 	//AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
 }
 
-void APlayerCharacter::OnRecoveryCompelete()
+void APlayerCharacter::OnRecoveryCompleted()
 {
 	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
@@ -305,7 +282,7 @@ void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 	GetWorld()->GetTimerManager().SetTimer(
 		RecoveryTimerHandle,               
 		this,                              
-		&APlayerCharacter::OnRecoveryCompelete, 
+		&APlayerCharacter::OnRecoveryCompleted, 
 		5.0f,                              
 		false                              
 	);
@@ -391,4 +368,112 @@ FGenericTeamId APlayerCharacter::GetGenericTeamId() const
 		return PS->GetGenericTeamId();
 	}
 	return FGenericTeamId::NoTeam;
+}
+
+void APlayerCharacter::OverlapRangeSetting()
+{
+	WallSina = CreateDefaultSubobject<USphereComponent>(TEXT("WallSina"));
+	WallSina->SetupAttachment(RootComponent);
+	WallSina->SetSphereRadius(500.f);
+	// 모든 채널 무시
+	WallSina->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	WallSina->SetCollisionResponseToAllChannels(ECR_Ignore);
+	// Pawn 채널(플레이어, AI 등)만 오버랩!
+	WallSina->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
+	WallRose = CreateDefaultSubobject<USphereComponent>(TEXT("WallRose"));
+	WallRose->SetupAttachment(RootComponent);
+	WallRose->SetSphereRadius(1000.f);
+	WallRose->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	WallRose->SetCollisionResponseToAllChannels(ECR_Ignore);
+	WallRose->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
+	WallMaria = CreateDefaultSubobject<USphereComponent>(TEXT("WallMaria"));
+	WallMaria->SetupAttachment(RootComponent);
+	WallMaria->SetSphereRadius(1500.f);
+	WallMaria->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	WallMaria->SetCollisionResponseToAllChannels(ECR_Ignore);
+	WallMaria->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+}
+
+void APlayerCharacter::MovementSetting()
+{
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
+
+	// movement setting
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0, 500, 0);
+	GetCharacterMovement()->JumpZVelocity = 500.f;
+	GetCharacterMovement()->AirControl = 0.35f;
+	GetCharacterMovement()->MinAnalogWalkSpeed = 0.f;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = 80.f;
+	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
+}
+
+void APlayerCharacter::CameraSetting()
+{
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->SetupAttachment(RootComponent);
+	SpringArm->bUsePawnControlRotation = true;
+	SpringArm->bEnableCameraLag = true;
+	SpringArm->TargetArmLength = 150.0f;
+
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	Camera->bUsePawnControlRotation = false;
+	Camera->SetupAttachment(SpringArm);
+}
+
+void APlayerCharacter::OnBeginOverlap(EEnemyRange Range, AActor* OtherActor)
+{
+	UAbilitySystemComponent* AIASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
+	NULLCHECK_RETURN_LOG(AIASC, PlayerLog, Log, );
+	if (AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI))
+	{
+		EEnemyRange* Found = EnemyRangeMap.Find(OtherActor);
+
+		if (!Found || Range < *Found)
+		{
+			EnemyRangeMap.Add(OtherActor, Range);
+		}
+	}
+}
+
+// EndOverlap 시 - 해당 범위 Enum이 빠지면, 더 밖의 반경으로 Enum 전환(아니면 지움)
+void APlayerCharacter::OnEndOverlap(EEnemyRange Range, AActor* OtherActor)
+{
+	UAbilitySystemComponent* AIASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
+	NULLCHECK_RETURN_LOG(AIASC, PlayerLog, Log, );
+	if (AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI))
+	{
+		EEnemyRange* Found = EnemyRangeMap.Find(OtherActor);
+		if (Found && *Found == Range)
+		{
+			// 더 바깥 반경에 있는지 체크
+			if (Range == EEnemyRange::WallSina)
+			{
+				// 10m 오버랩 중이면 10m로 덮기, 아니면 15m…
+				if (WallRose->IsOverlappingActor(OtherActor))
+					*Found = EEnemyRange::WallRose;
+				else if (WallMaria->IsOverlappingActor(OtherActor))
+					*Found = EEnemyRange::WallMaria;
+				else
+					EnemyRangeMap.Remove(OtherActor);
+			}
+			else if (Range == EEnemyRange::WallRose)
+			{
+				if (WallMaria->IsOverlappingActor(OtherActor))
+					*Found = EEnemyRange::WallMaria;
+				else
+					EnemyRangeMap.Remove(OtherActor);
+			}
+			else
+			{
+				// 15m 빠지면 완전히 노출에서 제거
+				EnemyRangeMap.Remove(OtherActor);
+			}
+		}
+	}
 }

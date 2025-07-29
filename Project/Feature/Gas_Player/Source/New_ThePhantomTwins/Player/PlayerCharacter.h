@@ -12,6 +12,8 @@
 #include "GenericTeamAgentInterface.h"
 #include "PlayerCharacter.generated.h"
 
+
+class USphereComponent;
 class APC_Player;
 class AHUD_PhantomTwins;
 class UPlayerAttributeSet;
@@ -27,6 +29,15 @@ class USpringArmComponent;
 class UInputAction;
 class UFocusTraceComponent;
 class UWidgetComponent;
+
+UENUM(BlueprintType)
+enum class EEnemyRange : uint8
+{
+	None UMETA(DisplayName = "None"),
+	WallSina UMETA(DisplayName = "WallSina"),
+	WallRose UMETA(DisplayName = "WallRose"),
+	WallMaria UMETA(DisplayName = "WallMaria")
+};
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API APlayerCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IInteract
@@ -54,7 +65,7 @@ public:
 	void BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet);
 
 	UFUNCTION()
-	void OnRecoveryCompelete();
+	void OnRecoveryCompleted();
 
 	void SetWidgetVisibility(bool bNewVisibility);
 
@@ -104,6 +115,7 @@ protected:
 
 	UPROPERTY()
 	AHUD_PhantomTwins* PlayerHUD;
+
 	// GAS
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<UAbilitySystemComponent> ASC;
@@ -124,6 +136,26 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> LookAction;
 
+	// ¹Ý°æ
+	UPROPERTY(VisibleAnywhere)
+	USphereComponent* WallSina;
+
+	UPROPERTY(VisibleAnywhere)
+	USphereComponent* WallRose;
+
+	UPROPERTY(VisibleAnywhere)
+	USphereComponent* WallMaria;
+
+	UPROPERTY(EditAnywhere, Category = Sound)
+	USoundBase* WallSinaSound;
+	UPROPERTY(EditAnywhere, Category = Sound)
+	USoundBase* WallRoseSound;
+	UPROPERTY(EditAnywhere, Category = Sound)
+	USoundBase* WallMariaSound;
+	UPROPERTY()
+	UAudioComponent* WallAudioComponent = nullptr;
+	UPROPERTY()
+	TMap<AActor*, EEnemyRange> EnemyRangeMap;
 public:
 	UFUNCTION()
 	void PlayerHUDHPSet(int32 value);
@@ -140,5 +172,10 @@ public:
 	void InputPressed(int32 InputID);
 	void InputPressedWithNum(int32 InputID, int32 Number);
 	void InputReleased(int32 InputID);
-};
 
+	void OverlapRangeSetting();
+	void MovementSetting();
+	void CameraSetting();
+	void OnBeginOverlap(EEnemyRange Range, AActor* OtherActor);
+	void OnEndOverlap(EEnemyRange Range, AActor* OtherActor);
+};
