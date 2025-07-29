@@ -22,6 +22,7 @@
 #include "UIManager/UIManager.h"
 #include "Components/WidgetComponent.h"
 #include "../Objects/InventoryComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -64,11 +65,6 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (PlayerHUDWidget)
-	{
-		PlayerHUDWidget->AddToViewport();
-	}
 }
 
 void APlayerCharacter::PossessedBy(AController* NewController)
@@ -341,6 +337,7 @@ void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 
 void APlayerCharacter::PlayerHUDHPSet(int32 value)
 {
+	UKismetSystemLibrary::PrintString(this, TEXT("asds"));
 	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
 	PlayerHUDWidget->UpdateHP(value);
 
@@ -438,10 +435,10 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 	}
 
 	// AttributeSet에서 값 가져와 위젯 초기화 호출
-	int32 HP = AttributeSet->GetHP();
-	int32 Mental = AttributeSet->GetMentalPoint();
-	int32 Stamina = AttributeSet->GetStamina();
-	int32 CoreEnergy = AttributeSet->GetCoreEnergy();
+	int32 HP = AttributeSet->GetMaxHP();
+	int32 Mental = AttributeSet->GetMaxMentalPoint();
+	int32 Stamina = AttributeSet->GetMaxStamina();
+	int32 CoreEnergy = AttributeSet->GetMaxCoreEnergy();
 
 	PlayerHUDWidget->InitializeWidgets(HP, Mental, Stamina, CoreEnergy);
 
