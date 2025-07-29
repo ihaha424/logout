@@ -21,10 +21,12 @@ public:
 	virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility) override;
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
-
-
 	// NetWork
 	UFUNCTION(Server, Reliable)
 	void C2S_Interact(UObject* interact, AActor* Owner);
 	void C2S_Interact_Implementation(UObject* interact, AActor* Owner);
+
+	// Interact 중에 재생할 애니메이션 몽타주
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+	TObjectPtr<UAnimMontage> InteractMontage;
 };

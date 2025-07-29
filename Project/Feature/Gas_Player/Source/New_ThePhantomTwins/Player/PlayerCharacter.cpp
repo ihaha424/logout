@@ -258,9 +258,8 @@ void APlayerCharacter::OnRecoveryCompleted()
 bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, false);
-
 	bool bIsTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-	TPT_LOG(PlayerLog,Error,TEXT("Has Tag? : %d // Interactor Name : %s "), bIsTag, *Interactor->GetFName().ToString());
+
 	if (bIsTag && bIsDetected)
 	{
 		InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
@@ -272,8 +271,6 @@ bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool 
 
 void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 {
-	TPT_LOG(PlayerLog,Error,TEXT(""));
-	//UKismetSystemLibrary::PrintString(this, FString("Sever Interact"));
 	GetWorld()->GetTimerManager().SetTimer(
 		RecoveryTimerHandle,               
 		this,                              
@@ -285,8 +282,6 @@ void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 
 void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	TPT_LOG(PlayerLog, Error, TEXT(""));
-	//UKismetSystemLibrary::PrintString(this, FString("Client Interact"));
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 	PlayerController->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
 }
@@ -296,9 +291,8 @@ void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 	FGameplayAbilitySpec* TagID = ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
 	NULLCHECK_RETURN_LOG(TagID, PlayerLog, Error, );
 	bool CanActivate = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
-	TPT_LOG(PlayerLog, Log, TEXT("Tag :::  %s / Activate Ability success ? ::: %d / Ability IsValid ? ::: %d"), *InputTag.ToString(), CanActivate, IsValid(TagID->Ability));
 
-	// TODO : HandleGameplayEvent // 
+	// TODO : HandleGameplayEvent
 }
 
 void APlayerCharacter::PlayerHUDHPSet(int32 value)
