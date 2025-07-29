@@ -51,7 +51,7 @@ void AAIBaseCharacter::BeginPlay()
     if (AbilitySystem)
     {
         AbilitySystem->InitAbilityActorInfo(this, this);
-        AbilitySystem->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI);
+        AbilitySystem->AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI);
 
         for (const auto& Ability : Abilities)
         {

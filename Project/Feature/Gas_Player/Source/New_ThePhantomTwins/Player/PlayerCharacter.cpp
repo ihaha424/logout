@@ -518,13 +518,13 @@ void APlayerCharacter::OnEndOverlapMaria(UPrimitiveComponent* Comp, AActor* Othe
 
 void APlayerCharacter::OnBeginOverlap(EEnemyRange Range, AActor* OtherActor)
 {
-	//TPT_LOG(PlayerLog, Error, TEXT("%s OnBeginOverlap  : Target is : %s"), *UEnum::GetDisplayValueAsText(Range).ToString(), *OtherActor->GetFName().ToString());
 	UAbilitySystemComponent* AIASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
+
 	NULLCHECK_RETURN_LOG(AIASC, PlayerLog, Log, );
-	if (AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI))
+	bool AIHasTag = AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI);
+	if (AIHasTag)
 	{
 		EEnemyRange* Found = EnemyRangeMap.Find(OtherActor);
-
 		if (!Found || Range < *Found)
 		{
 			EnemyRangeMap.Add(OtherActor, Range);
@@ -577,7 +577,6 @@ EEnemyRange APlayerCharacter::GetNearestEnemyRange() const
 		if (Nearest == EEnemyRange::None || Pair.Value < Nearest)
 			Nearest = Pair.Value;
 	}
-	TPT_LOG(PlayerLog, Log, TEXT(" : %s"), *UEnum::GetDisplayValueAsText(Nearest).ToString());
 	return Nearest;
 }
 
@@ -585,11 +584,9 @@ void APlayerCharacter::UpdateWallSound()
 {
 	if (!IsLocallyControlled())
 	{
-		TPT_LOG(PlayerLog, Log, TEXT(" Is Not LocallyControlled"));
 		return;
 	}
 	EEnemyRange Closest = GetNearestEnemyRange();
-	TPT_LOG(PlayerLog, Log, TEXT("UpdateWallSound, Closest Range: %d"), static_cast<int32>(Closest));
 
 	if (Closest != CurrentWallRange)
 	{
@@ -609,11 +606,12 @@ void APlayerCharacter::UpdateWallSound()
 		case EEnemyRange::WallMaria: ToPlay = WallMariaSound;  break;
 		default: break; // None(아무 적도 없음)인 경우 아무 사운드도 X
 		}
-
+		
 		if (ToPlay)
 		{
 			WallAudioComponent = UGameplayStatics::SpawnSoundAttached(ToPlay, GetRootComponent());
 		}
+
 		CurrentWallRange = Closest;
 	}
 }
