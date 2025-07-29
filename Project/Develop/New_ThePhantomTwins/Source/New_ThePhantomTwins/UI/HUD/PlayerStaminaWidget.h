@@ -24,6 +24,7 @@ protected:
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<class UProgressBar> StaminaBar;
 
+public:
     UPROPERTY()
     float MaxStamina = 100.0f;
 };

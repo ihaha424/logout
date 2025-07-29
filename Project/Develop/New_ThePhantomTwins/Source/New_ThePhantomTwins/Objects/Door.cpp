@@ -5,6 +5,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
+#include "../Player/PlayerCharacter.h"
 #include "../Log/TPTLog.h"
 
 ADoor::ADoor() : AInteractableObject()
@@ -83,7 +84,14 @@ bool ADoor::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected
 
 	// 감지되었고 상호작용 가능한 상태
 	bCanInteract = true;
-	SetWidgetVisible(true);
+	
+	// Interactor가 APlayerCharacter 인 경우에만 위젯을 띄어라
+	const APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(const_cast<APawn*>(Interactor));
+	if (PlayerChar)
+	{
+		SetWidgetVisible(true);
+	}
+
 	return true;
 }
 

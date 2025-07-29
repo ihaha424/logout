@@ -33,6 +33,6 @@ protected:
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<class UStackBox> CoreEnergyStackBox;
 
-    UPROPERTY()
-    int32 MaxCoreEnergy = 5;
+    //UPROPERTY()
+    //int32 MaxCoreEnergy = 5;
 };
