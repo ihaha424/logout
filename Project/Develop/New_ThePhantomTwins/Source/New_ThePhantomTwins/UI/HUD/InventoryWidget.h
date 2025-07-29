@@ -27,6 +27,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void LoadInventory(class UInventoryComponent* Inventory);
 
+	void LoadInventory(const int32 InventorySlotsNum);
+
 	/**
 	 * WrapBox의 자식 중 지정된 인덱스의 아이템 슬롯 위젯을 반환합니다.
 	 * @param Index - 슬롯 인덱스

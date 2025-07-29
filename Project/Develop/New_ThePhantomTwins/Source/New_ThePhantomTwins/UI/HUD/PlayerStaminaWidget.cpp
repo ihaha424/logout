@@ -13,6 +13,6 @@ void UPlayerStaminaWidget::SetStamina(int32 Stamina)
 {
 	if (!StaminaBar) return;
 
-	float StaminaRatio = FMath::Clamp(static_cast<float>(Stamina) / 100.0f, 0.0f, 1.0f);
+	float StaminaRatio = FMath::Clamp(static_cast<float>(Stamina) / MaxStamina, 0.0f, 1.0f);
 	StaminaBar->SetPercent(StaminaRatio);
 }

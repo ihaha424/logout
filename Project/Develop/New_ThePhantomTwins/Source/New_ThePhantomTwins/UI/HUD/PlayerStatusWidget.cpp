@@ -12,7 +12,7 @@ void UPlayerStatusWidget::SetHP(int32 HP)
 {
 	if (!HPBar) return;
 
-	float HPRatio = FMath::Clamp(static_cast<float>(HP) / 100.0f, 0.0f, 1.0f);
+	float HPRatio = FMath::Clamp(static_cast<float>(HP) / MaxHP, 0.0f, 1.0f);
 	HPBar->SetPercent(HPRatio);
 
 }
@@ -21,7 +21,7 @@ void UPlayerStatusWidget::SetMental(int32 Mental)
 {
 	if (!MentalBar) return;
 
-	float MentalRatio = FMath::Clamp(static_cast<float>(Mental) / 100.0f, 0.0f, 1.0f);
+	float MentalRatio = FMath::Clamp(static_cast<float>(Mental) / MaxMental, 0.0f, 1.0f);
 	MentalBar->SetPercent(MentalRatio);
 }
 
