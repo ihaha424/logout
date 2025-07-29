@@ -70,6 +70,9 @@ public:
 	void OnRecoveryCompleted();
 
 	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);
+	
+	UFUNCTION()
+	UPlayerHUDWidget* GetPlayerHUDWidget(){return PlayerHUDWidget; }
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float WalkSpeed = 400.f;

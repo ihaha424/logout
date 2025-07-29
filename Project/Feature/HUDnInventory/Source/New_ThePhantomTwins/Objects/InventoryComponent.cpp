@@ -6,7 +6,7 @@
 #include "../UI/HUD/InventoryWidget.h"
 #include "../UI/HUD/ItemSlotWidget.h"
 #include "../Player/PS_Player.h"
-#include <Log/TPTLog.h>
+#include "Log/TPTLog.h"
 #include "../Player/PC_Player.h"
 
 UInventoryComponent::UInventoryComponent()
@@ -89,6 +89,8 @@ void UInventoryComponent::AddItem(EItemType eItemType)
 
 EItemType UInventoryComponent::UseItem(int32 SlotIndex)
 {
+    TPT_LOG(HUDLog, Log, TEXT("UInventoryComponent::UseItem : %f"), SlotIndex);
+
     // 예외처리 (슬롯 인덱스 제외한 숫자가 들어 온 경우.)
     if (SlotIndex <= 0 || SlotIndex > InventorySlots.Num())
     {
@@ -148,10 +150,10 @@ bool UInventoryComponent::SetPlayerHUDWidget(class UPlayerHUDWidget* HUDWidget)
 
    APC_Player* PC = Cast<APC_Player>(PS->GetPlayerController());
    APlayerCharacter* OwnerPlayer = Cast<APlayerCharacter>(PC->GetCharacter());
-   //UPlayerHUDWidget* TempWidget = OwnerPlayer->GetPlayerHUDWidget();
+   UPlayerHUDWidget* TempWidget = OwnerPlayer->GetPlayerHUDWidget();
 
     // 두 포인터가 같은 객체를 가리키는지 비교해서 반환
-    return true;//(PlayerHUDWidget.Get() == TempWidget);
+    return (PlayerHUDWidget.Get() == TempWidget);
 }
 
 void UInventoryComponent::OnRep_InventorySlots()
