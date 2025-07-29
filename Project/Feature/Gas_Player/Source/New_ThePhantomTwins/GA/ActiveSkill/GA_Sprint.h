@@ -24,8 +24,5 @@ public:
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayEffect> CoolDownEffect;
 	UPROPERTY(EditAnywhere, Category = "GAS")
-	float CoolDownValue = 5.0f;
-
-	bool bHasCoolDownTag = false;
-
+	float CoolDownValue = 15.0f;
 };

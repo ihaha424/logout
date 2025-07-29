@@ -486,7 +486,7 @@ void APlayerCharacter::OverlapRangeSetting()
 
 void APlayerCharacter::OnBeginOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor,UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	TPT_LOG(PlayerLog, Error, TEXT("Sina Begin : %s"), *OtherActor->GetFName().ToString());
+	//TPT_LOG(PlayerLog, Error, TEXT("Sina Begin : %s"), *OtherActor->GetFName().ToString());
 	OnBeginOverlap(EEnemyRange::WallSina, OtherActor);
 }
 void APlayerCharacter::OnEndOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor,UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -495,7 +495,7 @@ void APlayerCharacter::OnEndOverlapSina(UPrimitiveComponent* Comp, AActor* Other
 }
 void APlayerCharacter::OnBeginOverlapRose(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	TPT_LOG(PlayerLog, Error, TEXT("Rose Begin : %s"), *OtherActor->GetFName().ToString());
+	//TPT_LOG(PlayerLog, Error, TEXT("Rose Begin : %s"), *OtherActor->GetFName().ToString());
 	OnBeginOverlap(EEnemyRange::WallRose, OtherActor);
 }
 void APlayerCharacter::OnEndOverlapRose(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -504,18 +504,18 @@ void APlayerCharacter::OnEndOverlapRose(UPrimitiveComponent* Comp, AActor* Other
 }
 void APlayerCharacter::OnBeginOverlapMaria(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	TPT_LOG(PlayerLog, Error, TEXT("Maria Begin : %s"), *OtherActor->GetFName().ToString());
+	//TPT_LOG(PlayerLog, Error, TEXT("Maria Begin : %s"), *OtherActor->GetFName().ToString());
 	OnBeginOverlap(EEnemyRange::WallMaria, OtherActor);
 }
 void APlayerCharacter::OnEndOverlapMaria(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	TPT_LOG(PlayerLog, Error, TEXT("Maria End : %s"), *OtherActor->GetFName().ToString());
+	//TPT_LOG(PlayerLog, Error, TEXT("Maria End : %s"), *OtherActor->GetFName().ToString());
 	OnEndOverlap(EEnemyRange::WallMaria, OtherActor);
 }
 
 void APlayerCharacter::OnBeginOverlap(EEnemyRange Range, AActor* OtherActor)
 {
-	TPT_LOG(PlayerLog, Error, TEXT("%s OnBeginOverlap  : Target is : %s"), *UEnum::GetDisplayValueAsText(Range).ToString(), *OtherActor->GetFName().ToString());
+	//TPT_LOG(PlayerLog, Error, TEXT("%s OnBeginOverlap  : Target is : %s"), *UEnum::GetDisplayValueAsText(Range).ToString(), *OtherActor->GetFName().ToString());
 	UAbilitySystemComponent* AIASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
 	NULLCHECK_RETURN_LOG(AIASC, PlayerLog, Log, );
 	if (AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI))
@@ -576,7 +576,7 @@ EEnemyRange APlayerCharacter::GetNearestEnemyRange() const
 		if (Nearest == EEnemyRange::None || Pair.Value < Nearest)
 			Nearest = Pair.Value;
 	}
-	TPT_LOG(PlayerLog, Error, TEXT(" : %s"), *UEnum::GetDisplayValueAsText(Nearest).ToString());
+	TPT_LOG(PlayerLog, Log, TEXT(" : %s"), *UEnum::GetDisplayValueAsText(Nearest).ToString());
 	return Nearest;
 }
 
@@ -587,7 +587,7 @@ void APlayerCharacter::UpdateWallSound()
 		return;
 	}
 	EEnemyRange Closest = GetNearestEnemyRange();
-	TPT_LOG(PlayerLog, Error, TEXT("UpdateWallSound, Closest Range: %d"), static_cast<int32>(Closest));
+	TPT_LOG(PlayerLog, Log, TEXT("UpdateWallSound, Closest Range: %d"), static_cast<int32>(Closest));
 
 	if (Closest != CurrentWallRange)
 	{
