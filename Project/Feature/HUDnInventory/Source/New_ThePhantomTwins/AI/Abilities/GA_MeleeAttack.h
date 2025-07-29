@@ -27,6 +27,17 @@ public:
         bool bReplicateEndAbility,
         bool bWasCancelled) override;
 
+    void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted,
+        FGameplayAbilitySpecHandle Handle,
+        const FGameplayAbilityActorInfo* ActorInfo,
+        FGameplayAbilityActivationInfo ActivationInfo);
+
+    UFUNCTION()
+    void OnCompleteCallback();
+    UFUNCTION()
+    void OnInterruptedCallback();
+
+
 protected:
     UPROPERTY(EditDefaultsOnly, Category = "Animation")
     TObjectPtr<UAnimMontage> AttackMontage;

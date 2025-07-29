@@ -16,16 +16,16 @@ UBTT_FindClosestSplinePath::UBTT_FindClosestSplinePath()
 EBTNodeResult::Type UBTT_FindClosestSplinePath::Execute_Task(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	AAIController* AIController = OwnerComp.GetAIOwner();
-	NULLCHECK_RETURN_LOG(AIController, AILog, Warning, EBTNodeResult::Failed)
+	NULLCHECK_RETURN_LOG(AIController, AILog, Warning, EBTNodeResult::Failed);
 
 	APawn* AIPawn = AIController->GetPawn();
-	NULLCHECK_RETURN_LOG(AIPawn, AILog, Warning, EBTNodeResult::Failed)
+	NULLCHECK_RETURN_LOG(AIPawn, AILog, Warning, EBTNodeResult::Failed);
 
 	ASplineActorManager* Manager = ASplineActorManager::Get(GetWorld());
-	NULLCHECK_RETURN_LOG(Manager, AILog, Warning, EBTNodeResult::Failed)
+	NULLCHECK_RETURN_LOG(Manager, AILog, Warning, EBTNodeResult::Failed);
 
 	UBlackboardComponent* BBComp = OwnerComp.GetBlackboardComponent();
-	NULLCHECK_RETURN_LOG(BBComp, AILog, Warning, EBTNodeResult::Failed)
+	NULLCHECK_RETURN_LOG(BBComp, AILog, Warning, EBTNodeResult::Failed);
 
 	FVector ActorLocation = AIPawn->GetActorLocation();
 	FVector2D ActorLocation2D = FVector2D(ActorLocation.X, ActorLocation.Y);

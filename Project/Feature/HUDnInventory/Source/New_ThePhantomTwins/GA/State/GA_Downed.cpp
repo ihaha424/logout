@@ -7,10 +7,12 @@
 #include "Attribute/PlayerAttributeSet.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
+#include "Player/PS_Player.h"
 
 UGA_Downed::UGA_Downed()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 }
 
 void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -20,6 +22,13 @@ void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
 	GAActorInfo = ActorInfo;
 	MyASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed).AddUObject(this, &UGA_Downed::OnDownedTagChanged);
+
+	APlayerCharacter* Character = Cast<APlayerCharacter>(GAActorInfo->AvatarActor.Get());
+	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
+	APS_Player* PS = Cast<APS_Player>(Character->GetPlayerState());
+	NULLCHECK_RETURN_LOG(PS, GALog, Warning, );
+	PS->SetGroggy(true);
+	PS->SetRecovery(false);
 
 	SetSpeed(DownedSpeed, GAActorInfo);
 }
@@ -60,14 +69,18 @@ void UGA_Downed::OnDownedTagChanged(const FGameplayTag Tag, int32 TagCount)
 	APlayerCharacter* Character = Cast<APlayerCharacter>(GAActorInfo->AvatarActor.Get());
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
 	float WalkSpeed = Character->WalkSpeed;
+	APS_Player* PS = Cast<APS_Player>(Character->GetPlayerState());
+	NULLCHECK_RETURN_LOG(PS, GALog, Warning, );
 
 	float FinalSpeed = bHasDownedTag ? DownedSpeed : WalkSpeed;
 	SetSpeed(FinalSpeed, GAActorInfo);
 
 	if (!bHasDownedTag)
 	{
+		PS->SetGroggy(false);
+
 		bool bReplicatedEndAbility = true;
-		bool bWasCancelled = true;
+		bool bWasCancelled = false;
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
 	}
 }

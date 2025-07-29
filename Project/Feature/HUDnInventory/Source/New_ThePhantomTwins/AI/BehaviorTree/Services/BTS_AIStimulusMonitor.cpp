@@ -77,7 +77,11 @@ inline void UBTS_AIStimulusMonitor::DetermineStateTransition(UBlackboardComponen
         // 시야 범위 내의 플레이어/적 액터를 인지한 시간이 1.0초 이하일 경우 의심 상태로 변경
         // 의심 상태로 변동시, 가장 마지막에 인지한 자극의 위치로 이동
         */
-        if (BB->GetValueAsBool(InCombatRangeKey.SelectedKeyName))
+        if (BB->GetValueAsBool(StunKey.SelectedKeyName))
+        {
+            BB->SetValueAsEnum(AIStateKey.SelectedKeyName, static_cast<uint8>(EAIBaseState::Stun));
+        }
+        else if (BB->GetValueAsBool(InCombatRangeKey.SelectedKeyName))
         {
             BB->SetValueAsBool(InCombatRangeKey.SelectedKeyName, false);
             BB->SetValueAsEnum(AIStateKey.SelectedKeyName, static_cast<uint8>(EAIBaseState::Combat));
@@ -102,7 +106,11 @@ inline void UBTS_AIStimulusMonitor::DetermineStateTransition(UBlackboardComponen
                 Spline Path 탐색을 시작하면 추가 소음 자극을 업데이트하지 않음 (시야 자극이 발생하면 시야 자극 추적)
                 Spline Path 탐색이 완료되면 저장한 자극 정보를 초기화하고 기본 상태로 변동
         */
-        if (BB->GetValueAsBool(InCombatRangeKey.SelectedKeyName))
+        if (BB->GetValueAsBool(StunKey.SelectedKeyName))
+        {
+            BB->SetValueAsEnum(AIStateKey.SelectedKeyName, static_cast<uint8>(EAIBaseState::Stun));
+        }
+        else if (BB->GetValueAsBool(InCombatRangeKey.SelectedKeyName))
         {
             BB->SetValueAsBool(InCombatRangeKey.SelectedKeyName, false);
             BB->SetValueAsEnum(AIStateKey.SelectedKeyName, static_cast<uint8>(EAIBaseState::Combat));
@@ -114,7 +122,11 @@ inline void UBTS_AIStimulusMonitor::DetermineStateTransition(UBlackboardComponen
     }
     else if (CurrentState == EAIBaseState::Combat)
     {
-        if (BB->GetValueAsBool(InCombatRangeKey.SelectedKeyName))
+        if (BB->GetValueAsBool(StunKey.SelectedKeyName))
+        {
+            BB->SetValueAsEnum(AIStateKey.SelectedKeyName, static_cast<uint8>(EAIBaseState::Stun));
+        }
+        else if (BB->GetValueAsBool(InCombatRangeKey.SelectedKeyName))
         {
             BB->SetValueAsBool(InCombatRangeKey.SelectedKeyName, false);
         }
@@ -133,7 +145,7 @@ inline void UBTS_AIStimulusMonitor::DetermineStateTransition(UBlackboardComponen
     }
     else if (CurrentState == EAIBaseState::Stun)
     {
-        TPT_LOG(AILog, Log, TEXT("CurrentState == EAIBaseState::Stun: Nothing"));
+        // TPT_LOG(AILog, Log, TEXT("CurrentState == EAIBaseState::Stun: Nothing"));
     }
     else
     {

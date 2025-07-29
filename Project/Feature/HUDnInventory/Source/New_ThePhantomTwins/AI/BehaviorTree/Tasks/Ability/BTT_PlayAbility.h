@@ -19,6 +19,7 @@ public:
     UBTT_PlayAbility();
 
     virtual EBTNodeResult::Type Execute_Task(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+    virtual void Execute_TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
     virtual FString GetStaticDescription() const override;
 
 protected:
@@ -33,4 +34,7 @@ protected:
      */
     UPROPERTY(EditAnywhere, Category = "Blackboard")
     FBlackboardKeySelector TargetActorKey;
+
+private:
+    bool bIsWaitingForAbility;
 };

@@ -20,7 +20,7 @@ DECLARE_LOG_CATEGORY_EXTERN(AILog, Log, All);
 
 /*		NULLCHECK_LOG Please close the '}'		*/
 #define NULLCHECK_LOG(Target, CatecoryName, Verbosity) \
-	if(nullptr == Target) { TPT_LOG(CatecoryName, Verbosity, TEXT(#Target "is nullptr."));
+	if(nullptr == Target) { TPT_LOG(CatecoryName, Verbosity, TEXT(#Target " is nullptr."));
 
 /*		NULLCHECK_LOG Please close the '}'		*/
 #define NULLCHECK_CODE_LOG(Target, CatecoryName, Verbosity, CODE) \
@@ -41,12 +41,12 @@ DECLARE_LOG_CATEGORY_EXTERN(AILog, Log, All);
 /*		CONDITIONCHECK_LOG		*/
 
 #define CONDITIONCHECK_RETURN_LOG(Condition, CatecoryName, Verbosity, ReturnValue) \
-	if(Condition) { TPT_LOG(CatecoryName, Verbosity, TEXT(#Condition "is nullptr.")); \
+	if(Condition) { TPT_LOG(CatecoryName, Verbosity, TEXT(#Condition " is invalid.")); \
 		return ReturnValue; \
 	}
 
 #define CONDITIONCHECK_CODE_RETURN_LOG(Condition, CatecoryName, Verbosity, CODE, ReturnValue) \
-	if(Condition) { TPT_LOG(CatecoryName, Verbosity, TEXT(#Condition "is nullptr.")); \
+	if(Condition) { TPT_LOG(CatecoryName, Verbosity, TEXT(#Condition " is invalid.")); \
 		CODE \
 		return ReturnValue; \
 	}
