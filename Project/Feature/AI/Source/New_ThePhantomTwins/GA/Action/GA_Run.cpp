@@ -3,7 +3,6 @@
 #include "GA_Run.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Player/PlayerCharacter.h"
-#include "Player/PS_Player.h"
 #include "Attribute/PlayerAttributeSet.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
@@ -13,6 +12,7 @@ UGA_Run::UGA_Run()
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	//NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalOnly;
 	CancelTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch);
+	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run);
 }
 
 void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

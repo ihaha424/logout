@@ -4,6 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "GameplayEffectTypes.h"
+#include "Attribute/PlayerAttributeSet.h"
+#include "Player/PC_Player.h"
+#include "Player/PlayerCharacter.h"
 #include "HUD_PhantomTwins.generated.h"
 
 /**
@@ -18,6 +22,12 @@ protected:
     virtual void BeginPlay() override;
 
 public:
+
+    void TryInitHUD();
+    void ScheduleNextInit();
+    void InitHUD_Internal(APC_Player* PC, APlayerCharacter* Pawn, APlayerState* PS, UAbilitySystemComponent* ASC,
+        const UPlayerAttributeSet* AttSet);
+
 /* PlayerStatus */
     // Player HP 변경
 	UFUNCTION(BlueprintCallable, Category = "UI | PlayerStatus")
@@ -50,10 +60,10 @@ public:
     void SetPassiveSkillIcon(UTexture2D* PassiveSkillIcon);
 
     UFUNCTION(BlueprintCallable, Category = "UI | Skill")
-    void UpdateSkillPoints(int32 SkillPointsNum);
+    void UpdateCoreEnergy(int32 SkillPointsNum);
 
 
-
+    bool bIsHUDInitDone = false;
 protected:
 // 조준점 UI
     UPROPERTY(EditDefaultsOnly, Category = "UI")

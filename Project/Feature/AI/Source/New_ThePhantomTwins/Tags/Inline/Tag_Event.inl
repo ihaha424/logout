@@ -2,4 +2,4 @@
 
 
 // Çü½Ä: TPT_TAG_GEN(Type, Properties, Name, "Description")
-TPT_TAG_GEN(Event, Interact, Interactable, "Check Interactable")
+TPT_TAG_GEN(Event, Character, UseItemSlot, "Character use Itemslot")
