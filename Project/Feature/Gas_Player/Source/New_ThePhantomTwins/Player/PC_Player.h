@@ -17,6 +17,7 @@ class NEW_THEPHANTOMTWINS_API APC_Player : public APlayerController
 	GENERATED_BODY()
 
 public:
+	static APC_Player* GetLocalPlayerController(AActor* Actor);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> IMC;
