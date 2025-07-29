@@ -29,16 +29,16 @@ UBTT_PatrolBySpline::UBTT_PatrolBySpline()
 EBTNodeResult::Type UBTT_PatrolBySpline::Execute_Task(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	UBlackboardComponent* BBComp = OwnerComp.GetBlackboardComponent();
-	NULLCHECK_RETURN_LOG(BBComp, AILog, Warning, EBTNodeResult::Failed)
+	NULLCHECK_RETURN_LOG(BBComp, AILog, Warning, EBTNodeResult::Failed);
 
 	ASplineActor* SplineActor = Cast<ASplineActor>(BBComp->GetValueAsObject(SplineActorKey.SelectedKeyName));
-	NULLCHECK_RETURN_LOG(SplineActor, AILog, Warning, EBTNodeResult::Failed)
+	NULLCHECK_RETURN_LOG(SplineActor, AILog, Warning, EBTNodeResult::Failed);
 
 	USplineComponent* SplineRoute = SplineActor->SplineComponent;
-	NULLCHECK_RETURN_LOG(SplineRoute, AILog, Warning, EBTNodeResult::Failed)
+	NULLCHECK_RETURN_LOG(SplineRoute, AILog, Warning, EBTNodeResult::Failed);
 
 	AAIController* AIController = OwnerComp.GetAIOwner();
-	NULLCHECK_RETURN_LOG(AIController, AILog, Warning, EBTNodeResult::Failed)
+	NULLCHECK_RETURN_LOG(AIController, AILog, Warning, EBTNodeResult::Failed);
 
 
 	FSplineTaskData* TaskData = (FSplineTaskData*)NodeMemory;
