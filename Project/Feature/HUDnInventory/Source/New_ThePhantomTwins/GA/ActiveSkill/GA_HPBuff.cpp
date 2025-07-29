@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GA/PassiveSkill/GA_HPBuff.h"
+#include "GA_HPBuff.h"
 
 UGA_HPBuff::UGA_HPBuff()
 {
