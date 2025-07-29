@@ -164,11 +164,10 @@ bool UInventoryComponent::SetPlayerHUDWidget(class UPlayerHUDWidget* HUDWidget)
 
    OwnerPlayer = Cast<APlayerCharacter>(PC->GetCharacter());
    OwnerASC = OwnerPlayer->GetAbilitySystemComponent();
-
    UPlayerHUDWidget* TempWidget = OwnerPlayer->GetPlayerHUDWidget();
 
     // 두 포인터가 같은 객체를 가리키는지 비교해서 반환
-    return (PlayerHUDWidget.Get() == TempWidget);
+   return (PlayerHUDWidget.Get() == TempWidget);
 }
 
 void UInventoryComponent::OnRep_InventorySlots()
