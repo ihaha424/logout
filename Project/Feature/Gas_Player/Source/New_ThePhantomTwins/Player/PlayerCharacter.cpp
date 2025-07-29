@@ -226,6 +226,7 @@ void APlayerCharacter::InputReleased(int32 InputID)
 
 void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)
 {
+	
 	AttributeSet->OnPlayerLowHP.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnPlayerConfused1st.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
@@ -234,10 +235,13 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 	AttributeSet->OnPlayerUseSkill.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnMentalPointNotMax.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 
-	AttributeSet->OnChangedHP.AddDynamic(this, &ThisClass::PlayerHUDHPSet);
-	AttributeSet->OnChangedMentalPoint.AddDynamic(this, &ThisClass::PlayerHUDMentalSet);
-	AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
-	AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
+	if (IsLocallyControlled())
+	{
+		AttributeSet->OnChangedHP.AddDynamic(this, &ThisClass::PlayerHUDHPSet);
+		AttributeSet->OnChangedMentalPoint.AddDynamic(this, &ThisClass::PlayerHUDMentalSet);
+		AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
+		AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
+	}
 }
 
 void APlayerCharacter::OnRecoveryCompleted()
@@ -354,7 +358,6 @@ void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 
 void APlayerCharacter::PlayerHUDHPSet(int32 value)
 {
-	//UKismetSystemLibrary::PrintString(this, TEXT("PlayerHUDHPSet"));
 	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
 	PlayerHUDWidget->UpdateHP(value);
 
@@ -543,7 +546,6 @@ void APlayerCharacter::OnEndOverlap(EEnemyRange Range, AActor* OtherActor)
 			// 더 바깥 반경에 있는지 체크
 			if (Range == EEnemyRange::WallSina)
 			{
-				// 10m 오버랩 중이면 10m로 덮기, 아니면 15m…
 				if (WallRose->IsOverlappingActor(OtherActor))
 					*Found = EEnemyRange::WallRose;
 				else if (WallMaria->IsOverlappingActor(OtherActor))
@@ -560,7 +562,6 @@ void APlayerCharacter::OnEndOverlap(EEnemyRange Range, AActor* OtherActor)
 			}
 			else
 			{
-				// 15m 빠지면 완전히 노출에서 제거
 				EnemyRangeMap.Remove(OtherActor);
 			}
 		}
@@ -584,6 +585,7 @@ void APlayerCharacter::UpdateWallSound()
 {
 	if (!IsLocallyControlled())
 	{
+		TPT_LOG(PlayerLog, Log, TEXT(" Is Not LocallyControlled"));
 		return;
 	}
 	EEnemyRange Closest = GetNearestEnemyRange();

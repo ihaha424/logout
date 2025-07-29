@@ -2,6 +2,7 @@
 #include "PlayerStatusWidget.h"
 #include "Components/ProgressBar.h"
 #include "Components/Image.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 void UPlayerStatusWidget::NativeConstruct()
 {
@@ -11,7 +12,6 @@ void UPlayerStatusWidget::NativeConstruct()
 void UPlayerStatusWidget::SetHP(int32 HP)
 {
 	if (!HPBar) return;
-
 	float HPRatio = FMath::Clamp(static_cast<float>(HP) / MaxHP, 0.0f, 1.0f);
 	HPBar->SetPercent(HPRatio);
 
