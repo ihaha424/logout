@@ -1,5 +1,6 @@
 ﻿
 #include "InventoryComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "../Player/PlayerCharacter.h"
 #include "../UI/HUD/PlayerHUDWidget.h"
 #include "../UI/HUD/InventoryWidget.h"
@@ -11,6 +12,8 @@
 UInventoryComponent::UInventoryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+
+    SetIsReplicated(true);
 }
 
 
@@ -19,6 +22,13 @@ void UInventoryComponent::BeginPlay()
 	Super::BeginPlay();
 
     InventorySlots.Init(FItemSlot(), MaxInventorySlots);
+}
+
+void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(UInventoryComponent, InventorySlots);
 }
 
 void UInventoryComponent::AddItem(EItemType eItemType)
@@ -36,7 +46,7 @@ void UInventoryComponent::AddItem(EItemType eItemType)
                 // 스택 증가
                 InventorySlots[i].ItemQuantity++;
 
-                // 인벤토리 위젯 : 수량 텍스트 변경
+                // 인벤토리 위젯 : 수량 텍스트 변경 (OnRep_InventorySlots 에서도 해줘야 함)
                 if (PlayerHUDWidget)
                 {
                     PlayerHUDWidget->SetItemQuantity(i, InventorySlots[i].ItemQuantity);
@@ -60,7 +70,7 @@ void UInventoryComponent::AddItem(EItemType eItemType)
         InventorySlots[EmptySlotIndex].ItemType = eItemType;
         InventorySlots[EmptySlotIndex].ItemQuantity = 1;
 
-        // 인벤토리 위젯 변경
+        // 인벤토리 위젯 변경 (OnRep_InventorySlots 에서도 해줘야 함)
         if (PlayerHUDWidget)
         {
             // 아이템 아이콘 변경
@@ -101,7 +111,7 @@ EItemType UInventoryComponent::UseItem(int32 SlotIndex)
     {
         itemSlot.ItemQuantity--;
 
-        // 인벤토리 위젯 : 수량 텍스트 변경
+        // 인벤토리 위젯 : 수량 텍스트 변경 (OnRep_InventorySlots 에서도 해줘야 함)
 		if (PlayerHUDWidget)
 		{
             PlayerHUDWidget->SetItemQuantity(SlotIndex - 1, itemSlot.ItemQuantity);
@@ -142,5 +152,28 @@ bool UInventoryComponent::SetPlayerHUDWidget(class UPlayerHUDWidget* HUDWidget)
 
     // 두 포인터가 같은 객체를 가리키는지 비교해서 반환
     return (PlayerHUDWidget.Get() == TempWidget);
+}
+
+void UInventoryComponent::OnRep_InventorySlots()
+{
+    if (!PlayerHUDWidget)
+        return;
+
+    for (int32 i = 0; i < InventorySlots.Num(); ++i)
+    {
+        const FItemSlot& Slot = InventorySlots[i];
+
+        if (Slot.ItemQuantity > 0 && Slot.ItemType != EItemType::None)
+        {
+            // 아이템 정보 갱신
+            PlayerHUDWidget->SetItemIcon(i, Slot.ItemType);
+            PlayerHUDWidget->SetItemQuantity(i, Slot.ItemQuantity);
+        }
+        else
+        {
+            // 아이템이 없으니 슬롯 리셋
+            PlayerHUDWidget->ResetItemSlot(i);
+        }
+    }
 }
 
