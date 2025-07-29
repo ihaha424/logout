@@ -30,4 +30,10 @@ protected:
 
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<class UImage> CharPortrait;
+
+    UPROPERTY()
+    float MaxHP = 100.0f;
+
+    UPROPERTY()
+    float MaxMental = 100.0f;
 };

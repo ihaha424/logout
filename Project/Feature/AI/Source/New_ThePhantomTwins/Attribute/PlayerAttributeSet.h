@@ -37,6 +37,19 @@ public:
 	ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, FinalSpeed);
 	ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, ExecuteSkill);
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	void OnRep_HP(const FGameplayAttributeData& OldValue);
+	void OnRep_MaxHP(const FGameplayAttributeData& OldValue);
+	void OnRep_Stamina(const FGameplayAttributeData& OldValue);
+	void OnRep_MaxStamina(const FGameplayAttributeData& OldValue);
+	void OnRep_MentalPoint(const FGameplayAttributeData& OldValue);
+	void OnRep_MaxMentalPoint(const FGameplayAttributeData& OldValue);
+	void OnRep_CoreEnergy(const FGameplayAttributeData& OldValue);
+	void OnRep_MaxCoreEnergy(const FGameplayAttributeData& OldValue);
+	void OnRep_Speed(const FGameplayAttributeData& OldValue);
+	void OnRep_SpeedAdjustment(const FGameplayAttributeData& OldValue);
+	void OnRep_FinalSpeed(const FGameplayAttributeData& OldValue);
+	void OnRep_ExecuteSkill(const FGameplayAttributeData& OldValue);
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual bool PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data) override;
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
@@ -55,36 +68,36 @@ public:
 	mutable FHUDDelegate OnChangedStamina;
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData HP;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MaxHP;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MentalPoint;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MaxMentalPoint;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData CoreEnergy;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MaxCoreEnergy;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData Stamina;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MaxStamina;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData Speed;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData SpeedAdjustment;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData FinalSpeed;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData ExecuteSkill;
 
 	bool bPlayerLowHP = false;

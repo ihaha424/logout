@@ -19,22 +19,18 @@ UGA_Interact::UGA_Interact()
 
 void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	//TPT_LOG(GALog, Log, TEXT("Activate Interact Ability"));
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
 
 	AActor* TargetActor = Cast<AActor>(Character->FocusTrace->GetFocusedActor());
-	//TPT_LOG(GALog, Error,TEXT("TargetActor : %s"), *TargetActor->GetFName().ToString());
 
 	// 플레이어가 상호작용할 수 있는 오브젝트가 있는지 확인
 	if (TargetActor != nullptr && TargetActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
 	{
-		//UKismetSystemLibrary::PrintString(this, FString("Activate Interact Ability"));
 		C2S_Interact(TargetActor, Character);
 		IInteract::Execute_OnInteractClient(TargetActor, Character);
-		//TPT_LOG(GALog, Log, TEXT("OnInteract Client"));
 	}
 	else
 	{
@@ -44,7 +40,6 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 void UGA_Interact::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
-	//TPT_LOG(GALog, Error, TEXT("Cancel Interact GA"));
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 }
 
@@ -73,7 +68,6 @@ void UGA_Interact::C2S_Interact_Implementation(UObject* interact, AActor* Owner)
 
 	if (interact != nullptr && interact->GetClass()->ImplementsInterface(UInteract::StaticClass()))
 	{
-		//TPT_LOG(GALog, Log, TEXT("OnInteract Server"));
 		IInteract::Execute_OnInteractServer(interact, Character);
 	}
 }

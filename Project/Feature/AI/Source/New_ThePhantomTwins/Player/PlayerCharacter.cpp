@@ -17,49 +17,31 @@
 #include "FocusTraceComponent.h"
 #include "PC_Player.h"
 #include "../GA/Action/GA_Interact.h"
-#include "UI/HUD/HUD_PhantomTwins.h"
+#include "AI/Character/AIBaseCharacter.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/AudioComponent.h"
+#include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "UIManager/UIManager.h"
 #include "Components/WidgetComponent.h"
+#include "Objects/InventoryComponent.h"
+#include "UI/HUD/PlayerHUDWidget.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 {
 	ASC = nullptr;
+	bReplicates = true;
 
-	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
-	bUseControllerRotationRoll = false;
-
-	// movement setting
-	GetCharacterMovement()->bOrientRotationToMovement = true;
-	GetCharacterMovement()->RotationRate = FRotator(0, 500, 0);
-	GetCharacterMovement()->JumpZVelocity = 500.f;
-	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->MinAnalogWalkSpeed = 0.f;
-	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-	GetCharacterMovement()->MaxWalkSpeedCrouched = 80.f;
-	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
-
-	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->bUsePawnControlRotation = true;
-	SpringArm->bEnableCameraLag = true;
-	SpringArm->TargetArmLength = 150.0f;
-
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	Camera->bUsePawnControlRotation = false;
-	Camera->SetupAttachment(SpringArm);
+	MovementSetting();
+	CameraSetting();
+	OverlapRangeSetting();
 
 	FocusTrace = CreateDefaultSubobject<UFocusTraceComponent>(TEXT("FocusTrace"));
 	FocusTrace->SetIsReplicated(true);
 
 	InteractWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractWidget"));
 	InteractWidget->SetupAttachment(GetMesh());
-	InteractWidget->SetIsReplicated(true);
-
-	bReplicates = true;
 }
 
 // Called when the game starts or when spawned
@@ -67,14 +49,20 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
-	InteractWidget->SetVisibility(false);
-	InteractWidget->SetIsReplicated(true);
-	InteractWidget->SetOwnerNoSee(true);
-	InteractWidget->SetOnlyOwnerSee(false);
+
+	UUserWidget* Widget = CreateWidget(GetWorld(), InteractWidgetClass);
+	InteractWidget->SetWidget(Widget);
+	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
 	FocusTrace->SetIsReplicated(true);
+
 }
 
+
+void APlayerCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+}
 
 void APlayerCharacter::PossessedBy(AController* NewController)
 {
@@ -92,12 +80,7 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 
 	BindAttributeDelegates(AttributeSet);
 	NULLCHECK_RETURN_LOG(InitAttributeSetEffect, PlayerLog, Error, );
-	ASC->ApplyGameplayEffectToSelf
-	(
-		InitAttributeSetEffect->GetDefaultObject<UGameplayEffect>(),
-		1.0f,
-		ASC->MakeEffectContext()
-	);
+	ASC->ApplyGameplayEffectToSelf(InitAttributeSetEffect->GetDefaultObject<UGameplayEffect>(),1.0f, ASC->MakeEffectContext());
 	
 	for (const auto& Ability : PlayerAbilities)
 	{
@@ -112,6 +95,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	}
 	PlayerController = GetController<APC_Player>();
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
+
+	InitHUDWidget(AttributeSet);
 }
 
 void APlayerCharacter::OnRep_Controller()
@@ -137,12 +122,8 @@ void APlayerCharacter::OnRep_PlayerState()
 	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
 	BindAttributeDelegates(AttributeSet);
 
-
-	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
-	if (IsLocallyControlled()) { InteractWidget->SetVisibility(false); }
-	InteractWidget->SetVisibility(false);
+	InitHUDWidget(AttributeSet);
 }
-
 
 void APlayerCharacter::Tick(float DeltaTime)
 {
@@ -241,6 +222,8 @@ void APlayerCharacter::InputReleased(int32 InputID)
 	}
 }
 
+
+
 void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)
 {
 	AttributeSet->OnPlayerLowHP.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
@@ -251,13 +234,13 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 	AttributeSet->OnPlayerUseSkill.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnMentalPointNotMax.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 
-	//AttributeSet->OnChangedHP.AddDynamic(this, &ThisClass::PlayerHUDHPSet);
-	//AttributeSet->OnChangedMentalPoint.AddDynamic(this, &ThisClass::PlayerHUDMentalSet);
-	//AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
-	//AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
+	AttributeSet->OnChangedHP.AddDynamic(this, &ThisClass::PlayerHUDHPSet);
+	AttributeSet->OnChangedMentalPoint.AddDynamic(this, &ThisClass::PlayerHUDMentalSet);
+	AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
+	AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
 }
 
-void APlayerCharacter::OnRecoveryCompelete()
+void APlayerCharacter::OnRecoveryCompleted()
 {
 	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
@@ -269,43 +252,77 @@ void APlayerCharacter::OnRecoveryCompelete()
 	for (int32 i = 0; i < Count; ++i)
 	{
 		ASC->RemoveLooseGameplayTag(DownedTag);
+		ASC->RemoveReplicatedLooseGameplayTag(DownedTag);
 	}
 
 	GetWorld()->GetTimerManager().ClearTimer(RecoveryTimerHandle);
+	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
 	// TODO : 회복 GE
 	UKismetSystemLibrary::PrintString(this, FString("Recovery"));
 }
 
-void APlayerCharacter::SetWidgetVisibility(bool bNewVisibility)
-{
-	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
-	InteractWidget->SetVisibility(bNewVisibility);
+void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
+{// AttributeSet이 없으면 바로 반환
+	if (!AttributeSet) return;
+
+	if (!IsLocallyControlled())
+	{
+		// 로그로 어느 객체에서 호출됐는지 안내
+		TPT_LOG(HUDLog, Warning, TEXT("InitHUDWidget: Not locally controlled, skipping widget creation (Actor: %s)"), *GetName());
+		return;
+	}
+
+	// PlayerHUDWidget이 아직 생성되지 않았다면 생성
+	if (!PlayerHUDWidget)
+	{
+		APlayerController* PC = Cast<APlayerController>(GetController());
+
+		if (PC && PlayerHUDWidgetClass)
+		{
+			PlayerController->RegisterWidget(TEXT("PlayerHUDWidget"), CreateWidget<UPlayerHUDWidget>(GetWorld(), PlayerHUDWidgetClass));
+			PlayerController->SetWidget(TEXT("PlayerHUDWidget"), true, EMessageTargetType::LocalClient);
+			PlayerHUDWidget = Cast<UPlayerHUDWidget>(PlayerController->GetWidget(TEXT("PlayerHUDWidget")));
+		}
+		else
+		{
+			TPT_LOG(HUDLog, Error, TEXT("InitHUDWidget: Invalid PlayerController or PlayerHUDWidgetClass"));
+			return;
+		}
+	}
+
+	// AttributeSet에서 값 가져와 위젯 초기화 호출
+	int32 HP = AttributeSet->GetMaxHP();
+	int32 Mental = AttributeSet->GetMaxMentalPoint();
+	int32 Stamina = AttributeSet->GetMaxStamina();
+	int32 CoreEnergy = AttributeSet->GetMaxCoreEnergy();
+
+	PlayerHUDWidget->InitializeWidgets(HP, Mental, Stamina, CoreEnergy);
+
+	//PS에 있는 Inventory의 SetPlayerHUDWidget 호출
+	PS->InventoryComp->SetPlayerHUDWidget(PlayerHUDWidget);
 }
 
 bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, false);
-
 	bool bIsTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-	//TPT_LOG(PlayerLog,Error,TEXT("Has Tag? : %d // Interactor Name : %s "), bIsTag, *Interactor->GetFName().ToString());
+
 	if (bIsTag && bIsDetected)
 	{
-		SetWidgetVisibility(true);
+		InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
 		return true;
 	}
-	SetWidgetVisibility(false);
+	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 	return false;
 }
 
 void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 {
-	TPT_LOG(PlayerLog,Error,TEXT(""));
-	//UKismetSystemLibrary::PrintString(this, FString("Sever Interact"));
 	GetWorld()->GetTimerManager().SetTimer(
 		RecoveryTimerHandle,               
 		this,                              
-		&APlayerCharacter::OnRecoveryCompelete, 
+		&APlayerCharacter::OnRecoveryCompleted, 
 		5.0f,                              
 		false                              
 	);
@@ -313,8 +330,6 @@ void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 
 void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	TPT_LOG(PlayerLog, Error, TEXT(""));
-	//UKismetSystemLibrary::PrintString(this, FString("Client Interact"));
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 	PlayerController->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
 }
@@ -324,14 +339,15 @@ void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 	FGameplayAbilitySpec* TagID = ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
 	NULLCHECK_RETURN_LOG(TagID, PlayerLog, Error, );
 	bool CanActivate = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
-	TPT_LOG(PlayerLog, Log, TEXT("Tag :::  %s / Activate Ability success ? ::: %d / Ability IsValid ? ::: %d"), *InputTag.ToString(), CanActivate, IsValid(TagID->Ability));
 
-	// TODO : HandleGameplayEvent // 
+	// TODO : HandleGameplayEvent
 }
 
 void APlayerCharacter::PlayerHUDHPSet(int32 value)
 {
-	PlayerHUD->UpdateHP(value);
+	//UKismetSystemLibrary::PrintString(this, TEXT("PlayerHUDHPSet"));
+	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
+	PlayerHUDWidget->UpdateHP(value);
 
 	//PlayerHUD->UpdateClearItem();// 데이터조각(같이공유하는거)
 	//// 태그이용
@@ -341,15 +357,18 @@ void APlayerCharacter::PlayerHUDHPSet(int32 value)
 }
 void APlayerCharacter::PlayerHUDMentalSet(int32 value)
 {
-	PlayerHUD->UpdateMental(value);
+	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
+	PlayerHUDWidget->UpdateMental(value);
 }
 void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
 {
-	PlayerHUD->UpdateStamina(value);
+	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
+	PlayerHUDWidget->UpdateStamina(value);
 }
 void APlayerCharacter::PlayerHUDCoreEnergySet(int32 value)
 {
-	PlayerHUD->UpdateCoreEnergy(value);
+	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
+	PlayerHUDWidget->UpdateCoreEnergy(value);
 }
 
 void APlayerCharacter::Move(const FInputActionValue& Value)
@@ -391,4 +410,199 @@ FGenericTeamId APlayerCharacter::GetGenericTeamId() const
 		return PS->GetGenericTeamId();
 	}
 	return FGenericTeamId::NoTeam;
+}
+
+void APlayerCharacter::MovementSetting()
+{
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
+
+	// movement setting
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0, 500, 0);
+	GetCharacterMovement()->JumpZVelocity = 500.f;
+	GetCharacterMovement()->AirControl = 0.35f;
+	GetCharacterMovement()->MinAnalogWalkSpeed = 0.f;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = 80.f;
+	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
+}
+
+void APlayerCharacter::CameraSetting()
+{
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->SetupAttachment(RootComponent);
+	SpringArm->bUsePawnControlRotation = true;
+	SpringArm->bEnableCameraLag = true;
+	SpringArm->TargetArmLength = 150.0f;
+
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	Camera->bUsePawnControlRotation = false;
+	Camera->SetupAttachment(SpringArm);
+}
+
+void APlayerCharacter::OverlapRangeSetting()
+{
+	WallSina = CreateDefaultSubobject<USphereComponent>(TEXT("WallSina"));
+	WallSina->SetupAttachment(RootComponent);
+	WallSina->SetSphereRadius(500.f);
+	// 모든 채널 무시
+	WallSina->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	WallSina->SetCollisionResponseToAllChannels(ECR_Ignore);
+	// Pawn 채널(플레이어, AI 등)만 오버랩!
+	WallSina->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
+	WallRose = CreateDefaultSubobject<USphereComponent>(TEXT("WallRose"));
+	WallRose->SetupAttachment(RootComponent);
+	WallRose->SetSphereRadius(1000.f);
+	WallRose->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	WallRose->SetCollisionResponseToAllChannels(ECR_Ignore);
+	WallRose->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
+	WallMaria = CreateDefaultSubobject<USphereComponent>(TEXT("WallMaria"));
+	WallMaria->SetupAttachment(RootComponent);
+	WallMaria->SetSphereRadius(1500.f);
+	WallMaria->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	WallMaria->SetCollisionResponseToAllChannels(ECR_Ignore);
+	WallMaria->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
+	WallSina->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapSina);
+	WallSina->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapSina);
+	WallRose->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapRose);
+	WallRose->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapRose);
+	WallMaria->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapMaria);
+	WallMaria->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapMaria);
+}
+
+void APlayerCharacter::OnBeginOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor,UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	TPT_LOG(PlayerLog, Error, TEXT("Sina Begin : %s"), *OtherActor->GetFName().ToString());
+	OnBeginOverlap(EEnemyRange::WallSina, OtherActor);
+}
+void APlayerCharacter::OnEndOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor,UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	OnEndOverlap(EEnemyRange::WallSina, OtherActor);
+}
+void APlayerCharacter::OnBeginOverlapRose(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	TPT_LOG(PlayerLog, Error, TEXT("Rose Begin : %s"), *OtherActor->GetFName().ToString());
+	OnBeginOverlap(EEnemyRange::WallRose, OtherActor);
+}
+void APlayerCharacter::OnEndOverlapRose(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	OnEndOverlap(EEnemyRange::WallRose, OtherActor);
+}
+void APlayerCharacter::OnBeginOverlapMaria(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	TPT_LOG(PlayerLog, Error, TEXT("Maria Begin : %s"), *OtherActor->GetFName().ToString());
+	OnBeginOverlap(EEnemyRange::WallMaria, OtherActor);
+}
+void APlayerCharacter::OnEndOverlapMaria(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	TPT_LOG(PlayerLog, Error, TEXT("Maria End : %s"), *OtherActor->GetFName().ToString());
+	OnEndOverlap(EEnemyRange::WallMaria, OtherActor);
+}
+
+void APlayerCharacter::OnBeginOverlap(EEnemyRange Range, AActor* OtherActor)
+{
+	TPT_LOG(PlayerLog, Error, TEXT("%s OnBeginOverlap  : Target is : %s"), *UEnum::GetDisplayValueAsText(Range).ToString(), *OtherActor->GetFName().ToString());
+	UAbilitySystemComponent* AIASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
+	NULLCHECK_RETURN_LOG(AIASC, PlayerLog, Log, );
+	if (AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI))
+	{
+		EEnemyRange* Found = EnemyRangeMap.Find(OtherActor);
+
+		if (!Found || Range < *Found)
+		{
+			EnemyRangeMap.Add(OtherActor, Range);
+		}
+	}
+	UpdateWallSound();
+}
+
+// EndOverlap 시 - 해당 범위 Enum이 빠지면, 더 밖의 반경으로 Enum 전환(아니면 지움)
+void APlayerCharacter::OnEndOverlap(EEnemyRange Range, AActor* OtherActor)
+{
+	UAbilitySystemComponent* AIASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
+	NULLCHECK_RETURN_LOG(AIASC, PlayerLog, Log, );
+	if (AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI))
+	{
+		EEnemyRange* Found = EnemyRangeMap.Find(OtherActor);
+		if (Found && *Found == Range)
+		{
+			// 더 바깥 반경에 있는지 체크
+			if (Range == EEnemyRange::WallSina)
+			{
+				// 10m 오버랩 중이면 10m로 덮기, 아니면 15m…
+				if (WallRose->IsOverlappingActor(OtherActor))
+					*Found = EEnemyRange::WallRose;
+				else if (WallMaria->IsOverlappingActor(OtherActor))
+					*Found = EEnemyRange::WallMaria;
+				else
+					EnemyRangeMap.Remove(OtherActor);
+			}
+			else if (Range == EEnemyRange::WallRose)
+			{
+				if (WallMaria->IsOverlappingActor(OtherActor))
+					*Found = EEnemyRange::WallMaria;
+				else
+					EnemyRangeMap.Remove(OtherActor);
+			}
+			else
+			{
+				// 15m 빠지면 완전히 노출에서 제거
+				EnemyRangeMap.Remove(OtherActor);
+			}
+		}
+	}
+	UpdateWallSound();
+}
+
+EEnemyRange APlayerCharacter::GetNearestEnemyRange() const
+{
+	EEnemyRange Nearest = EEnemyRange::None;
+	for (const auto& Pair : EnemyRangeMap)
+	{
+		if (Nearest == EEnemyRange::None || Pair.Value < Nearest)
+			Nearest = Pair.Value;
+	}
+	TPT_LOG(PlayerLog, Error, TEXT(" : %s"), *UEnum::GetDisplayValueAsText(Nearest).ToString());
+	return Nearest;
+}
+
+void APlayerCharacter::UpdateWallSound()
+{
+	if (!IsLocallyControlled())
+	{
+		return;
+	}
+	EEnemyRange Closest = GetNearestEnemyRange();
+	TPT_LOG(PlayerLog, Error, TEXT("UpdateWallSound, Closest Range: %d"), static_cast<int32>(Closest));
+
+	if (Closest != CurrentWallRange)
+	{
+		// 이전 사운드 중단
+		if (WallAudioComponent)
+		{
+			WallAudioComponent->Stop();
+			WallAudioComponent = nullptr;
+		}
+
+		// 새로운 범위 Enum에 맞는 사운드 재생
+		USoundBase* ToPlay = nullptr;
+		switch (Closest)
+		{
+		case EEnemyRange::WallSina:  ToPlay = WallSinaSound;   break;
+		case EEnemyRange::WallRose:  ToPlay = WallRoseSound;   break;
+		case EEnemyRange::WallMaria: ToPlay = WallMariaSound;  break;
+		default: break; // None(아무 적도 없음)인 경우 아무 사운드도 X
+		}
+
+		if (ToPlay)
+		{
+			WallAudioComponent = UGameplayStatics::SpawnSoundAttached(ToPlay, GetRootComponent());
+		}
+		CurrentWallRange = Closest;
+	}
 }

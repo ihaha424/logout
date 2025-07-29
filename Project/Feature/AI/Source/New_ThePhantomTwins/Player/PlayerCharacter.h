@@ -12,6 +12,9 @@
 #include "GenericTeamAgentInterface.h"
 #include "PlayerCharacter.generated.h"
 
+
+class UPlayerHUDWidget;
+class USphereComponent;
 class APC_Player;
 class AHUD_PhantomTwins;
 class UPlayerAttributeSet;
@@ -28,6 +31,15 @@ class UInputAction;
 class UFocusTraceComponent;
 class UWidgetComponent;
 
+UENUM(BlueprintType)
+enum class EEnemyRange : uint8
+{
+	None UMETA(DisplayName = "None"),
+	WallSina UMETA(DisplayName = "WallSina"),
+	WallRose UMETA(DisplayName = "WallRose"),
+	WallMaria UMETA(DisplayName = "WallMaria")
+};
+
 UCLASS()
 class NEW_THEPHANTOMTWINS_API APlayerCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IInteract
 {
@@ -37,6 +49,7 @@ public:
 	APlayerCharacter();
 
 	virtual void BeginPlay() override;
+	virtual void PostInitializeComponents() override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_Controller() override;
 	virtual void OnRep_PlayerState() override;
@@ -54,9 +67,9 @@ public:
 	void BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet);
 
 	UFUNCTION()
-	void OnRecoveryCompelete();
+	void OnRecoveryCompleted();
 
-	void SetWidgetVisibility(bool bNewVisibility);
+	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float WalkSpeed = 400.f;
@@ -101,9 +114,6 @@ protected:
 
 	UPROPERTY()
 	APC_Player* PlayerController;
-
-	UPROPERTY()
-	AHUD_PhantomTwins* PlayerHUD;
 	// GAS
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<UAbilitySystemComponent> ASC;
@@ -124,6 +134,35 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> LookAction;
 
+	// HUD Widget
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UPlayerHUDWidget> PlayerHUDWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UPlayerHUDWidget> PlayerHUDWidget;
+
+	// ¹Ý°æ
+	UPROPERTY(VisibleAnywhere)
+	USphereComponent* WallSina;
+
+	UPROPERTY(VisibleAnywhere)
+	USphereComponent* WallRose;
+
+	UPROPERTY(VisibleAnywhere)
+	USphereComponent* WallMaria;
+
+	UPROPERTY(EditAnywhere, Category = Sound)
+	USoundBase* WallSinaSound;
+	UPROPERTY(EditAnywhere, Category = Sound)
+	USoundBase* WallRoseSound;
+	UPROPERTY(EditAnywhere, Category = Sound)
+	USoundBase* WallMariaSound;
+	UPROPERTY()
+	UAudioComponent* WallAudioComponent = nullptr;
+	UPROPERTY()
+	TMap<AActor*, EEnemyRange> EnemyRangeMap;
+	EEnemyRange CurrentWallRange = EEnemyRange::None;
+
 public:
 	UFUNCTION()
 	void PlayerHUDHPSet(int32 value);
@@ -140,5 +179,24 @@ public:
 	void InputPressed(int32 InputID);
 	void InputPressedWithNum(int32 InputID, int32 Number);
 	void InputReleased(int32 InputID);
-};
 
+	void MovementSetting();
+	void CameraSetting();
+	void OverlapRangeSetting();
+	UFUNCTION()
+	void OnBeginOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	void OnEndOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
+	UFUNCTION()
+	void OnBeginOverlapRose(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	void OnEndOverlapRose(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
+	UFUNCTION()
+	void OnBeginOverlapMaria(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	void OnEndOverlapMaria(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
+	void OnBeginOverlap(EEnemyRange Range, AActor* OtherActor);
+	void OnEndOverlap(EEnemyRange Range, AActor* OtherActor);
+	EEnemyRange GetNearestEnemyRange() const;
+	void UpdateWallSound();
+};
