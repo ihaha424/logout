@@ -104,8 +104,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Recovery")
 	FTimerHandle RecoveryTimerHandle;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
-	TObjectPtr<UGameplayEffect> RecoveryGE;
+	UPROPERTY(EditAnywhere, Category = "Recovery")
+	TSubclassOf<UGameplayEffect> RecoveryGE;
 
 protected:
 
