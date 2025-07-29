@@ -5,6 +5,7 @@
 #include "AbilitySystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "Components/ShapeComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
@@ -29,14 +30,24 @@ AAIBaseCharacter::AAIBaseCharacter()
 
     CombatRange = CreateDefaultSubobject<USphereComponent>(TEXT("CombatRangeSphereComponent"));
     CombatRange->SetupAttachment(RootComponent);
-    CombatRange->OnComponentBeginOverlap.AddDynamic(this, &AAIBaseCharacter::CombatRangeBeginOverlap);
-
 }
 
 void AAIBaseCharacter::BeginPlay()
 {
-	Super::BeginPlay();
-	
+    Super::BeginPlay();
+
+    if (!HasAuthority())
+        return;
+
+    CombatRange->OnComponentBeginOverlap.AddDynamic(this, &AAIBaseCharacter::CombatRangeBeginOverlap);
+    if (nullptr != AttackCollision)
+    {
+        AttackCollision->OnComponentBeginOverlap.AddDynamic(this, &AAIBaseCharacter::AttackCollisionBeginOverlap);
+        SetAttackCollision(false);
+    }
+    else
+        TPT_LOG(AILog, Warning, TEXT("If you want to AttackCollision, Please Set AttackCollision"));
+
     if (AbilitySystem)
     {
         AbilitySystem->InitAbilityActorInfo(this, this);
@@ -44,6 +55,9 @@ void AAIBaseCharacter::BeginPlay()
 
         for (const auto& Ability : Abilities)
         {
+            if (!Ability.Key.IsValid() || !IsValid(Ability.Value))
+                continue;
+
             const EFTPTGameplayTags* TagEnum = FTPTGameplayTags::Get().TagMap.Find(Ability.Key);
             int32 InputID = static_cast<int32>(*TagEnum);
 
@@ -60,6 +74,24 @@ void AAIBaseCharacter::BeginPlay()
         
     }
 }
+
+void AAIBaseCharacter::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+}
+void AAIBaseCharacter::PostInitializeComponents()
+{
+    Super::PostInitializeComponents();
+}
+
+void AAIBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+    Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+}
+
+
 
 UAbilitySystemComponent* AAIBaseCharacter::GetAbilitySystemComponent() const
 {
@@ -96,6 +128,7 @@ void AAIBaseCharacter::CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedCo
 {
     UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
     NULLCHECK_RETURN_LOG(ASC, AILog, Log, );
+
     // Player
     if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player))
     {
@@ -104,7 +137,7 @@ void AAIBaseCharacter::CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedCo
         UBlackboardComponent* BB = AIController->GetBlackboardComponent();
         NULLCHECK_RETURN_LOG(BB, AILog, Warning, );
 
-
+        //SweepResult를 이용해서도 확인 가능, 만약 레이케스팅이 부적절하면 Sweep의 정보를 이용해서 사용
         FVector MyLoc = GetActorLocation();
         FVector TargetLoc = OtherActor->GetActorLocation();
         FHitResult HitResult;
@@ -153,15 +186,51 @@ void AAIBaseCharacter::CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedCo
     }
 }
 
-void AAIBaseCharacter::Tick(float DeltaTime)
+void AAIBaseCharacter::SetAttackCollision(bool bIsActive)
 {
-	Super::Tick(DeltaTime);
-
+    NULLCHECK_RETURN_LOG(AttackCollision, AILog, Warning, );
+    if (bIsActive)
+    {
+        AttackCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+        AttackCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+        AttackCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+        AttackCollision->SetCollisionResponseToChannel(ECC_Visibility, ECR_Overlap);
+        //AttackCollision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
+        //AttackCollision->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+    }
+    else
+    {
+        AttackCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    }
 }
 
-void AAIBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+UShapeComponent& AAIBaseCharacter::GetAttackCollision() const
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
+    return *AttackCollision;
 }
+
+void AAIBaseCharacter::AttackCollisionBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+    if (this == OtherActor)
+        return;
+    NULLCHECK_RETURN_LOG(DamageEffectClass, AILog, Log, );
+
+    UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
+    NULLCHECK_RETURN_LOG(TargetASC, AILog, Log, );
+
+    UAbilitySystemComponent* SourceASC = GetAbilitySystemComponent(); 
+    NULLCHECK_RETURN_LOG(SourceASC, AILog, Log, );
+
+    FGameplayEffectContextHandle EffectContext = SourceASC->MakeEffectContext();
+    EffectContext.AddSourceObject(this);
+
+    FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, 1.0f, EffectContext);
+    if (SpecHandle.IsValid())
+    {
+        TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+    }
+
+    AttackCollisionEvent(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+}
+
 

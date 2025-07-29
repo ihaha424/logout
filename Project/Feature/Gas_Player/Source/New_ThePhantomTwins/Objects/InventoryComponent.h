@@ -22,9 +22,6 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     int32 ItemQuantity = 0;
-
-    //UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    //TObjectPtr<class UTexture2D> ItemIcon;
 };
 
 
@@ -39,6 +36,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     
 public:
     UFUNCTION()
@@ -48,19 +46,26 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Inventory") 
     EItemType UseItem(int32 SlotIndex);
 
-public:
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-    int32 MaxInventorySlots = 5;    // InventorySlots의 원소 수.
+    // HUD 위젯을 InventoryComponent에 등록
+    UFUNCTION()
+    bool SetPlayerHUDWidget(class UPlayerHUDWidget* HUDWidget);
+    
+    UFUNCTION()
+    void OnRep_InventorySlots();
 
 protected:
+    UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_InventorySlots)
+    TArray<FItemSlot> InventorySlots;
+
     UPROPERTY(EditDefaultsOnly)
     TObjectPtr<UDataTable> ItemAbilityTable;
 
-    UPROPERTY(EditDefaultsOnly)
-    TArray<FItemSlot> InventorySlots;
-
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     int32 MaxQuantity = 5;  // 아이템 당 최대 스택 수
+    UPROPERTY()
+    TObjectPtr<class UPlayerHUDWidget> PlayerHUDWidget;  // InventoryWidget 달아주고 로직 추가해야 함
 
-    // InventoryWidget 달아주고 로직 추가해야 함
+public:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+    int32 MaxInventorySlots = 5;    // InventorySlots의 원소 수.
 };

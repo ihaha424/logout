@@ -13,6 +13,8 @@ class UAbilitySystemComponent;
 class UAIBaseAttributeSet;
 class ASplineActor;
 class USphereComponent;
+class UShapeComponent;
+class UGameplayEffect;
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API AAIBaseCharacter : public ACharacter, public IAbilitySystemInterface
@@ -25,6 +27,7 @@ public:
 	//~ Begin ACharacter interface
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void PostInitializeComponents() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	//~ End ACharacter interface
 
@@ -47,6 +50,30 @@ public:
 	TObjectPtr<ASplineActor> BaseSplineActor;
 	//~ End AI Control(Patrol)
 
+	//~ Begin AI Control(Combat)
+	UFUNCTION()
+	void CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedComp
+		, AActor* OtherActor
+		, UPrimitiveComponent* OtherComp
+		, int32 OtherBodyIndex
+		, bool bFromSweep
+		, const FHitResult& SweepResult
+	);
+
+	void SetAttackCollision(bool bIsActive);
+	UShapeComponent& GetAttackCollision() const;
+	UFUNCTION()
+	void AttackCollisionBeginOverlap(UPrimitiveComponent* OverlappedComp
+		, AActor* OtherActor
+		, UPrimitiveComponent* OtherComp
+		, int32 OtherBodyIndex
+		, bool bFromSweep
+		, const FHitResult& SweepResult
+	);
+	UFUNCTION(BlueprintNativeEvent)
+	void AttackCollisionEvent(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void AttackCollisionEvent_Implementation(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {};
+	//~ End AI Control(Combat)
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystem;
@@ -63,7 +90,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr<USphereComponent> CombatRange;
 
-	UFUNCTION()
-	void CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
+	TObjectPtr<UShapeComponent> AttackCollision;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
+	TSubclassOf<UGameplayEffect> DamageEffectClass;
 };

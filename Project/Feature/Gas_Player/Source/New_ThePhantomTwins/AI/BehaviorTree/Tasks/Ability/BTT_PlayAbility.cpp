@@ -8,6 +8,7 @@
 #include "GameplayTagContainer.h"
 
 #include "../../../Character/AIBaseCharacter.h"
+#include "Log/TPTLog.h"
 
 
 UBTT_PlayAbility::UBTT_PlayAbility()
@@ -16,6 +17,8 @@ UBTT_PlayAbility::UBTT_PlayAbility()
     AbilityTag = FGameplayTag();
     bHasTarget = false;
     TargetActorKey = FBlackboardKeySelector();
+    bIsWaitingForAbility = false;
+    bNotifyTick = true;
 }
 
 EBTNodeResult::Type UBTT_PlayAbility::Execute_Task(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -40,7 +43,29 @@ EBTNodeResult::Type UBTT_PlayAbility::Execute_Task(UBehaviorTreeComponent& Owner
 
     ASC->HandleGameplayEvent(AbilityTag, &EventData);
 
-    return EBTNodeResult::Succeeded;
+    bIsWaitingForAbility = true;
+    return EBTNodeResult::InProgress;
+}
+
+void UBTT_PlayAbility::Execute_TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+{
+    if (!bIsWaitingForAbility)
+        return;
+
+    AAIController* AICon = OwnerComp.GetAIOwner();
+    AAIBaseCharacter* AIPawn = Cast<AAIBaseCharacter>(AICon ? AICon->GetPawn() : nullptr);
+    NULLCHECK_CODE_RETURN_LOG(AICon, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, )
+    NULLCHECK_CODE_RETURN_LOG(AIPawn, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, )
+
+    UAbilitySystemComponent* ASC = AIPawn->GetAbilitySystemComponent();
+    NULLCHECK_CODE_RETURN_LOG(ASC, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, )
+
+
+    if (!ASC->HasMatchingGameplayTag(AbilityTag))
+    {
+        bIsWaitingForAbility = false;
+        FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+    }
 }
 
 FString UBTT_PlayAbility::GetStaticDescription() const

@@ -34,6 +34,8 @@ protected:
     FBlackboardKeySelector LastHearingTimeKey;
     UPROPERTY(EditAnywhere, Category = "Blackboard")
     FBlackboardKeySelector InCombatRangeKey;
+    UPROPERTY(EditAnywhere, Category = "Blackboard")
+    FBlackboardKeySelector StunKey;
     //~ End Blackboard Key
 
     //~ Begin Options related to sensory retention
