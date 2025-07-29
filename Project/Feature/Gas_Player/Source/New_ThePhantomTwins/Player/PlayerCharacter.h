@@ -157,6 +157,8 @@ protected:
 	UAudioComponent* WallAudioComponent = nullptr;
 	UPROPERTY()
 	TMap<AActor*, EEnemyRange> EnemyRangeMap;
+	EEnemyRange CurrentWallRange = EEnemyRange::None;
+
 public:
 	UFUNCTION()
 	void PlayerHUDHPSet(int32 value);
@@ -174,9 +176,23 @@ public:
 	void InputPressedWithNum(int32 InputID, int32 Number);
 	void InputReleased(int32 InputID);
 
-	void OverlapRangeSetting();
 	void MovementSetting();
 	void CameraSetting();
+	void OverlapRangeSetting();
+	UFUNCTION()
+	void OnBeginOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	void OnEndOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
+	UFUNCTION()
+	void OnBeginOverlapRose(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	void OnEndOverlapRose(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
+	UFUNCTION()
+	void OnBeginOverlapMaria(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	void OnEndOverlapMaria(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
 	void OnBeginOverlap(EEnemyRange Range, AActor* OtherActor);
 	void OnEndOverlap(EEnemyRange Range, AActor* OtherActor);
+	EEnemyRange GetNearestEnemyRange() const;
+	void UpdateWallSound();
 };

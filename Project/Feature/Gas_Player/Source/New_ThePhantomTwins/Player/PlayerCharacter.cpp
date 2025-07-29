@@ -20,6 +20,7 @@
 #include "AI/Character/AIBaseCharacter.h"
 #include "UI/HUD/HUD_PhantomTwins.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "UIManager/UIManager.h"
@@ -53,6 +54,7 @@ void APlayerCharacter::BeginPlay()
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
 	FocusTrace->SetIsReplicated(true);
+
 }
 
 
@@ -359,32 +361,6 @@ FGenericTeamId APlayerCharacter::GetGenericTeamId() const
 	return FGenericTeamId::NoTeam;
 }
 
-void APlayerCharacter::OverlapRangeSetting()
-{
-	WallSina = CreateDefaultSubobject<USphereComponent>(TEXT("WallSina"));
-	WallSina->SetupAttachment(RootComponent);
-	WallSina->SetSphereRadius(500.f);
-	// 모든 채널 무시
-	WallSina->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	WallSina->SetCollisionResponseToAllChannels(ECR_Ignore);
-	// Pawn 채널(플레이어, AI 등)만 오버랩!
-	WallSina->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-
-	WallRose = CreateDefaultSubobject<USphereComponent>(TEXT("WallRose"));
-	WallRose->SetupAttachment(RootComponent);
-	WallRose->SetSphereRadius(1000.f);
-	WallRose->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	WallRose->SetCollisionResponseToAllChannels(ECR_Ignore);
-	WallRose->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-
-	WallMaria = CreateDefaultSubobject<USphereComponent>(TEXT("WallMaria"));
-	WallMaria->SetupAttachment(RootComponent);
-	WallMaria->SetSphereRadius(1500.f);
-	WallMaria->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	WallMaria->SetCollisionResponseToAllChannels(ECR_Ignore);
-	WallMaria->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-}
-
 void APlayerCharacter::MovementSetting()
 {
 	bUseControllerRotationPitch = false;
@@ -415,8 +391,71 @@ void APlayerCharacter::CameraSetting()
 	Camera->SetupAttachment(SpringArm);
 }
 
+void APlayerCharacter::OverlapRangeSetting()
+{
+	WallSina = CreateDefaultSubobject<USphereComponent>(TEXT("WallSina"));
+	WallSina->SetupAttachment(RootComponent);
+	WallSina->SetSphereRadius(500.f);
+	// 모든 채널 무시
+	WallSina->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	WallSina->SetCollisionResponseToAllChannels(ECR_Ignore);
+	// Pawn 채널(플레이어, AI 등)만 오버랩!
+	WallSina->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
+	WallRose = CreateDefaultSubobject<USphereComponent>(TEXT("WallRose"));
+	WallRose->SetupAttachment(RootComponent);
+	WallRose->SetSphereRadius(1000.f);
+	WallRose->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	WallRose->SetCollisionResponseToAllChannels(ECR_Ignore);
+	WallRose->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
+	WallMaria = CreateDefaultSubobject<USphereComponent>(TEXT("WallMaria"));
+	WallMaria->SetupAttachment(RootComponent);
+	WallMaria->SetSphereRadius(1500.f);
+	WallMaria->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	WallMaria->SetCollisionResponseToAllChannels(ECR_Ignore);
+	WallMaria->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
+	WallSina->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapSina);
+	WallSina->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapSina);
+	WallRose->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapRose);
+	WallRose->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapRose);
+	WallMaria->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapMaria);
+	WallMaria->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapMaria);
+}
+
+void APlayerCharacter::OnBeginOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor,UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	TPT_LOG(PlayerLog, Error, TEXT("Sina Begin : %s"), *OtherActor->GetFName().ToString());
+	OnBeginOverlap(EEnemyRange::WallSina, OtherActor);
+}
+void APlayerCharacter::OnEndOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor,UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	OnEndOverlap(EEnemyRange::WallSina, OtherActor);
+}
+void APlayerCharacter::OnBeginOverlapRose(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	TPT_LOG(PlayerLog, Error, TEXT("Rose Begin : %s"), *OtherActor->GetFName().ToString());
+	OnBeginOverlap(EEnemyRange::WallRose, OtherActor);
+}
+void APlayerCharacter::OnEndOverlapRose(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	OnEndOverlap(EEnemyRange::WallRose, OtherActor);
+}
+void APlayerCharacter::OnBeginOverlapMaria(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	TPT_LOG(PlayerLog, Error, TEXT("Maria Begin : %s"), *OtherActor->GetFName().ToString());
+	OnBeginOverlap(EEnemyRange::WallMaria, OtherActor);
+}
+void APlayerCharacter::OnEndOverlapMaria(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	TPT_LOG(PlayerLog, Error, TEXT("Maria End : %s"), *OtherActor->GetFName().ToString());
+	OnEndOverlap(EEnemyRange::WallMaria, OtherActor);
+}
+
 void APlayerCharacter::OnBeginOverlap(EEnemyRange Range, AActor* OtherActor)
 {
+	TPT_LOG(PlayerLog, Error, TEXT("%s OnBeginOverlap  : Target is : %s"), *UEnum::GetDisplayValueAsText(Range).ToString(), *OtherActor->GetFName().ToString());
 	UAbilitySystemComponent* AIASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
 	NULLCHECK_RETURN_LOG(AIASC, PlayerLog, Log, );
 	if (AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI))
@@ -428,6 +467,7 @@ void APlayerCharacter::OnBeginOverlap(EEnemyRange Range, AActor* OtherActor)
 			EnemyRangeMap.Add(OtherActor, Range);
 		}
 	}
+	UpdateWallSound();
 }
 
 // EndOverlap 시 - 해당 범위 Enum이 빠지면, 더 밖의 반경으로 Enum 전환(아니면 지움)
@@ -464,5 +504,54 @@ void APlayerCharacter::OnEndOverlap(EEnemyRange Range, AActor* OtherActor)
 				EnemyRangeMap.Remove(OtherActor);
 			}
 		}
+	}
+	UpdateWallSound();
+}
+
+EEnemyRange APlayerCharacter::GetNearestEnemyRange() const
+{
+	EEnemyRange Nearest = EEnemyRange::None;
+	for (const auto& Pair : EnemyRangeMap)
+	{
+		if (Nearest == EEnemyRange::None || Pair.Value < Nearest)
+			Nearest = Pair.Value;
+	}
+	TPT_LOG(PlayerLog, Error, TEXT(" : %s"), *UEnum::GetDisplayValueAsText(Nearest).ToString());
+	return Nearest;
+}
+
+void APlayerCharacter::UpdateWallSound()
+{
+	if (!IsLocallyControlled())
+	{
+		return;
+	}
+	EEnemyRange Closest = GetNearestEnemyRange();
+	TPT_LOG(PlayerLog, Error, TEXT("UpdateWallSound, Closest Range: %d"), static_cast<int32>(Closest));
+
+	if (Closest != CurrentWallRange)
+	{
+		// 이전 사운드 중단
+		if (WallAudioComponent)
+		{
+			WallAudioComponent->Stop();
+			WallAudioComponent = nullptr;
+		}
+
+		// 새로운 범위 Enum에 맞는 사운드 재생
+		USoundBase* ToPlay = nullptr;
+		switch (Closest)
+		{
+		case EEnemyRange::WallSina:  ToPlay = WallSinaSound;   break;
+		case EEnemyRange::WallRose:  ToPlay = WallRoseSound;   break;
+		case EEnemyRange::WallMaria: ToPlay = WallMariaSound;  break;
+		default: break; // None(아무 적도 없음)인 경우 아무 사운드도 X
+		}
+
+		if (ToPlay)
+		{
+			WallAudioComponent = UGameplayStatics::SpawnSoundAttached(ToPlay, GetRootComponent());
+		}
+		CurrentWallRange = Closest;
 	}
 }
