@@ -65,12 +65,6 @@ protected:
     UPROPERTY()
     TObjectPtr<class UPlayerHUDWidget> PlayerHUDWidget;  // InventoryWidget 달아주고 로직 추가해야 함
 
-    UPROPERTY()
-    TObjectPtr<class APlayerCharacter> OwnerPlayer;
-
-    UPROPERTY()
-    TObjectPtr<class UAbilitySystemComponent> OwnerASC;
-
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     int32 MaxInventorySlots = 5;    // InventorySlots의 원소 수.

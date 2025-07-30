@@ -35,6 +35,7 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
     DOREPLIFETIME(UInventoryComponent, InventorySlots);
+
 }
 
 void UInventoryComponent::AddItem(EItemType eItemType)
@@ -95,7 +96,7 @@ void UInventoryComponent::AddItem(EItemType eItemType)
 
 EItemType UInventoryComponent::UseItem(int32 SlotIndex)
 {
-    TPT_LOG(HUDLog, Log, TEXT("UInventoryComponent::UseItem : %f"), SlotIndex);
+    //TPT_LOG(HUDLog, Log, TEXT("UInventoryComponent::UseItem : %f"), SlotIndex);
 
     // 예외처리 (슬롯 인덱스 제외한 숫자가 들어 온 경우.)
     if (SlotIndex <= 0 || SlotIndex > InventorySlots.Num())
@@ -161,9 +162,7 @@ bool UInventoryComponent::SetPlayerHUDWidget(class UPlayerHUDWidget* HUDWidget)
 	}
 
    APC_Player* PC = Cast<APC_Player>(PS->GetPlayerController());
-
-   OwnerPlayer = Cast<APlayerCharacter>(PC->GetCharacter());
-   OwnerASC = OwnerPlayer->GetAbilitySystemComponent();
+   APlayerCharacter* OwnerPlayer = Cast<APlayerCharacter>(PC->GetCharacter());
    UPlayerHUDWidget* TempWidget = OwnerPlayer->GetPlayerHUDWidget();
 
     // 두 포인터가 같은 객체를 가리키는지 비교해서 반환
@@ -195,8 +194,14 @@ void UInventoryComponent::OnRep_InventorySlots()
 
 void UInventoryComponent::ExecuteItemEffects(EItemType ItemType)
 {
-    TPT_LOG(HUDLog, Log, TEXT("UInventoryComponent::ExecuteItemEffects: %d"), (int32)ItemType);
-    UKismetSystemLibrary::PrintString(this, FString("ExecuteItemEffects"));
+    APS_Player* PS = Cast<APS_Player>(GetOwner());
+    APC_Player* PC = Cast<APC_Player>(PS->GetPlayerController());
+
+    if (!PC)
+    {
+        TPT_LOG(HUDLog, Warning, TEXT("OwnerPlayer Controller is null in ExecuteItem"));
+        return;
+    }
 
     // 아이템 유효성 검사
     if (ItemType == EItemType::None) return;
@@ -211,10 +216,6 @@ void UInventoryComponent::ExecuteItemEffects(EItemType ItemType)
         return;
     }
 
-    if (!OwnerPlayer) return;
-    if (!OwnerASC) return;
-
-
     // GameplayAbility 실행
     if (ItemData->GameAbility)
     {
@@ -226,7 +227,9 @@ void UInventoryComponent::ExecuteItemEffects(EItemType ItemType)
     {
         ApplyGameplayEffect(ItemData->GameEffect);
     }
+
 }
+
 
 FItemDataTable* UInventoryComponent::GetItemAbilityData(EItemType ItemType)
 {
@@ -244,7 +247,7 @@ FItemDataTable* UInventoryComponent::GetItemAbilityData(EItemType ItemType)
     }
 
     // 디버그 로그 (실제 RowName과 일치하는지 꼭 확인)
-    TPT_LOG(HUDLog, Log, TEXT("Looking for RowName: %s"), *EnumName);
+    //TPT_LOG(HUDLog, Log, TEXT("Looking for RowName: %s"), *EnumName);
 
     // DataTable에서 검색
     return ItemAbilityTable->FindRow<FItemDataTable>(FName(*EnumName), TEXT("GetItemAbilityData"));
@@ -252,8 +255,11 @@ FItemDataTable* UInventoryComponent::GetItemAbilityData(EItemType ItemType)
 
 void UInventoryComponent::ExecuteGameplayAbility(TSubclassOf<UGameplayAbility> AbilityClass)
 {
-    if (!OwnerPlayer) return;
-    if (!OwnerASC) return;
+    APS_Player* PS = Cast<APS_Player>(GetOwner());
+    APC_Player* PC = Cast<APC_Player>(PS->GetPlayerController());
+
+    APlayerCharacter* OwnerPlayer = Cast<APlayerCharacter>(PC->GetCharacter());
+    UAbilitySystemComponent* OwnerASC = OwnerPlayer->GetAbilitySystemComponent();
 
     // 임시로 Ability를 부여하고 즉시 실행
     FGameplayAbilitySpec AbilitySpec(AbilityClass, 1);
@@ -269,8 +275,11 @@ void UInventoryComponent::ExecuteGameplayAbility(TSubclassOf<UGameplayAbility> A
 
 void UInventoryComponent::ApplyGameplayEffect(TSubclassOf<UGameplayEffect> EffectClass)
 {
-    if (!OwnerPlayer) return;
-    if (!OwnerASC) return;
+    APS_Player* PS = Cast<APS_Player>(GetOwner());
+    APC_Player* PC = Cast<APC_Player>(PS->GetPlayerController());
+
+    APlayerCharacter* OwnerPlayer = Cast<APlayerCharacter>(PC->GetCharacter());
+    UAbilitySystemComponent* OwnerASC = OwnerPlayer->GetAbilitySystemComponent();
 
     // GameplayEffect 적용
     FGameplayEffectContextHandle EffectContext = OwnerASC->MakeEffectContext();

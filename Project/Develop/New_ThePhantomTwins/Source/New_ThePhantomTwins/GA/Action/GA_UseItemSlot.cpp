@@ -22,7 +22,7 @@ void UGA_UseItemSlot::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
     NULLCHECK_RETURN_LOG(TriggerEventData, GALog, Error, );
 
     float SlotNumber = TriggerEventData->EventMagnitude;
-    TPT_LOG(HUDLog, Warning, TEXT(" %f"), SlotNumber);
+    //TPT_LOG(HUDLog, Warning, TEXT(" %f"), SlotNumber);
 
     // 이 GA를 부른 플레이어의 PlayerState에 있는 인벤토리Component에 접근해서 UseItem 호출
     
