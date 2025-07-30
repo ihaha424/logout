@@ -16,6 +16,7 @@
 #include "Tags/TPTGameplayTags.h"
 #include "FocusTraceComponent.h"
 #include "PC_Player.h"
+#include "PlayerAnimInstance.h"
 #include "../GA/Action/GA_Interact.h"
 #include "AI/Character/AIBaseCharacter.h"
 #include "Blueprint/UserWidget.h"
@@ -100,6 +101,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 
 	InitHUDWidget(AttributeSet);
+	UPlayerAnimInstance* AnimInstance = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	AnimInstance->InitializeWithAbilitySystem(ASC);
 }
 
 void APlayerCharacter::OnRep_Controller()
@@ -126,6 +129,8 @@ void APlayerCharacter::OnRep_PlayerState()
 	BindAttributeDelegates(AttributeSet);
 
 	InitHUDWidget(AttributeSet);
+	UPlayerAnimInstance* AnimInstance = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	AnimInstance->InitializeWithAbilitySystem(ASC);
 }
 
 void APlayerCharacter::Tick(float DeltaTime)
