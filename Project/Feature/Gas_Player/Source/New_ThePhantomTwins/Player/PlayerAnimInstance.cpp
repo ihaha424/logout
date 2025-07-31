@@ -37,17 +37,6 @@ EDataValidationResult UPlayerAnimInstance::IsDataValid(class FDataValidationCont
 void UPlayerAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
-	TPT_LOG(PlayerLog, Error, TEXT("11"));
-	const APlayerCharacter* Character = Cast<APlayerCharacter>(GetOwningActor());
-	NULLCHECK_RETURN_LOG(Character, PlayerLog, Error, );
-	TPT_LOG(PlayerLog, Error, TEXT("1331"));
-
-	APS_Player* PS = Character->GetPlayerState<APS_Player>();
-	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
-	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
-	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
-	TPT_LOG(PlayerLog, Error, TEXT("1441"));
-	//InitializeWithAbilitySystem(ASC);
 }
 
 void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)

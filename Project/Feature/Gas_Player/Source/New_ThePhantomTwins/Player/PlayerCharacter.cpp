@@ -215,7 +215,7 @@ void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 Number)
 	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Event_Character_UseItemSlot;
 	FGameplayEventData Payload;
 	Payload.EventTag = EventTag;
-	Payload.Instigator = this;	// 이벤트를 유발한 주체 
+	Payload.Instigator = this;
 	Payload.EventMagnitude = static_cast<float>(Number);
 	TPT_LOG(HUDLog, Log, TEXT("슬롯 번호: %f"), Payload.EventMagnitude);
 
@@ -236,7 +236,6 @@ void APlayerCharacter::InputReleased(int32 InputID)
 
 void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)
 {
-	
 	AttributeSet->OnPlayerLowHP.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnPlayerConfused1st.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
