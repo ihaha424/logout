@@ -86,6 +86,19 @@ void UPlayerAttributeSet::OnRep_HP(const FGameplayAttributeData& OldValue)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, HP, OldValue);
 	OnChangedHP.Broadcast(GetHP());
+
+	// 체력이 MaxHp의 30%이하라면 Low HP 효과 발동.
+	if (GetHP() < GetMaxHP() * 0.3f && !bPlayerLowHP && GetHP() > 0.0)
+	{
+		OnPlayerLowHP.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
+	}
+	bPlayerLowHP = GetHP() < GetMaxHP() * 0.3f && GetHP() > 0.0;
+	// 체력이 0이하라면 다운.
+	if (GetHP() <= 0.0f && !bPlayerDowned)
+	{
+		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
+	}
+	bPlayerDowned = GetHP() <= 0.0f;
 }
 void UPlayerAttributeSet::OnRep_MaxHP(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, MaxHP, OldValue); }
 void UPlayerAttributeSet::OnRep_Stamina(const FGameplayAttributeData& OldValue)
@@ -98,6 +111,34 @@ void UPlayerAttributeSet::OnRep_MentalPoint(const FGameplayAttributeData& OldVal
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, MentalPoint, OldValue);
 	OnChangedMentalPoint.Broadcast(GetMentalPoint());
+
+	// 정신력이 MAX가 아니라면 거리별회복 GA 호출
+	if (GetMentalPoint() < GetMaxMentalPoint() && !bMentalPointNotMax)
+	{
+		OnMentalPointNotMax.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalRecovery);
+	}
+	bMentalPointNotMax = GetMentalPoint() < GetMaxMentalPoint();
+
+	// 정신력이 50 이하라면 착란 1단계
+	if (GetMentalPoint() > 25.0f && GetMentalPoint() <= 50.0f && !bPlayerConfused1st)
+	{
+		OnPlayerConfused1st.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
+	}
+	bPlayerConfused1st = (GetMentalPoint() > 25.0f && GetMentalPoint() <= 50.0f);
+
+	// 정신력이 25 이하라면 착란 2단계
+	if (GetMentalPoint() > 0.0f && GetMentalPoint() <= 25.0f && !bPlayerConfused2nd)
+	{
+		OnPlayerConfused2nd.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
+	}
+	bPlayerConfused2nd = (GetMentalPoint() > 0.0f && GetMentalPoint() <= 25.0f);
+
+	// 정신력이 0 이라면 착란 3단계
+	if (GetMentalPoint() <= 0.0f && !bPlayerConfused3rd)
+	{
+		OnPlayerConfused3rd.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
+	}
+	bPlayerConfused3rd = GetMentalPoint() <= 0.0f;
 }
 void UPlayerAttributeSet::OnRep_MaxMentalPoint(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, MaxMentalPoint, OldValue); }
 void UPlayerAttributeSet::OnRep_CoreEnergy(const FGameplayAttributeData& OldValue)
@@ -109,7 +150,16 @@ void UPlayerAttributeSet::OnRep_MaxCoreEnergy(const FGameplayAttributeData& OldV
 void UPlayerAttributeSet::OnRep_Speed(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, Speed, OldValue); }
 void UPlayerAttributeSet::OnRep_SpeedAdjustment(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, SpeedAdjustment, OldValue); }
 void UPlayerAttributeSet::OnRep_FinalSpeed(const FGameplayAttributeData& OldValue) {GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, FinalSpeed, OldValue);}
-void UPlayerAttributeSet::OnRep_ExecuteSkill(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, ExecuteSkill, OldValue); }
+void UPlayerAttributeSet::OnRep_ExecuteSkill(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, ExecuteSkill, OldValue);
+	// 스킬발동이 true가 되면 스킬실행.
+	if (GetExecuteSkill() > 0 && !bPlayerUseSkill)
+	{
+		OnPlayerUseSkill.Broadcast(Cast<APS_Player>(GetOwningActor())->GetActiveSkillTag());
+	}
+	bPlayerUseSkill = GetExecuteSkill() > 0;
+}
 
 void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data)
 {
@@ -164,7 +214,6 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 		Data.Target.AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-		//TPT_LOG(PlayerLog,Error,TEXT(" %s "), *GetNameSafe(Data.Target.GetOwner()));
 	}
 	bPlayerDowned = GetHP() <= 0.0f;
 

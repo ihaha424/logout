@@ -25,6 +25,9 @@ public:
 
 protected:
 
+	UPROPERTY(EditDefaultsOnly, Category = "Montage")
+	TObjectPtr<UAnimMontage> RunningMontage;
+
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayEffect> StaminaDrainEffect;
 

@@ -49,7 +49,7 @@ public:
 	APlayerCharacter();
 
 	virtual void BeginPlay() override;
-	virtual void PostInitializeComponents() override;
+	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_Controller() override;
 	virtual void OnRep_PlayerState() override;
@@ -96,16 +96,18 @@ public:
 	TObjectPtr<UWidgetComponent> InteractWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
-	TObjectPtr<UWidgetComponent> RecoveryWidget;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TSubclassOf<UUserWidget> RecoveryWidgetClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TSubclassOf<UUserWidget> InteractWidgetClass;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Recovery")
 	FTimerHandle RecoveryTimerHandle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
+	float RecoveryTime = 3.0f;
+
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
+	float RecoveryPercent = 0.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Recovery")
 	TSubclassOf<UGameplayEffect> RecoveryGE;

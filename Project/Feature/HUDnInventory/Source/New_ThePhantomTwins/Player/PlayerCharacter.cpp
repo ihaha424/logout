@@ -16,6 +16,7 @@
 #include "Tags/TPTGameplayTags.h"
 #include "FocusTraceComponent.h"
 #include "PC_Player.h"
+#include "PlayerAnimInstance.h"
 #include "../GA/Action/GA_Interact.h"
 #include "AI/Character/AIBaseCharacter.h"
 #include "Blueprint/UserWidget.h"
@@ -26,6 +27,7 @@
 #include "Components/WidgetComponent.h"
 #include "Objects/InventoryComponent.h"
 #include "UI/HUD/PlayerHUDWidget.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -59,9 +61,11 @@ void APlayerCharacter::BeginPlay()
 }
 
 
-void APlayerCharacter::PostInitializeComponents()
+void APlayerCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
 {
-	Super::PostInitializeComponents();
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APlayerCharacter, RecoveryPercent);
 }
 
 void APlayerCharacter::PossessedBy(AController* NewController)
@@ -97,6 +101,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 
 	InitHUDWidget(AttributeSet);
+	UPlayerAnimInstance* AnimInstance = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	AnimInstance->InitializeWithAbilitySystem(ASC);
 }
 
 void APlayerCharacter::OnRep_Controller()
@@ -123,11 +129,15 @@ void APlayerCharacter::OnRep_PlayerState()
 	BindAttributeDelegates(AttributeSet);
 
 	InitHUDWidget(AttributeSet);
+	UPlayerAnimInstance* AnimInstance = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	AnimInstance->InitializeWithAbilitySystem(ASC);
 }
 
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	//TPT_LOG(LogTemp, Log, TEXT("%.2f"), RecoveryPercent);
 
 	//NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 	//NULLCHECK_RETURN_LOG(FocusTrace, PlayerLog, Error, );
@@ -205,7 +215,7 @@ void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 Number)
 	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Event_Character_UseItemSlot;
 	FGameplayEventData Payload;
 	Payload.EventTag = EventTag;
-	Payload.Instigator = this;	// 이벤트를 유발한 주체 
+	Payload.Instigator = this;
 	Payload.EventMagnitude = static_cast<float>(Number);
 	TPT_LOG(HUDLog, Log, TEXT("슬롯 번호: %f"), Payload.EventMagnitude);
 
@@ -226,7 +236,6 @@ void APlayerCharacter::InputReleased(int32 InputID)
 
 void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)
 {
-	
 	AttributeSet->OnPlayerLowHP.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 	AttributeSet->OnPlayerConfused1st.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
@@ -261,6 +270,9 @@ void APlayerCharacter::OnRecoveryCompleted()
 
 	GetWorld()->GetTimerManager().ClearTimer(RecoveryTimerHandle);
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	
+	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
+	PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
 
 	// TODO : 회복 GE
 	if (RecoveryGE)
@@ -336,15 +348,21 @@ void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 		RecoveryTimerHandle,               
 		this,                              
 		&APlayerCharacter::OnRecoveryCompleted, 
-		5.0f,                              
+		RecoveryTime,
 		false                              
 	);
 }
 
 void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
-	PlayerController->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
+	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
+	PC->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
+
+	if (GetWorld()->GetTimerManager().IsTimerActive(RecoveryTimerHandle))
+	{
+		float Elapsed = GetWorld()->GetTimerManager().GetTimerElapsed(RecoveryTimerHandle);
+		RecoveryPercent = Elapsed / RecoveryTime;
+	}
 }
 
 void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
