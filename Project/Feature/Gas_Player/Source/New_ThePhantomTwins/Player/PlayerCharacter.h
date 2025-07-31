@@ -75,7 +75,7 @@ public:
 	UPlayerHUDWidget* GetPlayerHUDWidget() { return PlayerHUDWidget; }
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float WalkSpeed = 400.f;
+	float WalkSpeed = 150.f;
 
 public:
 	virtual bool CanInteract_Implementation(const APawn* Interactor, bool bIsDetected) override;
