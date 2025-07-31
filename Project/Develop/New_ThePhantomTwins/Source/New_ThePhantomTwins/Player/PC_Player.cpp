@@ -4,8 +4,17 @@
 #include "PC_Player.h"
 
 #include "EnhancedInputSubsystems.h"
+#include "Engine/World.h"
 #include "Log/TPTLog.h"
 #include "UI/HUD/HUD_PhantomTwins.h"
+#include "Kismet/GameplayStatics.h"
+
+APC_Player* APC_Player::GetLocalPlayerController(AActor* Actor)
+{
+	APlayerController* PC = UGameplayStatics::GetPlayerController(Actor->GetWorld(), 0);
+	NULLCHECK_RETURN_LOG(PC, PlayerLog, Error, nullptr);
+	return Cast<APC_Player>(PC);
+}
 
 void APC_Player::PostInitializeComponents()
 {

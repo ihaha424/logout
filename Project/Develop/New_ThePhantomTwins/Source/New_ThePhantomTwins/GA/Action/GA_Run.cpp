@@ -5,6 +5,7 @@
 #include "Player/PlayerCharacter.h"
 #include "Attribute/PlayerAttributeSet.h"
 #include "Tags/TPTGameplayTags.h"
+#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Log/TPTLog.h"
 
 UGA_Run::UGA_Run()
@@ -55,13 +56,6 @@ void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 				CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
 			}
 		}, 0.1f, true); // 0.1초마다 체크
-
-
-    // 몽타주 재생
-	//if (RunningMontage)
-	//{
-	//    PlayMontage(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), RunningMontage);
-	//}
 }
 
 void UGA_Run::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)

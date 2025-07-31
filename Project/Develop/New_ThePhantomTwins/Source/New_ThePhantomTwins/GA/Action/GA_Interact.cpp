@@ -9,6 +9,7 @@
 #include "SzInterface/Interact.h"
 #include "Kismet/GameplayStatics.h"
 #include "Tags/TPTGameplayTags.h"
+#include "Player/PC_Player.h"
 
 UGA_Interact::UGA_Interact()
 {
@@ -56,6 +57,9 @@ void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const 
 	if (APlayerCharacter* OtherPlayer = Cast<APlayerCharacter>(TargetActor))
 	{
 		OtherPlayer->GetWorld()->GetTimerManager().ClearTimer(OtherPlayer->RecoveryTimerHandle);
+		
+		APC_Player* PC = APC_Player::GetLocalPlayerController(Character);
+		PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
 	}
 }
 
