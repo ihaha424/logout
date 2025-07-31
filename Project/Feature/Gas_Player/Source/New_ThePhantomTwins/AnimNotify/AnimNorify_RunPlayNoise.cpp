@@ -12,7 +12,7 @@
 
 void UAnimNorify_RunPlayNoise::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	if (!MeshComp || !SoundToPlay) return;
+	if (!MeshComp || !StepSound) return;
 
 	APlayerCharacter* Owner = Cast<APlayerCharacter>(MeshComp->GetOwner());
 	NULLCHECK_RETURN_LOG(Owner, GALog, Error, )
@@ -20,10 +20,19 @@ void UAnimNorify_RunPlayNoise::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 	UAbilitySystemComponent* ASC = Owner->GetAbilitySystemComponent();
 	NULLCHECK_RETURN_LOG(ASC, GALog, Error, )
 
+	// 달리기
 	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run))
 	{
 		// 사운드 재생
-		UGameplayStatics::PlaySoundAtLocation(Owner, SoundToPlay, Owner->GetActorLocation());
+		UGameplayStatics::PlaySoundAtLocation(Owner, StepSound, Owner->GetActorLocation());
+
+		// 노이즈 발생
+		Owner->MakeNoise(1.0f, Owner, Owner->GetActorLocation());
+	}
+	else // 걷기
+	{
+		// 사운드 재생
+		UGameplayStatics::PlaySoundAtLocation(Owner, StepSound, Owner->GetActorLocation());
 
 		// 노이즈 발생
 		Owner->MakeNoise(1.0f, Owner, Owner->GetActorLocation());

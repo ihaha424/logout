@@ -57,7 +57,6 @@ void APlayerCharacter::BeginPlay()
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
 	FocusTrace->SetIsReplicated(true);
-
 }
 
 
@@ -137,7 +136,13 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//TPT_LOG(LogTemp, Log, TEXT("%.2f"), RecoveryPercent);
+	// 동민 수정
+
+	/*if (GetWorld()->GetTimerManager().IsTimerActive(RecoveryTimerHandle))
+	{
+		float Elapsed = GetWorld()->GetTimerManager().GetTimerElapsed(RecoveryTimerHandle);
+		RecoveryPercent = Elapsed / RecoveryTime;
+	}*/
 
 	//NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 	//NULLCHECK_RETURN_LOG(FocusTrace, PlayerLog, Error, );
@@ -269,6 +274,8 @@ void APlayerCharacter::OnRecoveryCompleted()
 	}
 
 	GetWorld()->GetTimerManager().ClearTimer(RecoveryTimerHandle);
+	// 동민 수정
+	GetWorld()->GetTimerManager().ClearTimer(TempHandle);
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 	
 	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
@@ -344,8 +351,29 @@ bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool 
 
 void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 {
+// 동민 수정
+	FTimerDelegate TimerDel;
+	TimerDel.BindLambda([this, Interactor]()
+		{
+			if (GetWorld()->GetTimerManager().IsTimerActive(RecoveryTimerHandle))
+			{
+				float Elapsed = GetWorld()->GetTimerManager().GetTimerElapsed(RecoveryTimerHandle);
+				RecoveryPercent = Elapsed / RecoveryTime;
+				APawn* interactPawn = const_cast<APawn*>(Interactor);
+				APlayerCharacter* interactCharacter = Cast<APlayerCharacter>(interactPawn);
+				interactCharacter->RecoveryPercent = RecoveryPercent;
+			}
+		});
+
 	GetWorld()->GetTimerManager().SetTimer(
-		RecoveryTimerHandle,               
+		TempHandle,
+		TimerDel,
+		0.02f,
+		true
+	);
+
+	GetWorld()->GetTimerManager().SetTimer(
+		RecoveryTimerHandle,
 		this,                              
 		&APlayerCharacter::OnRecoveryCompleted, 
 		RecoveryTime,
@@ -355,14 +383,8 @@ void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 
 void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
+	APC_Player* PC = APC_Player::GetLocalPlayerController(Interactor->GetController());
 	PC->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
-
-	if (GetWorld()->GetTimerManager().IsTimerActive(RecoveryTimerHandle))
-	{
-		float Elapsed = GetWorld()->GetTimerManager().GetTimerElapsed(RecoveryTimerHandle);
-		RecoveryPercent = Elapsed / RecoveryTime;
-	}
 }
 
 void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
@@ -456,7 +478,7 @@ void APlayerCharacter::MovementSetting()
 	GetCharacterMovement()->MinAnalogWalkSpeed = 0.f;
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 80.f;
-	GetCharacterMovement()->BrakingDecelerationWalking = 600.0f;
+	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 }
 
 void APlayerCharacter::CameraSetting()

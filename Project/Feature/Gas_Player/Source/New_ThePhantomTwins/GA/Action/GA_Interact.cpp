@@ -14,7 +14,11 @@
 UGA_Interact::UGA_Interact()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+	// 동민 수정
+	// 왜!!! 왜!!! 왜!!!! 로컬에서 실행이죠?> 네? 왜요? ㅈ왜요요? 왤까요?????진짜에요? 
+	// 아니면 이유ㅜ가 잇나요? 이유가 있으면 인정해드립니다. 있기를 바랄꼐요.
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
+	// NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact);
 }
 
@@ -57,6 +61,8 @@ void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const 
 	if (APlayerCharacter* OtherPlayer = Cast<APlayerCharacter>(TargetActor))
 	{
 		OtherPlayer->GetWorld()->GetTimerManager().ClearTimer(OtherPlayer->RecoveryTimerHandle);
+		// 동민 수정
+		OtherPlayer->GetWorld()->GetTimerManager().ClearTimer(OtherPlayer->TempHandle);
 		
 		APC_Player* PC = APC_Player::GetLocalPlayerController(Character);
 		PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);

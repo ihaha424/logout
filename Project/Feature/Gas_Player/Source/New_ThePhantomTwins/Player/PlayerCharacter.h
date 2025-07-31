@@ -75,7 +75,7 @@ public:
 	UPlayerHUDWidget* GetPlayerHUDWidget() { return PlayerHUDWidget; }
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float WalkSpeed = 150.0f;
+	float WalkSpeed = 400.f;
 
 public:
 	virtual bool CanInteract_Implementation(const APawn* Interactor, bool bIsDetected) override;
@@ -101,7 +101,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TSubclassOf<UUserWidget> InteractWidgetClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	FTimerHandle RecoveryTimerHandle;
+	// µ¿¹Î ¼öÁ¤
+	FTimerHandle TempHandle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	float RecoveryTime = 3.0f;
