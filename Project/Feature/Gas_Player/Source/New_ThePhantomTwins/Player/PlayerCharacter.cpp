@@ -351,16 +351,16 @@ void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 // 동민 수정
 	FTimerDelegate TimerDel;
 	TimerDel.BindLambda([this, Interactor]()
+	{
+		if (GetWorld()->GetTimerManager().IsTimerActive(RecoveryTimerHandle))
 		{
-			if (GetWorld()->GetTimerManager().IsTimerActive(RecoveryTimerHandle))
-			{
-				float Elapsed = GetWorld()->GetTimerManager().GetTimerElapsed(RecoveryTimerHandle);
-				RecoveryPercent = Elapsed / RecoveryTime;
-				APawn* interactPawn = const_cast<APawn*>(Interactor);
-				APlayerCharacter* interactCharacter = Cast<APlayerCharacter>(interactPawn);
-				interactCharacter->RecoveryPercent = RecoveryPercent;
-			}
-		});
+			float Elapsed = GetWorld()->GetTimerManager().GetTimerElapsed(RecoveryTimerHandle);
+			RecoveryPercent = Elapsed / RecoveryTime;
+			APawn* interactPawn = const_cast<APawn*>(Interactor);
+			APlayerCharacter* interactCharacter = Cast<APlayerCharacter>(interactPawn);
+			interactCharacter->RecoveryPercent = RecoveryPercent;
+		}
+	});
 
 	GetWorld()->GetTimerManager().SetTimer(
 		TempHandle,
