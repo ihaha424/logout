@@ -456,7 +456,7 @@ void APlayerCharacter::MovementSetting()
 	GetCharacterMovement()->MinAnalogWalkSpeed = 0.f;
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 80.f;
-	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
+	GetCharacterMovement()->BrakingDecelerationWalking = 600.0f;
 }
 
 void APlayerCharacter::CameraSetting()

@@ -41,9 +41,9 @@ protected:
 
 	FGameplayTagContainer CancelTags;
 	UPROPERTY(EditAnywhere, Category = "GAS")
-	float BaseRunSpeed = 800.0f;
+	float BaseRunSpeed = 450.f;
 
-	float OutPutRunSpeed = 800.0f;
+	float OutPutRunSpeed = 450.f;
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	float SprintMultiplier = 1.5;
 	bool bHasSprintTag = false;

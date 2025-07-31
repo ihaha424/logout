@@ -43,6 +43,5 @@ void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 	const APlayerCharacter* Character = Cast<APlayerCharacter>(GetOwningActor());
-	NULLCHECK_RETURN_LOG(Character, PlayerLog, Error, );
-
+	//NULLCHECK_RETURN_LOG(Character, PlayerLog, Error, );
 }
