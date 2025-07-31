@@ -197,6 +197,7 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 void APlayerCharacter::InputPressed(int32 InputID)
 {
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
+	UKismetSystemLibrary::PrintString(this, FString("InputPressed"));
 	if (Spec)
 	{
 		//Spec->GameplayEventData
