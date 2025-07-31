@@ -68,11 +68,14 @@ public:
 
 	UFUNCTION()
 	void OnRecoveryCompleted();
-
 	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);
 
 	UFUNCTION()
 	UPlayerHUDWidget* GetPlayerHUDWidget() { return PlayerHUDWidget; }
+
+	UFUNCTION(BlueprintCallable, Category = "Direction")
+	FVector GetWorldDirection() const { return WorldDirection; }
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float WalkSpeed = 150.f;
@@ -114,7 +117,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Recovery")
 	TSubclassOf<UGameplayEffect> RecoveryGE;
-
 protected:
 
 	UPROPERTY()
@@ -170,6 +172,10 @@ protected:
 	UPROPERTY()
 	TMap<AActor*, EEnemyRange> EnemyRangeMap;
 	EEnemyRange CurrentWallRange = EEnemyRange::None;
+	UPROPERTY()
+	FVector WorldLocation;
+	UPROPERTY()
+	FVector WorldDirection;
 
 public:
 	UFUNCTION()

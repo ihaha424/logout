@@ -151,9 +151,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 		FVector2D ViewportSize;
 		GEngine->GameViewport->GetViewportSize(ViewportSize);
 
-		FVector WorldLocation;
-		FVector WorldDirection;
-
 		PlayerController->DeprojectScreenPositionToWorld(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, WorldLocation, WorldDirection);
 
 		FocusTrace->SetStart(WorldLocation);
