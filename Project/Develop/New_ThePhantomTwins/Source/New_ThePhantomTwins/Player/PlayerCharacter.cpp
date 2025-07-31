@@ -57,7 +57,6 @@ void APlayerCharacter::BeginPlay()
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
 	FocusTrace->SetIsReplicated(true);
-
 }
 
 
@@ -71,10 +70,10 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& O
 void APlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-	
+
 	PS = GetPlayerState<APS_Player>();
 	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
-	
+
 	ASC = PS->GetAbilitySystemComponent();
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
 
@@ -84,8 +83,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 
 	BindAttributeDelegates(AttributeSet);
 	NULLCHECK_RETURN_LOG(InitAttributeSetEffect, PlayerLog, Error, );
-	ASC->ApplyGameplayEffectToSelf(InitAttributeSetEffect->GetDefaultObject<UGameplayEffect>(),1.0f, ASC->MakeEffectContext());
-	
+	ASC->ApplyGameplayEffectToSelf(InitAttributeSetEffect->GetDefaultObject<UGameplayEffect>(), 1.0f, ASC->MakeEffectContext());
+
 	for (const auto& Ability : PlayerAbilities)
 	{
 		const EFTPTGameplayTags* TagEnum = FTPTGameplayTags::Get().TagMap.Find(Ability.Key);
@@ -137,17 +136,20 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//TPT_LOG(LogTemp, Log, TEXT("%.2f"), RecoveryPercent);
+	// 동민 수정
+
+	/*if (GetWorld()->GetTimerManager().IsTimerActive(RecoveryTimerHandle))
+	{
+		float Elapsed = GetWorld()->GetTimerManager().GetTimerElapsed(RecoveryTimerHandle);
+		RecoveryPercent = Elapsed / RecoveryTime;
+	}*/
 
 	//NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 	//NULLCHECK_RETURN_LOG(FocusTrace, PlayerLog, Error, );
-	if (PlayerController&& FocusTrace)
+	if (PlayerController && FocusTrace)
 	{
 		FVector2D ViewportSize;
 		GEngine->GameViewport->GetViewportSize(ViewportSize);
-
-		FVector WorldLocation;
-		FVector WorldDirection;
 
 		PlayerController->DeprojectScreenPositionToWorld(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, WorldLocation, WorldDirection);
 
@@ -185,11 +187,11 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
 
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill, ETriggerEvent::Started, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum,1);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum,2);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum,3);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum,4);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum,5);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 1);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 2);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 3);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 4);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 5);
 	}
 }
 void APlayerCharacter::InputPressed(int32 InputID)
@@ -269,8 +271,10 @@ void APlayerCharacter::OnRecoveryCompleted()
 	}
 
 	GetWorld()->GetTimerManager().ClearTimer(RecoveryTimerHandle);
+	// 동민 수정
+	GetWorld()->GetTimerManager().ClearTimer(TempHandle);
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-	
+
 	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
 	PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
 
@@ -344,25 +348,40 @@ bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool 
 
 void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 {
+	// 동민 수정
+	FTimerDelegate TimerDel;
+	TimerDel.BindLambda([this, Interactor]()
+		{
+			if (GetWorld()->GetTimerManager().IsTimerActive(RecoveryTimerHandle))
+			{
+				float Elapsed = GetWorld()->GetTimerManager().GetTimerElapsed(RecoveryTimerHandle);
+				RecoveryPercent = Elapsed / RecoveryTime;
+				APawn* interactPawn = const_cast<APawn*>(Interactor);
+				APlayerCharacter* interactCharacter = Cast<APlayerCharacter>(interactPawn);
+				interactCharacter->RecoveryPercent = RecoveryPercent;
+			}
+		});
+
 	GetWorld()->GetTimerManager().SetTimer(
-		RecoveryTimerHandle,               
-		this,                              
-		&APlayerCharacter::OnRecoveryCompleted, 
+		TempHandle,
+		TimerDel,
+		0.02f,
+		true
+	);
+
+	GetWorld()->GetTimerManager().SetTimer(
+		RecoveryTimerHandle,
+		this,
+		&APlayerCharacter::OnRecoveryCompleted,
 		RecoveryTime,
-		false                              
+		false
 	);
 }
 
 void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
+	APC_Player* PC = APC_Player::GetLocalPlayerController(Interactor->GetController());
 	PC->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
-
-	if (GetWorld()->GetTimerManager().IsTimerActive(RecoveryTimerHandle))
-	{
-		float Elapsed = GetWorld()->GetTimerManager().GetTimerElapsed(RecoveryTimerHandle);
-		RecoveryPercent = Elapsed / RecoveryTime;
-	}
 }
 
 void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
@@ -456,7 +475,7 @@ void APlayerCharacter::MovementSetting()
 	GetCharacterMovement()->MinAnalogWalkSpeed = 0.f;
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 80.f;
-	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
+	GetCharacterMovement()->BrakingDecelerationWalking = 600.f;
 }
 
 void APlayerCharacter::CameraSetting()
@@ -505,12 +524,12 @@ void APlayerCharacter::OverlapRangeSetting()
 	WallMaria->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapMaria);
 }
 
-void APlayerCharacter::OnBeginOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor,UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void APlayerCharacter::OnBeginOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	//TPT_LOG(PlayerLog, Error, TEXT("Sina Begin : %s"), *OtherActor->GetFName().ToString());
 	OnBeginOverlap(EEnemyRange::WallSina, OtherActor);
 }
-void APlayerCharacter::OnEndOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor,UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void APlayerCharacter::OnEndOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	OnEndOverlap(EEnemyRange::WallSina, OtherActor);
 }
@@ -624,7 +643,7 @@ void APlayerCharacter::UpdateWallSound()
 		case EEnemyRange::WallMaria: ToPlay = WallMariaSound;  break;
 		default: break; // None(아무 적도 없음)인 경우 아무 사운드도 X
 		}
-		
+
 		if (ToPlay)
 		{
 			WallAudioComponent = UGameplayStatics::SpawnSoundAttached(ToPlay, GetRootComponent());

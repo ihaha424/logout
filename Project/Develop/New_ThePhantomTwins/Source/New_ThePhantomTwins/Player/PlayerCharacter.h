@@ -68,14 +68,16 @@ public:
 
 	UFUNCTION()
 	void OnRecoveryCompleted();
-
 	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);
 
 	UFUNCTION()
 	UPlayerHUDWidget* GetPlayerHUDWidget() { return PlayerHUDWidget; }
 
+	UFUNCTION(BlueprintCallable, Category = "Direction")
+	FVector GetWorldDirection() const { return WorldDirection; }
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float WalkSpeed = 400.f;
+	float WalkSpeed = 150.f;
 
 public:
 	virtual bool CanInteract_Implementation(const APawn* Interactor, bool bIsDetected) override;
@@ -101,7 +103,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TSubclassOf<UUserWidget> InteractWidgetClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	FTimerHandle RecoveryTimerHandle;
+	// µ¿¹Î ¼öÁ¤
+	FTimerHandle TempHandle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	float RecoveryTime = 3.0f;
@@ -111,7 +116,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Recovery")
 	TSubclassOf<UGameplayEffect> RecoveryGE;
-
 protected:
 
 	UPROPERTY()
@@ -167,6 +171,10 @@ protected:
 	UPROPERTY()
 	TMap<AActor*, EEnemyRange> EnemyRangeMap;
 	EEnemyRange CurrentWallRange = EEnemyRange::None;
+	UPROPERTY()
+	FVector WorldLocation;
+	UPROPERTY()
+	FVector WorldDirection;
 
 public:
 	UFUNCTION()
@@ -189,17 +197,17 @@ public:
 	void CameraSetting();
 	void OverlapRangeSetting();
 	UFUNCTION()
-	void OnBeginOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnBeginOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
-	void OnEndOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
+	void OnEndOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	UFUNCTION()
-	void OnBeginOverlapRose(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnBeginOverlapRose(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
-	void OnEndOverlapRose(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
+	void OnEndOverlapRose(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	UFUNCTION()
-	void OnBeginOverlapMaria(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnBeginOverlapMaria(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
-	void OnEndOverlapMaria(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp,int32 OtherBodyIndex);
+	void OnEndOverlapMaria(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	void OnBeginOverlap(EEnemyRange Range, AActor* OtherActor);
 	void OnEndOverlap(EEnemyRange Range, AActor* OtherActor);
 	EEnemyRange GetNearestEnemyRange() const;
