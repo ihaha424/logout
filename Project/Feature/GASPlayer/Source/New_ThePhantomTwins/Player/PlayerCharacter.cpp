@@ -1,7 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PlayerCharacter.h"
-
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "PS_Player.h"
@@ -29,7 +28,6 @@
 #include "UI/HUD/PlayerHUDWidget.h"
 #include "Net/UnrealNetwork.h"
 
-// Sets default values
 APlayerCharacter::APlayerCharacter()
 {
 	ASC = nullptr;
@@ -45,27 +43,6 @@ APlayerCharacter::APlayerCharacter()
 
 	InteractWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractWidget"));
 	InteractWidget->SetupAttachment(GetMesh());
-}
-
-// Called when the game starts or when spawned
-void APlayerCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
-
-	UUserWidget* Widget = CreateWidget(GetWorld(), InteractWidgetClass);
-	InteractWidget->SetWidget(Widget);
-	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-
-	FocusTrace->SetIsReplicated(true);
-}
-
-
-void APlayerCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(APlayerCharacter, RecoveryPercent);
 }
 
 void APlayerCharacter::PossessedBy(AController* NewController)
@@ -132,6 +109,18 @@ void APlayerCharacter::OnRep_PlayerState()
 	AnimInstance->InitializeWithAbilitySystem(ASC);
 }
 
+void APlayerCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
+
+	UUserWidget* Widget = CreateWidget(GetWorld(), InteractWidgetClass);
+	InteractWidget->SetWidget(Widget);
+	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+
+	FocusTrace->SetIsReplicated(true);
+}
+
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -141,13 +130,15 @@ void APlayerCharacter::Tick(float DeltaTime)
 		FVector2D ViewportSize;
 		GEngine->GameViewport->GetViewportSize(ViewportSize);
 
+		FVector WorldLocation;
+		FVector WorldDirection;
 		PlayerController->DeprojectScreenPositionToWorld(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, WorldLocation, WorldDirection);
 
 		// 클라 내에서 카메라 위치와 회전 받아오기
 		FVector CameraLocation;
 		FRotator CameraRotation;
 		PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
-
+		
 		// 클라에선 FocusTrace 세팅(시각효과용)
 		FocusTrace->SetStart(WorldLocation);
 		FocusTrace->SetDirection(WorldDirection);
@@ -173,7 +164,7 @@ void APlayerCharacter::C2S_SetFocusTrace_Implementation(const FVector& CameraLoc
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	//UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Setup Player InputComponent: %s  IsLocallyControlled  %d   HasAuthority   %d"), *GetName(), IsLocallyControlled(),HasAuthority()));
+	// 로컬에서만 일어남.
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	UTPTEnhancedInputComponent* TPTInput = CastChecked<UTPTEnhancedInputComponent>(PlayerInputComponent);
 	check(TPTInput);
@@ -207,6 +198,7 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 5);
 	}
 }
+
 void APlayerCharacter::InputPressed(int32 InputID)
 {
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
@@ -225,17 +217,6 @@ void APlayerCharacter::InputPressed(int32 InputID)
 	}
 }
 
-void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 Number)
-{
-	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Event_Character_UseItemSlot;
-	FGameplayEventData Payload;
-	Payload.EventTag = EventTag;
-	Payload.Instigator = this;
-	Payload.EventMagnitude = static_cast<float>(Number);
-
-	ASC->HandleGameplayEvent(EventTag, &Payload);
-}
-
 void APlayerCharacter::InputReleased(int32 InputID)
 {
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
@@ -249,6 +230,7 @@ void APlayerCharacter::InputReleased(int32 InputID)
 		ASC->AbilitySpecInputReleased(*Spec);
 	}
 }
+
 void APlayerCharacter::C2S_InputReleased_Implementation(const int32 InputID)
 {
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
@@ -260,6 +242,17 @@ void APlayerCharacter::C2S_InputReleased_Implementation(const int32 InputID)
 	{
 		ASC->AbilitySpecInputReleased(*Spec);
 	}
+}
+
+void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 Number)
+{
+	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Event_Character_UseItemSlot;
+	FGameplayEventData Payload;
+	Payload.EventTag = EventTag;
+	Payload.Instigator = this;
+	Payload.EventMagnitude = static_cast<float>(Number);
+
+	ASC->HandleGameplayEvent(EventTag, &Payload);
 }
 
 void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)
@@ -279,6 +272,84 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 		AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
 		AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
 	}
+
+	if (HasAuthority())
+	{
+		WallSina->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapWall);
+		WallSina->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapWall);
+		WallRose->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapWall);
+		WallRose->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapWall);
+		WallMaria->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapWall);
+		WallMaria->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapWall);
+	}
+}
+
+void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
+{
+	FGameplayAbilitySpec* TagID = ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
+	NULLCHECK_RETURN_LOG(TagID, PlayerLog, Warning, );
+	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
+}
+
+void APlayerCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(APlayerCharacter, RecoveryPercent);
+	DOREPLIFETIME(APlayerCharacter, CurrentWallRange);
+}
+
+bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
+{
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, false);
+	bool bIsTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
+
+	if (bIsTag && bIsDetected)
+	{
+		InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+		return true;
+	}
+	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	return false;
+}
+
+void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
+{
+
+	FTimerDelegate TimerDel;
+	TimerDel.BindLambda([this, Interactor]()
+		{
+			if (GetWorld()->GetTimerManager().IsTimerActive(RecoveryTimerHandle))
+			{
+				float Elapsed = GetWorld()->GetTimerManager().GetTimerElapsed(RecoveryTimerHandle);
+				RecoveryPercent = Elapsed / RecoveryTime;
+				APawn* interactPawn = const_cast<APawn*>(Interactor);
+				APlayerCharacter* interactCharacter = Cast<APlayerCharacter>(interactPawn);
+				interactCharacter->RecoveryPercent = RecoveryPercent;
+			}
+		});
+
+	GetWorld()->GetTimerManager().SetTimer(
+		TempHandle,
+		TimerDel,
+		0.02f,
+		true
+	);
+
+	GetWorld()->GetTimerManager().SetTimer(
+		RecoveryTimerHandle,
+		this,
+		&APlayerCharacter::OnRecoveryCompleted,
+		RecoveryTime,
+		false
+	);
+}
+
+void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
+{
+	APC_Player* PC = APC_Player::GetLocalPlayerController(Interactor->GetController());
+	if (!ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
+		return;
+	PC->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
 }
 
 void APlayerCharacter::OnRecoveryCompleted()
@@ -293,7 +364,6 @@ void APlayerCharacter::OnRecoveryCompleted()
 	for (int32 i = 0; i < Count; ++i)
 	{
 		ASC->RemoveLooseGameplayTag(DownedTag);
-		ASC->RemoveReplicatedLooseGameplayTag(DownedTag);
 	}
 
 	GetWorld()->GetTimerManager().ClearTimer(RecoveryTimerHandle);
@@ -356,69 +426,6 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 	PS->InventoryComp->SetPlayerHUDWidget(PlayerHUDWidget);
 }
 
-bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
-{
-	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, false);
-	bool bIsTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-
-	if (bIsTag && bIsDetected)
-	{
-		InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
-		return true;
-	}
-	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-	return false;
-}
-
-void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
-{
-
-	FTimerDelegate TimerDel;
-	TimerDel.BindLambda([this, Interactor]()
-		{
-			if (GetWorld()->GetTimerManager().IsTimerActive(RecoveryTimerHandle))
-			{
-				float Elapsed = GetWorld()->GetTimerManager().GetTimerElapsed(RecoveryTimerHandle);
-				RecoveryPercent = Elapsed / RecoveryTime;
-				APawn* interactPawn = const_cast<APawn*>(Interactor);
-				APlayerCharacter* interactCharacter = Cast<APlayerCharacter>(interactPawn);
-				interactCharacter->RecoveryPercent = RecoveryPercent;
-			}
-		});
-
-	GetWorld()->GetTimerManager().SetTimer(
-		TempHandle,
-		TimerDel,
-		0.02f,
-		true
-	);
-
-	GetWorld()->GetTimerManager().SetTimer(
-		RecoveryTimerHandle,
-		this,
-		&APlayerCharacter::OnRecoveryCompleted,
-		RecoveryTime,
-		false
-	);
-}
-
-void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
-{
-	APC_Player* PC = APC_Player::GetLocalPlayerController(Interactor->GetController());
-	if (!ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
-		return;
-	PC->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
-}
-
-void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
-{
-	FGameplayAbilitySpec* TagID = ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
-	NULLCHECK_RETURN_LOG(TagID, PlayerLog, Warning, );
-	bool CanActivate = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
-
-	// TODO : HandleGameplayEvent
-}
-
 void APlayerCharacter::PlayerHUDHPSet(int32 value)
 {
 	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
@@ -430,16 +437,19 @@ void APlayerCharacter::PlayerHUDHPSet(int32 value)
 	//PlayerHUD->SetPassiveSkillIcon();
 	//PlayerHUD->SetCharPortrait();// 초상화
 }
+
 void APlayerCharacter::PlayerHUDMentalSet(int32 value)
 {
 	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
 	PlayerHUDWidget->UpdateMental(value);
 }
+
 void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
 {
 	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
 	PlayerHUDWidget->UpdateStamina(value);
 }
+
 void APlayerCharacter::PlayerHUDCoreEnergySet(int32 value)
 {
 	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
@@ -470,21 +480,6 @@ void APlayerCharacter::Look(const FInputActionValue& Value)
 
 	AddControllerYawInput(LookAxisVector.X);
 	AddControllerPitchInput(LookAxisVector.Y);
-}
-
-UAbilitySystemComponent* APlayerCharacter::GetAbilitySystemComponent() const
-{
-	return ASC;
-}
-
-// AI의 감지를 위한 팀설정.
-FGenericTeamId APlayerCharacter::GetGenericTeamId() const
-{
-	if (PS)
-	{
-		return PS->GetGenericTeamId();
-	}
-	return FGenericTeamId::NoTeam;
 }
 
 void APlayerCharacter::MovementSetting()
@@ -522,11 +517,9 @@ void APlayerCharacter::OverlapRangeSetting()
 	WallSina = CreateDefaultSubobject<USphereComponent>(TEXT("WallSina"));
 	WallSina->SetupAttachment(RootComponent);
 	WallSina->SetSphereRadius(500.f);
-	// 모든 채널 무시
-	WallSina->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	WallSina->SetCollisionEnabled(ECollisionEnabled::QueryOnly);  // 모든 채널 무시
 	WallSina->SetCollisionResponseToAllChannels(ECR_Ignore);
-	// Pawn 채널(플레이어, AI 등)만 오버랩!
-	WallSina->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	WallSina->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);  // Pawn 채널(플레이어, AI 등)만 오버랩!
 
 	WallRose = CreateDefaultSubobject<USphereComponent>(TEXT("WallRose"));
 	WallRose->SetupAttachment(RootComponent);
@@ -541,42 +534,20 @@ void APlayerCharacter::OverlapRangeSetting()
 	WallMaria->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	WallMaria->SetCollisionResponseToAllChannels(ECR_Ignore);
 	WallMaria->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-
-	WallSina->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapSina);
-	WallSina->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapSina);
-	WallRose->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapRose);
-	WallRose->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapRose);
-	WallMaria->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapMaria);
-	WallMaria->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapMaria);
 }
 
-void APlayerCharacter::OnBeginOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void APlayerCharacter::OnBeginOverlapWall(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	//TPT_LOG(PlayerLog, Error, TEXT("Sina Begin : %s"), *OtherActor->GetFName().ToString());
-	OnBeginOverlap(EEnemyRange::WallSina, OtherActor);
+	if (Comp == WallSina) OnBeginOverlap(EEnemyRange::WallSina, OtherActor);
+	else if (Comp == WallRose) OnBeginOverlap(EEnemyRange::WallRose, OtherActor);
+	else if (Comp == WallMaria) OnBeginOverlap(EEnemyRange::WallMaria, OtherActor);
 }
-void APlayerCharacter::OnEndOverlapSina(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+
+void APlayerCharacter::OnEndOverlapWall(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	OnEndOverlap(EEnemyRange::WallSina, OtherActor);
-}
-void APlayerCharacter::OnBeginOverlapRose(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	//TPT_LOG(PlayerLog, Error, TEXT("Rose Begin : %s"), *OtherActor->GetFName().ToString());
-	OnBeginOverlap(EEnemyRange::WallRose, OtherActor);
-}
-void APlayerCharacter::OnEndOverlapRose(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	OnEndOverlap(EEnemyRange::WallRose, OtherActor);
-}
-void APlayerCharacter::OnBeginOverlapMaria(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	//TPT_LOG(PlayerLog, Error, TEXT("Maria Begin : %s"), *OtherActor->GetFName().ToString());
-	OnBeginOverlap(EEnemyRange::WallMaria, OtherActor);
-}
-void APlayerCharacter::OnEndOverlapMaria(UPrimitiveComponent* Comp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	//TPT_LOG(PlayerLog, Error, TEXT("Maria End : %s"), *OtherActor->GetFName().ToString());
-	OnEndOverlap(EEnemyRange::WallMaria, OtherActor);
+	if (Comp == WallSina) OnEndOverlap(EEnemyRange::WallSina, OtherActor);
+	else if (Comp == WallRose) OnEndOverlap(EEnemyRange::WallRose, OtherActor);
+	else if (Comp == WallMaria) OnEndOverlap(EEnemyRange::WallMaria, OtherActor);
 }
 
 void APlayerCharacter::OnBeginOverlap(EEnemyRange Range, AActor* OtherActor)
@@ -593,10 +564,9 @@ void APlayerCharacter::OnBeginOverlap(EEnemyRange Range, AActor* OtherActor)
 			EnemyRangeMap.Add(OtherActor, Range);
 		}
 	}
-	UpdateWallSound();
+	SetNearestEnemyRange();
 }
 
-// EndOverlap 시 - 해당 범위 Enum이 빠지면, 더 밖의 반경으로 Enum 전환(아니면 지움)
 void APlayerCharacter::OnEndOverlap(EEnemyRange Range, AActor* OtherActor)
 {
 	UAbilitySystemComponent* AIASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
@@ -629,10 +599,10 @@ void APlayerCharacter::OnEndOverlap(EEnemyRange Range, AActor* OtherActor)
 			}
 		}
 	}
-	UpdateWallSound();
+	SetNearestEnemyRange();
 }
 
-EEnemyRange APlayerCharacter::GetNearestEnemyRange() const
+void APlayerCharacter::SetNearestEnemyRange()
 {
 	EEnemyRange Nearest = EEnemyRange::None;
 	for (const auto& Pair : EnemyRangeMap)
@@ -640,7 +610,14 @@ EEnemyRange APlayerCharacter::GetNearestEnemyRange() const
 		if (Nearest == EEnemyRange::None || Pair.Value < Nearest)
 			Nearest = Pair.Value;
 	}
-	return Nearest;
+	if (Nearest != CurrentWallRange)
+	{
+		CurrentWallRange = Nearest;
+		if (HasAuthority())
+		{
+			UpdateWallSound();
+		}
+	}
 }
 
 void APlayerCharacter::UpdateWallSound()
@@ -649,32 +626,45 @@ void APlayerCharacter::UpdateWallSound()
 	{
 		return;
 	}
-	EEnemyRange Closest = GetNearestEnemyRange();
 
-	if (Closest != CurrentWallRange)
+	// 이전 사운드 중단
+	if (WallAudioComponent)
 	{
-		// 이전 사운드 중단
-		if (WallAudioComponent)
-		{
-			WallAudioComponent->Stop();
-			WallAudioComponent = nullptr;
-		}
-
-		// 새로운 범위 Enum에 맞는 사운드 재생
-		USoundBase* ToPlay = nullptr;
-		switch (Closest)
-		{
-		case EEnemyRange::WallSina:  ToPlay = WallSinaSound;   break;
-		case EEnemyRange::WallRose:  ToPlay = WallRoseSound;   break;
-		case EEnemyRange::WallMaria: ToPlay = WallMariaSound;  break;
-		default: break; // None(아무 적도 없음)인 경우 아무 사운드도 X
-		}
-
-		if (ToPlay)
-		{
-			WallAudioComponent = UGameplayStatics::SpawnSoundAttached(ToPlay, GetRootComponent());
-		}
-
-		CurrentWallRange = Closest;
+		WallAudioComponent->Stop();
+		WallAudioComponent = nullptr;
 	}
+
+	// 새로운 범위 Enum에 맞는 사운드 재생
+	USoundBase* ToPlay = nullptr;
+	switch (CurrentWallRange)
+	{
+	case EEnemyRange::WallSina:  ToPlay = WallSinaSound;   break;
+	case EEnemyRange::WallRose:  ToPlay = WallRoseSound;   break;
+	case EEnemyRange::WallMaria: ToPlay = WallMariaSound;  break;
+	default: break;
+	}
+
+	if (ToPlay)
+	{
+		WallAudioComponent = UGameplayStatics::SpawnSoundAttached(ToPlay, GetRootComponent());
+	}
+}
+
+void APlayerCharacter::OnRep_CurrentWallRange()
+{
+	UpdateWallSound();
+}
+
+UAbilitySystemComponent* APlayerCharacter::GetAbilitySystemComponent() const
+{
+	return ASC;
+}
+// AI의 감지를 위한 팀설정.
+FGenericTeamId APlayerCharacter::GetGenericTeamId() const
+{
+	if (PS)
+	{
+		return PS->GetGenericTeamId();
+	}
+	return FGenericTeamId::NoTeam;
 }

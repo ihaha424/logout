@@ -15,12 +15,12 @@ void UGA_LookBack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
     APlayerCharacter* Player = Cast<APlayerCharacter>(ActorInfo->AvatarActor);
     NULLCHECK_RETURN_LOG(Player, GALog, Error, );
 
-	Player->SpringArm->TargetArmLength = -Player->SpringArm->TargetArmLength;
-	OriginalRotation = Player->Camera->GetRelativeRotation();
+	Player->GetSpringArm()->TargetArmLength = -Player->GetSpringArm()->TargetArmLength;
+	OriginalRotation = Player->GetCamera()->GetRelativeRotation();
 
     FRotator FlipRot = OriginalRotation;
     FlipRot.Yaw += 180.f;
-    Player->Camera->SetRelativeRotation(FlipRot);
+    Player->GetCamera()->SetRelativeRotation(FlipRot);
 }
 
 void UGA_LookBack::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -30,8 +30,8 @@ void UGA_LookBack::InputReleased(const FGameplayAbilitySpecHandle Handle, const 
     APlayerCharacter* Player = Cast<APlayerCharacter>(ActorInfo->AvatarActor);
     NULLCHECK_RETURN_LOG(Player, GALog, Error, );
 
-    Player->SpringArm->TargetArmLength = -Player->SpringArm->TargetArmLength;
-	Player->Camera->SetRelativeRotation(OriginalRotation); // 저장된 각도로 복귀
+    Player->GetSpringArm()->TargetArmLength = -Player->GetSpringArm()->TargetArmLength;
+	Player->GetCamera()->SetRelativeRotation(OriginalRotation); // 저장된 각도로 복귀
     
     EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }

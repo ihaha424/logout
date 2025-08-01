@@ -25,7 +25,7 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
 	NULLCHECK_CODE_RETURN_LOG(Character, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
 
-	AActor* TargetActor = Cast<AActor>(Character->FocusTrace->GetFocusedActor());
+	AActor* TargetActor = Cast<AActor>(Character->GetFocusTrace()->GetFocusedActor());
 	NULLCHECK_CODE_RETURN_LOG(TargetActor, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
 
 	// 플레이어가 상호작용할 수 있는 오브젝트가 있는지 확인
@@ -50,7 +50,7 @@ void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const 
 	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
 
-	AActor* TargetActor = Character->FocusTrace->GetFocusedActor();
+	AActor* TargetActor = Character->GetFocusTrace()->GetFocusedActor();
 	NULLCHECK_RETURN_LOG(TargetActor, GALog, Warning, );
 
 	if (APlayerCharacter* OtherPlayer = Cast<APlayerCharacter>(TargetActor))
