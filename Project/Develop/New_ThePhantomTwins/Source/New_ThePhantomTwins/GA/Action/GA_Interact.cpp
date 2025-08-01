@@ -14,11 +14,7 @@
 UGA_Interact::UGA_Interact()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	// 동민 수정
-	// 왜!!! 왜!!! 왜!!!! 로컬에서 실행이죠?> 네? 왜요? ㅈ왜요요? 왤까요?????진짜에요? 
-	// 아니면 이유ㅜ가 잇나요? 이유가 있으면 인정해드립니다. 있기를 바랄꼐요.
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
-	// NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact);
 }
 
@@ -27,12 +23,14 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
-	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
+	NULLCHECK_CODE_RETURN_LOG(Character, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
 
 	AActor* TargetActor = Cast<AActor>(Character->FocusTrace->GetFocusedActor());
-
+	NULLCHECK_CODE_RETURN_LOG(Character->FocusTrace, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
+	NULLCHECK_CODE_RETURN_LOG(Character->FocusTrace->GetFocusedActor(), GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
+	NULLCHECK_CODE_RETURN_LOG(TargetActor, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
 	// 플레이어가 상호작용할 수 있는 오브젝트가 있는지 확인
-	if (TargetActor != nullptr && TargetActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
+	if (TargetActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
 	{
 		C2S_Interact(TargetActor, Character);
 		IInteract::Execute_OnInteractClient(TargetActor, Character);
@@ -50,7 +48,6 @@ void UGA_Interact::CancelAbility(const FGameplayAbilitySpecHandle Handle, const 
 
 void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
-	CancelAbility(Handle, ActorInfo, ActivationInfo, true);
 
 	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
@@ -67,6 +64,7 @@ void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const 
 		APC_Player* PC = APC_Player::GetLocalPlayerController(Character);
 		PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
 	}
+	CancelAbility(Handle, ActorInfo, ActivationInfo, true);
 }
 
 void UGA_Interact::C2S_Interact_Implementation(UObject* interact, AActor* Owner)

@@ -63,7 +63,6 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
 	DOREPLIFETIME(APlayerCharacter, RecoveryPercent);
 }
 
@@ -93,9 +92,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 		FGameplayAbilitySpec StartSpec(Ability.Value);
 		StartSpec.InputID = InputID;
 		ASC->GiveAbility(StartSpec);
-
-		ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
 	}
+	ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
 	PlayerController = GetController<APC_Player>();
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 
@@ -387,7 +385,7 @@ void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 {
 	FGameplayAbilitySpec* TagID = ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
-	NULLCHECK_RETURN_LOG(TagID, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(TagID, PlayerLog, Warning, );
 	bool CanActivate = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
 
 	// TODO : HandleGameplayEvent
