@@ -388,7 +388,7 @@ void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 {
 	FGameplayAbilitySpec* TagID = ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
-	NULLCHECK_RETURN_LOG(TagID, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(TagID, PlayerLog, Warning, );
 	bool CanActivate = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
 
 	// TODO : HandleGameplayEvent
