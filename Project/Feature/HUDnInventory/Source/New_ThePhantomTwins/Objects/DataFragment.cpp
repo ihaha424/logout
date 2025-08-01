@@ -3,6 +3,7 @@
 #include "TimerManager.h"
 #include "Blueprint/UserWidget.h"
 #include "../Player/PC_Player.h"
+#include "../Player/PlayerCharacter.h"
 #include "../UI/HUD/PlayerHUDWidget.h"
 #include "../UI/DataFragmentPickupWidget.h"
 
@@ -42,6 +43,17 @@ void ADataFragment::SetDataFragmentPickupWidget()
 
 	if (APC_Player* PC_Player = Cast<APC_Player>(GetWorld()->GetFirstPlayerController()))
 	{
+		// HUD 위젯
+		if (APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(PC_Player->GetCharacter()))
+		{
+			if (UPlayerHUDWidget* HUD = PlayerChar->GetPlayerHUDWidget())
+			{
+				++HUD->ClearItemCount;
+				HUD->UpdateClearItem(HUD->ClearItemCount);
+			}
+		}
+		
+		// 팝업 위젯
 		PC_Player->SetWidget(TEXT("DataFragmentPickupWidget"), true, EMessageTargetType::Multicast);
 
 		UDataFragmentPickupWidget* Widget = Cast<UDataFragmentPickupWidget>(

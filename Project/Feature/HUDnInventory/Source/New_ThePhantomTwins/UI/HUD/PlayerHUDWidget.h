@@ -99,4 +99,8 @@ protected:
 // Inventory
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<class UInventoryWidget> InventoryWidget;
+
+public:
+    int32 ClearItemCount = 0;       // 임시!!!!!!!!!!!! GameState에서 해줘야함!!!!!!!!!!!!!!!
+
 };
