@@ -69,9 +69,6 @@ public:
 	// 플레이어 캐릭터 속도
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float WalkSpeed = 150.f;
-	// 플레이어 적용 이펙트
-	UPROPERTY(EditAnywhere, Category = "Recovery")
-	TSubclassOf<UGameplayEffect> RecoveryGE;
 	// 리커버리 관련 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	FTimerHandle RecoveryTimerHandle;
@@ -146,10 +143,14 @@ protected:
 	// GAS
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TObjectPtr<UAbilitySystemComponent> ASC;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
-	TSubclassOf<UGameplayEffect> InitAttributeSetEffect;
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TMap<FGameplayTag, TSubclassOf<UGameplayAbility>> PlayerAbilities;
+
+	// 이펙트
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
+	TSubclassOf<UGameplayEffect> InitAttributeSetEffect;
+	UPROPERTY(EditAnywhere, Category = "Recovery")
+	TSubclassOf<UGameplayEffect> RecoveryGE;
 
 	// 인풋
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
