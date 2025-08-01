@@ -15,22 +15,27 @@ class NEW_THEPHANTOMTWINS_API UFocusTraceComponent : public UActorComponent
 public:
     UFocusTraceComponent();
 
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
     AActor* GetFocusedActor() const { return FocusedActor; }
 
-    void SetStart(FVector& Vector);
-    void SetDirection(FVector& Vector);
+    void SetStart(const FVector& Vector);
+    void SetDirection(const FVector& Vector);
     void SetCollisionType(ECollisionChannel CollisionChannel);
 
+    UFUNCTION()
+    void OnRep_FocusedActor();
+
+    void PerformTrace();
 protected:
     virtual void BeginPlay() override;
 
 private:
-    void PerformTrace();
 
+    UPROPERTY(ReplicatedUsing = OnRep_FocusedActor)
+    AActor* FocusedActor;
     UPROPERTY()
-    AActor* FocusedActor = nullptr;
-
+    AActor* PrevActor = nullptr;
     UPROPERTY(EditAnywhere)
     float TraceDistance = 1000.f;
 

@@ -34,6 +34,7 @@ APlayerCharacter::APlayerCharacter()
 {
 	ASC = nullptr;
 	bReplicates = true;
+	SetReplicates(true);
 
 	MovementSetting();
 	CameraSetting();
@@ -93,9 +94,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 		FGameplayAbilitySpec StartSpec(Ability.Value);
 		StartSpec.InputID = InputID;
 		ASC->GiveAbility(StartSpec);
-
-		ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
 	}
+	ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
 	PlayerController = GetController<APC_Player>();
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 
@@ -136,31 +136,44 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// 동민 수정
-
-	/*if (GetWorld()->GetTimerManager().IsTimerActive(RecoveryTimerHandle))
-	{
-		float Elapsed = GetWorld()->GetTimerManager().GetTimerElapsed(RecoveryTimerHandle);
-		RecoveryPercent = Elapsed / RecoveryTime;
-	}*/
-
-	//NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
-	//NULLCHECK_RETURN_LOG(FocusTrace, PlayerLog, Error, );
-	if (PlayerController && FocusTrace)
+	if (IsLocallyControlled() && PlayerController && FocusTrace)
 	{
 		FVector2D ViewportSize;
 		GEngine->GameViewport->GetViewportSize(ViewportSize);
 
 		PlayerController->DeprojectScreenPositionToWorld(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, WorldLocation, WorldDirection);
 
+		// 클라 내에서 카메라 위치와 회전 받아오기
+		FVector CameraLocation;
+		FRotator CameraRotation;
+		PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
+
+		// 클라에선 FocusTrace 세팅(시각효과용)
 		FocusTrace->SetStart(WorldLocation);
 		FocusTrace->SetDirection(WorldDirection);
+		FocusTrace->SetCollisionType(ECC_WorldDynamic);
+
+		// 서버 RPC 호출에 위치 + 회전 같이 넘기기
+		C2S_SetFocusTrace(CameraLocation, CameraRotation);
+	}
+}
+
+void APlayerCharacter::C2S_SetFocusTrace_Implementation(const FVector& CameraLocation, const FRotator& CameraRotation)
+{
+	if (HasAuthority() && FocusTrace)
+	{
+		FocusTrace->SetStart(CameraLocation);
+
+		FVector Direction = CameraRotation.Vector(); // 카메라 회전 기반 전방 방향 벡터를 다시 구함
+		FocusTrace->SetDirection(Direction);
+
 		FocusTrace->SetCollisionType(ECC_WorldDynamic);
 	}
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
+	//UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Setup Player InputComponent: %s  IsLocallyControlled  %d   HasAuthority   %d"), *GetName(), IsLocallyControlled(),HasAuthority()));
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	UTPTEnhancedInputComponent* TPTInput = CastChecked<UTPTEnhancedInputComponent>(PlayerInputComponent);
 	check(TPTInput);
@@ -197,7 +210,6 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 void APlayerCharacter::InputPressed(int32 InputID)
 {
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
-	UKismetSystemLibrary::PrintString(this, FString("InputPressed"));
 	if (Spec)
 	{
 		//Spec->GameplayEventData
@@ -220,7 +232,6 @@ void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 Number)
 	Payload.EventTag = EventTag;
 	Payload.Instigator = this;
 	Payload.EventMagnitude = static_cast<float>(Number);
-	TPT_LOG(HUDLog, Log, TEXT("슬롯 번호: %f"), Payload.EventMagnitude);
 
 	ASC->HandleGameplayEvent(EventTag, &Payload);
 }
@@ -229,13 +240,27 @@ void APlayerCharacter::InputReleased(int32 InputID)
 {
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
 	Spec->InputPressed = false;
+	if (!HasAuthority())
+	{
+		C2S_InputReleased(InputID);
+	}
+	else if (Spec->IsActive())
+	{
+		ASC->AbilitySpecInputReleased(*Spec);
+	}
+}
+void APlayerCharacter::C2S_InputReleased_Implementation(const int32 InputID)
+{
+	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
+	if (!Spec) return;
+
+	Spec->InputPressed = false;
+
 	if (Spec->IsActive())
 	{
 		ASC->AbilitySpecInputReleased(*Spec);
 	}
 }
-
-
 
 void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)
 {
@@ -272,14 +297,12 @@ void APlayerCharacter::OnRecoveryCompleted()
 	}
 
 	GetWorld()->GetTimerManager().ClearTimer(RecoveryTimerHandle);
-	// 동민 수정
 	GetWorld()->GetTimerManager().ClearTimer(TempHandle);
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
 	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
 	PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
 
-	// TODO : 회복 GE
 	if (RecoveryGE)
 	{
 		FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
@@ -349,7 +372,7 @@ bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool 
 
 void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 {
-	// 동민 수정
+
 	FTimerDelegate TimerDel;
 	TimerDel.BindLambda([this, Interactor]()
 		{
@@ -382,6 +405,8 @@ void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 {
 	APC_Player* PC = APC_Player::GetLocalPlayerController(Interactor->GetController());
+	if (!ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
+		return;
 	PC->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
 }
 

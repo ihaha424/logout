@@ -59,6 +59,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION(Server, Reliable)
+	void C2S_SetFocusTrace(const FVector& CameraLocation, const FRotator& CameraRotation);
+	void C2S_SetFocusTrace_Implementation(const FVector& CameraLocation, const FRotator& CameraRotation);
+
 	UFUNCTION()
 	void SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInputComponent);
 	UFUNCTION()
@@ -192,6 +196,10 @@ public:
 	void InputPressed(int32 InputID);
 	void InputPressedWithNum(int32 InputID, int32 Number);
 	void InputReleased(int32 InputID);
+
+	UFUNCTION(Server, Reliable)
+	void C2S_InputReleased(const int32 InputID);
+	void C2S_InputReleased_Implementation(const int32 InputID);
 
 	void MovementSetting();
 	void CameraSetting();
