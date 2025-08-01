@@ -25,10 +25,9 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
 	NULLCHECK_CODE_RETURN_LOG(Character, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
 
-	AActor* TargetActor = Cast<AActor>(Character->FocusTrace->GetFocusedActor());
-	NULLCHECK_CODE_RETURN_LOG(Character->FocusTrace, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
-	NULLCHECK_CODE_RETURN_LOG(Character->FocusTrace->GetFocusedActor(), GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
+	AActor* TargetActor = Cast<AActor>(Character->GetFocusTrace()->GetFocusedActor());
 	NULLCHECK_CODE_RETURN_LOG(TargetActor, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
+
 	// 플레이어가 상호작용할 수 있는 오브젝트가 있는지 확인
 	if (TargetActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
 	{
@@ -48,17 +47,15 @@ void UGA_Interact::CancelAbility(const FGameplayAbilitySpecHandle Handle, const 
 
 void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
-
 	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
 
-	AActor* TargetActor = Character->FocusTrace->GetFocusedActor();
+	AActor* TargetActor = Character->GetFocusTrace()->GetFocusedActor();
 	NULLCHECK_RETURN_LOG(TargetActor, GALog, Warning, );
 
 	if (APlayerCharacter* OtherPlayer = Cast<APlayerCharacter>(TargetActor))
 	{
 		OtherPlayer->GetWorld()->GetTimerManager().ClearTimer(OtherPlayer->RecoveryTimerHandle);
-		// 동민 수정
 		OtherPlayer->GetWorld()->GetTimerManager().ClearTimer(OtherPlayer->TempHandle);
 
 		APC_Player* PC = APC_Player::GetLocalPlayerController(Character);
@@ -71,8 +68,6 @@ void UGA_Interact::C2S_Interact_Implementation(UObject* interact, AActor* Owner)
 {
 	const APlayerCharacter* Character = Cast<APlayerCharacter>(Owner);
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
-
-	UKismetSystemLibrary::PrintString(this, FString("C2S_Interact"));
 
 	if (interact != nullptr && interact->GetClass()->ImplementsInterface(UInteract::StaticClass()))
 	{
