@@ -58,8 +58,8 @@ void UGA_MentalRecovery::HealTick()
         }
 
         float HealAmount = 0.f;
-        if (Dist <= 200.f)
-            HealAmount = 2.f;
+        if (Dist <= 300.f)
+            HealAmount = 5.f;
 
         FGameplayEffectSpecHandle MentalHealSpec = MakeOutgoingGameplayEffectSpec(MentalHealEffect, 1.0f);
         if (MentalHealSpec.IsValid())

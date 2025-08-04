@@ -26,6 +26,10 @@ public:
 	void C2S_Interact(UObject* interact, AActor* Owner);
 	void C2S_Interact_Implementation(UObject* interact, AActor* Owner);
 
+	// 몽타주를 위한 함수.
+	UFUNCTION()
+	void OnCompleteCallback();
+
 	// Interact 중에 재생할 애니메이션 몽타주
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
 	TObjectPtr<UAnimMontage> InteractMontage;
