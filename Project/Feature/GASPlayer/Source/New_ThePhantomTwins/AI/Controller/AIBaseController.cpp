@@ -97,6 +97,7 @@ void AAIBaseController::OnPossess(APawn* InPawn)
     SetPerceptionByCharacterAttributeSet(InPawn);
 
     GetAbilitySystemComponent()->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI);
+    GetAbilitySystemComponent()->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Default);
 }
 
 void AAIBaseController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
@@ -113,23 +114,11 @@ void AAIBaseController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
         {
             if (Stimulus.WasSuccessfullySensed())
             {
-                if (PerceptionSightList.Num() < 1)
-                {
-                    GetWorld()->GetTimerManager().SetTimer(
-                        SightTimerHandle,
-                        this,
-                        &AAIBaseController::FindCloseActor,
-                        0.2f,
-                        true
-                    );
-                }
-                PerceptionSightList.Add(Actor);
+                AddPerceptionSightList(Actor);
             }
             else
             {
-                PerceptionSightList.Remove(Actor);
-                if (PerceptionSightList.Num() < 1)
-                    GetWorld()->GetTimerManager().ClearTimer(SightTimerHandle);
+                RemovePerceptionSightList(Actor);
             }
         }
         // Object
@@ -170,6 +159,31 @@ void AAIBaseController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
     
 }
 
+void AAIBaseController::AddPerceptionSightList(AActor* Actor)
+{
+    if(INDEX_NONE == PerceptionSightList.Find(Actor))
+        PerceptionSightList.Add(Actor);
+
+    if (!SightTimerHandle.IsValid())
+    {
+        GetWorld()->GetTimerManager().SetTimer(
+            SightTimerHandle,
+            this,
+            &AAIBaseController::FindCloseActor,
+            0.2f,
+            true
+        );
+    }
+    FindCloseActor();
+}
+
+void AAIBaseController::RemovePerceptionSightList(AActor* Actor)
+{
+    PerceptionSightList.Remove(Actor);
+    if (PerceptionSightList.Num() < 1 && SightTimerHandle.IsValid())
+        GetWorld()->GetTimerManager().ClearTimer(SightTimerHandle);
+}
+
 void AAIBaseController::FindCloseActor()
 {
     AActor* OwnerActor = GetPawn();
@@ -177,12 +191,13 @@ void AAIBaseController::FindCloseActor()
     float ClosestDistanceSq = FLT_MAX;
     const float CurrentTime = GetWorld()->GetTimeSeconds();
     UBlackboardComponent* BB = GetBlackboardComponent();
-
     for (AActor* Target : PerceptionSightList)
     {
         if (!IsValid(Target) || Target == OwnerActor)
             continue;
-
+        UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
+        if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
+            continue;
         float DistSq = OwnerActor->GetDistanceTo(Target);
 
         if (DistSq < ClosestDistanceSq)
@@ -191,16 +206,44 @@ void AAIBaseController::FindCloseActor()
             ClosestActor = Target;
         }
     }
-    if (const FActorPerceptionInfo* Info = PerceptionComponent->GetActorInfo(*ClosestActor))
+
+    if (nullptr != ClosestActor)
     {
-        for (const FAIStimulus& Stimulus : Info->LastSensedStimuli)
+        bool HasSight = false;
+        if (const FActorPerceptionInfo* Info = PerceptionComponent->GetActorInfo(*ClosestActor))
         {
-            if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>() && Stimulus.WasSuccessfullySensed())
+            for (const FAIStimulus& Stimulus : Info->LastSensedStimuli)
+            {
+                if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>() && Stimulus.WasSuccessfullySensed())
+                {
+                    HasSight = true;
+                    BB->SetValueAsVector(TEXT("StimulusLocation"), Stimulus.StimulusLocation);
+                    BB->SetValueAsFloat(TEXT("LastSightTime"), CurrentTime);
+                    
+                    AActor* CurTargetActor = Cast<AActor>(BB->GetValueAsObject(TEXT("TargetActor")));
+                    if (CurTargetActor != ClosestActor)
+                    {
+                        BB->SetValueAsObject(TEXT("TargetActor"), ClosestActor);
+
+                        AAIBaseCharacter* AIBaseCharacter = Cast<AAIBaseCharacter>(GetPawn());
+                        AIBaseCharacter->ExcuteChaseActorGA(ClosestActor);
+                    }
+                }
+            }
+        }
+        
+        if (!HasSight)
+        {
+            BB->SetValueAsVector(TEXT("StimulusLocation"), ClosestActor->GetActorLocation());
+            BB->SetValueAsFloat(TEXT("LastSightTime"), CurrentTime);
+
+            AActor* CurTargetActor = Cast<AActor>(BB->GetValueAsObject(TEXT("TargetActor")));
+            if (CurTargetActor != ClosestActor)
             {
                 BB->SetValueAsObject(TEXT("TargetActor"), ClosestActor);
-                BB->SetValueAsVector(TEXT("StimulusLocation"), Stimulus.StimulusLocation);
-                BB->SetValueAsFloat(TEXT("LastSightStrength"), Stimulus.Strength);
-                BB->SetValueAsFloat(TEXT("LastSightTime"), CurrentTime);
+
+                AAIBaseCharacter* AIBaseCharacter = Cast<AAIBaseCharacter>(GetPawn());
+                AIBaseCharacter->ExcuteChaseActorGA(ClosestActor);
             }
         }
     }
@@ -208,7 +251,7 @@ void AAIBaseController::FindCloseActor()
 
 int32 AAIBaseController::GetStimulusPriority(const FName& Tag)
 {
-    return StimulusPriorityMap.Contains(Tag) ? StimulusPriorityMap[Tag] : 999;
+    return StimulusPriorityMap.Contains(Tag) ? StimulusPriorityMap[Tag] : std::numeric_limits<int32>::max();;
 }
 
 UAbilitySystemComponent* AAIBaseController::GetAbilitySystemComponent() const

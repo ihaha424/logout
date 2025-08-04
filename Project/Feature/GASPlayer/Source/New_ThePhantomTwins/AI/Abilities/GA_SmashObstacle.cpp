@@ -9,6 +9,8 @@
 UGA_SmashObstacle::UGA_SmashObstacle()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerExecution;
+    NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+    ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 
     AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_SmashObstacle);
     ActivationBlockedTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);

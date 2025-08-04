@@ -10,6 +10,8 @@
 UGA_OpenObstacle::UGA_OpenObstacle()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerExecution;
+    NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+    ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 
     AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_OpenObstacle);
     ActivationBlockedTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);

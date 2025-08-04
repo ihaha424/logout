@@ -100,8 +100,10 @@ void UBTT_ChaseTarget::Execute_TickTaskException(UBehaviorTreeComponent& OwnerCo
 	NULLCHECK_CODE_RETURN_LOG(AIController, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, );
 
 	EPathFollowingStatus::Type Status = AIController->GetPathFollowingComponent()->GetStatus();
-	if(Status == EPathFollowingStatus::Moving)
+	if (Status == EPathFollowingStatus::Moving)
+	{
 		AIController->PauseMove(TaskData->MoveId);
+	}
 }
 
 EBTNodeResult::Type UBTT_ChaseTarget::Execute_TaskException(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
