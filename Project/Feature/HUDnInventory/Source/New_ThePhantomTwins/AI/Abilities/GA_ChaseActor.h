@@ -4,17 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "GA_MeleeAttack.generated.h"
+#include "GA_ChaseActor.generated.h"
 
-class UAnimMontage;
-
+/**
+ * 
+ */
 UCLASS()
-class NEW_THEPHANTOMTWINS_API UGA_MeleeAttack : public UGameplayAbility
+class NEW_THEPHANTOMTWINS_API UGA_ChaseActor : public UGameplayAbility
 {
-    GENERATED_BODY()
-
+	GENERATED_BODY()
+	
 public:
-    UGA_MeleeAttack();
+	UGA_ChaseActor();
 
     virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle,
         const FGameplayAbilityActorInfo* ActorInfo,
@@ -27,17 +28,10 @@ public:
         bool bReplicateEndAbility,
         bool bWasCancelled) override;
 
-    void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted,
-        FGameplayAbilitySpecHandle Handle,
-        const FGameplayAbilityActorInfo* ActorInfo,
-        FGameplayAbilityActivationInfo ActivationInfo);
-
-    UFUNCTION()
-    void OnCompleteCallback();
-    UFUNCTION()
-    void OnInterruptedCallback();
-
 protected:
-    UPROPERTY(EditDefaultsOnly, Category = "Animation")
-    TObjectPtr<UAnimMontage> AttackMontage;
+    UPROPERTY(EditAnywhere, Category = "GAS")
+    TSubclassOf<UGameplayEffect> ChaseEffect;
+
+    FActiveGameplayEffectHandle ActivChaseEffectHandle;
+    TObjectPtr<UAbilitySystemComponent> TargetASC;
 };

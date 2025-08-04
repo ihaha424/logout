@@ -36,6 +36,8 @@ protected:
     FBlackboardKeySelector InCombatRangeKey;
     UPROPERTY(EditAnywhere, Category = "Blackboard")
     FBlackboardKeySelector StunKey;
+    UPROPERTY(EditAnywhere, Category = "Blackboard")
+    FBlackboardKeySelector TargetActorKey;
     //~ End Blackboard Key
 
     //~ Begin Options related to sensory retention
@@ -80,15 +82,18 @@ private:
     /**
     * @brief : 감각의 누적 & 감쇠
     */
-    inline void AccumulationAttenuationOfSensory(UBehaviorTreeComponent& OwnerComp
-                                        , uint8* NodeMemory
-                                        , float DeltaSeconds
-                                        , UBlackboardComponent* BB);
+    inline void AccumulationAttenuationOfSensory(
+        UBehaviorTreeComponent& OwnerComp
+        , uint8* NodeMemory
+        , float DeltaSeconds
+        , UBlackboardComponent* BB);
     /**
      * @brief : 상태 전이 판단
                 TODO: 효과 실행까지 묶어서 함수하나더 만들고 실행하기
      */
-    inline void DetermineStateTransition(UBlackboardComponent* BB
+    inline void DetermineStateTransition(
+        UBehaviorTreeComponent& OwnerComp 
+        , UBlackboardComponent* BB
         , EAIBaseState CurrentState
         , float SightDuration
         , float HearingSum

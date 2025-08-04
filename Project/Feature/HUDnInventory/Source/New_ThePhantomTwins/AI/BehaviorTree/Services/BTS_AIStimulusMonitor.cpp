@@ -3,6 +3,10 @@
 
 #include "BTS_AIStimulusMonitor.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
+#include "Tags/TPTGameplayTags.h"
+#include "AI/Utility/AIHelperLibrary.h"
 #include "Log/TPTLog.h"
 
 UBTS_AIStimulusMonitor::UBTS_AIStimulusMonitor()
@@ -26,7 +30,11 @@ FString UBTS_AIStimulusMonitor::GetStaticDescription() const
 	return FString::Printf(TEXT("Determine AI state transitions and manage sensory levels."));
 }
 
-inline void UBTS_AIStimulusMonitor::AccumulationAttenuationOfSensory(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds, UBlackboardComponent* BB)
+inline void UBTS_AIStimulusMonitor::AccumulationAttenuationOfSensory(
+    UBehaviorTreeComponent& OwnerComp
+    , uint8* NodeMemory
+    , float DeltaSeconds
+    , UBlackboardComponent* BB)
 {
     const float CurrentTime = OwnerComp.GetWorld()->GetTimeSeconds();
     EAIBaseState CurrentState = static_cast<EAIBaseState>(BB->GetValueAsEnum(AIStateKey.SelectedKeyName));
@@ -35,7 +43,7 @@ inline void UBTS_AIStimulusMonitor::AccumulationAttenuationOfSensory(UBehaviorTr
     float SightDuration = BB->GetValueAsFloat(SightDurationKey.SelectedKeyName);
     float LastSightTime = BB->GetValueAsFloat(LastSightTimeKey.SelectedKeyName);
     float TimeSinceSight = CurrentTime - LastSightTime;
-
+    
     if (TimeSinceSight <= SightDetectionThreshold)
     {
         SightDuration += DeltaSeconds;
@@ -59,16 +67,20 @@ inline void UBTS_AIStimulusMonitor::AccumulationAttenuationOfSensory(UBehaviorTr
         BB->SetValueAsFloat(HearingSumKey.SelectedKeyName, HearingSum);
     }
 
-    DetermineStateTransition(BB, CurrentState, SightDuration, HearingSum, TimeSinceSight, TimeSinceHearing);
+    DetermineStateTransition(OwnerComp, BB, CurrentState, SightDuration, HearingSum, TimeSinceSight, TimeSinceHearing);
 }
 
-inline void UBTS_AIStimulusMonitor::DetermineStateTransition(UBlackboardComponent* BB
+inline void UBTS_AIStimulusMonitor::DetermineStateTransition(
+    UBehaviorTreeComponent& OwnerComp
+    , UBlackboardComponent* BB
     , EAIBaseState CurrentState
     , float SightDuration
     , float HearingSum
     , float TimeSinceSight
     , float TimeSinceHearing)
 {
+    EAIBaseState NextState = CurrentState;
+
     // 상태 전이 판단
     if (CurrentState == EAIBaseState::Default)
     {
@@ -79,21 +91,21 @@ inline void UBTS_AIStimulusMonitor::DetermineStateTransition(UBlackboardComponen
         */
         if (BB->GetValueAsBool(StunKey.SelectedKeyName))
         {
-            BB->SetValueAsEnum(AIStateKey.SelectedKeyName, static_cast<uint8>(EAIBaseState::Stun));
+            NextState = EAIBaseState::Stun;
         }
         else if (BB->GetValueAsBool(InCombatRangeKey.SelectedKeyName))
         {
             BB->SetValueAsBool(InCombatRangeKey.SelectedKeyName, false);
-            BB->SetValueAsEnum(AIStateKey.SelectedKeyName, static_cast<uint8>(EAIBaseState::Combat));
+            NextState = EAIBaseState::Combat;
         }
         else if (SightDuration >= SightCombatThreshold)
         {
-            BB->SetValueAsEnum(AIStateKey.SelectedKeyName, static_cast<uint8>(EAIBaseState::Combat));
+            NextState = EAIBaseState::Combat;
         }
         else if ((SightDuration >= SightSuspicionThreshold && SightDuration < SightCombatThreshold) 
             || HearingSum >= HearingSuspicionThreshold)
         {
-            BB->SetValueAsEnum(AIStateKey.SelectedKeyName, static_cast<uint8>(EAIBaseState::Suspicion));
+            NextState = EAIBaseState::Suspicion;
         }
     }
     else if (CurrentState == EAIBaseState::Suspicion)
@@ -108,39 +120,43 @@ inline void UBTS_AIStimulusMonitor::DetermineStateTransition(UBlackboardComponen
         */
         if (BB->GetValueAsBool(StunKey.SelectedKeyName))
         {
-            BB->SetValueAsEnum(AIStateKey.SelectedKeyName, static_cast<uint8>(EAIBaseState::Stun));
+            NextState = EAIBaseState::Stun;
         }
         else if (BB->GetValueAsBool(InCombatRangeKey.SelectedKeyName))
         {
             BB->SetValueAsBool(InCombatRangeKey.SelectedKeyName, false);
-            BB->SetValueAsEnum(AIStateKey.SelectedKeyName, static_cast<uint8>(EAIBaseState::Combat));
+            NextState = EAIBaseState::Combat;
         }
         else if (SightDuration >= SightCombatThreshold)
         {
-            BB->SetValueAsEnum(AIStateKey.SelectedKeyName, static_cast<uint8>(EAIBaseState::Combat));
+            NextState = EAIBaseState::Combat;
         }
     }
     else if (CurrentState == EAIBaseState::Combat)
     {
+        /*
+        // 전투 상태면 소음 자극 무시
+        // 추적 중에 자극이 사야 범위를 벗어날 경우 마지막으로 인식한 시야 자극의 위치로 이동
+        // 완료 조건:
+                시야 범위 내에 플레이어, 적이 위치 하지 않은 시간이 N초 이상할 때, 가장 가까운 Spline Path탐색
+                Spline Path 탐색을 시작하면 추가 소음 자극을 업데이트 하지 않음(시야 자극이 발생하면 시야 자극 추적)
+                Spline 탐색이 완료되면 저장한 자극 정보를 초기화 하고 기본 상태로 변동
+        */
         if (BB->GetValueAsBool(StunKey.SelectedKeyName))
         {
-            BB->SetValueAsEnum(AIStateKey.SelectedKeyName, static_cast<uint8>(EAIBaseState::Stun));
+            NextState = EAIBaseState::Stun;
         }
-        else if (BB->GetValueAsBool(InCombatRangeKey.SelectedKeyName))
+        else if (SightDuration <= 0.f && TimeSinceSight >= CombatTimeout)
         {
-            BB->SetValueAsBool(InCombatRangeKey.SelectedKeyName, false);
+            NextState = EAIBaseState::Suspicion;
         }
-        if (SightDuration <= 0.f && HearingSum <= 0.f && TimeSinceSight >= CombatTimeout && TimeSinceHearing >= CombatTimeout)
-        {
-            /*
-            // 전투 상태면 소음 자극 무시
-            // 추적 중에 자극이 사야 범위를 벗어날 경우 마지막으로 인식한 시야 자극의 위치로 이동
-            // 완료 조건:
-                    시야 범위 내에 플레이어, 적이 위치 하지 않은 시간이 N초 이상할 때, 가장 가까운 Spline Path탐색
-                    Spline Path 탐색을 시작하면 추가 소음 자극을 업데이트 하지 않음(시야 자극이 발생하면 시야 자극 추적)
-                    Spline 탐색이 완료되면 저장한 자극 정보를 초기화 하고 기본 상태로 변동
-            */
-            BB->SetValueAsEnum(AIStateKey.SelectedKeyName, static_cast<uint8>(EAIBaseState::Default));
+        else
+        {   // TargetActor가 없는 경우: 감각안의 플레이어가 죽어서 인지 하지 못하는 경우...
+            UObject* Object = BB->GetValueAsObject(TargetActorKey.SelectedKeyName);
+            if (nullptr == Object)
+            {
+                NextState = EAIBaseState::Suspicion;
+            }
         }
     }
     else if (CurrentState == EAIBaseState::Stun)
@@ -151,17 +167,6 @@ inline void UBTS_AIStimulusMonitor::DetermineStateTransition(UBlackboardComponen
     {
         TPT_LOG(AILog, Warning, TEXT("State: Failed."));
     }
-}
 
-//TODO: tag바인딩인데 이런식으로 만들지 아직 모르겠음
-/*
-    MyASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_Sprinting).AddUObject(this, &UGA_Run::OnSprintTagChanged);
-    void UGA_Run::OnSprintTagChanged(const FGameplayTag Tag, int32 TagCount)
-{
-   bHasSprintTag = TagCount > 0; // 태그가 붙었으면 true, 없으면 false
-
-   float FinalSpeed = bHasSprintTag ? BaseRunSpeed * SprintMultiplier : BaseRunSpeed;
-   OutPutRunSpeed = FinalSpeed;
-   SetSpeed(OutPutRunSpeed, GAActorInfo);
+    UAIHelperLibrary::SetAIStateAndTag(&OwnerComp, BB, CurrentState, NextState, AIStateKey.SelectedKeyName);
 }
-*/

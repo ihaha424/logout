@@ -10,6 +10,8 @@
 UGA_InteractActor::UGA_InteractActor()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerExecution;
+    NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+    ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 
     AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_InteractActor);
     ActivationBlockedTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
