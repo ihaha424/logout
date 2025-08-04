@@ -19,7 +19,6 @@ UGA_Confused1st::UGA_Confused1st()
 void UGA_Confused1st::ActivateAbility(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	NULLCHECK_RETURN_LOG(ASC, GALog, Error, );
 	ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st).AddUObject(this, &UGA_Confused1st::OffSound);
