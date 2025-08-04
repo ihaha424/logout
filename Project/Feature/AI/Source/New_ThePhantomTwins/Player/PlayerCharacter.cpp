@@ -173,6 +173,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 	PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
+	PlayerController->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
 
 	SetupPlayerInputByTag(TPTInput);
 }
@@ -372,6 +373,7 @@ void APlayerCharacter::OnRecoveryCompleted()
 
 	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
 	PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
+	PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
 
 	if (RecoveryGE)
 	{

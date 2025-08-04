@@ -8,6 +8,7 @@
 #include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
 #include "Player/PS_Player.h"
+#include "Player/PC_Player.h"
 
 UGA_Downed::UGA_Downed()
 {
@@ -29,6 +30,9 @@ void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	NULLCHECK_RETURN_LOG(PS, GALog, Warning, );
 	PS->SetGroggy(true);
 	PS->SetRecovery(false);
+	APC_Player* PC = Character->GetController<APC_Player>();
+	NULLCHECK_RETURN_LOG(PC, GALog, Warning, );
+	PC->SetWidget(TEXT("WASD"), true, EMessageTargetType::LocalClient);
 
 	SetSpeed(DownedSpeed, GAActorInfo);
 }
@@ -71,6 +75,8 @@ void UGA_Downed::OnDownedTagChanged(const FGameplayTag Tag, int32 TagCount)
 	float WalkSpeed = Character->WalkSpeed;
 	APS_Player* PS = Cast<APS_Player>(Character->GetPlayerState());
 	NULLCHECK_RETURN_LOG(PS, GALog, Warning, );
+	APC_Player* PC = Character->GetController<APC_Player>();
+	NULLCHECK_RETURN_LOG(PC, GALog, Warning, );
 
 	float FinalSpeed = bHasDownedTag ? DownedSpeed : WalkSpeed;
 	SetSpeed(FinalSpeed, GAActorInfo);
@@ -78,6 +84,8 @@ void UGA_Downed::OnDownedTagChanged(const FGameplayTag Tag, int32 TagCount)
 	if (!bHasDownedTag)
 	{
 		PS->SetGroggy(false);
+		PS->SetRecovery(true);
+		PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
 
 		bool bReplicatedEndAbility = true;
 		bool bWasCancelled = false;
