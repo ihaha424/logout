@@ -2,6 +2,8 @@
 
 
 #include "GA/Action/GA_Interact.h"
+
+#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Player/PlayerCharacter.h"
 #include "Attribute/PlayerAttributeSet.h"
 #include "Log/TPTLog.h"
@@ -14,7 +16,8 @@
 UGA_Interact::UGA_Interact()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+	//ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact);
 }
 
@@ -28,11 +31,15 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	AActor* TargetActor = Cast<AActor>(Character->GetFocusTrace()->GetFocusedActor());
 	NULLCHECK_CODE_RETURN_LOG(TargetActor, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
 
+	UAbilityTask_PlayMontageAndWait* PlayMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("InteractMontage"), InteractMontage, 1.0f);
+	PlayMontageTask->OnCompleted.AddDynamic(this, &UGA_Interact::OnCompleteCallback);
+
 	// 플레이어가 상호작용할 수 있는 오브젝트가 있는지 확인
 	if (TargetActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
 	{
 		C2S_Interact(TargetActor, Character);
 		IInteract::Execute_OnInteractClient(TargetActor, Character);
+		PlayMontageTask->ReadyForActivation();
 	}
 	else
 	{
@@ -73,4 +80,8 @@ void UGA_Interact::C2S_Interact_Implementation(UObject* interact, AActor* Owner)
 	{
 		IInteract::Execute_OnInteractServer(interact, Character);
 	}
+}
+
+void UGA_Interact::OnCompleteCallback()
+{
 }
