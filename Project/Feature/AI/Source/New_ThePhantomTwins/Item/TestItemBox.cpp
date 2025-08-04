@@ -60,12 +60,10 @@ UAbilitySystemComponent* ATestItemBox::GetAbilitySystemComponent() const
 
 void ATestItemBox::ApplyEffectToTarget(AActor* Target)
 {
-	UE_LOG(LogTemp, Warning, TEXT("ApplyEffectToTarget"));
 	// 타겟의 ASC 가져오기
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Target);
 	if (TargetASC)
 	{	//GA없이 이펙트를 발동시키는 그거다.
-		UE_LOG(LogTemp, Warning, TEXT("TargetASC is here"));
 		FGameplayEffectContextHandle EffectContext = TargetASC->MakeEffectContext();
 		EffectContext.AddSourceObject(this);
 		// 밖으로 내보낼 스펙 만드는중.
@@ -75,7 +73,6 @@ void ATestItemBox::ApplyEffectToTarget(AActor* Target)
 			TargetASC->BP_ApplyGameplayEffectSpecToSelf(EffectSpecHandle);
 
 			// TargetASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get()); 위랑 아래랑 똑같다.
-			UE_LOG(LogTemp, Warning, TEXT("EffectSpecHandle.IsValid()"));
 		}
 	}
 }

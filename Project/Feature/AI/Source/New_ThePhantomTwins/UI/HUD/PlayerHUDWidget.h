@@ -19,7 +19,7 @@ public:
     virtual void NativeConstruct() override;
 
 public:
-    void InitializeWidgets(int32 HP=100, int32 Mental=100, int32 Stamina=100, int32 CoreEnergyNum=5, int32 MaxInventorySlots = 5,
+    void InitializeWidgets(int32 HP=200, int32 Mental=100, int32 Stamina=100, int32 CoreEnergyNum=5, int32 MaxInventorySlots = 5,
                             UTexture2D* PortraitTexture=nullptr, UTexture2D* ActiveSkillIcon = nullptr, UTexture2D* PassiveSkillIcon = nullptr);
 
     /* PlayerStatus */
@@ -99,4 +99,8 @@ protected:
 // Inventory
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<class UInventoryWidget> InventoryWidget;
+
+public:
+    int32 ClearItemCount = 0;       // 임시!!!!!!!!!!!! GameState에서 해줘야함!!!!!!!!!!!!!!!
+
 };

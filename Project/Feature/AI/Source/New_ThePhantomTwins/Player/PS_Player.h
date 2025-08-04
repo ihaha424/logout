@@ -10,9 +10,7 @@
 #include "PS_Player.generated.h"
 
 class UPlayerAttributeSet;
-/**
- * 
- */
+
 UCLASS()
 class NEW_THEPHANTOMTWINS_API APS_Player : public APlayerState, public IAbilitySystemInterface, public IGenericTeamAgentInterface
 {
