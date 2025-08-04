@@ -15,8 +15,14 @@ class NEW_THEPHANTOMTWINS_API UAnimNorify_RunPlayNoise : public UAnimNotify
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sound")
-	TObjectPtr<USoundBase> SoundToPlay;
-
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sound")
+	TObjectPtr<USoundBase> StepSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sound")
+	float WalkNoise = 1.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sound")
+	float RunNoise = 1.f;
 };

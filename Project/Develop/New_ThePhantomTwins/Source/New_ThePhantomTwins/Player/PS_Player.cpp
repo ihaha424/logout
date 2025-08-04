@@ -25,6 +25,7 @@ void APS_Player::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APS_Player, ASC);
+	DOREPLIFETIME(APS_Player, AttributeSet);
 	DOREPLIFETIME(APS_Player, PassiveSkillTag);
 	DOREPLIFETIME(APS_Player, ActiveSkillTag);
 	DOREPLIFETIME(APS_Player, TeamID);
