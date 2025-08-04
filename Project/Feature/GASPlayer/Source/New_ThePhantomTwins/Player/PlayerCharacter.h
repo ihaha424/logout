@@ -180,6 +180,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TSubclassOf<UUserWidget> RecoveryWidgetClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
+	TSubclassOf<UUserWidget> KeyWidgetClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TSubclassOf<UUserWidget> InteractWidgetClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")

@@ -58,6 +58,8 @@ void UFocusTraceComponent::OnRep_FocusedActor()
     APlayerCharacter* Character = Cast<APlayerCharacter>(GetOwner());
     if (!Character) return;
 
+    if (!Character->IsLocallyControlled()) return;
+
     if (IsValid(PrevActor) && PrevActor != FocusedActor)
     {
         if (PrevActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
@@ -117,4 +119,27 @@ void UFocusTraceComponent::PerformTrace()
 #if WITH_EDITOR
     DrawDebugLine(GetWorld(), Start, End, Hit.GetActor() == FocusedActor ? FColor::Blue : FColor::Silver, false, 1.0f, 0, 0.3f);
 #endif
+
+    if (Pawn->IsLocallyControlled())
+    {
+        if (IsValid(PrevActor) && PrevActor != FocusedActor)
+        {
+            if (PrevActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
+                IInteract::Execute_CanInteract(PrevActor, Character, false);
+        }
+        if (IsValid(FocusedActor))
+        {
+            if (FocusedActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
+            {
+                if (!IInteract::Execute_CanInteract(FocusedActor, Character, true))
+                {
+                    FocusedActor = nullptr;
+                }
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Log, TEXT("FocusedActor is null or invalid in OnRep_FocusedActor"));
+        }
+    }
 }
