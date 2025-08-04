@@ -20,6 +20,11 @@ class NEW_THEPHANTOMTWINS_API AAIBaseController : public AAIController, public I
 public:
     AAIBaseController();
 
+    //~ Begin AI Perceptions
+    void AddPerceptionSightList(AActor* Actor);
+    void RemovePerceptionSightList(AActor* Actor);
+    //~ End AI Perceptions
+
 protected:
     //~ Begin AIController
     virtual void OnPossess(APawn* InPawn) override;

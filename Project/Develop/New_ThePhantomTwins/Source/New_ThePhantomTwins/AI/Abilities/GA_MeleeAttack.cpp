@@ -12,6 +12,8 @@
 UGA_MeleeAttack::UGA_MeleeAttack()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerExecution;
+    NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+    ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 
     AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_MeleeAttack);
     ActivationOwnedTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Combat);
@@ -32,7 +34,9 @@ void UGA_MeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
     if (UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo())
     {
         MyASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_MeleeAttack);
+        MyASC->AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_MeleeAttack);
         MyASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
+        MyASC->AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
     }
 
     NULLCHECK_CODE_RETURN_LOG(AttackMontage, AILog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
@@ -62,7 +66,9 @@ void UGA_MeleeAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const 
     if (UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo())
     {
         MyASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_MeleeAttack);
+        MyASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_MeleeAttack);
         MyASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
+        MyASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
     }
 
     AAIBaseCharacter* Character = Cast<AAIBaseCharacter>(ActorInfo->AvatarActor.Get());

@@ -17,11 +17,14 @@ class NEW_THEPHANTOMTWINS_API UBTT_LookAtLocation : public UBTT_GASBaseTask
 public:
 	UBTT_LookAtLocation();
 	virtual EBTNodeResult::Type Execute_Task(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-	void OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult) override;
+	virtual void Execute_TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 	virtual FString GetStaticDescription() const override;
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector TargetActorKey;
+
+	UPROPERTY(EditAnywhere, Category = "LookAt")
+	float InterpSpeed = 1.f;
 };
 
