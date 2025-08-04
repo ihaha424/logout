@@ -28,14 +28,16 @@ TPT_TAG_GEN(Character, Skill, Sprint, "Character use Sprint Skill")
 TPT_TAG_GEN(Character, Skill, Camera, "Character use Camera Skill")
 TPT_TAG_GEN(Character, Skill, SeeThrough, "Character use SeeThrough Skill")
 TPT_TAG_GEN(Character, Skill, RandomActive, "Character use Random Active skill")
-
-// Passive Skill
 TPT_TAG_GEN(Character, Skill, HPBuff, "Character HPBuff")
 TPT_TAG_GEN(Character, Skill, StaminaBuff, "Character StaminaBuff")
 TPT_TAG_GEN(Character, Skill, MentalBuff, "Character MentalBuff")
+
+// Passive Skill
 TPT_TAG_GEN(Character, Skill, StarterKit, "Character take Item")
 TPT_TAG_GEN(Character, Skill, MentalRecovery, "Character Can Mental Recovery")
 
+// Not Choose Skill
+TPT_TAG_GEN(Character, Skill, NoneSkill, "Character's Skill is Not Choose")
 
 /*
 	AI
