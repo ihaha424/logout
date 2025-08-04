@@ -97,26 +97,28 @@ bool ADoor::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected
 
 void ADoor::OnInteractServer_Implementation(const APawn* Interactor)
 {
-	// 모든 트리거가 활성화 되면
-	if (AreAllTriggerActived())
-	{
-		bIsActived = !bIsActived;
+	// 모든 트리거가 활성화 되지 않으면 return
+	if (!AreAllTriggerActived()) return;
 
-		if (HasAuthority())
+	// Interactor가 APlayerCharacter 타입이 아니면 동작하지 않음 (문 닫기에만 해당)
+	const APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(const_cast<APawn*>(Interactor));
+
+	// 문이 열려있는 상태에서 문을 닫으려 하는데, 플레이어 캐릭터가 아니면 종료
+	if (bIsActived && !PlayerChar) return;
+
+	bIsActived = !bIsActived;  // 상태 토글
+
+	if (HasAuthority())
+	{
+		if (bIsActived)
 		{
-			if (bIsActived)
-			{
-				// 문을 열어라
-				S2A_OpenDoor();
-			}
-			else
-			{
-				S2A_CloseDoor();
-			}
+			S2A_OpenDoor();
+		}
+		else
+		{
+			S2A_CloseDoor();
 		}
 	}
-
-
 }
 
 void ADoor::OnInteractClient_Implementation(const APawn* Interactor)
