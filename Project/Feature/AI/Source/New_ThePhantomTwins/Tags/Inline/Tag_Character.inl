@@ -14,6 +14,7 @@ TPT_TAG_GEN(Character, State, Recovery, "Character is Recovery")
 TPT_TAG_GEN(Character, State, Confused1st, "Character is Confused 1st")
 TPT_TAG_GEN(Character, State, Confused2nd, "Character is Confused 2nd")
 TPT_TAG_GEN(Character, State, Confused3rd, "Character is Confused 3rd")
+TPT_TAG_GEN(Character, State, AIChasing, "Ai is Chasing player")
 
 
 TPT_TAG_GEN(Character, State, SkillCoolDown, "Character's skill is CoolDowning")
@@ -41,10 +42,11 @@ TPT_TAG_GEN(Character, Skill, MentalRecovery, "Character Can Mental Recovery")
 	AI
 */
 // AI State
+TPT_TAG_GEN(Character, AIState, Die, "AI State: Die")
+TPT_TAG_GEN(Character, AIState, Stun, "AI State: Stun")
 TPT_TAG_GEN(Character, AIState, Default, "AI State: Default")
 TPT_TAG_GEN(Character, AIState, Suspicion, "AI State: Suspicion")
 TPT_TAG_GEN(Character, AIState, Combat, "AI State: Combat")
-TPT_TAG_GEN(Character, AIState, Stun, "AI State: Stun")
 TPT_TAG_GEN(Character, AIState, PerformingAction, "AI State: PerformingAction")
 
 

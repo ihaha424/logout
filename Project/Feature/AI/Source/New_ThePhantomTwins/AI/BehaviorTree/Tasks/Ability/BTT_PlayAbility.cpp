@@ -51,7 +51,6 @@ void UBTT_PlayAbility::Execute_TickTask(UBehaviorTreeComponent& OwnerComp, uint8
 {
     if (!bIsWaitingForAbility)
         return;
-
     AAIController* AICon = OwnerComp.GetAIOwner();
     AAIBaseCharacter* AIPawn = Cast<AAIBaseCharacter>(AICon ? AICon->GetPawn() : nullptr);
     NULLCHECK_CODE_RETURN_LOG(AICon, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, )
