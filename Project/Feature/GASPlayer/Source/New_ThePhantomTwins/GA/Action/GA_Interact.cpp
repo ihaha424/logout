@@ -33,11 +33,14 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 	UAbilityTask_PlayMontageAndWait* PlayMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("InteractMontage"), InteractMontage, 1.0f);
 	PlayMontageTask->OnCompleted.AddDynamic(this, &UGA_Interact::OnCompleteCallback);
-
+	
 	// 플레이어가 상호작용할 수 있는 오브젝트가 있는지 확인
 	if (TargetActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
 	{
-		C2S_Interact(TargetActor, Character);
+		if (Character->HasAuthority())
+		{
+			C2S_Interact(TargetActor, Character);
+		}
 		IInteract::Execute_OnInteractClient(TargetActor, Character);
 		PlayMontageTask->ReadyForActivation();
 	}
@@ -68,9 +71,7 @@ void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const 
 		APC_Player* PC = APC_Player::GetLocalPlayerController(Character);
 		PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
 	}
-	CancelAbility(Handle, ActorInfo, ActivationInfo, true);
 }
-
 void UGA_Interact::C2S_Interact_Implementation(UObject* interact, AActor* Owner)
 {
 	const APlayerCharacter* Character = Cast<APlayerCharacter>(Owner);
@@ -84,4 +85,5 @@ void UGA_Interact::C2S_Interact_Implementation(UObject* interact, AActor* Owner)
 
 void UGA_Interact::OnCompleteCallback()
 {
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
