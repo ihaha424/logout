@@ -20,8 +20,6 @@ UPlayerAnimInstance::UPlayerAnimInstance()
 void UPlayerAnimInstance::InitializeWithAbilitySystem(UAbilitySystemComponent* ASC)
 {
 	check(ASC);
-	TPT_LOG(PlayerLog, Error, TEXT("22"));
-
 	GameplayTagPropertyMap.Initialize(this, ASC);
 }
 
