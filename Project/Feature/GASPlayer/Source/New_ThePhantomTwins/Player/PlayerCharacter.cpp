@@ -46,6 +46,7 @@ APlayerCharacter::APlayerCharacter()
 
 	DownedWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DownedWidget"));
 	DownedWidget->SetupAttachment(GetMesh());
+	DownedWidget->SetRelativeLocation(FVector(0, 0, 0));
 }
 
 void APlayerCharacter::PossessedBy(AController* NewController)
@@ -131,6 +132,17 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
+	bool bIsTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
+	if (bIsTag)
+	{
+		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+	}
+	else
+	{
+		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	}
 
 	if (IsLocallyControlled() && PlayerController && FocusTrace)
 	{

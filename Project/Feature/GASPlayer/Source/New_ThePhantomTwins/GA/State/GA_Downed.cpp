@@ -95,8 +95,4 @@ void UGA_Downed::OnDownedTagChanged(const FGameplayTag Tag, int32 TagCount)
 		bool bWasCancelled = false;
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
 	}
-	else
-	{
-		Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
-	}
 }

@@ -44,6 +44,18 @@ void APS_Player::SetRecovery(bool IsRecovery)
 
 void APS_Player::SetGroggy(bool IsGroggy)
 {
+	//APlayerCharacter* Character = Cast<APlayerCharacter>(GetOwner());
+	//NULLCHECK_RETURN_LOG(Character, PlayerLog, Error, )
+
+	//	if (IsGroggy)
+	//	{
+	//		Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+	//	}
+	//	else
+	//	{
+	//		Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	//	}
+
 	bIsRecovery = IsGroggy;
 }
 
