@@ -9,6 +9,8 @@
 #include "Log/TPTLog.h"
 #include "Player/PS_Player.h"
 #include "Player/PC_Player.h"
+#include "Blueprint/UserWidget.h"
+#include "Components/WidgetComponent.h"
 
 UGA_Downed::UGA_Downed()
 {
@@ -33,6 +35,7 @@ void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	APC_Player* PC = Character->GetController<APC_Player>();
 	NULLCHECK_RETURN_LOG(PC, GALog, Warning, );
 	PC->SetWidget(TEXT("WASD"), true, EMessageTargetType::LocalClient);
+	Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
 
 	SetSpeed(DownedSpeed, GAActorInfo);
 }
@@ -86,9 +89,14 @@ void UGA_Downed::OnDownedTagChanged(const FGameplayTag Tag, int32 TagCount)
 		PS->SetGroggy(false);
 		PS->SetRecovery(true);
 		PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
+		Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
 		bool bReplicatedEndAbility = true;
 		bool bWasCancelled = false;
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
+	}
+	else
+	{
+		Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
 	}
 }

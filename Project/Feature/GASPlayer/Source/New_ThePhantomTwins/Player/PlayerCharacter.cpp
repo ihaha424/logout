@@ -43,6 +43,9 @@ APlayerCharacter::APlayerCharacter()
 
 	InteractWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractWidget"));
 	InteractWidget->SetupAttachment(GetMesh());
+
+	DownedWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DownedWidget"));
+	DownedWidget->SetupAttachment(GetMesh());
 }
 
 void APlayerCharacter::PossessedBy(AController* NewController)
@@ -114,9 +117,13 @@ void APlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
 
-	UUserWidget* Widget = CreateWidget(GetWorld(), InteractWidgetClass);
-	InteractWidget->SetWidget(Widget);
+	UUserWidget* Interact = CreateWidget(GetWorld(), InteractWidgetClass);
+	InteractWidget->SetWidget(Interact);
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+
+	UUserWidget* Down = CreateWidget(GetWorld(), DownWidgetClass);
+	DownedWidget->SetWidget(Down);
+	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
 	FocusTrace->SetIsReplicated(true);
 }
@@ -370,6 +377,7 @@ void APlayerCharacter::OnRecoveryCompleted()
 	GetWorld()->GetTimerManager().ClearTimer(RecoveryTimerHandle);
 	GetWorld()->GetTimerManager().ClearTimer(TempHandle);
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
 	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
 	PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);

@@ -74,6 +74,9 @@ public:
 	FTimerHandle RecoveryTimerHandle;
 	FTimerHandle TempHandle;;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
+	TObjectPtr<UWidgetComponent> DownedWidget;
+
 public:
 	// ¿ß¡¨ º≥¡§
 	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);
@@ -177,12 +180,15 @@ protected:
 	// ªÛ»£¿€øÎ ¿ß¡¨
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TObjectPtr<UWidgetComponent> InteractWidget;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TSubclassOf<UUserWidget> RecoveryWidgetClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TSubclassOf<UUserWidget> KeyWidgetClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TSubclassOf<UUserWidget> InteractWidgetClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
+	TSubclassOf<UUserWidget> DownWidgetClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	float RecoveryTime = 3.0f;

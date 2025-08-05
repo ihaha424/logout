@@ -6,6 +6,10 @@
 #include "Net/UnrealNetwork.h"
 #include "New_ThePhantomTwins/Attribute/PlayerAttributeSet.h"
 #include "../Objects/InventoryComponent.h"
+#include "Player/PlayerCharacter.h"
+#include "Log/TPTLog.h"
+#include "Blueprint/UserWidget.h"
+#include "Components/WidgetComponent.h"
 
 APS_Player::APS_Player()
 {
@@ -31,6 +35,16 @@ void APS_Player::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	DOREPLIFETIME(APS_Player, TeamID);
 	DOREPLIFETIME(APS_Player, bIsRecovery);
 	DOREPLIFETIME(APS_Player, bIsGroggy);
+}
+
+void APS_Player::SetRecovery(bool IsRecovery)
+{
+	bIsRecovery = IsRecovery;
+}
+
+void APS_Player::SetGroggy(bool IsGroggy)
+{
+	bIsRecovery = IsGroggy;
 }
 
 class UAbilitySystemComponent* APS_Player::GetAbilitySystemComponent() const
