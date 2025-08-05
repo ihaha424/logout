@@ -8,12 +8,16 @@ void AGS_Lobby::SetIdentifyCharacterData(ECharacterType ChractorType, bool bIsHo
 {
     if (bIsHost)
     {
-        if(ChractorType == ECharacterType::None || IdentifyCharacterData.Client != ChractorType)
+        if (IdentifyCharacterData.Host == ChractorType)
+            IdentifyCharacterData.Host = ECharacterType::None;
+        else if (ChractorType == ECharacterType::None || IdentifyCharacterData.Client != ChractorType)
             IdentifyCharacterData.Host = ChractorType;
     }
     else
     {
-        if (ChractorType == ECharacterType::None || IdentifyCharacterData.Host != ChractorType)
+        if (IdentifyCharacterData.Client == ChractorType)
+            IdentifyCharacterData.Client = ECharacterType::None;
+        else if (ChractorType == ECharacterType::None || IdentifyCharacterData.Host != ChractorType)
             IdentifyCharacterData.Client = ChractorType;
     }
     OnRep_IdentifyCharacterData();
