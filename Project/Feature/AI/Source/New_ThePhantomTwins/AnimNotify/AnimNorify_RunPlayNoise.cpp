@@ -26,7 +26,7 @@ void UAnimNorify_RunPlayNoise::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 		UGameplayStatics::PlaySoundAtLocation(Owner, StepSound, Owner->GetActorLocation());
 
 		// 노이즈 발생
-		Owner->MakeNoise(RunNoise, Owner, Owner->GetActorLocation());
+		Owner->MakeNoise(RunNoise, Owner, Owner->GetActorLocation(), 0.f, "PlayerRun");
 	}
 	else
 	{
@@ -34,6 +34,6 @@ void UAnimNorify_RunPlayNoise::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 		UGameplayStatics::PlaySoundAtLocation(Owner, StepSound, Owner->GetActorLocation());
 
 		// 노이즈 발생
-		Owner->MakeNoise(WalkNoise, Owner, Owner->GetActorLocation());
+		Owner->MakeNoise(WalkNoise, Owner, Owner->GetActorLocation(), 0.f, "PlayerWalk");
 	}
 }

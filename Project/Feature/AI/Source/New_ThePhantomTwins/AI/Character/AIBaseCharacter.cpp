@@ -134,6 +134,7 @@ void AAIBaseCharacter::ResetDataForState(const FGameplayTag Tag, int32 TagCount)
 {
     const EFTPTGameplayTags* EnumTag = FTPTGameplayTags::Get().TagMap.Find(Tag);
     NULLCHECK_RETURN_LOG(EnumTag, AILog, Warning, );
+
     if (TagCount > 0)
     {
         switch (*EnumTag)
