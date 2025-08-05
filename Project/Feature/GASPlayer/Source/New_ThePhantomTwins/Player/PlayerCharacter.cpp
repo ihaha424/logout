@@ -393,12 +393,15 @@ void APlayerCharacter::OnRecoveryCompleted()
 	PS->SetRecovery(true);
 
 	FGameplayTag DownedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed;
+	FGameplayTag ConfusedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd;
 
-	int32 Count = ASC->GetTagCount(DownedTag);
-	for (int32 i = 0; i < Count; ++i)
+	int32 DownedTagCount = ASC->GetTagCount(DownedTag);
+	for (int32 i = 0; i < DownedTagCount; ++i)
 	{
 		ASC->RemoveLooseGameplayTag(DownedTag);
 	}
+
+	ASC->RemoveLooseGameplayTag(ConfusedTag);
 
 	GetWorld()->GetTimerManager().ClearTimer(RecoveryTimerHandle);
 	GetWorld()->GetTimerManager().ClearTimer(TempHandle);
