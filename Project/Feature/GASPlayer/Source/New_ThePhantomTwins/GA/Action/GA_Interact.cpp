@@ -72,6 +72,7 @@ void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const 
 		PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
 	}
 }
+
 void UGA_Interact::C2S_Interact_Implementation(UObject* interact, AActor* Owner)
 {
 	const APlayerCharacter* Character = Cast<APlayerCharacter>(Owner);
