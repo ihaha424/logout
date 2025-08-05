@@ -44,17 +44,14 @@ void QuadTreeNode::Insert(const FVector2D& Position, ASplineActor* Actor)
         // reinsert existing actor
         if (StoredActor)
         {
-            for (auto& Child : Children)
-                Child->Insert(StoredPosition, StoredActor);
-
+            int OldIndex = (StoredPosition.X > Origin.X ? 1 : 0) + (StoredPosition.Y > Origin.Y ? 2 : 0);
+            Children[OldIndex]->Insert(StoredPosition, StoredActor);
             StoredActor = nullptr;
         }
     }
 
-    for (auto& Child : Children)
-    {
-        Child->Insert(Position, Actor);
-    }
+    int Index = (Position.X > Origin.X ? 1 : 0) + (Position.Y > Origin.Y ? 2 : 0);
+    Children[Index]->Insert(Position, Actor);
 }
 
 ASplineActor* QuadTreeNode::QueryNearest(const FVector2D& Point, float& OutDistSq) const

@@ -31,6 +31,7 @@ void UAIHelperLibrary::SetAIStateAndTag(UBehaviorTreeComponent* OwnerComp, UBlac
     if (curTag.IsValid())
     {
         ASC->RemoveLooseGameplayTag(curTag);
+        ASC->RemoveReplicatedLooseGameplayTag(curTag);
     }
 
     FGameplayTag nextTag = GetTagFromAIState(NextState);
