@@ -49,10 +49,10 @@ AAIBaseController::AAIBaseController()
     
                                      // Scanner
     StimulusPriorityMap = {             //StimulusPriorityMap = {
-      { "PlayerActor", 1 },             //  { "PlayerActor", 1 },
-      { "NoiseItem", 2 },               //  { "EnemyActor", 1 },
-      { "PlayerRun", 3 },               //  { "EnemyRun", 2 },
-      { "PlayerWalk", 4 },              //  { "EnemyWalk", 3 },
+      { "PlayerActor", {1, 1} },             //  { "PlayerActor", 1 },
+      { "NoiseItem", {2, 100} },               //  { "EnemyActor", 1 },
+      { "PlayerRun", {3, 30} },               //  { "EnemyRun", 2 },
+      { "PlayerWalk", {4, 10} },              //  { "EnemyWalk", 3 },
     };                                  //  { "PlayerRun", 4 },
                                         //  { "NoiseItem", 5 },
                                         //  { "PlayerWalk", 6 }
@@ -126,10 +126,7 @@ void AAIBaseController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
         {
             if (Stimulus.WasSuccessfullySensed())
             {
-                /*
-                    오브젝트의 시야 체크는 오직 상호작용을 위해서만 존재한다.
-                */
-                BB->SetValueAsObject(TEXT("TargetObject"), Actor);
+
             }
             else
             {
@@ -144,7 +141,7 @@ void AAIBaseController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
         const float CurrentTime = GetWorld()->GetTimeSeconds();
         if (Stimulus.WasSuccessfullySensed())
         {
-            const float Score = Stimulus.Strength * 100.f;
+            const float Score = GetStimulusStrength(Stimulus.Tag);
             const float Old = BB->GetValueAsFloat(TEXT("HearingSum"));
             BB->SetValueAsFloat(TEXT("Priority"), Priority);
             BB->SetValueAsFloat(TEXT("HearingSum"), Old + Score);
@@ -251,7 +248,12 @@ void AAIBaseController::FindCloseActor()
 
 int32 AAIBaseController::GetStimulusPriority(const FName& Tag)
 {
-    return StimulusPriorityMap.Contains(Tag) ? StimulusPriorityMap[Tag] : std::numeric_limits<int32>::max();;
+    return StimulusPriorityMap.Contains(Tag) ? StimulusPriorityMap[Tag].X : std::numeric_limits<int32>::max();
+}
+
+int32 AAIBaseController::GetStimulusStrength(const FName& Tag)
+{
+    return StimulusPriorityMap.Contains(Tag) ? StimulusPriorityMap[Tag].Y : std::numeric_limits<int32>::max();
 }
 
 UAbilitySystemComponent* AAIBaseController::GetAbilitySystemComponent() const
