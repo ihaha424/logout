@@ -28,6 +28,7 @@ class USpringArmComponent;
 class UInputAction;
 class UFocusTraceComponent;
 class UWidgetComponent;
+class UPostProcessComponent;
 
 UENUM(BlueprintType)
 enum class EEnemyRange : uint8
@@ -73,9 +74,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	FTimerHandle RecoveryTimerHandle;
 	FTimerHandle TempHandle;;
-
+	// 다운 인디케이터
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TObjectPtr<UWidgetComponent> DownedWidget;
+	
+	// Low HP Post Process Vignette 관련 변수
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
+	TObjectPtr<UPostProcessComponent> PostProcessComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
+	TObjectPtr<UMaterialInterface> VignetteMaterial;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
+	TObjectPtr<UMaterialInstanceDynamic> VignetteMID;
 
 public:
 	// 위젯 설정

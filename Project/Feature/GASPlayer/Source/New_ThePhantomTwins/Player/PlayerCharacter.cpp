@@ -27,6 +27,7 @@
 #include "Objects/InventoryComponent.h"
 #include "UI/HUD/PlayerHUDWidget.h"
 #include "Net/UnrealNetwork.h"
+#include "Components/PostProcessComponent.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -47,6 +48,11 @@ APlayerCharacter::APlayerCharacter()
 	DownedWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DownedWidget"));
 	DownedWidget->SetupAttachment(GetMesh());
 	DownedWidget->SetRelativeLocation(FVector(0, 0, 0));
+
+	PostProcessComponent = CreateDefaultSubobject<UPostProcessComponent>(TEXT("Vignette"));
+	PostProcessComponent->SetupAttachment(RootComponent);
+	PostProcessComponent->bUnbound = false;
+	PostProcessComponent->Priority = 1.f;
 }
 
 void APlayerCharacter::PossessedBy(AController* NewController)
@@ -127,6 +133,14 @@ void APlayerCharacter::BeginPlay()
 	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
 	FocusTrace->SetIsReplicated(true);
+
+	NULLCHECK_RETURN_LOG(VignetteMaterial, PlayerLog, Error, );
+	VignetteMID = UMaterialInstanceDynamic::Create(VignetteMaterial, this);
+	FWeightedBlendable Blendable;
+	Blendable.Object = VignetteMID;
+	Blendable.Weight = 0.0f;
+
+	PostProcessComponent->Settings.WeightedBlendables.Array.Add(Blendable);
 }
 
 void APlayerCharacter::Tick(float DeltaTime)
@@ -134,8 +148,8 @@ void APlayerCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
-	bool bIsTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-	if (bIsTag)
+	bool bIsDownedTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
+	if (bIsDownedTag)
 	{
 		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
 	}
