@@ -141,6 +141,12 @@ void APlayerCharacter::BeginPlay()
 	Blendable.Weight = 0.0f;
 
 	PostProcessComponent->Settings.WeightedBlendables.Array.Add(Blendable);
+
+	if (IsLocallyControlled())
+	{
+		PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
+		PlayerController->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
+	}
 }
 
 void APlayerCharacter::Tick(float DeltaTime)
@@ -207,8 +213,6 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	TPTInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
 
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
-	PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
-	PlayerController->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
 
 	SetupPlayerInputByTag(TPTInput);
 }
@@ -411,7 +415,10 @@ void APlayerCharacter::OnRecoveryCompleted()
 		ASC->RemoveLooseGameplayTag(LowHPTag);
 	}
 
-	ASC->RemoveReplicatedLooseGameplayTag(ConfusedTag);
+	if (ASC->HasMatchingGameplayTag(ConfusedTag))
+	{
+		ASC->RemoveLooseGameplayTag(ConfusedTag);
+	}
 
 	GetWorld()->GetTimerManager().ClearTimer(RecoveryTimerHandle);
 	GetWorld()->GetTimerManager().ClearTimer(TempHandle);
