@@ -2,6 +2,10 @@
 
 
 #include "AI/Utility/GameplayTagNavLinkComponent.h"
+#include "NavModifierComponent.h"
+#include "NavAreas/NavArea_Null.h"
+#include "NavAreas/NavArea_Default.h"
+#include "NavigationSystem.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
@@ -12,6 +16,9 @@ UGameplayTagNavLinkComponent::UGameplayTagNavLinkComponent()
 {
     AbilityTag = FGameplayTag();
     TargetActor = nullptr;
+
+    //NavModifier = CreateDefaultSubobject<UNavModifierComponent>(TEXT("NavModifier"));
+    //NavModifier->SetAreaClass(UNavArea_Null::StaticClass()); // 기본값: 차단
 }
 
 void UGameplayTagNavLinkComponent::BeginPlay()
@@ -51,4 +58,22 @@ void UGameplayTagNavLinkComponent::HandleSmartLinkReached(UNavLinkCustomComponen
     EventData.Instigator = MovingActor;
     EventData.Target = TargetActor;
     ASC->HandleGameplayEvent(AbilityTag, &EventData);
+}
+
+void UGameplayTagNavLinkComponent::NavProxyEnabled(bool Setbool)
+{
+    if (Setbool)
+    {
+        SetEnabled(false); // Proxy 연결 끊기
+        NavModifier->SetAreaClass(UNavArea_Default::StaticClass()); // NavMesh가 뚫리도록 설정
+
+        // NavMesh 즉시 리빌드(필요시)
+        UNavigationSystemV1::GetCurrent(GetWorld())->Build();
+    }
+    else
+    {
+        SetEnabled(true); // Proxy 연결
+        NavModifier->SetAreaClass(UNavArea_Null::StaticClass()); // NavMesh 차단(블로킹)
+        UNavigationSystemV1::GetCurrent(GetWorld())->Build();
+    }
 }

@@ -42,15 +42,15 @@ void UGA_OpenObstacle::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
     // 애니메이션 & VFX(서버 클라 둘다)
     // 애니메이션 & VFX가 끝나면 EndAbillity
 
-
+    EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
     // 위 과업을 하기 전까지 사용할 테스트용 코드 1초후 종료
-    FTimerHandle TimerHandle;
-    FTimerDelegate EndDelegate = FTimerDelegate::CreateUObject(this, &UGA_OpenObstacle::EndAbility,
-        Handle, ActorInfo, ActivationInfo, true, false);
-    if (UWorld* World = GetWorld())
-    {
-        World->GetTimerManager().SetTimer(TimerHandle, EndDelegate, 1.0f, false);
-    }
+    //FTimerHandle TimerHandle;
+    //FTimerDelegate EndDelegate = FTimerDelegate::CreateUObject(this, &UGA_OpenObstacle::EndAbility,
+    //    Handle, ActorInfo, ActivationInfo, true, false);
+    //if (UWorld* World = GetWorld())
+    //{
+    //    World->GetTimerManager().SetTimer(TimerHandle, EndDelegate, 1.0f, false);
+    //}
 }
 
 void UGA_OpenObstacle::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)

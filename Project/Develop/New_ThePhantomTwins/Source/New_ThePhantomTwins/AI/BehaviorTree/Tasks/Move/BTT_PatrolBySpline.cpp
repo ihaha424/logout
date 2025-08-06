@@ -52,7 +52,7 @@ EBTNodeResult::Type UBTT_PatrolBySpline::Execute_Task(UBehaviorTreeComponent& Ow
 
 	FPathFollowingRequestResult MoveResult = AIController->MoveTo(MoveRequest);
 	TaskData->MoveId = MoveResult.MoveId;
-	switch (MoveResult)
+	switch (MoveResult.Code)
 	{
 	case EPathFollowingRequestResult::RequestSuccessful:
 		return EBTNodeResult::InProgress;
