@@ -84,6 +84,18 @@ UUserWidget* APC_Player::GetWidget(const FString& UIKey) const
 	return Widget;
 }
 
+bool APC_Player::IsRegisterWidget(const FString& UIKey) const
+{
+	UUserWidget* Widget = nullptr;
+
+	if (nullptr != UIManager)
+	{
+		Widget = UIManager->GetWidget(UIKey);
+	}
+
+	return (nullptr != Widget ? true : false);
+}
+
 void APC_Player::RegisterWidget(const FString& Key, UUserWidget* Widget, int32 Order)
 {
 	if (IsLocalController())

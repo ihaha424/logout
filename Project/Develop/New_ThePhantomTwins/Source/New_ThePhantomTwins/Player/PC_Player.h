@@ -49,6 +49,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UIManager")
 	UUserWidget* GetWidget(const FString& UIKey) const;
 	UFUNCTION(BlueprintCallable, Category = "UIManager")
+	bool IsRegisterWidget(const FString& UIKey) const;
+	UFUNCTION(BlueprintCallable, Category = "UIManager")
 	void RegisterWidget(const FString& Key, UUserWidget* Widget, int32 Order = 0);
 	UFUNCTION(BlueprintCallable, Category = "UIManager")
 	void UnregisterWidget(const FString& Key, UUserWidget* Widget);

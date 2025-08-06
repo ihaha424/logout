@@ -111,3 +111,14 @@ UUserWidget* UUIManager::GetWidget(const FString& Key) const
 
 	return nullptr;
 }
+
+bool UUIManager::IsRegisterUI(const FString& Key) const
+{
+	if (!UIMap.Contains(Key))
+		return false;
+
+	if (UIMap[Key].bIsActivate)
+		return true;
+
+	return false;
+}
