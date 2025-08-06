@@ -2,6 +2,7 @@
 
 
 #include "GameplayTagNavLinkProxy.h"
+#include "NavLinkCustomComponent.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "AIController.h"
@@ -13,6 +14,8 @@ AGameplayTagNavLinkProxy::AGameplayTagNavLinkProxy()
 {
     bSmartLinkIsRelevant = true;
 
+    GetSmartLinkComp()->SetLinkData(FVector{ -100.0f, 0.0f, 0.0f }, FVector{ 100.0f, 0.0f, 0.0f }, ENavLinkDirection::BothWays);
+
     AbilityTag = FGameplayTag();
     TargetActor = nullptr;
 }
@@ -20,6 +23,7 @@ AGameplayTagNavLinkProxy::AGameplayTagNavLinkProxy()
 void AGameplayTagNavLinkProxy::BeginPlay()
 {
     Super::BeginPlay();
+
     OnSmartLinkReached.AddDynamic(this, &AGameplayTagNavLinkProxy::HandleSmartLinkReached);
 }
 

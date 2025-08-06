@@ -61,6 +61,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 
 	PS = GetPlayerState<APS_Player>();
 	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
+	PS->SetIdentifyCharacterData();
+	SetMeshByCharacterType(PS);
 
 	ASC = PS->GetAbilitySystemComponent();
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
@@ -106,6 +108,8 @@ void APlayerCharacter::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 	PS = GetPlayerState<APS_Player>();
 	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
+	PS->SetIdentifyCharacterData();
+	SetMeshByCharacterType(PS);
 
 	ASC = PS->GetAbilitySystemComponent();
 	ASC->InitAbilityActorInfo(PS, this);

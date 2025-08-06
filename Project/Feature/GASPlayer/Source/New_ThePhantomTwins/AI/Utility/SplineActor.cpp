@@ -14,6 +14,9 @@ void ASplineActor::BeginPlay()
 {
     Super::BeginPlay();
 
+    if (!HasAuthority())
+        return;
+
     if (ASplineActorManager* Manager = ASplineActorManager::Get(GetWorld()))
     {
         int32 NumPoints = SplineComponent->GetNumberOfSplinePoints();

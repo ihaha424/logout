@@ -7,6 +7,7 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
 #include "GenericTeamAgentInterface.h"
+#include "CharacterType.h"
 #include "PS_Player.generated.h"
 
 class UPlayerAttributeSet;
@@ -31,6 +32,8 @@ public:
 	bool IsGroggy() {return bIsGroggy;}
 	void SetGroggy(bool IsGroggy);
 
+	void SetIdentifyCharacterData();
+
 protected:
 
 	UPROPERTY(Replicated, EditAnywhere, Category = GAS)
@@ -51,6 +54,8 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere, Category = "Recovery")
 	bool bIsGroggy = false;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "CharacterType")
+	FIdentifyCharacterData IdentifyCharacterData;
 private:
 	UPROPERTY(Replicated)
 	FGenericTeamId TeamID;

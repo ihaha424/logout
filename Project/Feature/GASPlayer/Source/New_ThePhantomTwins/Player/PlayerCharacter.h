@@ -132,6 +132,8 @@ protected:
 	void MovementSetting();
 	void CameraSetting();
 	void OverlapRangeSetting();
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetMeshByCharacterType(APS_Player* MyPS);
 
 	// 플레이어 반경 오버랩 처리
 	UFUNCTION()
@@ -144,6 +146,7 @@ protected:
 	void UpdateWallSound();
 	UFUNCTION()
 	void OnRep_CurrentWallRange();
+
 
 protected:
 

@@ -8,6 +8,7 @@
 #include "Log/TPTLog.h"
 #include "UI/HUD/HUD_PhantomTwins.h"
 #include "Kismet/GameplayStatics.h"
+#include "Player/PS_Player.h"
 
 APC_Player* APC_Player::GetLocalPlayerController(AActor* Actor)
 {
@@ -48,6 +49,11 @@ void APC_Player::BeginPlay()
 	SetShowMouseCursor(false);
 }
 
+void APC_Player::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+}
+
 void APC_Player::C2S_SetOwnerActor_Implementation(APlayerController* thisPC, AActor* Actor)
 {
 	if (HasAuthority())
@@ -76,6 +82,18 @@ UUserWidget* APC_Player::GetWidget(const FString& UIKey) const
 	}
 
 	return Widget;
+}
+
+bool APC_Player::IsRegisterWidget(const FString& UIKey) const
+{
+	UUserWidget* Widget = nullptr;
+
+	if (nullptr != UIManager)
+	{
+		Widget = UIManager->GetWidget(UIKey);
+	}
+
+	return (nullptr != Widget ? true : false);
 }
 
 void APC_Player::RegisterWidget(const FString& Key, UUserWidget* Widget, int32 Order)

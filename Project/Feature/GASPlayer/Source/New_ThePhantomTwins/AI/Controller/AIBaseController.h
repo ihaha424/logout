@@ -43,8 +43,9 @@ protected:
     TArray<AActor*> PerceptionSightList;
     void FindCloseActor();
     UPROPERTY()
-    TMap<FName, int32> StimulusPriorityMap;
+    TMap<FName, FUintVector2> StimulusPriorityMap;
     inline int32 GetStimulusPriority(const FName& Tag);
+    inline int32 GetStimulusStrength(const FName& Tag);
     //~ End AI Perceptions
 
     //~ Begin BeHaviorTree
