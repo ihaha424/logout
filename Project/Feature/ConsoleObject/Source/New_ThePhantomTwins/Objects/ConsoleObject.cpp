@@ -3,7 +3,7 @@
 
 #include "ConsoleObject.h"
 #include "Net/UnrealNetwork.h"
-#include "Components/CapsuleComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "../player/PlayerCharacter.h"
@@ -15,7 +15,7 @@ AConsoleObject::AConsoleObject() : AInteractableObject()
 	bReplicates = true;
 
 	// player 체크 할 trigger
-	Trigger = CreateDefaultSubobject<UCapsuleComponent>(TEXT("TriggerComponent"));
+	Trigger = CreateDefaultSubobject<USphereComponent>(TEXT("TriggerComponent"));
 	Trigger->SetCollisionProfileName(TEXT("OverlapAll"));
 	Trigger->SetGenerateOverlapEvents(true);
 	Trigger->SetupAttachment(RootSceneComp);
@@ -113,7 +113,7 @@ void AConsoleObject::SetWidgetVisible(bool bVisible)
 
 	// AreAllTriggerActived 와 HasPlayerNum 조건을 체크해서 InteractWidgetComp 표시 결정
 	const bool bAllTriggersActive = AreAllTriggerActived();
-	const bool bHasEnoughPlayers = (HasPlayerNum == 2);
+	const bool bHasEnoughPlayers = (HasPlayerNum == MaxPlayerNum);
 
 	if (bAllTriggersActive && bHasEnoughPlayers)
 	{
@@ -132,9 +132,9 @@ void AConsoleObject::SetWidgetVisible(bool bVisible)
 void AConsoleObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 
-	HasPlayerNum = FMath::Clamp(HasPlayerNum + 1, 0, 2);
+	HasPlayerNum = FMath::Clamp(HasPlayerNum + 1, 0, MaxPlayerNum);
 
-	if (AreAllTriggerActived() && HasPlayerNum == 2)
+	if (AreAllTriggerActived() && HasPlayerNum == MaxPlayerNum)
 	{
 		bCanInteract = true;
 	}
@@ -146,9 +146,9 @@ void AConsoleObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedCompon
 
 void AConsoleObject::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	HasPlayerNum = FMath::Clamp(HasPlayerNum - 1, 0, 2);
+	HasPlayerNum = FMath::Clamp(HasPlayerNum - 1, 0, MaxPlayerNum);
 
-	if (AreAllTriggerActived() && HasPlayerNum == 2)
+	if (AreAllTriggerActived() && HasPlayerNum == MaxPlayerNum)
 	{
 		bCanInteract = true;
 	}

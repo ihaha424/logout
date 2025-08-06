@@ -47,17 +47,20 @@ protected:
 	TSubclassOf<class UUserWidget> LockWidgetClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | Hide")
-	TObjectPtr<class UCapsuleComponent> Trigger;
+	TObjectPtr<class USphereComponent> Trigger;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | Hide", Replicated)
+	UPROPERTY(Replicated)
 	int32 HasPlayerNum = 0;
 
+	UPROPERTY(EditAnywhere, Category = "ConsoleObject")
+	int32 MaxPlayerNum = 2;
+
 	// 문이 열리기 위해 필요한 Actor 목록
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject")
 	TArray<AActor*> RequiredList;
 
 	// 필요 활성화 수 (0이면 RequiredList의 전체 수가 기본값)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject")
     int32 MinRequiredCount = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | Door")
