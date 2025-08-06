@@ -17,6 +17,8 @@ void ABoxObject::BeginPlay()
 
 void ABoxObject::OnInteractServer_Implementation(const APawn* Interactor)
 {
+	if (bIsActived) return;
+
 	InvokeGameplayCue(Interactor);			// 자기 자신 이펙트 재생
 	ApplyEffectToTarget(Interactor);		// 상대방한테 게임플레이 이펙트 발동 시킴
 }
