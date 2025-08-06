@@ -27,10 +27,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	bool IsRecovery() {return bIsRecovery;}
-	void SetRecovery(bool IsRecovery) {bIsRecovery = IsRecovery;}
+	void SetRecovery(bool IsRecovery);
 	UFUNCTION(BlueprintCallable)
-	bool IsGroggy() { return bIsGroggy; }
-	void SetGroggy(bool IsGroggy) { bIsGroggy = IsGroggy; }
+	bool IsGroggy() {return bIsGroggy;}
+	void SetGroggy(bool IsGroggy);
 
 	void SetIdentifyCharacterData();
 

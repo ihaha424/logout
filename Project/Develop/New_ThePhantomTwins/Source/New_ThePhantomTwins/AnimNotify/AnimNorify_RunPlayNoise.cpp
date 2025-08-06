@@ -12,10 +12,12 @@
 
 void UAnimNorify_RunPlayNoise::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	if (!MeshComp || !StepSound) return;
+	if(!MeshComp || !StepSound) return;
 
 	APlayerCharacter* Owner = Cast<APlayerCharacter>(MeshComp->GetOwner());
 	NULLCHECK_RETURN_LOG(Owner, GALog, Error, )
+
+	if (!Owner->IsLocallyControlled()) return;
 
 	UAbilitySystemComponent* ASC = Owner->GetAbilitySystemComponent();
 	NULLCHECK_RETURN_LOG(ASC, GALog, Error, )

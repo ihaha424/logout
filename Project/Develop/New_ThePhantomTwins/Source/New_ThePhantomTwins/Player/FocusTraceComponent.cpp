@@ -75,10 +75,6 @@ void UFocusTraceComponent::OnRep_FocusedActor()
             }
         }
     }
-    else
-    {
-        UE_LOG(LogTemp, Log, TEXT("FocusedActor is null or invalid in OnRep_FocusedActor"));
-    }
 
     PrevActor = FocusedActor;
 }
@@ -136,10 +132,6 @@ void UFocusTraceComponent::PerformTrace()
                     FocusedActor = nullptr;
                 }
             }
-        }
-        else
-        {
-            UE_LOG(LogTemp, Log, TEXT("FocusedActor is null or invalid in OnRep_FocusedActor"));
         }
     }
 }
