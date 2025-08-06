@@ -64,7 +64,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")
 	TSubclassOf<class UUserWidget> LockWidgetClass;
 
-	// 문이 열리기 위해 필요한 Actor 목록 (제거)
+	// 문이 열리기 위해 필요한 Actor 목록
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
 	TArray<AActor*> RequiredList;
 
