@@ -24,8 +24,8 @@ void UGA_StarterKit::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 		UInventoryComponent* Inventory = PS->InventoryComp;
 	NULLCHECK_RETURN_LOG(Inventory, GALog, Warning, )
 
-		// ·£´ý Enum Ã£±â
-		int32 RandomNumber = FMath::RandRange(1, 6);
+	// ·£´ý Enum Ã£±â
+	int32 RandomNumber = FMath::RandRange(1, 6);
 
 	// ÀÎº¥Åä¸®¿¡ ÅÛ Á¤ÇØÁø °³¼ö¸¸Å­ ºÎ¿©
 	switch (RandomNumber)
@@ -34,6 +34,7 @@ void UGA_StarterKit::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 	case 2:	// Ä«¸Þ¶ó
 	case 5:	// Å°
 		Inventory->AddItem(EItemType(RandomNumber));
+		break;
 	case 3:	// ÈúÆÑ
 	case 4:	// ¸àÅ»ÆÑ
 	case 6:	// µå¸µÅ©
@@ -41,6 +42,7 @@ void UGA_StarterKit::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 		{
 			Inventory->AddItem(EItemType(RandomNumber));
 		}
+		break;
 	default:
 		break;
 	}

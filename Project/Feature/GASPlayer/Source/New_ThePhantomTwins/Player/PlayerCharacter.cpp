@@ -383,7 +383,10 @@ void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 	APC_Player* PC = APC_Player::GetLocalPlayerController(Interactor->GetController());
 	if (!ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
 		return;
-	PC->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
+	if (IsLocallyControlled())
+	{
+		PC->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
+	}
 }
 
 void APlayerCharacter::OnRecoveryCompleted()
@@ -409,8 +412,11 @@ void APlayerCharacter::OnRecoveryCompleted()
 	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
 	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
-	PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
-	PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
+	if (IsLocallyControlled())
+	{
+		PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
+		PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
+	}
 
 	if (RecoveryGE)
 	{
