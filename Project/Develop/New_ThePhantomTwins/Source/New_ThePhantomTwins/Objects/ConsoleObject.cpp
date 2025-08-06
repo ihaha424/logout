@@ -80,7 +80,11 @@ bool AConsoleObject::CanInteract_Implementation(const APawn* Interactor, bool bI
 
 void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 {
+	if (!bCanInteract) return;
+	if (!AreAllTriggerActived() || HasPlayerNum != MaxPlayerNum) return;
+
     // 여기서 3초 지났는지 확인
+
 	TPT_LOG(ObjectLog, Log, TEXT("AConsoleObject :: OnInteractServer"));
 
 	bIsActived = true;
@@ -88,7 +92,7 @@ void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 	// 연결된 Door에 상태 변경 알림
 	if (HasAuthority())
 	{
-		if (ConnectedDoor)
+		if (ConnectedDoor && bIsActived)
 		{
 			ConnectedDoor->CheckAndUpdateDoorState();
 			ConnectedDoor->bCanInteract = false;
