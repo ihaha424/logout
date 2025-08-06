@@ -39,7 +39,7 @@ EBTNodeResult::Type UBTT_ChaseTarget::Execute_Task(UBehaviorTreeComponent& Owner
 	CurTick = 0.f;
 
 	FPathFollowingRequestResult MoveResult = AIController->MoveTo(MoveRequest);
-	switch (MoveResult)
+	switch (MoveResult.Code)
 	{
 	case EPathFollowingRequestResult::RequestSuccessful:
 		return EBTNodeResult::InProgress;

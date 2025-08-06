@@ -34,6 +34,8 @@ public:
 
 	void SetIdentifyCharacterData();
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "CharacterType")
+	FIdentifyCharacterData IdentifyCharacterData;
 protected:
 
 	UPROPERTY(Replicated, EditAnywhere, Category = GAS)
@@ -53,9 +55,6 @@ protected:
 
 	UPROPERTY(Replicated, EditAnywhere, Category = "Recovery")
 	bool bIsGroggy = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "CharacterType")
-	FIdentifyCharacterData IdentifyCharacterData;
 private:
 	UPROPERTY(Replicated)
 	FGenericTeamId TeamID;
