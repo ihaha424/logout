@@ -26,7 +26,7 @@ void AConsoleObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 bool AConsoleObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
-
+    return true;
 }
 
 void AConsoleObject::OnRep_bIsActived()
