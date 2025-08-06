@@ -83,7 +83,7 @@ bool ADoor::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected
 	}
 
 	// 감지되었고 상호작용 가능한 상태
-	bCanInteract = true;
+	//bCanInteract = true;
 	
 	// Interactor가 APlayerCharacter 인 경우에만 위젯을 띄어라
 	const APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(const_cast<APawn*>(Interactor));
@@ -134,6 +134,22 @@ bool ADoor::CanBeDestroyed_Implementation(const APawn* Interactor)
 {
 	// bIsActived = false면 부술 수 있음
 	return !bIsActived;
+}
+
+void ADoor::CheckAndUpdateDoorState()
+{
+	// 모든 트리거가 활성화되었고 문이 아직 열리지 않았다면
+	if (AreAllTriggerActived() && !bIsActived)
+	{
+		bIsActived = true;
+		S2A_OpenDoor();
+	}
+	// 트리거가 비활성화되었고 문이 열려있다면
+	else if (!AreAllTriggerActived() && bIsActived)
+	{
+		bIsActived = false;
+		S2A_CloseDoor();
+	}
 }
 
 bool ADoor::AreAllTriggerActived_Implementation() const

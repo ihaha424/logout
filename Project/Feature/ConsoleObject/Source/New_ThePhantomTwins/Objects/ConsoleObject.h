@@ -25,7 +25,6 @@ public:
 
 	virtual bool CanInteract_Implementation(const APawn* Interactor, bool bIsDetected) override;
 	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
-	//virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
 
 	virtual void SetWidgetVisible(bool bVisible) override;
 
@@ -60,5 +59,8 @@ protected:
 	// 필요 활성화 수 (0이면 RequiredList의 전체 수가 기본값)
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
     int32 MinRequiredCount = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | Door")
+	TObjectPtr<class ADoor> ConnectedDoor;
 
 };

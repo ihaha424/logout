@@ -8,6 +8,7 @@
 #include "Blueprint/UserWidget.h"
 #include "../player/PlayerCharacter.h"
 #include "../Log/TPTLog.h"
+#include "Door.h"
 
 AConsoleObject::AConsoleObject() : AInteractableObject()
 {
@@ -83,15 +84,25 @@ void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 	TPT_LOG(ObjectLog, Log, TEXT("AConsoleObject :: OnInteractServer"));
 
 	bIsActived = true;
+
+	// 연결된 Door에 상태 변경 알림
+	if (HasAuthority())
+	{
+		if (ConnectedDoor)
+		{
+			ConnectedDoor->CheckAndUpdateDoorState();
+			ConnectedDoor->bCanInteract = false;
+		}
+	}
+
+	bCanInteract = false;
 }
-
-
 
 void AConsoleObject::SetWidgetVisible(bool bVisible)
 {
 	if (!InteractWidgetComp || !LockWidgetComp) return;
 
-	if (!bVisible)
+	if (!bVisible || bIsActived)
 	{
 		// 감지 안 되었거나 명시적으로 숨길 때는 둘 다 숨김
 		InteractWidgetComp->SetVisibility(false);
@@ -168,5 +179,11 @@ bool AConsoleObject::AreAllTriggerActived() const
 
 void AConsoleObject::OnRep_bIsActived()
 {
-
+	if (!HasAuthority())
+	{
+		if (ConnectedDoor)
+		{
+			ConnectedDoor->CheckAndUpdateDoorState();
+		}
+	}
 }
