@@ -47,7 +47,7 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere, Category = "Skill")
 	FGameplayTag PassiveSkillTag;
 
-	UPROPERTY(Replicated, EditAnywhere, Category = "Skill")
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Skill")
 	FGameplayTag ActiveSkillTag;
 
 	UPROPERTY(Replicated, EditAnywhere, Category = "Recovery")

@@ -11,7 +11,7 @@
 
 UGA_MeleeAttack::UGA_MeleeAttack()
 {
-    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerExecution;
+    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
     ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 

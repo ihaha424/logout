@@ -41,6 +41,15 @@ USTRUCT(BlueprintType)
 struct FItemDataTable : public FTableRowBase
 {
     GENERATED_BODY()
+public:
+    FItemDataTable()
+        : ItemType(EItemType::None)
+        , ItemIcon(nullptr)
+        , ItemMesh(nullptr)
+        , GameplayTag()
+        , GameAbility(nullptr)
+        , GameEffect(nullptr)
+    {}
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)

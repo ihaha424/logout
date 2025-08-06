@@ -282,8 +282,16 @@ void AAIBaseCharacter::ExcuteChaseActorGA(AActor* TargetActor)
     FGameplayEventData EventData;
     EventData.Instigator = this;
     EventData.Target = TargetActor;
-    EventData.EventMagnitude = 1.f; // Will Set With Attribute
+    EventData.EventMagnitude = -10.f; // Will Set With Attribute
     AbilitySystem->HandleGameplayEvent(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_AIChasing, &EventData);
+}
+
+void AAIBaseCharacter::CancleChaseActorGA()
+{
+    FGameplayTagContainer CancelTags;
+    CancelTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_AIChasing);
+
+    AbilitySystem->CancelAbilities(&CancelTags);
 }
 
 void AAIBaseCharacter::ResetDataForStunState_Implementation()
@@ -362,6 +370,6 @@ void AAIBaseCharacter::ResetDataForEscapeCombatState_Implementation()
     BB->SetValueAsFloat("HearingSum", 0.f);
     BB->SetValueAsObject("TargetActor", nullptr);
 
-    ExcuteChaseActorGA(nullptr);
+    CancleChaseActorGA();
 }
 

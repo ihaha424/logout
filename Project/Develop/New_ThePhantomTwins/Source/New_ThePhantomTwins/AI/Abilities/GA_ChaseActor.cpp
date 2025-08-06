@@ -9,7 +9,7 @@
 
 UGA_ChaseActor::UGA_ChaseActor()
 {
-    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerExecution;
+    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
     ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 
@@ -27,7 +27,6 @@ UGA_ChaseActor::UGA_ChaseActor()
 void UGA_ChaseActor::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
     AActor* TargetActor = TriggerEventData ? const_cast<AActor*>(TriggerEventData->Target.Get()) : nullptr;
     if (nullptr == TargetActor)
     {

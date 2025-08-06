@@ -75,6 +75,7 @@ public:
 	void AttackCollisionEvent(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	void AttackCollisionEvent_Implementation(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {};
 	void ExcuteChaseActorGA(AActor* TargetActor);
+	void CancleChaseActorGA();
 	//~ End AI Control(Combat)
 
 protected:

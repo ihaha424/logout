@@ -9,7 +9,7 @@
 
 UGA_InteractActor::UGA_InteractActor()
 {
-    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerExecution;
+    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
     ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 

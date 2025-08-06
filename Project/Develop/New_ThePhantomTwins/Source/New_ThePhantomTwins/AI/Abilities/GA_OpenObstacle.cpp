@@ -9,7 +9,7 @@
 
 UGA_OpenObstacle::UGA_OpenObstacle()
 {
-    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerExecution;
+    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
     ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 

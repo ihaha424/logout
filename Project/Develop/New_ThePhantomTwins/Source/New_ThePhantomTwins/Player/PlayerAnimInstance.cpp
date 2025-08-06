@@ -22,7 +22,7 @@ void UPlayerAnimInstance::InitializeWithAbilitySystem(UAbilitySystemComponent* A
 	check(ASC);
 	GameplayTagPropertyMap.Initialize(this, ASC);
 }
-
+#if WITH_EDITOR
 EDataValidationResult UPlayerAnimInstance::IsDataValid(class FDataValidationContext& Context) const
 {
 	Super::IsDataValid(Context);
@@ -30,7 +30,7 @@ EDataValidationResult UPlayerAnimInstance::IsDataValid(class FDataValidationCont
 
 	return ((Context.GetNumErrors() > 0) ? EDataValidationResult::Invalid : EDataValidationResult::Valid);
 }
-
+#endif
 void UPlayerAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
