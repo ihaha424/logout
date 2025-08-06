@@ -78,7 +78,6 @@ void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const 
 	{
 		OtherPlayer->GetWorld()->GetTimerManager().ClearTimer(OtherPlayer->RecoveryTimerHandle);
 		OtherPlayer->GetWorld()->GetTimerManager().ClearTimer(OtherPlayer->TempHandle);
-
 		APC_Player* PC = APC_Player::GetLocalPlayerController(Character);
 		PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
 	}

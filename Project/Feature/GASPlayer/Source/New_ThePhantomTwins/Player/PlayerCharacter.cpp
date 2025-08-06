@@ -147,15 +147,17 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
-	bool bIsDownedTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-	if (bIsDownedTag)
+	if (ASC)
 	{
-		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
-	}
-	else
-	{
-		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+		bool bIsDownedTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
+		if (bIsDownedTag)
+		{
+			DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+		}
+		else
+		{
+			DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+		}
 	}
 
 	if (IsLocallyControlled() && PlayerController && FocusTrace)
@@ -383,10 +385,7 @@ void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 	APC_Player* PC = APC_Player::GetLocalPlayerController(Interactor->GetController());
 	if (!ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
 		return;
-	if (IsLocallyControlled())
-	{
-		PC->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
-	}
+	PC->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
 }
 
 void APlayerCharacter::OnRecoveryCompleted()
@@ -397,6 +396,7 @@ void APlayerCharacter::OnRecoveryCompleted()
 
 	FGameplayTag DownedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed;
 	FGameplayTag ConfusedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd;
+	FGameplayTag LowHPTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP;
 
 	int32 DownedTagCount = ASC->GetTagCount(DownedTag);
 	for (int32 i = 0; i < DownedTagCount; ++i)
@@ -404,7 +404,14 @@ void APlayerCharacter::OnRecoveryCompleted()
 		ASC->RemoveLooseGameplayTag(DownedTag);
 	}
 
-	ASC->RemoveLooseGameplayTag(ConfusedTag);
+	int32 LowHPTagCount = ASC->GetTagCount(LowHPTag);
+	for (int32 i = 0; i < LowHPTagCount; ++i)
+	{
+		ASC->RemoveReplicatedLooseGameplayTag(LowHPTag);
+		ASC->RemoveLooseGameplayTag(LowHPTag);
+	}
+
+	ASC->RemoveReplicatedLooseGameplayTag(ConfusedTag);
 
 	GetWorld()->GetTimerManager().ClearTimer(RecoveryTimerHandle);
 	GetWorld()->GetTimerManager().ClearTimer(TempHandle);
@@ -412,11 +419,9 @@ void APlayerCharacter::OnRecoveryCompleted()
 	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
 	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
-	if (IsLocallyControlled())
-	{
-		PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
-		PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
-	}
+
+	PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
+	PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
 
 	if (RecoveryGE)
 	{
