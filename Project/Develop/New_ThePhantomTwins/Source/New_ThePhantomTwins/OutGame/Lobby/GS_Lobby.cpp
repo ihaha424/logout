@@ -3,6 +3,7 @@
 
 #include "GS_Lobby.h"
 #include "Net/UnrealNetwork.h"
+#include "SaveGame/TPTSaveGameHelperLibrary.h"
 
 void AGS_Lobby::SetIdentifyCharacterData(ECharacterType ChractorType, bool bIsHost)
 {
@@ -25,6 +26,10 @@ void AGS_Lobby::SetIdentifyCharacterData(ECharacterType ChractorType, bool bIsHo
 
 void AGS_Lobby::OnRep_IdentifyCharacterData()
 {
+    UTPTSaveGame* TPTLocalPlayerSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
+    TPTLocalPlayerSaveGame->IdentifyCharacterData = IdentifyCharacterData;
+    UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTSaveGame>(TPTLocalPlayerSaveGame);
+
     OnSetIdentifyCharacterData.Broadcast(IdentifyCharacterData);
 }
 

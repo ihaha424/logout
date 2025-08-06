@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "SaveGame/TPTSaveGame.h"
+#include "SaveGame/TPTLocalPlayerSaveGame.h"
 #include "PhantomTwinsInstance.generated.h"
 
 /**

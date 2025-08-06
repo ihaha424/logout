@@ -8,6 +8,7 @@
 #include "Log/TPTLog.h"
 #include "UI/HUD/HUD_PhantomTwins.h"
 #include "Kismet/GameplayStatics.h"
+#include "Player/PS_Player.h"
 
 APC_Player* APC_Player::GetLocalPlayerController(AActor* Actor)
 {
@@ -46,6 +47,11 @@ void APC_Player::BeginPlay()
 
 	SetInputMode(FInputModeGameOnly());
 	SetShowMouseCursor(false);
+}
+
+void APC_Player::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
 }
 
 void APC_Player::C2S_SetOwnerActor_Implementation(APlayerController* thisPC, AActor* Actor)

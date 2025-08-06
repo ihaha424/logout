@@ -8,9 +8,8 @@
 #include "PC_Player.generated.h"
 
 class UInputMappingContext;
-/**
- * 
- */
+class APS_Player;
+
 UCLASS()
 class NEW_THEPHANTOMTWINS_API APC_Player : public APlayerController
 {
@@ -24,6 +23,7 @@ public:
 
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
+	virtual void OnPossess(APawn* InPawn) override;
 
 	/**
 	 * @brief	
