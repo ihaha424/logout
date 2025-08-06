@@ -49,7 +49,6 @@ void ATestItemBox::PostInitializeComponents()
 	Super::PostInitializeComponents();
 	// 가지고 있는 어빌리티 정보 초기화.
 	ASC->InitAbilityActorInfo(this, this);
-
 }
 
 UAbilitySystemComponent* ATestItemBox::GetAbilitySystemComponent() const

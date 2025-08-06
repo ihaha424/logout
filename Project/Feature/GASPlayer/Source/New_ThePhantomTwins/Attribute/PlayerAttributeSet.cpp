@@ -202,7 +202,11 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	// 체력이 30% 보다 늘어나면 Low HP 태그 제거.
 	if (GetHP() >= GetMaxHP() * 0.3f)
 	{
-		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
+		int32 LowHPTagCount = Data.Target.GetTagCount(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
+		for (int32 i = 0; i < LowHPTagCount; ++i)
+		{
+			Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
+		}
 	}
 	// 체력이 MaxHp의 30%이하라면 Low HP 효과 발동.
 	if (GetHP() < GetMaxHP() * 0.3f && !bPlayerLowHP)
