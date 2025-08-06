@@ -8,9 +8,8 @@
 #include "PC_Player.generated.h"
 
 class UInputMappingContext;
-/**
- * 
- */
+class APS_Player;
+
 UCLASS()
 class NEW_THEPHANTOMTWINS_API APC_Player : public APlayerController
 {
@@ -24,6 +23,7 @@ public:
 
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
+	virtual void OnPossess(APawn* InPawn) override;
 
 	/**
 	 * @brief	
@@ -48,6 +48,8 @@ public:
 	void SetWidget(const FString& UIKey, bool bActive, EMessageTargetType TargetType);
 	UFUNCTION(BlueprintCallable, Category = "UIManager")
 	UUserWidget* GetWidget(const FString& UIKey) const;
+	UFUNCTION(BlueprintCallable, Category = "UIManager")
+	bool IsRegisterWidget(const FString& UIKey) const;
 	UFUNCTION(BlueprintCallable, Category = "UIManager")
 	void RegisterWidget(const FString& Key, UUserWidget* Widget, int32 Order = 0);
 	UFUNCTION(BlueprintCallable, Category = "UIManager")

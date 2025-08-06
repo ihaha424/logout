@@ -15,7 +15,9 @@ TPT_TAG_GEN(Character, State, Confused1st, "Character is Confused 1st")
 TPT_TAG_GEN(Character, State, Confused2nd, "Character is Confused 2nd")
 TPT_TAG_GEN(Character, State, Confused3rd, "Character is Confused 3rd")
 TPT_TAG_GEN(Character, State, AIChasing, "Ai is Chasing player")
-
+TPT_TAG_GEN(Character, State, HoldItem, "Character Hold Item ")
+TPT_TAG_GEN(Character, State, UseItem, "Character Use Item ")
+TPT_TAG_GEN(Character, State, ThrowItem, "Character Throw Item ")
 
 TPT_TAG_GEN(Character, State, SkillCoolDown, "Character's skill is CoolDowning")
 TPT_TAG_GEN(Character, State, Sprinting, "Character is Sprinting")
