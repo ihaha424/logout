@@ -27,20 +27,15 @@ public:
 	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
 	virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
 
-	UFUNCTION(BlueprintCallable, Category = "InteractableObject")
-	virtual void SetWidgetVisible(bool bVisible);
+	virtual void SetWidgetVisible(bool bVisible) override;
 
-public:	
+	virtual void OnRep_bIsActived() override;
+
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | ObjectWidget")
 	TObjectPtr<class UWidgetComponent> LockWidgetComp;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | ObjectWidget")
 	TSubclassOf<class UUserWidget> LockWidgetClass;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject", ReplicatedUsing = OnRep_bIsActived)
-	bool bIsActived = false;
-
-	UFUNCTION()
-	virtual void OnRep_bIsActived();
 };
