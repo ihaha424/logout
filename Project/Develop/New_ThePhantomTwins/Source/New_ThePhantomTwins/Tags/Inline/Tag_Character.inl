@@ -58,6 +58,7 @@ TPT_TAG_GEN(Character, AIState, PerformingAction, "AI State: PerformingAction")
 TPT_TAG_GEN(Character, Action, MeleeAttack, "AI Action: MeleeAttack")
 TPT_TAG_GEN(Character, Action, SmashObstacle, "AI Action: SmashObstacle")
 TPT_TAG_GEN(Character, Action, OpenObstacle, "AI Action: OpenObstacle")
+TPT_TAG_GEN(Character, Action, ScanPlayer, "AI Action: ScanPlayer")
 
 
 
