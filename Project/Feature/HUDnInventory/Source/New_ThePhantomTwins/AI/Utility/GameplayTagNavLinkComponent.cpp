@@ -32,13 +32,14 @@ void UGameplayTagNavLinkComponent::HandleSmartLinkReached(UNavLinkCustomComponen
         MovingActor = PathComp->GetOwner();
         AController* Controller = Cast<AController>(MovingActor);
         if (Controller)
+        {
             MovingActor = Controller->GetPawn();
+        }
     }
     else
     {
         MovingActor = Cast<AActor>(PathingAgent);
     }
-
     if (!IsValid(MovingActor) || !IsValid(TargetActor))
         return;
 
@@ -46,10 +47,8 @@ void UGameplayTagNavLinkComponent::HandleSmartLinkReached(UNavLinkCustomComponen
 
     UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(MovingActor);
     NULLCHECK_RETURN_LOG(ASC, AILog, Warning, );
-
     FGameplayEventData EventData;
     EventData.Instigator = MovingActor;
     EventData.Target = TargetActor;
-
     ASC->HandleGameplayEvent(AbilityTag, &EventData);
 }

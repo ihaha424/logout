@@ -27,6 +27,7 @@
 #include "Objects/InventoryComponent.h"
 #include "UI/HUD/PlayerHUDWidget.h"
 #include "Net/UnrealNetwork.h"
+#include "Components/PostProcessComponent.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -43,6 +44,15 @@ APlayerCharacter::APlayerCharacter()
 
 	InteractWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractWidget"));
 	InteractWidget->SetupAttachment(GetMesh());
+
+	DownedWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DownedWidget"));
+	DownedWidget->SetupAttachment(GetMesh());
+	DownedWidget->SetRelativeLocation(FVector(0, 0, 0));
+
+	PostProcessComponent = CreateDefaultSubobject<UPostProcessComponent>(TEXT("Vignette"));
+	PostProcessComponent->SetupAttachment(RootComponent);
+	PostProcessComponent->bUnbound = false;
+	PostProcessComponent->Priority = 1.f;
 }
 
 void APlayerCharacter::PossessedBy(AController* NewController)
@@ -51,6 +61,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 
 	PS = GetPlayerState<APS_Player>();
 	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
+	PS->SetIdentifyCharacterData();
+	SetMeshByCharacterType(PS);
 
 	ASC = PS->GetAbilitySystemComponent();
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
@@ -96,6 +108,8 @@ void APlayerCharacter::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 	PS = GetPlayerState<APS_Player>();
 	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
+	PS->SetIdentifyCharacterData();
+	SetMeshByCharacterType(PS);
 
 	ASC = PS->GetAbilitySystemComponent();
 	ASC->InitAbilityActorInfo(PS, this);
@@ -114,16 +128,47 @@ void APlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
 
-	UUserWidget* Widget = CreateWidget(GetWorld(), InteractWidgetClass);
-	InteractWidget->SetWidget(Widget);
+	UUserWidget* Interact = CreateWidget(GetWorld(), InteractWidgetClass);
+	InteractWidget->SetWidget(Interact);
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
+	UUserWidget* Down = CreateWidget(GetWorld(), DownWidgetClass);
+	DownedWidget->SetWidget(Down);
+	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+
 	FocusTrace->SetIsReplicated(true);
+
+	NULLCHECK_RETURN_LOG(VignetteMaterial, PlayerLog, Error, );
+	VignetteMID = UMaterialInstanceDynamic::Create(VignetteMaterial, this);
+	FWeightedBlendable Blendable;
+	Blendable.Object = VignetteMID;
+	Blendable.Weight = 0.0f;
+
+	PostProcessComponent->Settings.WeightedBlendables.Array.Add(Blendable);
+
+	if (IsLocallyControlled())
+	{
+		PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
+		PlayerController->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
+	}
 }
 
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	if (ASC)
+	{
+		bool bIsDownedTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
+		if (bIsDownedTag)
+		{
+			DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+		}
+		else
+		{
+			DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
 
 	if (IsLocallyControlled() && PlayerController && FocusTrace)
 	{
@@ -170,10 +215,6 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	check(TPTInput);
 	TPTInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
 	TPTInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
-
-	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
-	PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
-	PlayerController->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
 
 	SetupPlayerInputByTag(TPTInput);
 }
@@ -360,18 +401,34 @@ void APlayerCharacter::OnRecoveryCompleted()
 	PS->SetRecovery(true);
 
 	FGameplayTag DownedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed;
+	FGameplayTag ConfusedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd;
+	FGameplayTag LowHPTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP;
 
-	int32 Count = ASC->GetTagCount(DownedTag);
-	for (int32 i = 0; i < Count; ++i)
+	int32 DownedTagCount = ASC->GetTagCount(DownedTag);
+	for (int32 i = 0; i < DownedTagCount; ++i)
 	{
 		ASC->RemoveLooseGameplayTag(DownedTag);
+	}
+
+	int32 LowHPTagCount = ASC->GetTagCount(LowHPTag);
+	for (int32 i = 0; i < LowHPTagCount; ++i)
+	{
+		ASC->RemoveReplicatedLooseGameplayTag(LowHPTag);
+		ASC->RemoveLooseGameplayTag(LowHPTag);
+	}
+
+	if (ASC->HasMatchingGameplayTag(ConfusedTag))
+	{
+		ASC->RemoveLooseGameplayTag(ConfusedTag);
 	}
 
 	GetWorld()->GetTimerManager().ClearTimer(RecoveryTimerHandle);
 	GetWorld()->GetTimerManager().ClearTimer(TempHandle);
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
 	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
+
 	PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
 	PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
 

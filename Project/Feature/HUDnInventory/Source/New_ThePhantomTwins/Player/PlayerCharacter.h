@@ -28,6 +28,7 @@ class USpringArmComponent;
 class UInputAction;
 class UFocusTraceComponent;
 class UWidgetComponent;
+class UPostProcessComponent;
 
 UENUM(BlueprintType)
 enum class EEnemyRange : uint8
@@ -73,6 +74,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	FTimerHandle RecoveryTimerHandle;
 	FTimerHandle TempHandle;;
+	// 다운 인디케이터
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
+	TObjectPtr<UWidgetComponent> DownedWidget;
+	
+	// Low HP Post Process Vignette 관련 변수
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
+	TObjectPtr<UPostProcessComponent> PostProcessComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
+	TObjectPtr<UMaterialInterface> VignetteMaterial;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
+	TObjectPtr<UMaterialInstanceDynamic> VignetteMID;
 
 public:
 	// 위젯 설정
@@ -120,6 +132,8 @@ protected:
 	void MovementSetting();
 	void CameraSetting();
 	void OverlapRangeSetting();
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetMeshByCharacterType(APS_Player* MyPS);
 
 	// 플레이어 반경 오버랩 처리
 	UFUNCTION()
@@ -133,11 +147,12 @@ protected:
 	UFUNCTION()
 	void OnRep_CurrentWallRange();
 
+
 protected:
 
 	UPROPERTY()
 	TObjectPtr<APS_Player> PS;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GAS")
 	APC_Player* PlayerController;
 
 	// GAS
@@ -177,12 +192,15 @@ protected:
 	// 상호작용 위젯
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TObjectPtr<UWidgetComponent> InteractWidget;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TSubclassOf<UUserWidget> RecoveryWidgetClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TSubclassOf<UUserWidget> KeyWidgetClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TSubclassOf<UUserWidget> InteractWidgetClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
+	TSubclassOf<UUserWidget> DownWidgetClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	float RecoveryTime = 3.0f;

@@ -6,7 +6,12 @@
 #include "Net/UnrealNetwork.h"
 #include "New_ThePhantomTwins/Attribute/PlayerAttributeSet.h"
 #include "../Objects/InventoryComponent.h"
-
+#include "SaveGame/TPTSaveGameHelperLibrary.h"
+#include "Player/PlayerCharacter.h"
+#include "Log/TPTLog.h"
+#include "Blueprint/UserWidget.h"
+#include "Components/WidgetComponent.h"
+#include "SaveGame/TPTSaveGameHelperLibrary.h"
 APS_Player::APS_Player()
 {
 	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
@@ -31,6 +36,34 @@ void APS_Player::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	DOREPLIFETIME(APS_Player, TeamID);
 	DOREPLIFETIME(APS_Player, bIsRecovery);
 	DOREPLIFETIME(APS_Player, bIsGroggy);
+}
+
+void APS_Player::SetIdentifyCharacterData()
+{
+	UTPTSaveGame* TPTLocalPlayerSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
+	IdentifyCharacterData = TPTLocalPlayerSaveGame->IdentifyCharacterData;
+}
+
+void APS_Player::SetRecovery(bool IsRecovery)
+{
+	bIsRecovery = IsRecovery;
+}
+
+void APS_Player::SetGroggy(bool IsGroggy)
+{
+	//APlayerCharacter* Character = Cast<APlayerCharacter>(GetOwner());
+	//NULLCHECK_RETURN_LOG(Character, PlayerLog, Error, )
+
+	//	if (IsGroggy)
+	//	{
+	//		Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+	//	}
+	//	else
+	//	{
+	//		Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	//	}
+
+	bIsRecovery = IsGroggy;
 }
 
 class UAbilitySystemComponent* APS_Player::GetAbilitySystemComponent() const

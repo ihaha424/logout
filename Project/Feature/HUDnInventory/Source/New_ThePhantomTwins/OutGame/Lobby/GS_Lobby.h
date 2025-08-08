@@ -7,19 +7,6 @@
 #include "../../CharacterType.h"
 #include "GS_Lobby.generated.h"
 
-USTRUCT(BlueprintType)
-struct NEW_THEPHANTOMTWINS_API FIdentifyCharacterData
-{
-	GENERATED_BODY()
-
-	UPROPERTY(BlueprintReadOnly)
-	ECharacterType Host = ECharacterType::None;
-
-	UPROPERTY(BlueprintReadOnly)
-	ECharacterType Client = ECharacterType::None;
-};
-
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSetIdentifyCharacterData, FIdentifyCharacterData, IdentifyCharacterData);
 
 UCLASS()

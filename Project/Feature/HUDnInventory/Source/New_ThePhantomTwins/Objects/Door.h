@@ -31,13 +31,15 @@ public:
 	virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
 
 	virtual bool CanBeDestroyed_Implementation(const APawn* Interactor) override;
+	
+	UFUNCTION(BlueprintCallable, Category = "Door")
+	void CheckAndUpdateDoorState();
 
 protected:
     // trigger들이 모두 활성화되었는지 확인 (AInteractableObject의 bActived를 사용하는게 아니라면 override해서 작성)
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Door")
 	bool AreAllTriggerActived() const;
 	bool AreAllTriggerActived_Implementation() const;
-
 
 	virtual void OnRep_bIsActived() override;
 
@@ -64,7 +66,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")
 	TSubclassOf<class UUserWidget> LockWidgetClass;
 
-	// 문이 열리기 위해 필요한 Actor 목록 (제거)
+	// 문이 열리기 위해 필요한 Actor 목록
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
 	TArray<AActor*> RequiredList;
 
