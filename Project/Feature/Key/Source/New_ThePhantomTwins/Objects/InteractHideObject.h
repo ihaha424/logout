@@ -47,7 +47,7 @@ protected:
 	void PlayEffectLogic(FVector EffectLocation);
 	void PlayEffectLogic_Implementation(FVector EffectLocation);
 
-	//void OnEffectFinished();
+	void EnableVignetteEffect(bool bEnable);
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject")
@@ -67,8 +67,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HideObject | Camera")
 	TObjectPtr<class UCameraComponent> HideCameraComp;
 
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HideObject | Effects")
-	//TObjectPtr<class UNiagaraComponent> HideEffectComp;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Effects")
+	TObjectPtr<class UMaterialInterface> VignetteMaterial;
 
 	// 숨는 Player
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HideObject", Replicated)

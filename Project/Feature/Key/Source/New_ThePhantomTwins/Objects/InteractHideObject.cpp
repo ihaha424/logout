@@ -6,6 +6,7 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "../Player/PlayerCharacter.h"
+#include "Materials/MaterialInterface.h"
 #include "../Log/TPTLog.h"
 
 #include "Components/SphereComponent.h"
@@ -116,6 +117,8 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 
 		// 클라이언트에게 카메라 전환 명령 전달 (플레이어 캠 -> 오브젝트 캠)
 		SetViewTarget(InteractorPC, this);
+
+		EnableVignetteEffect(true);
 	}
 	else	// 플레이어가 안에 있는 경우(활성화O)
 	{
@@ -128,6 +131,8 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 
 		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
 		SetViewTarget(InteractorPC, PlayerActor);
+
+		EnableVignetteEffect(false);
 	}
 }
 
@@ -143,6 +148,8 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 
 		// 클라이언트에게 카메라 전환 명령 전달 (플레이어 캠 -> 오브젝트 캠)
 		SetViewTarget(InteractorPC, this);
+
+		EnableVignetteEffect(true);
 	}
 	else
 	{
@@ -151,6 +158,8 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 
 		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
 		SetViewTarget(InteractorPC, HidePlayer);
+
+		EnableVignetteEffect(false);
 	}
 }
 
@@ -221,4 +230,19 @@ void AInteractHideObject::S2A_PlayEffect_Implementation(FVector EffectLocation)
 void AInteractHideObject::PlayEffectLogic_Implementation(FVector EffectLocation)
 {
 
+}
+
+void AInteractHideObject::EnableVignetteEffect(bool bEnable)
+{
+	if (!HideCameraComp) return;
+	if (!VignetteMaterial) return;
+
+	if (bEnable)
+	{
+		HideCameraComp->PostProcessSettings.AddBlendable(VignetteMaterial, 1.0f);
+	}
+	else
+	{
+		HideCameraComp->PostProcessSettings.RemoveBlendable(VignetteMaterial);
+	}
 }
