@@ -1,5 +1,5 @@
 #include "ClearItemCounterWidget.h"
-#include "Components/EditableText.h"
+#include "Components/TextBlock.h"
 
 void UClearItemCounterWidget::NativeConstruct()
 {
