@@ -410,10 +410,9 @@ void APlayerCharacter::OnRecoveryCompleted()
 		ASC->RemoveLooseGameplayTag(DownedTag);
 	}
 
-	int32 LowHPTagCount = ASC->GetTagCount(LowHPTag);
+	int32 LowHPTagCount = ASC-> GetTagCount(LowHPTag);
 	for (int32 i = 0; i < LowHPTagCount; ++i)
 	{
-		ASC->RemoveReplicatedLooseGameplayTag(LowHPTag);
 		ASC->RemoveLooseGameplayTag(LowHPTag);
 	}
 
