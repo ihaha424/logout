@@ -24,7 +24,7 @@ public:
 
 protected:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UEditableText> TEXT_ClearItem;
+	TObjectPtr<class UTextBlock> TEXT_ClearItem;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DataShard")
     int32 MaxClearItem = 5;
