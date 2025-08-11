@@ -43,6 +43,7 @@ void AAIBaseCharacter::BeginPlay()
     //GetCharacterMovement()->BrakingDecelerationWalking = 600.f; // 느린 감속
 
     CombatRange->OnComponentBeginOverlap.AddDynamic(this, &AAIBaseCharacter::CombatRangeBeginOverlap);
+    CombatRange->OnComponentEndOverlap.AddDynamic(this, &AAIBaseCharacter::CombatRangeEndOverlap);
     if (nullptr != AttackCollision)
     {
         AttackCollision->OnComponentBeginOverlap.AddDynamic(this, &AAIBaseCharacter::AttackCollisionBeginOverlap);
@@ -177,17 +178,48 @@ void AAIBaseCharacter::ResetDataForState(const FGameplayTag Tag, int32 TagCount)
     }
 }
 
-void AAIBaseCharacter::CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+bool AAIBaseCharacter::MatchingChaseActorType(AActor* OtherActor)
 {
     UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
-    NULLCHECK_RETURN_LOG(ASC, AILog, Log, );
+    if (nullptr == ASC)
+        return false;
 
-    // Player
-    if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player))
+    return ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
+}
+
+void AAIBaseCharacter::CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+    if (MatchingChaseActorType(OtherActor))
+    {
+        if (INDEX_NONE == CombatRangeInActor.Find(OtherActor))
+            CombatRangeInActor.Add(OtherActor);
+        if (!CombatRangeInActorTimerHandle.IsValid())
+        {
+            GetWorld()->GetTimerManager().SetTimer(
+                CombatRangeInActorTimerHandle,
+                this,
+                &AAIBaseCharacter::CheckCombatRangeInActor,
+                0.2f,
+                true
+            );
+        }
+    }
+}
+
+void AAIBaseCharacter::CombatRangeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+    CombatRangeInActor.Remove(OtherActor);
+    if (CombatRangeInActor.Num() < 1 && CombatRangeInActorTimerHandle.IsValid())
+        GetWorld()->GetTimerManager().ClearTimer(CombatRangeInActorTimerHandle);
+}
+
+void AAIBaseCharacter::CheckCombatRangeInActor()
+{
+    for (AActor* actor : CombatRangeInActor)
     {
         //SweepResult를 이용해서도 확인 가능, 만약 레이케스팅이 부적절하면 Sweep의 정보를 이용해서 사용
         FVector MyLoc = GetActorLocation();
-        FVector TargetLoc = OtherActor->GetActorLocation();
+        FVector TargetLoc = actor->GetActorLocation();
         FHitResult HitResult;
         FCollisionQueryParams Params;
         Params.AddIgnoredActor(this);
@@ -199,7 +231,7 @@ void AAIBaseCharacter::CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedCo
             ECC_Pawn,
             Params
         );
-#if WITH_EDITOR
+    #if WITH_EDITOR
         DrawDebugLine(
             GetWorld(),
             MyLoc,
@@ -210,8 +242,8 @@ void AAIBaseCharacter::CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedCo
             0,
             2.0f
         );
-#endif
-        if (bHit && HitResult.GetActor() == OtherActor)
+    #endif
+        if (bHit && HitResult.GetActor() == actor)
         {
             AAIController* AIController = Cast<AAIController>(GetController());
             NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
@@ -222,11 +254,10 @@ void AAIBaseCharacter::CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedCo
             UBlackboardComponent* BB = AIController->GetBlackboardComponent();
             NULLCHECK_RETURN_LOG(BB, AILog, Warning, );
 
-            AIBaseController->AddPerceptionSightList(OtherActor);
+            AIBaseController->AddPerceptionSightList(actor);
             BB->SetValueAsBool(TEXT("bInCombatRange"), true);
             BB->SetValueAsFloat(TEXT("SightDuration"), TNumericLimits<float>::Max());
         }
-        
     }
 }
 

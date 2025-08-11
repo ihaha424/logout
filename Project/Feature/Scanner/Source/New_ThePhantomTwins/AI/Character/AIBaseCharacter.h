@@ -52,6 +52,9 @@ public:
 	//~ End AI Control(Patrol)
 
 	//~ Begin AI Control(Combat)
+	TArray<AActor*> CombatRangeInActor;
+	FTimerHandle CombatRangeInActorTimerHandle;
+	bool MatchingChaseActorType(AActor* OtherActor);
 	UFUNCTION()
 	void CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedComp
 		, AActor* OtherActor
@@ -60,7 +63,13 @@ public:
 		, bool bFromSweep
 		, const FHitResult& SweepResult
 	);
-
+	UFUNCTION()
+	void CombatRangeEndOverlap(UPrimitiveComponent* OverlappedComp,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex
+	);
+	void CheckCombatRangeInActor();
 	void SetAttackCollision(bool bIsActive);
 	UShapeComponent& GetAttackCollision() const;
 	UFUNCTION()

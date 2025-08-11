@@ -34,7 +34,7 @@ EBTNodeResult::Type UBTT_ChaseTarget::Execute_Task(UBehaviorTreeComponent& Owner
 	NULLCHECK_RETURN_LOG(AIPawn, AILog, Warning, EBTNodeResult::Failed);
 
 	FAIMoveRequest MoveRequest;
-	MoveRequest.SetGoalLocation(Target->GetActorLocation());
+	MoveRequest.SetGoalActor(Target);
 	MoveRequest.SetAcceptanceRadius(AcceptableRadius);
 	CurTick = 0.f;
 
@@ -71,7 +71,7 @@ void UBTT_ChaseTarget::Execute_TickTask(UBehaviorTreeComponent& OwnerComp, uint8
 		NULLCHECK_RETURN_LOG(Target, AILog, Warning, );
 
 		FAIMoveRequest MoveRequest;
-		MoveRequest.SetGoalLocation(Target->GetActorLocation());
+		MoveRequest.SetGoalActor(Target);
 		MoveRequest.SetAcceptanceRadius(AcceptableRadius);
 
 		FPathFollowingRequestResult MoveResult = AIController->MoveTo(MoveRequest);

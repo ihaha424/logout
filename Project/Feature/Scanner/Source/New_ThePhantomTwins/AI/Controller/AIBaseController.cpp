@@ -45,18 +45,16 @@ AAIBaseController::AAIBaseController()
 
     PerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AAIBaseController::OnTargetPerceptionUpdated);
     
-    
-    
-                                     // Scanner
-    StimulusPriorityMap = {             //StimulusPriorityMap = {
-      { "PlayerActor", {1, 1} },             //  { "PlayerActor", 1 },
-      { "NoiseItem", {2, 100} },               //  { "EnemyActor", 1 },
-      { "PlayerRun", {3, 30} },               //  { "EnemyRun", 2 },
-      { "PlayerWalk", {4, 10} },              //  { "EnemyWalk", 3 },
-    };                                  //  { "PlayerRun", 4 },
-                                        //  { "NoiseItem", 5 },
-                                        //  { "PlayerWalk", 6 }
-                                        //};
+                                    
+    StimulusPriorityMap = {         
+      { "PlayerActor",  {1, 1} },   
+      { "NoiseItem",    {2, 100} }, 
+      { "PlayerRun",    {3, 30} },  
+      { "PlayerWalk",   {4, 10} },  
+    };                              
+                                    
+                                    
+                                    
 }
 
 void AAIBaseController::BeginPlay()
@@ -108,7 +106,7 @@ void AAIBaseController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
     if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
     {
         UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Actor);
-        NULLCHECK_RETURN_LOG(ASC, AILog, Log, );
+        if (nullptr == ASC) return;
         // Player
         if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player))
         {
@@ -137,10 +135,10 @@ void AAIBaseController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
     }
     else if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
     {
-        const int32 Priority = GetStimulusPriority(Stimulus.Tag);
-        const float CurrentTime = GetWorld()->GetTimeSeconds();
         if (Stimulus.WasSuccessfullySensed())
         {
+            const int32 Priority = GetStimulusPriority(Stimulus.Tag);
+            const float CurrentTime = GetWorld()->GetTimeSeconds();
             const float Score = GetStimulusStrength(Stimulus.Tag);
             const float Old = BB->GetValueAsFloat(TEXT("HearingSum"));
             BB->SetValueAsFloat(TEXT("Priority"), Priority);
@@ -255,7 +253,7 @@ int32 AAIBaseController::GetStimulusPriority(const FName& Tag)
 
 int32 AAIBaseController::GetStimulusStrength(const FName& Tag)
 {
-    return StimulusPriorityMap.Contains(Tag) ? StimulusPriorityMap[Tag].Y : std::numeric_limits<int32>::max();
+    return StimulusPriorityMap.Contains(Tag) ? StimulusPriorityMap[Tag].Y : 0;
 }
 
 UAbilitySystemComponent* AAIBaseController::GetAbilitySystemComponent() const

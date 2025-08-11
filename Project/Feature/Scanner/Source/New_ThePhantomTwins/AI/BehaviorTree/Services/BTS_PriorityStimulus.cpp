@@ -21,14 +21,14 @@ void UBTS_PriorityStimulus::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 	NULLCHECK_RETURN_LOG(BB, AILog, Warning, );
 
 
-	int32 HearingSum = BB->GetValueAsFloat(PriorityKey.SelectedKeyName);
-	if (HearingSum < CurPriority)
+	int32 Priority = BB->GetValueAsFloat(PriorityKey.SelectedKeyName);
+	if (Priority < CurPriority)
 	{
-		CurPriority = HearingSum;
+		CurPriority = Priority;
 		BB->SetValueAsBool(RevaluationKey.SelectedKeyName, true);
 		return;
 	}
-	/*else if (HearingSum == CurPriority)
+	else if (Priority == CurPriority)
 	{
 		AAIController* AIController = OwnerComp.GetAIOwner();
 		NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
@@ -40,9 +40,6 @@ void UBTS_PriorityStimulus::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 		FVector TargetLoc = AIController->GetPathFollowingComponent()->GetCurrentTargetLocation();
 		if (TargetLoc == FVector::Zero())
 		{
-			TPT_LOG(AILog, Warning, TEXT("NoPathAi"));
-			CurPriority = HearingSum;
-			BB->SetValueAsBool(RevaluationKey.SelectedKeyName, true);
 			return;
 		}
 		const float CurDistance = FVector::Dist(MyLoc, TargetLoc);
@@ -50,11 +47,11 @@ void UBTS_PriorityStimulus::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 		const float NewDistance = FVector::Dist(MyLoc, TargetLoc);
 		if (NewDistance < CurDistance)
 		{
-			CurPriority = HearingSum;
+			CurPriority = Priority;
 			BB->SetValueAsBool(RevaluationKey.SelectedKeyName, true);
 			return;
 		}
-	}*/
+	}
 }
 
 FString UBTS_PriorityStimulus::GetStaticDescription() const
