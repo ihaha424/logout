@@ -11,7 +11,8 @@
 UGA_Run::UGA_Run()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	//NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalOnly;
+	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 	CancelTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch);
 	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run);
 }
@@ -32,7 +33,6 @@ void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	MyASC->CancelAbilities(&CancelTags);
 	// 스프린트로 인한 달리기 속도 변경을 태그바인딩을 통해 실행.
 	MyASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_Sprint).AddUObject(this, &UGA_Run::OnSprintTagChanged);
-
 
 	// 스태미너 감소 GE 부여
 	FGameplayEffectSpecHandle StaminaDrainEffectSpecHandle = MakeOutgoingGameplayEffectSpec(StaminaDrainEffect, GetAbilityLevel());
@@ -65,7 +65,19 @@ void UGA_Run::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGame
 
 void UGA_Run::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
-	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+	if (!ActorInfo)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UGA_Run::CancelAbility] ActorInfo is NULL. Ability cleanup skipped."));
+		Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+		return;
+	}
+
+	if (!ActorInfo->AbilitySystemComponent.Get())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UGA_Run::CancelAbility] AbilitySystemComponent is NULL. Owner may be destroyed. Skipping cleanup."));
+		Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+		return;
+	}
 	GAActorInfo = ActorInfo;
 	// 스태미너 감소 GE 제거
 	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
@@ -86,6 +98,7 @@ void UGA_Run::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGame
 
 	bool bReplicatedEndAbility = true;
 	bool bWasCancelled = true;
+	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
 }
 

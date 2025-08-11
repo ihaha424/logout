@@ -4,14 +4,13 @@
 #include "GA_ExecuteActiveSkill.h"
 
 #include "AbilitySystemComponent.h"
-#include "Attribute/PlayerAttributeSet.h"
-#include "Log/TPTLog.h"
-#include "Player/PlayerCharacter.h"
 #include "Tags/TPTGameplayTags.h"
 
 UGA_ExecuteActiveSkill::UGA_ExecuteActiveSkill()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill);
 }
 
