@@ -36,7 +36,6 @@ EBTNodeResult::Type UBTT_ChaseTarget::Execute_Task(UBehaviorTreeComponent& Owner
 	FAIMoveRequest MoveRequest;
 	MoveRequest.SetGoalActor(Target);
 	MoveRequest.SetAcceptanceRadius(AcceptableRadius);
-	CurTick = 0.f;
 
 	FPathFollowingRequestResult MoveResult = AIController->MoveTo(MoveRequest);
 	switch (MoveResult.Code)
@@ -60,10 +59,8 @@ void UBTT_ChaseTarget::Execute_TickTask(UBehaviorTreeComponent& OwnerComp, uint8
 	NULLCHECK_CODE_RETURN_LOG(AIController, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, );
 	EPathFollowingStatus::Type Status = AIController->GetPathFollowingComponent()->GetStatus();
 	if (Status == EPathFollowingStatus::Idle 
-		|| Status == EPathFollowingStatus::Waiting 
-		|| (Status == EPathFollowingStatus::Moving && CurTick >= ChaseTick))
+		|| Status == EPathFollowingStatus::Waiting)
 	{
-		CurTick = 0;
 		UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 		NULLCHECK_RETURN_LOG(BB, AILog, Warning, );
 
@@ -84,10 +81,6 @@ void UBTT_ChaseTarget::Execute_TickTask(UBehaviorTreeComponent& OwnerComp, uint8
 	else if (Status == EPathFollowingStatus::Paused)
 	{
 		AIController->ResumeMove(TaskData->MoveId);
-	}
-	else
-	{
-		CurTick += DeltaSeconds;
 	}
 }
 
