@@ -5,6 +5,7 @@
 #include "NavModifierComponent.h"
 #include "NavAreas/NavArea_Null.h"
 #include "NavAreas/NavArea_Default.h"
+#include "NavAreas/NavArea_Obstacle.h"
 #include "NavigationSystem.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "AbilitySystemComponent.h"

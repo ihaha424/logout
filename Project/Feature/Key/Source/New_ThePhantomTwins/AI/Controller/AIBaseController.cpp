@@ -47,16 +47,16 @@ AAIBaseController::AAIBaseController()
     
     
     
-                                     // Scanner
-    StimulusPriorityMap = {             //StimulusPriorityMap = {
-      { "PlayerActor", {1, 1} },             //  { "PlayerActor", 1 },
-      { "NoiseItem", {2, 100} },               //  { "EnemyActor", 1 },
-      { "PlayerRun", {3, 30} },               //  { "EnemyRun", 2 },
-      { "PlayerWalk", {4, 10} },              //  { "EnemyWalk", 3 },
-    };                                  //  { "PlayerRun", 4 },
-                                        //  { "NoiseItem", 5 },
-                                        //  { "PlayerWalk", 6 }
-                                        //};
+                                    
+    StimulusPriorityMap = {         
+      { "PlayerActor", {1, 1} },    
+      { "NoiseItem", {2, 100} },    
+      { "PlayerRun", {3, 30} },     
+      { "PlayerWalk", {4, 10} },    
+    };                              
+                                    
+                                    
+                                    
 }
 
 void AAIBaseController::BeginPlay()
@@ -110,7 +110,7 @@ void AAIBaseController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
         UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Actor);
         NULLCHECK_RETURN_LOG(ASC, AILog, Log, );
         // Player
-        if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player))
+        if (IsTargetActor(ASC))
         {
             if (Stimulus.WasSuccessfullySensed())
             {
@@ -154,6 +154,11 @@ void AAIBaseController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
         }
     }
     
+}
+
+bool AAIBaseController::IsTargetActor(UAbilitySystemComponent* ASC)
+{
+    return ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
 }
 
 void AAIBaseController::AddPerceptionSightList(AActor* Actor)

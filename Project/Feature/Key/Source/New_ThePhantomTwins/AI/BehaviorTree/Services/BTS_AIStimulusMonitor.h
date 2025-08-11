@@ -71,7 +71,7 @@ protected:
 
     // 청각 누적 감쇠율
     UPROPERTY(EditAnywhere, Category = "Stimulus")  
-    float HearingDecayPerSecond     = 50.f;
+    float HearingDecayPerSecond     = 10.f;
 
     // 전투 지속 시간
     UPROPERTY(EditAnywhere, Category = "Stimulus")
