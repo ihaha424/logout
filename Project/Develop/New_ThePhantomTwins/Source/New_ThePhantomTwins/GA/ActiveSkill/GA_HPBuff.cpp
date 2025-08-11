@@ -7,7 +7,9 @@
 
 UGA_HPBuff::UGA_HPBuff()
 {
-	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+    ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
+    NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_HPBuff);
 }
 

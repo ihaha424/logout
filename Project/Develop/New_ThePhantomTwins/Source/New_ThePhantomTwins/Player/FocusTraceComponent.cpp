@@ -113,7 +113,7 @@ void UFocusTraceComponent::PerformTrace()
     }
 
 #if WITH_EDITOR
-    DrawDebugLine(GetWorld(), Start, End, Hit.GetActor() == FocusedActor ? FColor::Blue : FColor::Silver, false, 1.0f, 0, 0.3f);
+   // DrawDebugLine(GetWorld(), Start, End, Hit.GetActor() == FocusedActor ? FColor::Blue : FColor::Silver, false, 1.0f, 0, 0.3f);
 #endif
 
     if (Pawn->IsLocallyControlled())

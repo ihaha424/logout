@@ -4,9 +4,14 @@
 #include "GA_HoldItem.h"
 
 #include "Player/PlayerCharacter.h"
+#include "Tags/TPTGameplayTags.h"
 
 UGA_HoldItem::UGA_HoldItem()
 {
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_HoldItem);
 }
 
 void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,

@@ -7,7 +7,9 @@
 
 UGA_MentalBuff::UGA_MentalBuff()
 {
-	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+    ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
+    NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalBuff);
 }
 

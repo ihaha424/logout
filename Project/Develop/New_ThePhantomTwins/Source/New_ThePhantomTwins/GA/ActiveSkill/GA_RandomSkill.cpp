@@ -12,6 +12,8 @@
 UGA_RandomSkill::UGA_RandomSkill()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+    ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
+    NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
     AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_RandomActive);
 }
 

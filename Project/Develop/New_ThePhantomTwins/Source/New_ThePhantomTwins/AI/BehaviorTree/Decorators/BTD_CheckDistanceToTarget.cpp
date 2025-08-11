@@ -50,16 +50,16 @@ bool UBTD_CheckDistanceToTarget::CalculateRawConditionValue(UBehaviorTreeCompone
 			Params
 		);
 #if WITH_EDITOR
-		DrawDebugLine(
-			GetWorld(),
-			MyLoc,
-			TargetLoc,
-			FColor::Red,
-			false,
-			2.0f,
-			0,
-			2.0f
-		);
+		//DrawDebugLine(
+		//	GetWorld(),
+		//	MyLoc,
+		//	TargetLoc,
+		//	FColor::Red,
+		//	false,
+		//	2.0f,
+		//	0,
+		//	2.0f
+		//);
 #endif
 		if (bHit)
 		{

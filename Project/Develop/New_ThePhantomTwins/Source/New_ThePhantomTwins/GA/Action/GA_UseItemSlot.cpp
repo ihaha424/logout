@@ -14,6 +14,8 @@
 UGA_UseItemSlot::UGA_UseItemSlot()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+    ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
+    NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 }
 
 void UGA_UseItemSlot::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

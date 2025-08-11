@@ -238,6 +238,7 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 3);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 4);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 5);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_UseItem, ETriggerEvent::Started, this, &ThisClass::InputPressedUseItem);
 	}
 }
 
@@ -286,15 +287,29 @@ void APlayerCharacter::C2S_InputReleased_Implementation(const int32 InputID)
 	}
 }
 
-void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 Number)
+void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
 {
-	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Event_Character_UseItemSlot;
+	SelectedSlotNumber = SlotNumber;
+
+	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_HoldItem;
 	FGameplayEventData Payload;
 	Payload.EventTag = EventTag;
 	Payload.Instigator = this;
-	Payload.EventMagnitude = static_cast<float>(Number);
+	Payload.EventMagnitude = static_cast<float>(SlotNumber);
 
 	ASC->HandleGameplayEvent(EventTag, &Payload);
+}
+
+void APlayerCharacter::InputPressedUseItem(int32 InputID)
+{
+	UInventoryComponent* InventoryComponent = PS->InventoryComp;
+
+	if (InventoryComponent)
+	{
+		// UseItem 호출
+		InventoryComponent->UseItem(SelectedSlotNumber);
+	}
+	SelectedSlotNumber = 0;
 }
 
 void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)
