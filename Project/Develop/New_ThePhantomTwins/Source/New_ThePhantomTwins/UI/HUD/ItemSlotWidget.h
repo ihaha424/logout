@@ -31,6 +31,9 @@ public:
     UFUNCTION(BlueprintCallable)
     void SetItemQuantity(int32 ItemStack);
 
+    UFUNCTION(BlueprintCallable)
+    void SetOutline(bool bVisible);
+
 protected:
     // 에디터에서 할당 가능한 DataTable 참조
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item", meta = (AllowPrivateAccess = "true"))
@@ -43,4 +46,7 @@ protected:
     // 바인딩된 텍스트 위젯
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<class UTextBlock> ItemQuantity;
+
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<class UImage> OutlineImg;
 };

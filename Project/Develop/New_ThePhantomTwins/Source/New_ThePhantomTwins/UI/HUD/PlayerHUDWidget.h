@@ -74,6 +74,10 @@ public:
     UFUNCTION(BlueprintCallable, Category = "UI | Inventory")
     void ResetItemSlot(int32 SlotIndex);
 
+    // 아이템 아웃라인 Visible
+    UFUNCTION(BlueprintCallable, Category = "UI | Inventory")
+    void SetOutline(int32 SlotIndex, bool bVisible);
+
 
 protected:
 // 조준점 UI

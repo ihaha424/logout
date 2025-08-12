@@ -49,11 +49,15 @@ public:
         , GameplayTag()
         , GameAbility(nullptr)
         , GameEffect(nullptr)
+        , Description(FText::GetEmpty())
     {}
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     EItemType ItemType;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FText Description;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TObjectPtr<UTexture2D> ItemIcon;

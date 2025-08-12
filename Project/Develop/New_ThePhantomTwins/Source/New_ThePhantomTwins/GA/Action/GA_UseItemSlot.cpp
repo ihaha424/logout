@@ -2,9 +2,9 @@
 
 
 #include "GA_UseItemSlot.h"
-#include "../../Objects/InventoryComponent.h"
-#include "../../Player/PS_Player.h"
-#include "../../Player/PC_Player.h"
+#include "Objects/InventoryComponent.h"
+#include "Player/PS_Player.h"
+#include "Player/PC_Player.h"
 #include "Gameframework/PlayerController.h"
 #include "Gameframework/PlayerState.h"
 

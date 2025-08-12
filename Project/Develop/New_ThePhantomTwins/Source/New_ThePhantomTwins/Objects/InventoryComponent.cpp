@@ -94,6 +94,17 @@ void UInventoryComponent::AddItem(EItemType eItemType)
     // 여기까지 왔으면 빈 칸도 없고, 기존 아이템도 스택 꽉 찬 상태 => 더 이상 넣을 수 없음
 }
 
+void UInventoryComponent::ChoiceItem(int32 SlotIndex)
+{
+// 슬롯 아웃라인 설정
+    // selectedNum과 다른 번호면 아웃라인, 툴팁 활성화
+    // selectedNum과 같은 번호면 아웃라인, 툴팁 비활성화 
+    if (PlayerHUDWidget)
+    {
+        PlayerHUDWidget->SetOutline(SlotIndex - 1, true);
+    }
+}
+
 EItemType UInventoryComponent::UseItem(int32 SlotIndex)
 {
     //TPT_LOG(HUDLog, Log, TEXT("UInventoryComponent::UseItem : %f"), SlotIndex);
