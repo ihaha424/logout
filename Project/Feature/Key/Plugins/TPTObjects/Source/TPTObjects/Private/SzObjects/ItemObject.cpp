@@ -4,6 +4,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
 
 AItemObject::AItemObject() : AInteractableObject()
 {
@@ -49,6 +51,14 @@ void AItemObject::DestroyItem()
 		FoundMesh->SetHiddenInGame(true);         // Mesh 숨김
 		FoundMesh->SetVisibility(false);          // 완전히 안 보이도록 설정 (추가 안전 조치)
 		FoundMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);  // 충돌 제거
+	}
+
+	if (UNiagaraComponent* NiagaraComp = FindComponentByClass<UNiagaraComponent>())
+	{
+		NiagaraComp->SetHiddenInGame(true);       // 파티클 렌더링 숨김
+		NiagaraComp->Deactivate();                // 파티클 효과 비활성화
+		NiagaraComp->SetVisibility(false);        // 안전 조치로 Visibility도 false
+		NiagaraComp->SetComponentTickEnabled(false); // 로직 비활성화 (선택 사항)
 	}
 
 	SetActorEnableCollision(false);	// 더이상 이벤트가 일어나지 않도록 false
