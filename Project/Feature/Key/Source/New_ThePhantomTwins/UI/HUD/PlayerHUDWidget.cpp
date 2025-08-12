@@ -141,3 +141,11 @@ void UPlayerHUDWidget::ResetItemSlot(int32 SlotIndex)
         InventoryWidget->GetItemSlotWidget(SlotIndex)->ResetItemSlot();
     }
 }
+
+void UPlayerHUDWidget::SetOutline(int32 SlotIndex, bool bVisible)
+{
+    if (InventoryWidget)
+    {
+        InventoryWidget->GetItemSlotWidget(SlotIndex)->SetOutline(bVisible);
+    }
+}

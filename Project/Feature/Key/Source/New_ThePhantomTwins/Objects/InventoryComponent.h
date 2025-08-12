@@ -42,6 +42,10 @@ public:
     UFUNCTION()
     void AddItem(EItemType eItemType);
 
+    // 아이템 선택했을 때 호출(슬롯 아웃라인 및 아이템 툴팁 활성화)
+    UFUNCTION()
+    void ChoiceItem(int32 SlotIndex);
+
     // 플레이어에서 1~MaxInventorySlots 숫자 키를 누르면 호출되는 함수. 슬롯에 있는 아이템의 EItemType이 반환됨
     UFUNCTION(BlueprintCallable, Category = "Inventory") 
     EItemType UseItem(int32 SlotIndex);
@@ -49,10 +53,26 @@ public:
     // HUD 위젯을 InventoryComponent에 등록
     UFUNCTION()
     bool SetPlayerHUDWidget(class UPlayerHUDWidget* HUDWidget);
-    
+
     UFUNCTION()
     void OnRep_InventorySlots();
 
+
+    // 아이템 효과 실행 함수
+    UFUNCTION(BlueprintCallable, Category = "Inventory")
+    void ExecuteItemEffects(EItemType ItemType);
+
+private:
+    // DataTable에서 아이템 데이터 가져오기
+    FItemDataTable* GetItemAbilityData(EItemType ItemType);
+
+    // GameplayAbility 실행
+    void ExecuteGameplayAbility(TSubclassOf<UGameplayAbility> AbilityClass);
+
+    // GameplayEffect 적용
+    void ApplyGameplayEffect(TSubclassOf<UGameplayEffect> EffectClass);
+
+    
 protected:
     UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_InventorySlots)
     TArray<FItemSlot> InventorySlots;
@@ -69,19 +89,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     int32 MaxInventorySlots = 5;    // InventorySlots의 원소 수.
 
-
-public:
-    // 아이템 효과 실행 함수
-    UFUNCTION(BlueprintCallable, Category = "Inventory")
-    void ExecuteItemEffects(EItemType ItemType);
-
 private:
-    // DataTable에서 아이템 데이터 가져오기
-    FItemDataTable* GetItemAbilityData(EItemType ItemType);
+    int32 selectedNum = 0;
 
-    // GameplayAbility 실행
-    void ExecuteGameplayAbility(TSubclassOf<UGameplayAbility> AbilityClass);
-
-    // GameplayEffect 적용
-    void ApplyGameplayEffect(TSubclassOf<UGameplayEffect> EffectClass);
 };
