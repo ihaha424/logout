@@ -62,7 +62,7 @@ void AItemObject::DestroyItem()
 	}
 
 	SetActorEnableCollision(false);	// 더이상 이벤트가 일어나지 않도록 false
-	SetLifeSpan(2.0f);				// 2초뒤에 자동으로 사라지도록.
+	SetLifeSpan(6.0f);				// 2초뒤에 자동으로 사라지도록.
 }
 
 void AItemObject::OnRep_bIsActived()
