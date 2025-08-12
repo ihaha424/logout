@@ -61,7 +61,7 @@ protected:
     TObjectPtr<UDataTable> ItemAbilityTable;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-    int32 MaxQuantity = 5;  // 아이템 당 최대 스택 수
+    int32 MaxQuantity = 3;  // 아이템 당 최대 스택 수
     UPROPERTY()
     TObjectPtr<class UPlayerHUDWidget> PlayerHUDWidget;
 
