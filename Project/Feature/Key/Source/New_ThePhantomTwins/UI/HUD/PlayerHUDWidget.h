@@ -78,6 +78,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "UI | Inventory")
     void SetOutline(int32 SlotIndex, bool bVisible);
 
+    UFUNCTION(BlueprintCallable, Category = "UI | Inventory")
+    void SetToolTips(bool bVisible, EItemType eItemType);
+
 
 protected:
 // ¡∂¡ÿ¡° UI

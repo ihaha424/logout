@@ -5,7 +5,6 @@
 #include "Engine/Texture2D.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
-#include "../../Objects/ItemData.h"
 
 void UItemSlotWidget::NativeConstruct()
 {

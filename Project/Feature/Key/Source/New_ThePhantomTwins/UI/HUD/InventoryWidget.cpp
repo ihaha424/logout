@@ -10,6 +10,11 @@
 void UInventoryWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+    if (ItemToolTipWidget)
+    {
+        ItemToolTipWidget->SetVisibility(ESlateVisibility::Hidden);
+    }
 }
 
 void UInventoryWidget::LoadInventory(class UInventoryComponent* Inventory)
@@ -58,4 +63,23 @@ class UItemSlotWidget* UInventoryWidget::GetItemSlotWidget(int32 Index)
         return nullptr;
 
     return Cast<UItemSlotWidget>(WrapBox->GetChildAt(Index));
+}
+
+void UInventoryWidget::SetToolTips(bool bVisible, EItemType eItemType)
+{
+    if (!ItemToolTipWidget) return;
+    
+    if (bVisible)
+    {
+        ItemToolTipWidget->SetVisibility(ESlateVisibility::Visible);
+
+        ItemToolTipWidget->SetItemName(eItemType);
+        ItemToolTipWidget->SetItemDescription(eItemType);
+    }
+    else
+    {
+        ItemToolTipWidget->SetVisibility(ESlateVisibility::Hidden);
+    }
+
+
 }
