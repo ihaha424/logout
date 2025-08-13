@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "../../Objects/ItemData.h"
+#include "Objects/ItemData.h"
 #include "ItemSlotWidget.generated.h"
 
 /**
