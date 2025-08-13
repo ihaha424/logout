@@ -8,6 +8,7 @@
 #include "Player/PC_Player.h"
 #include "Objects/InventoryComponent.h"
 #include "Tags/TPTGameplayTags.h"
+#include "Log/TPTLog.h"
 
 UGA_HoldItem::UGA_HoldItem()
 {
@@ -21,6 +22,10 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+    TPT_LOG(GALog, Log, TEXT("UGA_HoldItem::ActivateAbility"));
+
+
 	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
 	if (!Character) return;
 
