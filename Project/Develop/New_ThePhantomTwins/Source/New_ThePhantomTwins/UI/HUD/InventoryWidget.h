@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Engine/Texture2D.h"
+#include "Objects/ItemData.h"
 #include "InventoryWidget.generated.h"
 
 /**
@@ -37,11 +38,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	class UItemSlotWidget* GetItemSlotWidget(int32 Index);
 
-public:
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void SetToolTips(bool bVisible, EItemType eItemType);
+
+protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UItemToolTipWidget> ItemToolTipWidget;
 
-protected:
 	/** 아이템 슬롯들을 배치하는 래핑 박스 위젯입니다. */
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UWrapBox> WrapBox;

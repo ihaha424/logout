@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -32,4 +32,8 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
     TObjectPtr<class UTextBlock> ItemDescription;
+
+	// 에디터에서 할당 가능한 DataTable 참조
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Item", meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<class UDataTable> ItemDataTable;
 };

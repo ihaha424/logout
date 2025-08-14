@@ -1,12 +1,12 @@
 ﻿
 #include "InventoryComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "../Player/PlayerCharacter.h"
-#include "../UI/HUD/PlayerHUDWidget.h"
-#include "../UI/HUD/InventoryWidget.h"
-#include "../UI/HUD/ItemSlotWidget.h"
-#include "../Player/PS_Player.h"
-#include "../Player/PC_Player.h"
+#include "Player/PlayerCharacter.h"
+#include "UI/HUD/PlayerHUDWidget.h"
+#include "UI/HUD/InventoryWidget.h"
+#include "UI/HUD/ItemSlotWidget.h"
+#include "Player/PS_Player.h"
+#include "Player/PC_Player.h"
 
 #include "GameplayCueNotify_Static.h"
 #include "AbilitySystemComponent.h"
@@ -101,7 +101,8 @@ void UInventoryComponent::ChoiceItem(int32 SlotIndex)
     // selectedNum과 같은 번호면 아웃라인, 툴팁 비활성화 
     if (PlayerHUDWidget)
     {
-        PlayerHUDWidget->SetOutline(SlotIndex - 1, true);
+        PlayerHUDWidget->SetOutline(SlotIndex, true);
+        PlayerHUDWidget->SetToolTips(true, InventorySlots[SlotIndex].ItemType);
     }
 }
 
