@@ -72,6 +72,10 @@ private:
     // GameplayEffect 적용
     void ApplyGameplayEffect(TSubclassOf<UGameplayEffect> EffectClass);
 
+    bool IsSlotEmpty(const FItemSlot& Slot)
+    {
+        return (Slot.ItemType == EItemType::None || Slot.ItemQuantity <= 0);
+    }
     
 protected:
     UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_InventorySlots)
@@ -90,6 +94,6 @@ public:
     int32 MaxInventorySlots = 5;    // InventorySlots의 원소 수.
 
 private:
-    int32 selectedNum = 0;
+    int32 selectedNum = -1;
 
 };

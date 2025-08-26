@@ -99,10 +99,37 @@ void UInventoryComponent::ChoiceItem(int32 SlotIndex)
 // 슬롯 아웃라인 설정
     // selectedNum과 다른 번호면 아웃라인, 툴팁 활성화
     // selectedNum과 같은 번호면 아웃라인, 툴팁 비활성화 
+
+    // 새로운 슬롯을 눌렀으면 실행
     if (PlayerHUDWidget)
     {
-        PlayerHUDWidget->SetOutline(SlotIndex, true);
-        PlayerHUDWidget->SetToolTips(true, InventorySlots[SlotIndex].ItemType);
+        if (IsSlotEmpty(InventorySlots[SlotIndex])) return;
+
+        if (selectedNum == -1 || selectedNum != SlotIndex)
+        {
+            // 플레이어가 누른 번호 저장
+            selectedNum = SlotIndex;
+
+            // 바로 활성화
+            PlayerHUDWidget->SetOutline(SlotIndex, true);
+            PlayerHUDWidget->SetToolTips(true, InventorySlots[SlotIndex].ItemType);
+
+            // 3초 뒤에 비활성화하도록 타이머 등록
+            FTimerHandle TimerHandle;
+            GetWorld()->GetTimerManager().SetTimer(
+                TimerHandle,
+                FTimerDelegate::CreateWeakLambda(this, [this, SlotIndex]()
+                    {
+                        if (PlayerHUDWidget)
+                        {
+                            PlayerHUDWidget->SetOutline(SlotIndex, false);
+                            PlayerHUDWidget->SetToolTips(false, InventorySlots[SlotIndex].ItemType);
+                        }
+                    }),
+                3.0f,  // 지연 시간 (초)
+                false  // 반복 여부 (false = 1회 실행)
+            );
+        }
     }
 }
 
@@ -153,6 +180,8 @@ EItemType UInventoryComponent::UseItem(int32 SlotIndex)
 
     // 아이템 효과 발동
     ExecuteItemEffects(usedItemType);
+
+    selectedNum = -1;
 
     return usedItemType;
 }
