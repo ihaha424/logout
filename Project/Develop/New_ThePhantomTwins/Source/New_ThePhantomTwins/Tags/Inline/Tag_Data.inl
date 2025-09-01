@@ -7,6 +7,7 @@ TPT_TAG_GEN(Data, Effect, UseSkill, "Set ActiveSkill True")
 TPT_TAG_GEN(Data, Effect, CoolDownCount, "CoolDown Count")
 TPT_TAG_GEN(Data, Effect, CoreEnergy, "CoreEnergy")
 TPT_TAG_GEN(Data, Effect, MentalPoint, "MentalPoint")
+TPT_TAG_GEN(Data, Effect, HP, "HP")
 TPT_TAG_GEN(Data, Effect, SprintDuration, "SprintDuration")
 
 

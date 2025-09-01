@@ -307,6 +307,8 @@ void AAIBaseCharacter::AttackCollisionBeginOverlap(UPrimitiveComponent* Overlapp
         return;
     SpecHandle.Data->SetContext(EffectContext);
     SpecHandle.Data->SetSetByCallerMagnitude(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_MentalPoint, -AttackValue);
+    SpecHandle.Data->SetSetByCallerMagnitude(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_HP, -AttackValue);
+    TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 
     AttackCollisionEvent(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 }
