@@ -113,6 +113,7 @@ protected:
 
 	// ¿Œ«≤ √≥∏Æ
 	void InputPressed(int32 InputID);
+	void InputSKillPressed(int32 InputID, int32 Number);
 	void InputPressedWithNum(int32 InputID, int32 Number);
 	void InputPressedUseItem(int32 InputID);
 	void InputReleased(int32 InputID);

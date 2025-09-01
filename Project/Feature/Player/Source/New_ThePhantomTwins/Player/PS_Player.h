@@ -22,15 +22,7 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
 	virtual FGenericTeamId GetGenericTeamId() const override { return TeamID; }
-	FGameplayTag GetActiveSkillTag() const { return ActiveSkillTag;}
-	FGameplayTag GetPassiveSkillTag() const { return PassiveSkillTag;}
-
-	UFUNCTION(BlueprintCallable)
-	bool IsRecovery() {return bIsRecovery;}
-	void SetRecovery(bool IsRecovery);
-	UFUNCTION(BlueprintCallable)
-	bool IsGroggy() {return bIsGroggy;}
-	void SetGroggy(bool IsGroggy);
+	TArray<FGameplayTag> GetPassiveSkillTag() const { return PassiveSkillTags;}
 
 	void SetIdentifyCharacterData();
 
@@ -44,11 +36,8 @@ protected:
 	UPROPERTY(Replicated)
 	TObjectPtr<UPlayerAttributeSet> AttributeSet;
 
-	UPROPERTY(Replicated, EditAnywhere, Category = "Skill")
-	FGameplayTag PassiveSkillTag;
-
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Skill")
-	FGameplayTag ActiveSkillTag;
+	TArray<FGameplayTag> PassiveSkillTags;
 
 	UPROPERTY(Replicated, EditAnywhere, Category = "Recovery")
 	bool bIsRecovery = false;
