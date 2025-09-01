@@ -21,6 +21,16 @@ UGA_HoldItem::UGA_HoldItem()
 void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
+    // 아바타 액터 가져오기
+    APawn* Pawn = Cast<APawn>(ActorInfo->AvatarActor.Get());
+    if (Pawn && !Pawn->IsLocallyControlled())
+    {
+        // 로컬 컨트롤이 아니면 바로 종료 => guest 2번 호출 방지용
+        EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+        return;
+    }
+
+
 	float SlotNumber = TriggerEventData->EventMagnitude;
 	TPT_LOG(GALog, Warning, TEXT(" %f"), SlotNumber);
 
@@ -60,27 +70,69 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
                 if (InventoryComponent)
                 {
                     // ChoiceItem 호출(인벤토리 슬롯 아웃라인 및 아이템 툴팁 설정)
-                    choiceItemType = InventoryComponent->ChoiceItem(static_cast<int32>(SlotNumber));
+                    choiceItemType = InventoryComponent->ChoiceItem(static_cast<int32>(SlotNumber-1));
                 }
             }
         }
     }
 
     // 투척아이템(소음폭탄, EMP폭탄) 이면 
-    if (choiceItemType == EItemType::NoiseBomb || choiceItemType == EItemType::EMP)
-    {
+    //if (choiceItemType == EItemType::NoiseBomb || choiceItemType == EItemType::EMP)
+    //{
         // DataTable에서 StaticMesh 가져오기
-        UStaticMesh* chiceItemStaticMesh = SetItemStaticMesh();
+        UStaticMesh* choiceItemStaticMesh = SetItemStaticMesh(choiceItemType);
 
-        // 플레이어 손에 아이템을 붙이기.
-        // 플레이어 손에서 충돌판정이 안되도록 하기.
-    }
+        if (choiceItemStaticMesh)
+        {
+            // 플레이어 손에 아이템을 붙이기.
+            // 예: AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, HandSocketName);
+            // 주의: 플레이어 손과 충돌 비활성화, 네트워크 동기화 등은 따로 처리 필요.
+            TPT_LOG(GALog, Log, TEXT("Found mesh for item type, ready to attach."));
+        }
+        else
+        {
+            TPT_LOG(GALog, Warning, TEXT("No mesh found in DataTable for this item type."));
+        }
+   // }
 
     EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
-TObjectPtr<class UStaticMesh> UGA_HoldItem::SetItemStaticMesh()
+TObjectPtr<class UStaticMesh> UGA_HoldItem::SetItemStaticMesh(EItemType ItemType)
 {
-    // DataTable에서 StaticMesh 가져오기
+    if (ItemType == EItemType::None)
+    {
+        return nullptr;
+    }
+
+    if (!ItemAbilityTable)
+    {
+        TPT_LOG(GALog, Warning, TEXT("SetItemStaticMesh: ItemAbilityTable not assigned on %s"), *GetName());
+        return nullptr;
+    }
+
+    const FString ContextString = TEXT("UGA_HoldItem::SetItemStaticMesh");
+    TArray<FName> RowNames = ItemAbilityTable->GetRowNames();
+
+    for (const FName& RowName : RowNames)
+    {
+        const FItemDataTable* Row = ItemAbilityTable->FindRow<FItemDataTable>(RowName, ContextString);
+        if (!Row) continue;
+
+        if (Row->ItemType == ItemType)
+        {
+            if (Row->ItemMesh)
+            {
+                return Row->ItemMesh;
+            }
+            else
+            {
+                TPT_LOG(GALog, Warning, TEXT("SetItemStaticMesh: Found row %s but ItemMesh is null"), *RowName.ToString());
+                return nullptr;
+            }
+        }
+    }
+
+    TPT_LOG(GALog, Warning, TEXT("SetItemStaticMesh: No matching row for ItemType %d in DataTable %s"), static_cast<int32>(ItemType), *GetName());
     return nullptr;
 }

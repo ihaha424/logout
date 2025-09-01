@@ -107,5 +107,6 @@ public:
     int32 MaxInventorySlots = 5;    // InventorySlots의 원소 수.
 
 private:
+    UPROPERTY()
     int32 selectedNum = -1;
 };

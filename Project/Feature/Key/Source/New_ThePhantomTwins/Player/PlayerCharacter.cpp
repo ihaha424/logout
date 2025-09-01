@@ -319,9 +319,6 @@ void APlayerCharacter::InputPressedUseItem(int32 InputID)
 
 	if (InventoryComponent)
 	{
-		//// ChoiceItem 테스트 코드(삭제예정) : GA_HoldItem에 들어가야함
-		//InventoryComponent->ChoiceItem(SelectedSlotNumber-1);
-
 		// UseItem 호출
 		InventoryComponent->UseItem(SelectedSlotNumber);
 	}

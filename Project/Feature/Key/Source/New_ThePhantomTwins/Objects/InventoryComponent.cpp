@@ -69,6 +69,8 @@ EItemType UInventoryComponent::UseItem(int32 SlotIndex)
 
         // 서버에 실제 사용 요청
         C2S_UseItem(SlotIndex);
+        
+        selectedNum = -1;
 
         return Predicted;
     }
@@ -78,6 +80,8 @@ EItemType UInventoryComponent::UseItem(int32 SlotIndex)
 
     // 호스트 HUD 갱신
     RefreshUIFromInventory();
+
+    selectedNum = -1;
 
     return Used;
 }
