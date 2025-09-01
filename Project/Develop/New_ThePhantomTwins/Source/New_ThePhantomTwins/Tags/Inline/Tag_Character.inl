@@ -19,18 +19,17 @@ TPT_TAG_GEN(Character, State, HoldItem, "Character Hold Item ")
 TPT_TAG_GEN(Character, State, UseItem, "Character Use Item ")
 TPT_TAG_GEN(Character, State, ThrowItem, "Character Throw Item ")
 
+// Skilling State
 TPT_TAG_GEN(Character, State, SkillCoolDown, "Character's skill is CoolDowning")
 TPT_TAG_GEN(Character, State, Sprinting, "Character is Sprinting")
-TPT_TAG_GEN(Character, State, UsingCamera, "Character is Using Camera")
-TPT_TAG_GEN(Character, State, SeeingThrough, "Character is Seeing Through")
+TPT_TAG_GEN(Character, State, UsingOutLine, "Character is Using OutLine")
 TPT_TAG_GEN(Character, State, MentalHealingByPlayer, "Character's Mental is Healing")
 
 
 // Active Skill
+TPT_TAG_GEN(Character, Skill, ActiveSkill, "Character use Active skill")
 TPT_TAG_GEN(Character, Skill, Sprint, "Character use Sprint Skill")
-TPT_TAG_GEN(Character, Skill, Camera, "Character use Camera Skill")
-TPT_TAG_GEN(Character, Skill, SeeThrough, "Character use SeeThrough Skill")
-TPT_TAG_GEN(Character, Skill, RandomActive, "Character use Random Active skill")
+TPT_TAG_GEN(Character, Skill, OutLine, "Character use OutLine Skill")
 TPT_TAG_GEN(Character, Skill, HPBuff, "Character HPBuff")
 TPT_TAG_GEN(Character, Skill, StaminaBuff, "Character StaminaBuff")
 TPT_TAG_GEN(Character, Skill, MentalBuff, "Character MentalBuff")

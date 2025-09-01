@@ -16,7 +16,6 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHUDDelegate, const int32, value);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAttributeDelegate, const FGameplayTag, InputTag);
 
-
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UPlayerAttributeSet : public UAttributeSet
 {
@@ -35,7 +34,8 @@ public:
 	ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, Speed);
 	ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, SpeedAdjustment);
 	ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, FinalSpeed);
-	ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, ExecuteSkill);
+	ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, ExecuteSprintSkill);
+	ATTRIBUTE_ACCESSORS(UPlayerAttributeSet, ExecuteOutLineSkill);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	UFUNCTION()
@@ -61,7 +61,9 @@ public:
 	UFUNCTION()
 	void OnRep_FinalSpeed(const FGameplayAttributeData& OldValue);
 	UFUNCTION()
-	void OnRep_ExecuteSkill(const FGameplayAttributeData& OldValue);
+	void OnRep_ExecuteSprintSkill(const FGameplayAttributeData& OldValue);
+	UFUNCTION()
+	void OnRep_ExecuteOutLineSkill(const FGameplayAttributeData& OldValue);
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual bool PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data) override;
@@ -110,14 +112,18 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_FinalSpeed, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData FinalSpeed;
 
-	UPROPERTY(ReplicatedUsing = OnRep_ExecuteSkill, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
-	FGameplayAttributeData ExecuteSkill;
+	UPROPERTY(ReplicatedUsing = OnRep_ExecuteSprintSkill, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
+	FGameplayAttributeData ExecuteSprintSkill;
+
+	UPROPERTY(ReplicatedUsing = OnRep_ExecuteOutLineSkill, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
+	FGameplayAttributeData ExecuteOutLineSkill;
 
 	bool bPlayerLowHP = false;
 	bool bPlayerDowned = false;
 	bool bPlayerConfused1st = false;
 	bool bPlayerConfused2nd = false;
 	bool bPlayerConfused3rd = false;
-	bool bPlayerUseSkill = false;
+	bool bPlayerUseSprintSkill = false;
+	bool bPlayerUseOutLineSkill = false;
 	bool bMentalPointNotMax = false;
 };
