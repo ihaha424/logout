@@ -4,11 +4,9 @@
 #include "PlayerAttributeSet.h"
 #include "GameplayEffectExtension.h"
 #include "../Tags/TPTGameplayTags.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Log/TPTLog.h"
 #include "Net/UnrealNetwork.h"
-#include "New_ThePhantomTwins/Player/PS_Player.h"
-#include "Player/PlayerCharacter.h"
+#include "Player/PS_Player.h"
 
 UPlayerAttributeSet::UPlayerAttributeSet() :
 	MaxHP(100),
@@ -18,7 +16,8 @@ UPlayerAttributeSet::UPlayerAttributeSet() :
 	Speed(120),
 	SpeedAdjustment(0),
 	FinalSpeed(0),
-	ExecuteSkill(-1)
+	ExecuteSprintSkill(-1),
+	ExecuteOutLineSkill(-1)
 {
 	InitHP(GetMaxHP());
 	InitMentalPoint(GetMaxMentalPoint());
@@ -79,7 +78,8 @@ void UPlayerAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME_CONDITION_NOTIFY(UPlayerAttributeSet, Speed, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UPlayerAttributeSet, SpeedAdjustment, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UPlayerAttributeSet, FinalSpeed, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UPlayerAttributeSet, ExecuteSkill, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UPlayerAttributeSet, ExecuteSprintSkill, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UPlayerAttributeSet, ExecuteOutLineSkill, COND_None, REPNOTIFY_Always);
 }
 
 void UPlayerAttributeSet::OnRep_HP(const FGameplayAttributeData& OldValue)
@@ -149,17 +149,26 @@ void UPlayerAttributeSet::OnRep_MaxCoreEnergy(const FGameplayAttributeData& OldV
 void UPlayerAttributeSet::OnRep_Speed(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, Speed, OldValue); }
 void UPlayerAttributeSet::OnRep_SpeedAdjustment(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, SpeedAdjustment, OldValue); }
 void UPlayerAttributeSet::OnRep_FinalSpeed(const FGameplayAttributeData& OldValue) {GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, FinalSpeed, OldValue);}
-void UPlayerAttributeSet::OnRep_ExecuteSkill(const FGameplayAttributeData& OldValue)
+void UPlayerAttributeSet::OnRep_ExecuteSprintSkill(const FGameplayAttributeData& OldValue)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, ExecuteSkill, OldValue);
-	// 스킬발동이 true가 되면 스킬실행.
-	if (GetExecuteSkill() > 0 && !bPlayerUseSkill)
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, ExecuteSprintSkill, OldValue);
+	// 스킬발동이 true가 되면 Sprint스킬실행.
+	if (GetExecuteSprintSkill() > 0 && !bPlayerUseSprintSkill)
 	{
-		OnPlayerUseSkill.Broadcast(Cast<APS_Player>(GetOwningActor())->GetActiveSkillTag());
+		OnPlayerUseSkill.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_Sprint);
 	}
-	bPlayerUseSkill = GetExecuteSkill() > 0;
+	bPlayerUseSprintSkill = GetExecuteSprintSkill() > 0;
 }
-
+void UPlayerAttributeSet::OnRep_ExecuteOutLineSkill(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, ExecuteOutLineSkill, OldValue);
+	// 스킬발동이 true가 되면 OutLine스킬실행.
+	if (GetExecuteOutLineSkill() > 0 && !bPlayerUseOutLineSkill)
+	{
+		OnPlayerUseSkill.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_OutLine);
+	}
+	bPlayerUseOutLineSkill = GetExecuteOutLineSkill() > 0;
+}
 void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
@@ -258,10 +267,17 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	}
 	bPlayerConfused3rd = GetMentalPoint() <= 0.0f;
 
-	// 스킬발동이 true가 되면 스킬실행.
-	if (GetExecuteSkill() > 0 && !bPlayerUseSkill)
+	// 스킬발동이 true가 되면 Sprint스킬실행.
+	if (GetExecuteSprintSkill() > 0 && !bPlayerUseSprintSkill)
 	{
-		OnPlayerUseSkill.Broadcast(Cast<APS_Player>(GetOwningActor())->GetActiveSkillTag());
+		OnPlayerUseSkill.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_Sprint);
 	}
-	bPlayerUseSkill = GetExecuteSkill() > 0;
+	bPlayerUseSprintSkill = GetExecuteSprintSkill() > 0;
+
+	// 스킬발동이 true가 되면 OutLine스킬실행.
+	if (GetExecuteOutLineSkill() > 0 && !bPlayerUseOutLineSkill)
+	{
+		OnPlayerUseSkill.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_OutLine);
+	}
+	bPlayerUseOutLineSkill = GetExecuteOutLineSkill() > 0;
 }

@@ -14,7 +14,7 @@ UGA_RandomSkill::UGA_RandomSkill()
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
     ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
-    AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_RandomActive);
+   // AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_RandomActive);
 }
 
 void UGA_RandomSkill::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

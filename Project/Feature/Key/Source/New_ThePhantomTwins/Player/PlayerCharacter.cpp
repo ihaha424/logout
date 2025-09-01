@@ -232,7 +232,8 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Started, this, &ThisClass::InputPressed);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
 
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_Q, ETriggerEvent::Started, this, &ThisClass::InputSKillPressed,1);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_E, ETriggerEvent::Started, this, &ThisClass::InputSKillPressed,2);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 1);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 2);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 3);
@@ -287,16 +288,28 @@ void APlayerCharacter::C2S_InputReleased_Implementation(const int32 InputID)
 	}
 }
 
+void APlayerCharacter::InputSKillPressed(int32 InputID, int32 SkillNumber)
+{
+	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_Skill_ActiveSkill;
+	FGameplayEventData Payload;
+	Payload.EventTag = EventTag;
+	Payload.Instigator = this;
+	Payload.EventMagnitude = static_cast<float>(SkillNumber);
+
+	ASC->HandleGameplayEvent(EventTag, &Payload);
+}
+
 void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
 {
 	SelectedSlotNumber = SlotNumber;
+	TPT_LOG(PlayerLog, Warning, TEXT(" %d"), SlotNumber);
 
-	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_HoldItem;
+	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Event_Character_HoldItem;
 	FGameplayEventData Payload;
 	Payload.EventTag = EventTag;
 	Payload.Instigator = this;
 	Payload.EventMagnitude = static_cast<float>(SlotNumber);
-
+	
 	ASC->HandleGameplayEvent(EventTag, &Payload);
 }
 
@@ -414,9 +427,7 @@ void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 
 void APlayerCharacter::OnRecoveryCompleted()
 {
-	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
-	PS->SetRecovery(true);
 
 	FGameplayTag DownedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed;
 	FGameplayTag ConfusedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd;
