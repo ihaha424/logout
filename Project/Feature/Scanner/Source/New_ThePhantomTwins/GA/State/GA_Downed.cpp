@@ -30,8 +30,7 @@ void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
 	APS_Player* PS = Cast<APS_Player>(Character->GetPlayerState());
 	NULLCHECK_RETURN_LOG(PS, GALog, Warning, );
-	PS->SetGroggy(true);
-	PS->SetRecovery(false);
+
 	APC_Player* PC = Character->GetController<APC_Player>();
 	NULLCHECK_RETURN_LOG(PC, GALog, Warning, );
 	PC->SetWidget(TEXT("WASD"), true, EMessageTargetType::LocalClient);
@@ -86,8 +85,6 @@ void UGA_Downed::OnDownedTagChanged(const FGameplayTag Tag, int32 TagCount)
 
 	if (!bHasDownedTag)
 	{
-		PS->SetGroggy(false);
-		PS->SetRecovery(true);
 		PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
 		Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 

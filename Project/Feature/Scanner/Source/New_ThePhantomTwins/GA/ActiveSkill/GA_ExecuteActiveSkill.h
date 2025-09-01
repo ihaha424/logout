@@ -23,12 +23,17 @@ public:
 	void ApplyEffect();
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
-	TSubclassOf<UGameplayEffect> ExecuteSkillEffect;
+	TSubclassOf<UGameplayEffect> ExecuteSprintSkillEffect;
+
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	TSubclassOf<UGameplayEffect> ExecuteOutLineSkillEffect;
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayEffect> CoolDownEffect;
 
 	bool bHasCoolDownTag = false;
-	float SkillValue = 1.0f;
+	float SprintSkillValue = 1.0f;
+	float OutLineSkillValue = 1.0f;
+	TArray<float> SkillValue = {0, 0};
 
 };

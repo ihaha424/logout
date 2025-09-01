@@ -25,7 +25,5 @@ public:
 	TSubclassOf<UGameplayEffect> CoolDownEffect;
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
-	float SprintDuration = 5.0f;
-	UPROPERTY(EditAnywhere, Category = "GAS")
 	float CoolDownValue = 15.0f;
 };
