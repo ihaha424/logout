@@ -95,7 +95,7 @@ void UPlayerAttributeSet::OnRep_HP(const FGameplayAttributeData& OldValue)
 	// 체력이 0이하라면 다운.
 	if (GetHP() <= 0.0f && !bPlayerDowned)
 	{
-		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
+		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed); // 이거와는 관련이 없었음. 태그가 늘지않음. 애초에 이거때문이면 로우와 다운의 태그 갯수가 같아야 말이 됨.
 	}
 	bPlayerDowned = GetHP() <= 0.0f;
 }
@@ -203,19 +203,17 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	// 체력이 30% 보다 늘어나면 Low HP 태그 제거.
 	if (GetHP() >= GetMaxHP() * 0.3f && Data.Target.HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP))
 	{
-		Data.Target.RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
+		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
 	}
 	// 체력이 MaxHp의 30%이하라면 Low HP 효과 발동.
 	if (GetHP() < GetMaxHP() * 0.3f && !bPlayerLowHP)
 	{
-		Data.Target.AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
 		OnPlayerLowHP.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
 	}
 	bPlayerLowHP = GetHP() < GetMaxHP() * 0.3f;
 	// 체력이 0이하라면 다운.
 	if (GetHP() <= 0.0f && !bPlayerDowned)
 	{
-		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 	}
 	bPlayerDowned = GetHP() <= 0.0f;

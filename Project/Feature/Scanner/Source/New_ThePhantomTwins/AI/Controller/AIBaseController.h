@@ -39,6 +39,7 @@ protected:
     TObjectPtr<UAISenseConfig_Hearing> HearingConfig;
     UFUNCTION()
     void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+    virtual bool IsTargetActor(UAbilitySystemComponent* ASC);
     FTimerHandle SightTimerHandle;
     TArray<AActor*> PerceptionSightList;
     void FindCloseActor();

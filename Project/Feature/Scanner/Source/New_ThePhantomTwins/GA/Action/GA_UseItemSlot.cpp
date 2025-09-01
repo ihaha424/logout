@@ -2,9 +2,9 @@
 
 
 #include "GA_UseItemSlot.h"
-#include "../../Objects/InventoryComponent.h"
-#include "../../Player/PS_Player.h"
-#include "../../Player/PC_Player.h"
+#include "Objects/InventoryComponent.h"
+#include "Player/PS_Player.h"
+#include "Player/PC_Player.h"
 #include "Gameframework/PlayerController.h"
 #include "Gameframework/PlayerState.h"
 
@@ -14,6 +14,8 @@
 UGA_UseItemSlot::UGA_UseItemSlot()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+    ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
+    NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 }
 
 void UGA_UseItemSlot::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

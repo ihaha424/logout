@@ -114,6 +114,7 @@ protected:
 	// 인풋 처리
 	void InputPressed(int32 InputID);
 	void InputPressedWithNum(int32 InputID, int32 Number);
+	void InputPressedUseItem(int32 InputID);
 	void InputReleased(int32 InputID);
 
 	UFUNCTION(Server, Reliable)
@@ -174,6 +175,8 @@ protected:
 	TObjectPtr<UInputAction> MoveAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> LookAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	int32 SelectedSlotNumber = 0;
 
 	// 카메라
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))
