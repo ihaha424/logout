@@ -14,34 +14,34 @@ UGA_HoldItem::UGA_HoldItem()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
-	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_HoldItem);
 }
 
 void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
+	float SlotNumber = TriggerEventData->EventMagnitude;
+	TPT_LOG(GALog, Warning, TEXT(" %f"), SlotNumber);
+
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
     float number = TriggerEventData->EventMagnitude;
     TPT_LOG(GALog, Log, TEXT("UGA_HoldItem::ActivateAbility     %f"), number);
 
+
 	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
 	if (!Character) return;
 
 	USkeletalMeshComponent* MeshComp = Character->GetMesh();
-	FName HandSocketName = TEXT("Hand_RSocket"); //  // 손 소켓을 설정해야함.  ////
-
+	FName HandSocketName = TEXT("Hand_Socket"); //  // 손 소켓을 설정해야함.
 
 
 	// UGA_HoldItemㅡ 이 GA에 해당하는 태그가 붙어있는 상태면 손에 뭘 집고 있는 상태의 애니메이션이 출력되도록 하기.
 
-
-    float SlotNumber = TriggerEventData->EventMagnitude;
-
-
     APlayerController* PlayerController = ActorInfo->PlayerController.Get();
     EItemType choiceItemType = EItemType::None;
+
 
     if (PlayerController)
     {
@@ -76,7 +76,7 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
         // 플레이어 손에서 충돌판정이 안되도록 하기.
     }
 
-
+    EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
 TObjectPtr<class UStaticMesh> UGA_HoldItem::SetItemStaticMesh()
