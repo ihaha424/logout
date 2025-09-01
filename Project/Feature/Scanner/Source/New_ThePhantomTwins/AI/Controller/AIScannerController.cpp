@@ -2,6 +2,9 @@
 
 
 #include "AI/Controller/AIScannerController.h"
+#include "AbilitySystemComponent.h"
+#include "Tags/TPTGameplayTags.h"
+
 
 AAIScannerController::AAIScannerController()
 {
@@ -18,4 +21,12 @@ AAIScannerController::AAIScannerController()
 		{ "PlayerWalk",		{7, 20} },
 	};
 
+}
+
+bool AAIScannerController::CheckTargetActorType(UAbilitySystemComponent* ASC) const
+{
+	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player)
+		|| ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI))
+		return true;
+	return false;
 }

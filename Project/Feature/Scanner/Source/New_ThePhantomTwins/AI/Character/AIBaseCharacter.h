@@ -54,7 +54,7 @@ public:
 	//~ Begin AI Control(Combat)
 	TArray<AActor*> CombatRangeInActor;
 	FTimerHandle CombatRangeInActorTimerHandle;
-	bool MatchingChaseActorType(AActor* OtherActor);
+	virtual bool MatchingChaseActorType(AActor* OtherActor) const;
 	UFUNCTION()
 	void CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedComp
 		, AActor* OtherActor
@@ -91,8 +91,18 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystem;
 
+	//~ Begin AI Attribute
 	UPROPERTY()
 	TObjectPtr<UAIBaseAttributeSet> AttributeSet;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI Attribute")
+	float ChaseMentalAttackValue = 10;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI Attribute")
+	float AttackValue = 10;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI Attribute")
+	float MoveSpeed = 200;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI Attribute")
+	float ChaseSpeed = 300;
+	//~ End AI Attribute
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
 	FGameplayTagContainer AIStateTags;

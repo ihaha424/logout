@@ -44,8 +44,9 @@ protected:
     void FindCloseActor();
     UPROPERTY()
     TMap<FName, FUintVector2> StimulusPriorityMap;
-    inline int32 GetStimulusPriority(const FName& Tag);
-    inline int32 GetStimulusStrength(const FName& Tag);
+    inline int32 GetStimulusPriority(const FName& Tag) const;
+    inline int32 GetStimulusStrength(const FName& Tag) const;
+    virtual bool CheckTargetActorType(UAbilitySystemComponent* ASC) const;
     //~ End AI Perceptions
 
     //~ Begin BeHaviorTree

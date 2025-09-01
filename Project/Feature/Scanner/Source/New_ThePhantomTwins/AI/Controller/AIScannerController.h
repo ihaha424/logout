@@ -16,4 +16,7 @@ class NEW_THEPHANTOMTWINS_API AAIScannerController : public AAIBaseController
 	
 public:
 	AAIScannerController();
+
+protected:
+	virtual bool CheckTargetActorType(UAbilitySystemComponent* ASC) const override;
 };

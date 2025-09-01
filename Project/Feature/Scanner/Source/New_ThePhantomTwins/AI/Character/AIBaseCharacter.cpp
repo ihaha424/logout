@@ -41,6 +41,7 @@ void AAIBaseCharacter::BeginPlay()
 
     //GetCharacterMovement()->MaxAcceleration = 800.f;           // 느린 가속
     //GetCharacterMovement()->BrakingDecelerationWalking = 600.f; // 느린 감속
+    GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
 
     CombatRange->OnComponentBeginOverlap.AddDynamic(this, &AAIBaseCharacter::CombatRangeBeginOverlap);
     CombatRange->OnComponentEndOverlap.AddDynamic(this, &AAIBaseCharacter::CombatRangeEndOverlap);
@@ -178,7 +179,7 @@ void AAIBaseCharacter::ResetDataForState(const FGameplayTag Tag, int32 TagCount)
     }
 }
 
-bool AAIBaseCharacter::MatchingChaseActorType(AActor* OtherActor)
+bool AAIBaseCharacter::MatchingChaseActorType(AActor* OtherActor) const
 {
     UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
     if (nullptr == ASC)
@@ -189,6 +190,8 @@ bool AAIBaseCharacter::MatchingChaseActorType(AActor* OtherActor)
 
 void AAIBaseCharacter::CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+    if (OtherActor == this)
+        return;
     if (MatchingChaseActorType(OtherActor))
     {
         if (INDEX_NONE == CombatRangeInActor.Find(OtherActor))
@@ -300,10 +303,10 @@ void AAIBaseCharacter::AttackCollisionBeginOverlap(UPrimitiveComponent* Overlapp
     EffectContext.AddSourceObject(this);
 
     FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, 1.0f, EffectContext);
-    if (SpecHandle.IsValid())
-    {
-        TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-    }
+    if (!SpecHandle.IsValid())
+        return;
+    SpecHandle.Data->SetContext(EffectContext);
+    SpecHandle.Data->SetSetByCallerMagnitude(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_MentalPoint, -AttackValue);
 
     AttackCollisionEvent(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 }
@@ -313,7 +316,7 @@ void AAIBaseCharacter::ExcuteChaseActorGA(AActor* TargetActor)
     FGameplayEventData EventData;
     EventData.Instigator = this;
     EventData.Target = TargetActor;
-    EventData.EventMagnitude = -10.f; // Will Set With Attribute
+    EventData.EventMagnitude = -ChaseMentalAttackValue; // Will Set With Attribute
     AbilitySystem->HandleGameplayEvent(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_AIChasing, &EventData);
 }
 
@@ -327,10 +330,7 @@ void AAIBaseCharacter::CancleChaseActorGA()
 
 void AAIBaseCharacter::ResetDataForStunState_Implementation()
 {
-    AAIController* AIController = Cast<AAIController>(GetController());
-    NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
-    UBlackboardComponent* BB = AIController->GetBlackboardComponent();
-    NULLCHECK_RETURN_LOG(BB, AILog, Warning, );
+
 }
 
 void AAIBaseCharacter::ResetDataForDefaultState_Implementation()
@@ -354,10 +354,7 @@ void AAIBaseCharacter::ResetDataForDefaultState_Implementation()
 
 void AAIBaseCharacter::ResetDataForSuspicionState_Implementation()
 {
-    AAIController* AIController = Cast<AAIController>(GetController());
-    NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
-    UBlackboardComponent* BB = AIController->GetBlackboardComponent();
-    NULLCHECK_RETURN_LOG(BB, AILog, Warning, );
+
 }
 
 void AAIBaseCharacter::ResetDataForCombatState_Implementation()
@@ -369,12 +366,14 @@ void AAIBaseCharacter::ResetDataForCombatState_Implementation()
 
     BB->SetValueAsFloat("SightDuration", std::numeric_limits<float>::max());
     BB->SetValueAsFloat("HearingSum", std::numeric_limits<float>::max());
-    
+    GetCharacterMovement()->MaxWalkSpeed = ChaseSpeed;
+
     AActor* TargetActor = nullptr;
     UObject* Object = BB->GetValueAsObject("TargetActor");
     if (nullptr != Object)
         TargetActor = Cast<AActor>(Object);
 
+    CancleChaseActorGA();
     ExcuteChaseActorGA(TargetActor);
 }
 
@@ -400,6 +399,7 @@ void AAIBaseCharacter::ResetDataForEscapeCombatState_Implementation()
     BB->SetValueAsFloat("SightDuration", 0.f);
     BB->SetValueAsFloat("HearingSum", 0.f);
     BB->SetValueAsObject("TargetActor", nullptr);
+    GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
 
     CancleChaseActorGA();
 }
