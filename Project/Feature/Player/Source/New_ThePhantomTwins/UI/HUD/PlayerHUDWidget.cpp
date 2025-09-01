@@ -11,7 +11,7 @@
 #include "InventoryWidget.h"
 #include "ItemSlotWidget.h"
 
-#include "../../Log/TPTLog.h"
+#include "Log/TPTLog.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 void UPlayerHUDWidget::NativeConstruct()
@@ -139,5 +139,21 @@ void UPlayerHUDWidget::ResetItemSlot(int32 SlotIndex)
     if (InventoryWidget)
     {
         InventoryWidget->GetItemSlotWidget(SlotIndex)->ResetItemSlot();
+    }
+}
+
+void UPlayerHUDWidget::SetOutline(int32 SlotIndex, bool bVisible)
+{
+    if (InventoryWidget)
+    {
+        InventoryWidget->GetItemSlotWidget(SlotIndex)->SetOutline(bVisible);
+    }
+}
+
+void UPlayerHUDWidget::SetToolTips(bool bVisible, EItemType eItemType)
+{
+    if (InventoryWidget)
+    {
+        InventoryWidget->SetToolTips(bVisible, eItemType);
     }
 }

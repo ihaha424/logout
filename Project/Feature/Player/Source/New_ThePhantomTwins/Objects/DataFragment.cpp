@@ -34,6 +34,8 @@ void ADataFragment::OnInteractServer_Implementation(const APawn* Interactor)
 	ApplyEffectToTarget(Interactor);
 
 	SetDataFragmentPickupWidget();
+
+	DestroyItem();
 }
 
 void ADataFragment::SetDataFragmentPickupWidget()
@@ -82,6 +84,8 @@ void ADataFragment::SetDataFragmentPickupWidget()
 void ADataFragment::OnRep_bIsActived()
 {
 	SetDataFragmentPickupWidget();
+
+	DestroyItem();
 }
 
 void ADataFragment::HideFragmentMesh()

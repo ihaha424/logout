@@ -5,11 +5,12 @@
 #include "Engine/Texture2D.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
-#include "../../Objects/ItemData.h"
 
 void UItemSlotWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+    OutlineImg->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UItemSlotWidget::ResetItemSlot()
@@ -72,4 +73,11 @@ void UItemSlotWidget::SetItemQuantity(int32 ItemStack)
 	{
 		ItemQuantity->SetText(FText::AsNumber(ItemStack));
 	}
+}
+
+void UItemSlotWidget::SetOutline(bool bVisible)
+{
+    if (!OutlineImg) return;
+
+    OutlineImg->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 }
