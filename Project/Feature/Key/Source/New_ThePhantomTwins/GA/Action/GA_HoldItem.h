@@ -16,4 +16,8 @@ class NEW_THEPHANTOMTWINS_API UGA_HoldItem : public UGameplayAbility
 public:
 	UGA_HoldItem();
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
+private:
+	TObjectPtr<class UStaticMesh> SetItemStaticMesh();
+
 };

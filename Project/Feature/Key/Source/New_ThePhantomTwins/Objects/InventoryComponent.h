@@ -41,7 +41,7 @@ public:
     void AddItem(EItemType eItemType);
 
     UFUNCTION()
-    void ChoiceItem(int32 SlotIndex);
+    EItemType ChoiceItem(int32 SlotIndex);
 
     // 플레이어에서 1~MaxInventorySlots 숫자 키를 누르면 호출되는 함수. 슬롯에 있는 아이템의 EItemType이 반환됨
     UFUNCTION(BlueprintCallable, Category = "Inventory") 

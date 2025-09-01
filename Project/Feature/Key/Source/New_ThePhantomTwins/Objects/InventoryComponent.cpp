@@ -82,17 +82,17 @@ EItemType UInventoryComponent::UseItem(int32 SlotIndex)
     return Used;
 }
 
-void UInventoryComponent::ChoiceItem(int32 SlotIndex)
+EItemType UInventoryComponent::ChoiceItem(int32 SlotIndex)
 {
     // 0-based 인덱스라면 범위 체크
     if (SlotIndex < 0 || SlotIndex >= InventorySlots.Num())
     {
-        return;
+        return EItemType::None;
     }
 
     if (PlayerHUDWidget)
     {
-        if (IsSlotEmpty(InventorySlots[SlotIndex])) return;
+        if (IsSlotEmpty(InventorySlots[SlotIndex])) return EItemType::None;
 
         if (selectedNum == -1 || selectedNum != SlotIndex)
         {
@@ -118,6 +118,8 @@ void UInventoryComponent::ChoiceItem(int32 SlotIndex)
             );
         }
     }
+
+    return InventorySlots[SlotIndex].ItemType;
 }
 
 bool UInventoryComponent::SetPlayerHUDWidget(class UPlayerHUDWidget* HUDWidget)
