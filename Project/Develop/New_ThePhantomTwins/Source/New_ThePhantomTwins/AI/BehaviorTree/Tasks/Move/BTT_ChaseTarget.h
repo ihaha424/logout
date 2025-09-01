@@ -31,10 +31,4 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Chase")
 	float AcceptableRadius = 50.f;
-
-	UPROPERTY(EditAnywhere, Category = "Chase")
-	float ChaseTick = 0.2f;
-
-private:
-	float CurTick = 0.f;
 };

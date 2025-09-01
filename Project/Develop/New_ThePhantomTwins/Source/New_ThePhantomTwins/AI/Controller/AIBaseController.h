@@ -39,14 +39,14 @@ protected:
     TObjectPtr<UAISenseConfig_Hearing> HearingConfig;
     UFUNCTION()
     void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
-    virtual bool IsTargetActor(UAbilitySystemComponent* ASC);
     FTimerHandle SightTimerHandle;
     TArray<AActor*> PerceptionSightList;
     void FindCloseActor();
     UPROPERTY()
     TMap<FName, FUintVector2> StimulusPriorityMap;
-    inline int32 GetStimulusPriority(const FName& Tag);
-    inline int32 GetStimulusStrength(const FName& Tag);
+    inline int32 GetStimulusPriority(const FName& Tag) const;
+    inline int32 GetStimulusStrength(const FName& Tag) const;
+    virtual bool CheckTargetActorType(UAbilitySystemComponent* ASC) const;
     //~ End AI Perceptions
 
     //~ Begin BeHaviorTree

@@ -41,8 +41,10 @@ void AAIBaseCharacter::BeginPlay()
 
     //GetCharacterMovement()->MaxAcceleration = 800.f;           // 느린 가속
     //GetCharacterMovement()->BrakingDecelerationWalking = 600.f; // 느린 감속
+    GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
 
     CombatRange->OnComponentBeginOverlap.AddDynamic(this, &AAIBaseCharacter::CombatRangeBeginOverlap);
+    CombatRange->OnComponentEndOverlap.AddDynamic(this, &AAIBaseCharacter::CombatRangeEndOverlap);
     if (nullptr != AttackCollision)
     {
         AttackCollision->OnComponentBeginOverlap.AddDynamic(this, &AAIBaseCharacter::AttackCollisionBeginOverlap);
@@ -177,17 +179,50 @@ void AAIBaseCharacter::ResetDataForState(const FGameplayTag Tag, int32 TagCount)
     }
 }
 
-void AAIBaseCharacter::CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+bool AAIBaseCharacter::MatchingChaseActorType(AActor* OtherActor) const
 {
     UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
-    NULLCHECK_RETURN_LOG(ASC, AILog, Log, );
+    if (nullptr == ASC)
+        return false;
 
-    // Player
-    if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player))
+    return ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
+}
+
+void AAIBaseCharacter::CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+    if (OtherActor == this)
+        return;
+    if (MatchingChaseActorType(OtherActor))
+    {
+        if (INDEX_NONE == CombatRangeInActor.Find(OtherActor))
+            CombatRangeInActor.Add(OtherActor);
+        if (!CombatRangeInActorTimerHandle.IsValid())
+        {
+            GetWorld()->GetTimerManager().SetTimer(
+                CombatRangeInActorTimerHandle,
+                this,
+                &AAIBaseCharacter::CheckCombatRangeInActor,
+                0.2f,
+                true
+            );
+        }
+    }
+}
+
+void AAIBaseCharacter::CombatRangeEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+    CombatRangeInActor.Remove(OtherActor);
+    if (CombatRangeInActor.Num() < 1 && CombatRangeInActorTimerHandle.IsValid())
+        GetWorld()->GetTimerManager().ClearTimer(CombatRangeInActorTimerHandle);
+}
+
+void AAIBaseCharacter::CheckCombatRangeInActor()
+{
+    for (AActor* actor : CombatRangeInActor)
     {
         //SweepResult를 이용해서도 확인 가능, 만약 레이케스팅이 부적절하면 Sweep의 정보를 이용해서 사용
         FVector MyLoc = GetActorLocation();
-        FVector TargetLoc = OtherActor->GetActorLocation();
+        FVector TargetLoc = actor->GetActorLocation();
         FHitResult HitResult;
         FCollisionQueryParams Params;
         Params.AddIgnoredActor(this);
@@ -199,7 +234,7 @@ void AAIBaseCharacter::CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedCo
             ECC_Pawn,
             Params
         );
-#if WITH_EDITOR
+    #if WITH_EDITOR
         //DrawDebugLine(
         //    GetWorld(),
         //    MyLoc,
@@ -210,8 +245,8 @@ void AAIBaseCharacter::CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedCo
         //    0,
         //    2.0f
         //);
-#endif
-        if (bHit && HitResult.GetActor() == OtherActor)
+    #endif
+        if (bHit && HitResult.GetActor() == actor)
         {
             AAIController* AIController = Cast<AAIController>(GetController());
             NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
@@ -222,11 +257,10 @@ void AAIBaseCharacter::CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedCo
             UBlackboardComponent* BB = AIController->GetBlackboardComponent();
             NULLCHECK_RETURN_LOG(BB, AILog, Warning, );
 
-            AIBaseController->AddPerceptionSightList(OtherActor);
+            AIBaseController->AddPerceptionSightList(actor);
             BB->SetValueAsBool(TEXT("bInCombatRange"), true);
             BB->SetValueAsFloat(TEXT("SightDuration"), TNumericLimits<float>::Max());
         }
-        
     }
 }
 
@@ -269,10 +303,10 @@ void AAIBaseCharacter::AttackCollisionBeginOverlap(UPrimitiveComponent* Overlapp
     EffectContext.AddSourceObject(this);
 
     FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, 1.0f, EffectContext);
-    if (SpecHandle.IsValid())
-    {
-        TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-    }
+    if (!SpecHandle.IsValid())
+        return;
+    SpecHandle.Data->SetContext(EffectContext);
+    SpecHandle.Data->SetSetByCallerMagnitude(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_MentalPoint, -AttackValue);
 
     AttackCollisionEvent(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 }
@@ -282,7 +316,7 @@ void AAIBaseCharacter::ExcuteChaseActorGA(AActor* TargetActor)
     FGameplayEventData EventData;
     EventData.Instigator = this;
     EventData.Target = TargetActor;
-    EventData.EventMagnitude = -10.f; // Will Set With Attribute
+    EventData.EventMagnitude = -ChaseMentalAttackValue; // Will Set With Attribute
     AbilitySystem->HandleGameplayEvent(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_AIChasing, &EventData);
 }
 
@@ -296,10 +330,7 @@ void AAIBaseCharacter::CancleChaseActorGA()
 
 void AAIBaseCharacter::ResetDataForStunState_Implementation()
 {
-    AAIController* AIController = Cast<AAIController>(GetController());
-    NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
-    UBlackboardComponent* BB = AIController->GetBlackboardComponent();
-    NULLCHECK_RETURN_LOG(BB, AILog, Warning, );
+
 }
 
 void AAIBaseCharacter::ResetDataForDefaultState_Implementation()
@@ -323,10 +354,7 @@ void AAIBaseCharacter::ResetDataForDefaultState_Implementation()
 
 void AAIBaseCharacter::ResetDataForSuspicionState_Implementation()
 {
-    AAIController* AIController = Cast<AAIController>(GetController());
-    NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
-    UBlackboardComponent* BB = AIController->GetBlackboardComponent();
-    NULLCHECK_RETURN_LOG(BB, AILog, Warning, );
+
 }
 
 void AAIBaseCharacter::ResetDataForCombatState_Implementation()
@@ -338,12 +366,14 @@ void AAIBaseCharacter::ResetDataForCombatState_Implementation()
 
     BB->SetValueAsFloat("SightDuration", std::numeric_limits<float>::max());
     BB->SetValueAsFloat("HearingSum", std::numeric_limits<float>::max());
-    
+    GetCharacterMovement()->MaxWalkSpeed = ChaseSpeed;
+
     AActor* TargetActor = nullptr;
     UObject* Object = BB->GetValueAsObject("TargetActor");
     if (nullptr != Object)
         TargetActor = Cast<AActor>(Object);
 
+    CancleChaseActorGA();
     ExcuteChaseActorGA(TargetActor);
 }
 
@@ -369,6 +399,7 @@ void AAIBaseCharacter::ResetDataForEscapeCombatState_Implementation()
     BB->SetValueAsFloat("SightDuration", 0.f);
     BB->SetValueAsFloat("HearingSum", 0.f);
     BB->SetValueAsObject("TargetActor", nullptr);
+    GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
 
     CancleChaseActorGA();
 }
