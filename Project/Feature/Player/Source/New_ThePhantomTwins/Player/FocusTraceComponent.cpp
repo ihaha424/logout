@@ -118,7 +118,7 @@ void UFocusTraceComponent::PerformTrace()
     }
 
 #if WITH_EDITOR
-    DrawDebugSphere(
+   /* DrawDebugSphere(
         GetWorld(),
         Hit.ImpactPoint,
         SphereRadius,
@@ -128,7 +128,7 @@ void UFocusTraceComponent::PerformTrace()
         1.0f,
         0,
 		3.0f
-    );
+    );*/
 #endif
 
     if (Pawn->IsLocallyControlled())

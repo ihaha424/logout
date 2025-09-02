@@ -304,12 +304,6 @@ void APlayerCharacter::PlayerHUDHPSet(int32 value)
 {
 	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
 	PlayerHUDWidget->UpdateHP(value);
-
-	//PlayerHUD->UpdateClearItem();// 데이터조각(같이공유하는거)
-	//// 태그이용
-	//PlayerHUD->SetActiveSkillIcon();
-	//PlayerHUD->SetPassiveSkillIcon();
-	//PlayerHUD->SetCharPortrait();// 초상화
 }
 
 void APlayerCharacter::PlayerHUDMentalSet(int32 value)
@@ -369,6 +363,7 @@ void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 {
 	FGameplayAbilitySpec* TagID = ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
 	NULLCHECK_RETURN_LOG(TagID, PlayerLog, Warning, );
+	ASC->AddReplicatedLooseGameplayTag(InputTag);
 	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
 }
 
