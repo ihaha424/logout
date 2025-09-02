@@ -18,10 +18,10 @@ enum class EItemType : uint8
 {
     // None
 	None,  
-    // 폭죽
-    FireCracker, 
-    // 카메라
-    Camera,
+    // 소음폭탄
+    NoiseBomb,
+    // EMP폭탄
+    EMP,
     // 체력 팩
     HealPack,
     // 멘탈 팩

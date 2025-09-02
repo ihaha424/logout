@@ -259,6 +259,8 @@ void APlayerCharacter::InputPressed(int32 InputID)
 			ASC->TryActivateAbility(Spec->Handle);
 		}
 	}
+
+	PlayerHUDWidget->VisibleStamina(true);
 }
 
 void APlayerCharacter::InputReleased(int32 InputID)
@@ -304,6 +306,8 @@ void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
 	SelectedSlotNumber = SlotNumber;
 	TPT_LOG(PlayerLog, Warning, TEXT(" %d"), SlotNumber);
 
+	PlayerHUDWidget->VisibleInventory(true);
+
 	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Event_Character_HoldItem;
 	FGameplayEventData Payload;
 	Payload.EventTag = EventTag;
@@ -319,10 +323,25 @@ void APlayerCharacter::InputPressedUseItem(int32 InputID)
 
 	if (InventoryComponent)
 	{
-		// UseItem 호출
 		InventoryComponent->UseItem(SelectedSlotNumber);
 	}
+
+	if (HasAuthority())
+	{
+		// 서버에서 실행 시 → 바로 제거 + 멀티캐스트
+		RemoveHeldItemMesh();
+		S2A_RemoveHeldItemMesh();
+	}
+	else
+	{
+		// 클라에서 실행 시 → 서버에 요청
+		C2S_RemoveHeldItemMesh();
+		// 동시에 자기 로컬 메쉬도 제거
+		RemoveHeldItemMesh();
+	}
+
 	SelectedSlotNumber = 0;
+
 }
 
 void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)
@@ -737,6 +756,48 @@ void APlayerCharacter::UpdateWallSound()
 void APlayerCharacter::OnRep_CurrentWallRange()
 {
 	UpdateWallSound();
+}
+
+void APlayerCharacter::RemoveHeldItemMesh()
+{
+	USkeletalMeshComponent* MeshComp = GetMesh();
+	if (!MeshComp) return;
+
+	const FName HandSocketName = TEXT("RightHandSocket");
+
+	// 캐릭터 Mesh에 붙은 자식 컴포넌트 전부 탐색
+	TArray<USceneComponent*> AttachedComponents;
+	MeshComp->GetChildrenComponents(true, AttachedComponents);
+
+	for (USceneComponent* Comp : AttachedComponents)
+	{
+		if (!Comp) continue;
+
+		// 손 소켓에 붙은 StaticMeshComponent만 제거
+		if (Comp->GetAttachSocketName() == HandSocketName)
+		{
+			if (UStaticMeshComponent* HeldMeshComp = Cast<UStaticMeshComponent>(Comp))
+			{
+				HeldMeshComp->DestroyComponent();
+				UE_LOG(LogTemp, Log, TEXT("Removed HeldItem StaticMesh from RightHandSocket"));
+				return; // 하나만 제거하면 되므로 바로 종료
+			}
+		}
+	}
+}
+
+void APlayerCharacter::C2S_RemoveHeldItemMesh_Implementation()
+{
+	// 서버에서 제거
+	RemoveHeldItemMesh();
+
+	// 모든 클라(호출자 포함)에게 동기화
+	S2A_RemoveHeldItemMesh();
+}
+
+void APlayerCharacter::S2A_RemoveHeldItemMesh_Implementation()
+{
+	RemoveHeldItemMesh();
 }
 
 UAbilitySystemComponent* APlayerCharacter::GetAbilitySystemComponent() const

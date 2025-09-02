@@ -26,6 +26,7 @@ void UPlayerHUDWidget::InitializeWidgets(int32 HP/*=200*/, int32 Mental/*=100*/,
     UpdateMental(Mental);
     SetCharPortrait(PortraitTexture);
     UpdateStamina(Stamina);
+    VisibleStamina(false);
 
 /* Skill */
     UpdateCoreEnergy(CoreEnergyNum);
@@ -34,6 +35,7 @@ void UPlayerHUDWidget::InitializeWidgets(int32 HP/*=200*/, int32 Mental/*=100*/,
 
 /* Inventory */
     SetMaxInventorySlots(MaxInventorySlots);
+    VisibleInventory(false);
 
 // Max Setting
     PlayerStatusWidget->MaxHP = HP;
@@ -74,6 +76,21 @@ void UPlayerHUDWidget::UpdateStamina(const int32 Stamina)
     }
 }
 
+void UPlayerHUDWidget::VisibleStamina(bool bVisible)
+{
+    if (PlayerStaminaWidget)
+    {
+        if (bVisible)
+        {
+            PlayerStaminaWidget->SetVisibility(ESlateVisibility::Visible);
+        }
+        else
+        {
+            PlayerStaminaWidget->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
+}
+
 
 /* ClearItem */
 void UPlayerHUDWidget::UpdateClearItem(const int32 CurrentClearItem)
@@ -107,6 +124,21 @@ void UPlayerHUDWidget::UpdateCoreEnergy(const int32 CoreEnergyNum)
     if (PlayerSkillWidget)
     {
         PlayerSkillWidget->ShowCoreEnergy(CoreEnergyNum);
+    }
+}
+
+void UPlayerHUDWidget::VisibleInventory(bool bVisible)
+{
+    if (InventoryWidget)
+    {
+        if (bVisible)
+        {
+            InventoryWidget->SetVisibility(ESlateVisibility::Visible);
+        }
+        else
+        {
+            InventoryWidget->SetVisibility(ESlateVisibility::Hidden);
+        }
     }
 }
 

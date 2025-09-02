@@ -150,6 +150,19 @@ protected:
 	void OnRep_CurrentWallRange();
 
 
+private:
+	UFUNCTION(BlueprintCallable, Category="Item")
+	void RemoveHeldItemMesh();
+
+	UFUNCTION(Server, Reliable)
+	void C2S_RemoveHeldItemMesh();
+	void C2S_RemoveHeldItemMesh_Implementation();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_RemoveHeldItemMesh();
+	void S2A_RemoveHeldItemMesh_Implementation();
+
+
 protected:
 
 	UPROPERTY()
