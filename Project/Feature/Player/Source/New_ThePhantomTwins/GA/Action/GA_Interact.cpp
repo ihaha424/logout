@@ -53,22 +53,26 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 					IHolding::Execute_CalculateGaugePercent(TargetActor, Elapsed);
 				}
 			});
+
+		TargetActor->GetWorld()->GetTimerManager().SetTimer(
+			UpdateHandle,
+			TimerDel,
+			0.02f,
+			true
+		);
+
+		TargetActor->GetWorld()->GetTimerManager().SetTimer(
+			CompleteHandle,
+			this,
+			&UGA_Interact::InteractExecute,
+			Time,
+			false
+		);
 	}
-
-	TargetActor->GetWorld()->GetTimerManager().SetTimer(
-		UpdateHandle,
-		TimerDel,
-		0.02f,
-		true
-	);
-
-	TargetActor->GetWorld()->GetTimerManager().SetTimer(
-		CompleteHandle,
-		this,
-		&UGA_Interact::InteractExecute,
-		Time,
-		false
-	);
+	else
+	{
+		InteractExecute();
+	}
 }
 
 void UGA_Interact::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
@@ -81,11 +85,11 @@ void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const 
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, )
 	NULLCHECK_CODE_RETURN_LOG(TargetActor, GALog, Warning, CancelAbility(Handle, ActorInfo, ActivationInfo, true);, )
 
-	TargetActor->GetWorld()->GetTimerManager().ClearTimer(CompleteHandle);
-	TargetActor->GetWorld()->GetTimerManager().ClearTimer(UpdateHandle);
-
 	if (TargetActor->GetClass()->ImplementsInterface(UHolding::StaticClass()))
 	{
+		TargetActor->GetWorld()->GetTimerManager().ClearTimer(CompleteHandle);
+		TargetActor->GetWorld()->GetTimerManager().ClearTimer(UpdateHandle);
+
 		IHolding::Execute_SetHoldingGaugeUI(TargetActor, Character, false);
 		IHolding::Execute_CalculateGaugePercent(TargetActor, 0.0f);
 	}
