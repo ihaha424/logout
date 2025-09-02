@@ -248,12 +248,12 @@ float APlayerCharacter::GetTime_Implementation()
 	return Time;
 }
 
-void APlayerCharacter::SetPercent_Implementation(float Percent)
+void APlayerCharacter::CalculateGaugePercent_Implementation(float Elapsed)
 {
-	RecoveryPercent = Percent;
+	RecoveryPercent = Elapsed / Time;
 }
 
-void APlayerCharacter::SetGaugeUI_Implementation(const APawn* Interactor, bool bVisible)
+void APlayerCharacter::SetHoldingGaugeUI_Implementation(const APawn* Interactor, bool bVisible)
 {
 	APC_Player* PC = APC_Player::GetLocalPlayerController(Interactor->GetController());
 	PC->SetWidget(TEXT("RecoveryGauge"), bVisible, EMessageTargetType::Multicast);

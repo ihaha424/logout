@@ -9,11 +9,10 @@
 #include "Log/TPTLog.h"
 #include "Player/FocusTraceComponent.h"
 #include "SzInterface/Interact.h"
-#include "SzInterface/GaugeObject.h"
+#include "SzInterface/Holding.h"
 #include "Kismet/GameplayStatics.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Player/PC_Player.h"
-#include "GA/Action/AT/AT_WaitInputHold.h"
 
 UGA_Interact::UGA_Interact()
 {
@@ -42,17 +41,17 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	FTimerDelegate TimerDel;
 	float Time = 0.0f;
 
-	if (TargetActor->GetClass()->ImplementsInterface(UGaugeObject::StaticClass())) // 플레이어 오브젝트
+	if (TargetActor->GetClass()->ImplementsInterface(UHolding::StaticClass())) // 플레이어 오브젝트
 	{
-		Time = IGaugeObject::Execute_GetTime(TargetActor);
-		IGaugeObject::Execute_SetGaugeUI(TargetActor, Character, true);
+		Time = IHolding::Execute_GetTime(TargetActor);
+		IHolding::Execute_SetHoldingGaugeUI(TargetActor, Character, true);
 
 		TimerDel.BindLambda([this, Time]()
 			{
 				if (GetWorld()->GetTimerManager().IsTimerActive(CompleteHandle))
 				{
 					float Elapsed = GetWorld()->GetTimerManager().GetTimerElapsed(CompleteHandle);
-					IGaugeObject::Execute_SetPercent(TargetActor, Elapsed / Time);
+					IHolding::Execute_CalculateGaugePercent(TargetActor, Elapsed);
 				}
 			});
 	}
@@ -86,10 +85,10 @@ void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const 
 	TargetActor->GetWorld()->GetTimerManager().ClearTimer(CompleteHandle);
 	TargetActor->GetWorld()->GetTimerManager().ClearTimer(UpdateHandle);
 
-	if (TargetActor->GetClass()->ImplementsInterface(UGaugeObject::StaticClass()))
+	if (TargetActor->GetClass()->ImplementsInterface(UHolding::StaticClass()))
 	{
-		IGaugeObject::Execute_SetGaugeUI(TargetActor, Character, false);
-		IGaugeObject::Execute_SetPercent(TargetActor, 0.0f);
+		IHolding::Execute_SetHoldingGaugeUI(TargetActor, Character, false);
+		IHolding::Execute_CalculateGaugePercent(TargetActor, 0.0f);
 	}
 
 	CancelAbility(Handle, ActorInfo, ActivationInfo, true);

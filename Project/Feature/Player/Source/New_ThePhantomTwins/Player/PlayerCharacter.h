@@ -8,7 +8,7 @@
 #include "GameFramework/Character.h"
 #include "GameplayTagContainer.h"
 #include "SzInterface/Interact.h"
-#include "SzInterface/GaugeObject.h"
+#include "SzInterface/Holding.h"
 #include "GenericTeamAgentInterface.h"
 #include "PlayerCharacter.generated.h"
 
@@ -41,7 +41,7 @@ enum class EEnemyRange : uint8
 };
 
 UCLASS()
-class NEW_THEPHANTOMTWINS_API APlayerCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IInteract, public IGaugeObject
+class NEW_THEPHANTOMTWINS_API APlayerCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IInteract, public IHolding
 {
 	GENERATED_BODY()
 
@@ -68,8 +68,8 @@ public:
 	virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
 
 	virtual float GetTime_Implementation() override;
-	virtual void SetPercent_Implementation(float Percent) override;
-	virtual void SetGaugeUI_Implementation(const APawn* Interactor, bool bVisible) override;
+	virtual void CalculateGaugePercent_Implementation(float Elapsed) override;
+	virtual void SetHoldingGaugeUI_Implementation(const APawn* Interactor, bool bVisible) override;
 
 public:
 	// 플레이어 캐릭터 속도
