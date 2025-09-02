@@ -71,6 +71,9 @@ public:
 	virtual void CalculateGaugePercent_Implementation(float Elapsed) override;
 	virtual void SetHoldingGaugeUI_Implementation(const APawn* Interactor, bool bVisible) override;
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnRep_RecoveryPercent();
+
 public:
 	// 플레이어 캐릭터 속도
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -81,7 +84,7 @@ public:
 	TObjectPtr<UWidgetComponent> DownedWidget;
 	
 	// 리커버리 관련 변수
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(ReplicatedUsing = OnRep_RecoveryPercent, VisibleAnywhere, BlueprintReadWrite)
 	float RecoveryPercent = 0.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	float RecoveryTime = 5.0f;

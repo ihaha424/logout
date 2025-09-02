@@ -251,6 +251,7 @@ float APlayerCharacter::GetTime_Implementation()
 void APlayerCharacter::CalculateGaugePercent_Implementation(float Elapsed)
 {
 	RecoveryPercent = Elapsed / Time;
+	OnRep_RecoveryPercent();
 }
 
 void APlayerCharacter::SetHoldingGaugeUI_Implementation(const APawn* Interactor, bool bVisible)
