@@ -259,6 +259,8 @@ void APlayerCharacter::InputPressed(int32 InputID)
 			ASC->TryActivateAbility(Spec->Handle);
 		}
 	}
+
+	PlayerHUDWidget->VisibleStamina(true);
 }
 
 void APlayerCharacter::InputReleased(int32 InputID)
@@ -304,6 +306,8 @@ void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
 	SelectedSlotNumber = SlotNumber;
 	TPT_LOG(PlayerLog, Warning, TEXT(" %d"), SlotNumber);
 
+	PlayerHUDWidget->VisibleInventory(true);
+
 	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Event_Character_HoldItem;
 	FGameplayEventData Payload;
 	Payload.EventTag = EventTag;
@@ -337,6 +341,7 @@ void APlayerCharacter::InputPressedUseItem(int32 InputID)
 	}
 
 	SelectedSlotNumber = 0;
+
 }
 
 void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)

@@ -39,6 +39,8 @@ public:
     UFUNCTION(BlueprintCallable, Category = "UI | PlayerStatus")
     void UpdateStamina(const int32 Stamina);
 
+    void VisibleStamina(bool bVisible);
+
 
 /* ClearItem */ 
     // 현재 클리어 아이템 갯수 변경
@@ -58,6 +60,8 @@ public:
 
 
 /* Inventory */
+    void VisibleInventory(bool bVisible);
+
     // 인벤토리 최대 슬롯 갯수
     UFUNCTION(BlueprintCallable, Category = "UI | Inventory")
     void SetMaxInventorySlots(const int32 MaxInventorySlots);

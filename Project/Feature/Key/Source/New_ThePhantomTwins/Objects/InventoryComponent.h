@@ -1,7 +1,5 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
-
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "GameplayTagContainer.h"
@@ -14,11 +12,9 @@ USTRUCT(BlueprintType)
 struct FItemSlot
 {
     GENERATED_BODY()
-
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     EItemType ItemType = EItemType::None;
-
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     int32 ItemQuantity = 0;
 };
@@ -27,7 +23,6 @@ UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class NEW_THEPHANTOMTWINS_API UInventoryComponent : public UActorComponent
 {
     GENERATED_BODY()
-
 public:	
     UInventoryComponent();
 
@@ -89,6 +84,9 @@ private:
     // 서버/클라 공통 UI 리프레시 (서버는 직접 호출, 클라는 OnRep에서 호출)
     void RefreshUIFromInventory();
 
+    // 5초 뒤 인벤토리 위젯이 사라지는 함수
+    void VisibleInventory();
+
 protected:
     UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_InventorySlots)
     TArray<FItemSlot> InventorySlots;
@@ -109,4 +107,7 @@ public:
 private:
     UPROPERTY()
     int32 selectedNum = -1;
+
+    UPROPERTY()
+    FTimerHandle VisibleInventoryTimerHandle;
 };
