@@ -1,4 +1,4 @@
-#include "GA_HoldItem.h"
+﻿#include "GA_HoldItem.h"
 #include "Engine/StaticMesh.h"
 #include "Player/PlayerCharacter.h"
 #include "Player/PS_Player.h"
@@ -18,7 +18,6 @@ UGA_HoldItem::UGA_HoldItem()
     ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 
-    // Warning about AbilityTags API is informational; leaving as-is for now.
     AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_HoldItem);
 
     HeldItemComponent = nullptr;
@@ -28,7 +27,6 @@ UGA_HoldItem::UGA_HoldItem()
 void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
     const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-    // Avatar / local check
     APawn* Pawn = Cast<APawn>(ActorInfo->AvatarActor.Get());
     if (Pawn && !Pawn->IsLocallyControlled())
     {
@@ -48,8 +46,9 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
         return;
     }
 
+    // 오른손에 붙임
     USkeletalMeshComponent* MeshComp = Character->GetMesh();
-    const FName HandSocketName = TEXT("RightHandSocket"); // ������Ʈ ���� ���ϸ����� �ٲ��ּ���
+    const FName HandSocketName = TEXT("RightHandSocket");
 
     APlayerController* PlayerController = ActorInfo->PlayerController.Get();
     EItemType choiceItemType = EItemType::None;
@@ -65,17 +64,16 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
                 UInventoryComponent* InventoryComponent = PlayerPS->InventoryComp;
                 if (InventoryComponent)
                 {
-                    // ChoiceItem expects 0-based index
                     choiceItemType = InventoryComponent->ChoiceItem(static_cast<int32>(SlotNumber - 1));
                 }
             }
         }
     }
 
-    // ���� ��� ǥ�ÿ� Mesh ��������
+    // 로컬 즉시 표시용 Mesh 가져오기
     UStaticMesh* choiceItemStaticMesh = SetItemStaticMesh(choiceItemType);
 
-    // ���� ��ü�: ���ÿ����� ���̴� StaticMeshComponent ����
+    // 로컬 즉시성: 로컬에서만 보이는 StaticMeshComponent 생성
     if (choiceItemStaticMesh && MeshComp)
     {
         if (HeldItemComponent)
@@ -102,14 +100,14 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
             HeldItemComponent = LocalMeshComp;
         }
 
-        TPT_LOG(GALog, Log, TEXT("Found mesh for item type, attached to hand socket locally."));
+        TPT_LOG(GALog, Log, TEXT("아이템 타입에 해당하는 메쉬를 찾아서 로컬 손 소켓에 부착 완료."));
     }
     else
     {
-        TPT_LOG(GALog, Warning, TEXT("No mesh found in DataTable for this item type or MeshComp is null."));
+        TPT_LOG(GALog, Warning, TEXT("이 아이템 타입에 대한 DataTable 메쉬가 없거나 MeshComp가 null입니다."));
     }
 
-    // ������ replicated actor ���� ��û (������ �� Ŭ���̾�Ʈ�� ���̵���)
+    // 서버에 복제되는 액터 스폰 요청 (서버가 각 클라이언트에서 보이도록)
     if (choiceItemType != EItemType::None)
     {
         C2S_SpawnAndAttachHeldItem(choiceItemType);
@@ -118,12 +116,14 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
     EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
+
+// DataTable에서 StaticMesh 얻어오는 함수
 UStaticMesh* UGA_HoldItem::SetItemStaticMesh(EItemType ItemType)
 {
     if (ItemType == EItemType::None) return nullptr;
     if (!ItemAbilityTable)
     {
-        TPT_LOG(GALog, Warning, TEXT("SetItemStaticMesh: ItemAbilityTable not assigned on %s"), *GetName());
+        TPT_LOG(GALog, Warning, TEXT("SetItemStaticMesh: ItemAbilityTable이 %s에서 지정되지 않음"), *GetName());
         return nullptr;
     }
 
@@ -143,39 +143,39 @@ UStaticMesh* UGA_HoldItem::SetItemStaticMesh(EItemType ItemType)
             }
             else
             {
-                TPT_LOG(GALog, Warning, TEXT("SetItemStaticMesh: Found row %s but ItemMesh is null"), *RowName.ToString());
+                TPT_LOG(GALog, Warning, TEXT("SetItemStaticMesh: %s 행은 있지만 ItemMesh가 null임"), *RowName.ToString());
                 return nullptr;
             }
         }
     }
 
-    TPT_LOG(GALog, Warning, TEXT("SetItemStaticMesh: No matching row for ItemType %d in DataTable %s"), static_cast<int32>(ItemType), *GetName());
+    TPT_LOG(GALog, Warning, TEXT("SetItemStaticMesh: DataTable %s에서 ItemType %d에 해당하는 행 없음"), *GetName(), static_cast<int32>(ItemType));
     return nullptr;
 }
 
-// Server RPC: spawn actor and create a replicated StaticMeshComponent on it, then multicast attach instruction
+// 서버 RPC: 액터 스폰 후 복제되는 StaticMeshComponent 생성, 멀티캐스트로 부착 지시
 void UGA_HoldItem::C2S_SpawnAndAttachHeldItem_Implementation(EItemType ItemType)
 {
-    // This runs on server
+    // 이 코드는 서버에서 실행됨
     AActor* Avatar = GetAvatarActorFromActorInfo();
     APlayerCharacter* Character = Avatar ? Cast<APlayerCharacter>(Avatar) : nullptr;
     if (!Character)
     {
-        TPT_LOG(GALog, Warning, TEXT("Server_SpawnAndAttachHeldItem: No Character available on server."));
+        TPT_LOG(GALog, Warning, TEXT("Server_SpawnAndAttachHeldItem: 서버에서 Character를 찾을 수 없음."));
         return;
     }
 
-    // Ensure this server-side code runs on authoritative actor
+    // 권한 있는 액터에서만 실행되도록 보장
     if (!Character->HasAuthority())
     {
-        TPT_LOG(GALog, Warning, TEXT("Server_SpawnAndAttachHeldItem: Called on non-authority for this character."));
+        TPT_LOG(GALog, Warning, TEXT("Server_SpawnAndAttachHeldItem: 권한 없는 액터에서 호출됨."));
         return;
     }
 
     UStaticMesh* MeshToUse = SetItemStaticMesh(ItemType);
     if (!MeshToUse)
     {
-        TPT_LOG(GALog, Warning, TEXT("Server_SpawnAndAttachHeldItem: MeshToUse is null."));
+        TPT_LOG(GALog, Warning, TEXT("Server_SpawnAndAttachHeldItem: MeshToUse가 null임."));
         return;
     }
 
@@ -185,15 +185,18 @@ void UGA_HoldItem::C2S_SpawnAndAttachHeldItem_Implementation(EItemType ItemType)
     USkeletalMeshComponent* CharMesh = Character->GetMesh();
     if (!CharMesh)
     {
-        TPT_LOG(GALog, Warning, TEXT("Server_SpawnAndAttachHeldItem: Character has no mesh."));
+        TPT_LOG(GALog, Warning, TEXT("Server_SpawnAndAttachHeldItem: Character에 Mesh가 없음."));
         return;
     }
 
-    // select socket name (replace with exact socket used by your skeleton)
+    // 소켓 이름 선택 (스켈레톤에서 사용하는 정확한 소켓명으로 교체 필요)
     FName HandSocketName = TEXT("RightHandSocket");
+
     if (!CharMesh->DoesSocketExist(HandSocketName))
     {
-        HandSocketName = TEXT("Hand_Socket");
+        HandSocketName = TEXT("");
+        TPT_LOG(GALog, Warning, TEXT("잘못된 소켓 이름 입니다."));
+
     }
 
     FVector SpawnLocation = Character->GetActorLocation();
@@ -211,29 +214,29 @@ void UGA_HoldItem::C2S_SpawnAndAttachHeldItem_Implementation(EItemType ItemType)
         SpawnRotation = CharMesh->GetComponentRotation();
     }
 
-    // Spawn parameters with Owner = Character so server has obvious owner
+    // 스폰 파라미터: Owner = Character로 설정하여 서버가 명확한 소유권 가짐
     FActorSpawnParameters SpawnParams;
     SpawnParams.Owner = Character;
     SpawnParams.Instigator = Character->GetInstigator();
     SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-    // Spawn a plain AActor on server
+    // 서버에서 기본 AActor 스폰
     AActor* Spawned = World->SpawnActor<AActor>(AActor::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
     if (!Spawned)
     {
-        TPT_LOG(GALog, Warning, TEXT("Server_SpawnAndAttachHeldItem: Failed to spawn actor."));
+        TPT_LOG(GALog, Warning, TEXT("Server_SpawnAndAttachHeldItem: 액터 스폰 실패."));
         return;
     }
 
-    // replicate actor and movement
+    // 액터와 이동 복제 설정
     Spawned->SetReplicates(true);
     Spawned->SetReplicateMovement(true);
 
-    // create static mesh component on spawned actor
+    // 스폰된 액터에 StaticMeshComponent 생성
     UStaticMeshComponent* MeshComp = NewObject<UStaticMeshComponent>(Spawned);
     if (!MeshComp)
     {
-        TPT_LOG(GALog, Warning, TEXT("Server_SpawnAndAttachHeldItem: Failed to create StaticMeshComponent."));
+        TPT_LOG(GALog, Warning, TEXT("Server_SpawnAndAttachHeldItem: StaticMeshComponent 생성 실패."));
         Spawned->Destroy();
         return;
     }
@@ -243,10 +246,10 @@ void UGA_HoldItem::C2S_SpawnAndAttachHeldItem_Implementation(EItemType ItemType)
     MeshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
     MeshComp->SetSimulatePhysics(false);
 
-    // enable replication for component
+    // 컴포넌트 복제 활성화
     MeshComp->SetIsReplicated(true);
 
-    // Make mesh the root component of spawned actor, register it, then attach to character mesh socket on server
+    // Mesh를 루트 컴포넌트로 설정 → 등록 → 서버에서 캐릭터 Mesh 소켓에 부착
     Spawned->SetRootComponent(MeshComp);
     MeshComp->RegisterComponent();
 
@@ -263,34 +266,34 @@ void UGA_HoldItem::C2S_SpawnAndAttachHeldItem_Implementation(EItemType ItemType)
     MeshComp->SetRelativeRotation(FRotator::ZeroRotator);
     MeshComp->SetRelativeScale3D(FVector(1.0f));
 
-    // cache spawned for possible destruction later
+    // 나중에 파괴할 수 있도록 캐시
     ReplicatedHeldActor = Spawned;
 
-    // find owner playerstate to tell clients which player's hand to attach to
+    // 소유자 PlayerState 찾아서 각 클라이언트에 어느 플레이어 손에 부착할지 전달
     APlayerState* OwnerPS = Character->GetPlayerState<APlayerState>();
 
-    // multicast to clients to set mesh (if needed) and attach to the correct player's hand socket
+    // 멀티캐스트로 클라이언트에게 메쉬 설정 및 소켓 부착 지시
     S2A_AttachReplicatedActor(Spawned, OwnerPS, HandSocketName, ItemType);
 
-    // remove local immediate visual on listen-server to avoid duplicates
+    // 리슨 서버에서는 로컬 즉시 비주얼 제거 (중복 방지)
     if (HeldItemComponent)
     {
         HeldItemComponent->DestroyComponent();
         HeldItemComponent = nullptr;
     }
 
-    TPT_LOG(GALog, Log, TEXT("Server_SpawnAndAttachHeldItem: Spawned replicated actor and requested multicast attach."));
+    TPT_LOG(GALog, Log, TEXT("Server_SpawnAndAttachHeldItem: 복제 액터 스폰 및 멀티캐스트 부착 요청 완료."));
 }
 
 void UGA_HoldItem::S2A_AttachReplicatedActor_Implementation(AActor* SpawnedActor, APlayerState* OwnerPlayerState, FName SocketName, EItemType ItemType)
 {
     if (!SpawnedActor) return;
 
-    // On each client (and server too), ensure the mesh is set on the spawned actor's root static mesh component.
+    // 각 클라이언트(및 서버)에서, 스폰된 액터의 루트 StaticMeshComponent 확인 후 메쉬 설정
     UStaticMeshComponent* RootMeshComp = Cast<UStaticMeshComponent>(SpawnedActor->GetRootComponent());
     if (!RootMeshComp)
     {
-        // try to find any static mesh component
+        // StaticMeshComponent가 없으면 탐색
         TArray<UStaticMeshComponent*> Comps;
         SpawnedActor->GetComponents<UStaticMeshComponent>(Comps);
         if (Comps.Num() > 0)
@@ -299,15 +302,15 @@ void UGA_HoldItem::S2A_AttachReplicatedActor_Implementation(AActor* SpawnedActor
         }
     }
 
-    // If the component exists but has no static mesh (client-side), set it using our DataTable lookup
+    // 컴포넌트가 존재하지만 메쉬가 없는 경우 (클라이언트 측), DataTable에서 메쉬 가져와 설정
     if (RootMeshComp && !RootMeshComp->GetStaticMesh())
     {
-        UStaticMesh* MeshToUse = SetItemStaticMesh(ItemType); // local ability instance has access to the DataTable asset
+        UStaticMesh* MeshToUse = SetItemStaticMesh(ItemType); // 로컬 Ability 인스턴스에서 DataTable 참조 가능
         if (MeshToUse)
         {
             RootMeshComp->SetStaticMesh(MeshToUse);
             RootMeshComp->SetIsReplicated(true);
-            // ensure it's registered
+            // 등록되지 않았다면 등록
             if (!RootMeshComp->IsRegistered())
             {
                 RootMeshComp->RegisterComponent();
@@ -315,7 +318,7 @@ void UGA_HoldItem::S2A_AttachReplicatedActor_Implementation(AActor* SpawnedActor
         }
     }
 
-    // Find the local pawn that corresponds to OwnerPlayerState by iterating player controllers
+    // OwnerPlayerState에 해당하는 Pawn 찾기 (플레이어 컨트롤러 순회)
     UWorld* World = SpawnedActor->GetWorld();
     if (!World) return;
 
@@ -335,26 +338,26 @@ void UGA_HoldItem::S2A_AttachReplicatedActor_Implementation(AActor* SpawnedActor
 
     if (!TargetPawn)
     {
-        // Could not find pawn: maybe player not possessed locally yet. Defer or leave as-is.
-        TPT_LOG(GALog, Warning, TEXT("Multicast_AttachReplicatedActor: Could not find pawn for OwnerPlayerState on this client."));
+        // Pawn을 찾을 수 없을 경우 (아직 소유되지 않은 경우), 그대로 둠
+        TPT_LOG(GALog, Warning, TEXT("Multicast_AttachReplicatedActor: 이 클라이언트에서 OwnerPlayerState에 해당하는 Pawn을 찾지 못함."));
         return;
     }
 
     APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(TargetPawn);
     if (!PlayerChar)
     {
-        TPT_LOG(GALog, Warning, TEXT("Multicast_AttachReplicatedActor: TargetPawn is not APlayerCharacter."));
+        TPT_LOG(GALog, Warning, TEXT("Multicast_AttachReplicatedActor: TargetPawn이 APlayerCharacter가 아님."));
         return;
     }
 
     USkeletalMeshComponent* CharMesh = PlayerChar->GetMesh();
     if (!CharMesh)
     {
-        TPT_LOG(GALog, Warning, TEXT("Multicast_AttachReplicatedActor: PlayerChar has no mesh."));
+        TPT_LOG(GALog, Warning, TEXT("Multicast_AttachReplicatedActor: PlayerChar에 Mesh 없음."));
         return;
     }
 
-    // Attach the spawned actor's root component to the found character's socket
+    // 스폰된 액터 루트 컴포넌트를 해당 캐릭터의 소켓에 부착
     if (CharMesh->DoesSocketExist(SocketName))
     {
         RootMeshComp->AttachToComponent(CharMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
@@ -363,20 +366,20 @@ void UGA_HoldItem::S2A_AttachReplicatedActor_Implementation(AActor* SpawnedActor
     }
     else
     {
-        // fallback: attach to mesh and keep world transform
+        // 소켓 없으면 Mesh에 부착하고 월드 좌표 유지
         RootMeshComp->AttachToComponent(CharMesh, FAttachmentTransformRules::KeepWorldTransform);
     }
 
-    // Ensure the actor replicates movement so clients see it move if needed
+    // 액터 이동도 복제되도록 설정
     SpawnedActor->SetReplicateMovement(true);
 }
 
-// Server RPC: destroy replicated actor
+// 서버 RPC: 복제된 액터 파괴
 void UGA_HoldItem::C2S_DestroyReplicatedHeldItem_Implementation()
 {
     if (ReplicatedHeldActor)
     {
-        // This runs on server; Destroy will replicate to clients
+        // 서버에서 실행됨; Destroy가 클라이언트에도 복제됨
         ReplicatedHeldActor->Destroy();
         ReplicatedHeldActor = nullptr;
     }

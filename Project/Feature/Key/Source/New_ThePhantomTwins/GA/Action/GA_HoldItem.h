@@ -31,7 +31,7 @@ private:
     UPROPERTY()
     AActor* ReplicatedHeldActor = nullptr;
 
-    // DataTable에서 StaticMesh 얻어오는 헬퍼
+    // DataTable에서 StaticMesh 얻어오는 함수
     UStaticMesh* SetItemStaticMesh(EItemType ItemType);
 
     // 서버 RPC: replicated actor 를 스폰/초기화 (서버에서 실행)
