@@ -7,8 +7,7 @@
 
 UGA_StaminaBuff::UGA_StaminaBuff()
 {
-    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-    ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
+    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor; 
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_StaminaBuff);
 }

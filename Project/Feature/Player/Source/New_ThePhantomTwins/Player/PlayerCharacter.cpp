@@ -180,7 +180,7 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 		StartSpec.InputID = InputID;
 		ASC->GiveAbility(StartSpec);
 	}
-	ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
+	ASC->AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
 	PlayerController = GetController<APC_Player>();
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 
@@ -353,7 +353,6 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Started, this, &ThisClass::InputPressed);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Started, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
 
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_Q, ETriggerEvent::Started, this, &ThisClass::InputSKillPressed,1);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_E, ETriggerEvent::Started, this, &ThisClass::InputSKillPressed,2);
@@ -404,27 +403,29 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 
 void APlayerCharacter::OnRecoveryCompleted()
 {
+	TPT_LOG(PlayerLog, Error, TEXT("IS Local? : %d"), IsLocallyControlled());
+	TPT_LOG(PlayerLog, Error, TEXT("Has Authority? : %d"), HasAuthority());
+
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
 
 	FGameplayTag DownedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed;
 	FGameplayTag ConfusedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd;
 	FGameplayTag LowHPTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP;
 
-	int32 DownedTagCount = ASC->GetTagCount(DownedTag);
-	for (int32 i = 0; i < DownedTagCount; ++i)
+	TPT_LOG(PlayerLog, Error, TEXT("HasMatchingGameplayTag? : %d"), ASC->HasMatchingGameplayTag(DownedTag));
+	if (ASC->HasMatchingGameplayTag(DownedTag))
 	{
-		ASC->RemoveLooseGameplayTag(DownedTag);
+		ASC->RemoveReplicatedLooseGameplayTag(DownedTag);
 	}
 
-	int32 LowHPTagCount = ASC-> GetTagCount(LowHPTag);
-	for (int32 i = 0; i < LowHPTagCount; ++i)
+	if (ASC->HasMatchingGameplayTag(LowHPTag))
 	{
-		ASC->RemoveLooseGameplayTag(LowHPTag);
+		ASC->RemoveReplicatedLooseGameplayTag(LowHPTag);
 	}
 
 	if (ASC->HasMatchingGameplayTag(ConfusedTag))
 	{
-		ASC->RemoveLooseGameplayTag(ConfusedTag);
+		ASC->RemoveReplicatedLooseGameplayTag(ConfusedTag);
 	}
 
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
@@ -591,7 +592,7 @@ void APlayerCharacter::CameraSetting()
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->bUsePawnControlRotation = true;
 	SpringArm->bEnableCameraLag = true;
-	SpringArm->TargetArmLength = 150.0f;
+	SpringArm->TargetArmLength = 200.0f;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->bUsePawnControlRotation = false;

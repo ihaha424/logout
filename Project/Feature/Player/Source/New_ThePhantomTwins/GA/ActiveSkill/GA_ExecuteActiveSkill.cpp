@@ -10,7 +10,6 @@
 UGA_ExecuteActiveSkill::UGA_ExecuteActiveSkill()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_ActiveSkill);
 }

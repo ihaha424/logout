@@ -9,8 +9,7 @@
 
 UGA_StarterKit::UGA_StarterKit()
 {
-	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor; 
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 }
 

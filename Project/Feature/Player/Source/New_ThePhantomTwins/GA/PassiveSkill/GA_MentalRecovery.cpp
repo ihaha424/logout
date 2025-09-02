@@ -11,8 +11,7 @@
 
 UGA_MentalRecovery::UGA_MentalRecovery()
 {
-    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-    ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
+    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor; 
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 }
 

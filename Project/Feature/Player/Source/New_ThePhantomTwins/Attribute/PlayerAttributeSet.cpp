@@ -212,7 +212,7 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	// 체력이 30% 보다 늘어나면 Low HP 태그 제거.
 	if (GetHP() >= GetMaxHP() * 0.3f && Data.Target.HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP))
 	{
-		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
+		Data.Target.RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
 	}
 	// 체력이 MaxHp의 30%이하라면 Low HP 효과 발동.
 	if (GetHP() < GetMaxHP() * 0.3f && !bPlayerLowHP)
@@ -230,7 +230,7 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	// 정신력이 MAX가 아니라면 거리별회복 GA 호출
 	if (GetMentalPoint() < GetMaxMentalPoint() && !bMentalPointNotMax)
 	{
-		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalRecovery);
+		Data.Target.AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalRecovery);
 		OnMentalPointNotMax.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalRecovery);
 	}
 	bMentalPointNotMax = GetMentalPoint() < GetMaxMentalPoint();
@@ -243,7 +243,7 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	if (GetMentalPoint() > 25.0f && GetMentalPoint() <= 50.0f && !bPlayerConfused1st)
 	{
 		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
-		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
+		Data.Target.AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
 		OnPlayerConfused1st.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
 	}
 	bPlayerConfused1st = (GetMentalPoint() > 25.0f && GetMentalPoint() <= 50.0f);
@@ -251,9 +251,9 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	// 정신력이 25 이하라면 착란 2단계
 	if (GetMentalPoint() > 0.0f && GetMentalPoint() <= 25.0f && !bPlayerConfused2nd)
 	{
-		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
-		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
-		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
+		Data.Target.RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
+		Data.Target.RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
+		Data.Target.AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
 		OnPlayerConfused2nd.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
 	}
 	bPlayerConfused2nd = (GetMentalPoint() > 0.0f && GetMentalPoint() <= 25.0f);
@@ -261,8 +261,8 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	// 정신력이 0 이라면 착란 3단계
 	if (GetMentalPoint() <= 0.0f && !bPlayerConfused3rd)
 	{
-		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
-		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
+		Data.Target.RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
+		Data.Target.AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
 		OnPlayerConfused3rd.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
 	}
 	bPlayerConfused3rd = GetMentalPoint() <= 0.0f;

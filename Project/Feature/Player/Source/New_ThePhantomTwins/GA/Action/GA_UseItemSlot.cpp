@@ -14,7 +14,6 @@
 UGA_UseItemSlot::UGA_UseItemSlot()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-    ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 }
 
