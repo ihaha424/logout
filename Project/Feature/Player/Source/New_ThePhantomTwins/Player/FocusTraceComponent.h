@@ -27,6 +27,10 @@ public:
     void OnRep_FocusedActor();
 
     void PerformTrace();
+
+    // 라인의 두께
+	UPROPERTY(EditAnywhere)
+    float SphereRadius = 50.f;
 protected:
     virtual void BeginPlay() override;
 
