@@ -46,6 +46,8 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
         return;
     }
 
+
+
     // 오른손에 붙임
     USkeletalMeshComponent* MeshComp = Character->GetMesh();
     const FName HandSocketName = TEXT("RightHandSocket");
@@ -70,48 +72,65 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
         }
     }
 
-    // 로컬 즉시 표시용 Mesh 가져오기
-    UStaticMesh* choiceItemStaticMesh = SetItemStaticMesh(choiceItemType);
-
-    // 로컬 즉시성: 로컬에서만 보이는 StaticMeshComponent 생성
-    if (choiceItemStaticMesh && MeshComp)
+    // 소음폭탄 이거나 EMP면 Mesh 손에 들기
+    if (choiceItemType == EItemType::EMP || choiceItemType == EItemType::NoiseBomb)
     {
-        if (HeldItemComponent)
+        C2S_DestroyReplicatedHeldItem();    // 투척 아이템 아니면 손에 있는 Mesh 지우기
+
+        // 로컬 즉시 표시용 Mesh 가져오기
+        UStaticMesh* choiceItemStaticMesh = SetItemStaticMesh(choiceItemType);
+
+        // 로컬 즉시성: 로컬에서만 보이는 StaticMeshComponent 생성
+        if (choiceItemStaticMesh && MeshComp)
         {
-            HeldItemComponent->DestroyComponent();
-            HeldItemComponent = nullptr;
+            if (HeldItemComponent)
+            {
+                HeldItemComponent->DestroyComponent();
+                HeldItemComponent = nullptr;
+            }
+
+            UStaticMeshComponent* LocalMeshComp = NewObject<UStaticMeshComponent>(Character);
+            if (LocalMeshComp)
+            {
+                LocalMeshComp->SetStaticMesh(choiceItemStaticMesh);
+                LocalMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+                LocalMeshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+                LocalMeshComp->SetSimulatePhysics(false);
+
+                LocalMeshComp->RegisterComponent();
+
+                LocalMeshComp->AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, HandSocketName);
+                LocalMeshComp->SetRelativeLocation(FVector::ZeroVector);
+                LocalMeshComp->SetRelativeRotation(FRotator::ZeroRotator);
+                LocalMeshComp->SetRelativeScale3D(FVector(1.0f));
+
+                HeldItemComponent = LocalMeshComp;
+            }
+
+            TPT_LOG(GALog, Log, TEXT("아이템 타입에 해당하는 메쉬를 찾아서 로컬 손 소켓에 부착 완료."));
+
+
+            // 이 다음에 소음폭탄, EMP 투척 아이템이 날아가는 포물선 인디케이터 출력
+        }
+        else
+        {
+            TPT_LOG(GALog, Warning, TEXT("이 아이템 타입에 대한 DataTable 메쉬가 없거나 MeshComp가 null입니다."));
         }
 
-        UStaticMeshComponent* LocalMeshComp = NewObject<UStaticMeshComponent>(Character);
-        if (LocalMeshComp)
+        // 서버에 복제되는 액터 스폰 요청 (서버가 각 클라이언트에서 보이도록)
+        if (choiceItemType != EItemType::None)
         {
-            LocalMeshComp->SetStaticMesh(choiceItemStaticMesh);
-            LocalMeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-            LocalMeshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
-            LocalMeshComp->SetSimulatePhysics(false);
-
-            LocalMeshComp->RegisterComponent();
-
-            LocalMeshComp->AttachToComponent(MeshComp, FAttachmentTransformRules::SnapToTargetNotIncludingScale, HandSocketName);
-            LocalMeshComp->SetRelativeLocation(FVector::ZeroVector);
-            LocalMeshComp->SetRelativeRotation(FRotator::ZeroRotator);
-            LocalMeshComp->SetRelativeScale3D(FVector(1.0f));
-
-            HeldItemComponent = LocalMeshComp;
+            C2S_SpawnAndAttachHeldItem(choiceItemType);
         }
-
-        TPT_LOG(GALog, Log, TEXT("아이템 타입에 해당하는 메쉬를 찾아서 로컬 손 소켓에 부착 완료."));
     }
     else
     {
-        TPT_LOG(GALog, Warning, TEXT("이 아이템 타입에 대한 DataTable 메쉬가 없거나 MeshComp가 null입니다."));
+        TPT_LOG(GALog, Warning, TEXT("투척 아이템 X => 손에 있는 Mesh 지우기"));
+
+        C2S_DestroyReplicatedHeldItem();    // 투척 아이템 아니면 손에 있는 Mesh 지우기
     }
 
-    // 서버에 복제되는 액터 스폰 요청 (서버가 각 클라이언트에서 보이도록)
-    if (choiceItemType != EItemType::None)
-    {
-        C2S_SpawnAndAttachHeldItem(choiceItemType);
-    }
+
 
     EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
