@@ -15,6 +15,7 @@ class ASplineActor;
 class USphereComponent;
 class UShapeComponent;
 class UGameplayEffect;
+class UGameplayCueInterface;
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API AAIBaseCharacter : public ACharacter, public IAbilitySystemInterface
@@ -35,6 +36,10 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAIBaseAttributeSet* GetAIAttributeSet() const;
 	//~ End IAbilitySystemInterface interface & Additional GAS System
+
+	//~ Begin GameplayCueNotify
+	TArray<UGameplayCueInterface> GamePlayCueNotifys;
+	//~ End GameplayCueNotify
 
 	//~ Begin State Control
 	void ApplyStun();

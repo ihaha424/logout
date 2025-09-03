@@ -11,4 +11,38 @@ void AGS_PhantomTwins::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
     DOREPLIFETIME(AGS_PhantomTwins, GameTime);
     DOREPLIFETIME(AGS_PhantomTwins, CoreCount);
+    DOREPLIFETIME(AGS_PhantomTwins, bBossSpawned);
+    DOREPLIFETIME(AGS_PhantomTwins, BossActor);
+}
+
+void AGS_PhantomTwins::AddCollectedItem(int32 Delta)
+{
+    if (!HasAuthority()) return;
+
+    CoreCount = FMath::Max(0, CoreCount + Delta);
+
+    CollectedItemCountChanged.Broadcast(CoreCount);
+}
+
+void AGS_PhantomTwins::MarkBossSpawned(AActor* InBoss)
+{
+    if (!HasAuthority() || bBossSpawned) return;
+
+    bBossSpawned = true;
+    BossActor = InBoss;
+
+    GameTime = GetServerWorldTimeSeconds();
+}
+
+void AGS_PhantomTwins::OnRep_BossSpawned()
+{
+    if (bBossSpawned)
+    {
+        OnBossSpawned.Broadcast(BossActor);
+    }
+}
+
+void AGS_PhantomTwins::OnRep_CollectedItemCount()
+{
+    CollectedItemCountChanged.Broadcast(CoreCount);
 }

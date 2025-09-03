@@ -6,6 +6,7 @@
 #include "../Player/PlayerCharacter.h"
 #include "../UI/HUD/PlayerHUDWidget.h"
 #include "../UI/DataFragmentPickupWidget.h"
+#include "GS_PhantomTwins.h"
 
 ADataFragment::ADataFragment()
 {
@@ -45,14 +46,10 @@ void ADataFragment::SetDataFragmentPickupWidget()
 
 	if (APC_Player* PC_Player = Cast<APC_Player>(GetWorld()->GetFirstPlayerController()))
 	{
-		// HUD 위젯
-		if (APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(PC_Player->GetCharacter()))
+		AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>();
+		if (GS)
 		{
-			if (UPlayerHUDWidget* HUD = PlayerChar->GetPlayerHUDWidget())
-			{
-				++HUD->ClearItemCount;
-				HUD->UpdateClearItem(HUD->ClearItemCount);
-			}
+			GS->AddCollectedItem();
 		}
 		
 		// 팝업 위젯
