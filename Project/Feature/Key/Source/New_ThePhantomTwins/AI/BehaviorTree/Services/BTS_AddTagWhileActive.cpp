@@ -31,7 +31,6 @@ void UBTS_AddTagWhileActive::OnBecomeRelevant(UBehaviorTreeComponent& OwnerComp,
 		AIASC->AddLooseGameplayTag(Tag);
 		AIASC->AddReplicatedLooseGameplayTag(Tag);
 	}
-
 }
 
 void UBTS_AddTagWhileActive::OnCeaseRelevant(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)

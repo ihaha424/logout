@@ -14,9 +14,6 @@ class NEW_THEPHANTOMTWINS_API UDataFragmentPickupWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
-protected:
-	virtual void NativeConstruct() override;
-
 public:
 	void SetText(const FText& Text);
 

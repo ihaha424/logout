@@ -6,20 +6,42 @@
 #include "GameFramework/GameStateBase.h"
 #include "GS_PhantomTwins.generated.h"
 
-/**
- * 
- */
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnCollectedItemCountChanged, int32);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBossSpawnedDynamic, AActor*, BossActor);
+
 UCLASS()
 class NEW_THEPHANTOMTWINS_API AGS_PhantomTwins : public AGameStateBase
 {
 	GENERATED_BODY()
-
 public:
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out) const override;
-
-public:
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
+	//~ Begin BossSpawn
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category = "BossSpawn")
 	float	GameTime = 0.f;
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(ReplicatedUsing = OnRep_CollectedItemCount, VisibleAnywhere, BlueprintReadWrite, Category = "BossSpawn")
 	int		CoreCount = 0;
+	UPROPERTY(ReplicatedUsing = OnRep_BossSpawned, BlueprintReadOnly, Category = "BossSpawn")
+	bool	bBossSpawned = false;
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "BossSpawn")
+	TObjectPtr<AActor> BossActor;
+	UPROPERTY(BlueprintAssignable, Category = "BossSpawn")
+	FOnBossSpawnedDynamic OnBossSpawned;
+
+	FOnCollectedItemCountChanged& OnCollectedItemCountChanged() { return CollectedItemCountChanged; }
+	UFUNCTION(BlueprintCallable, Category = "BossSpawn")
+	void AddCollectedItem(int32 Delta = 1);
+	void MarkBossSpawned(AActor* InBoss);
+	//~ End BossSpawn
+
+protected:
+	//~ Begin BossSpawn
+	FOnCollectedItemCountChanged CollectedItemCountChanged;
+	UFUNCTION()
+	void OnRep_BossSpawned();
+	UFUNCTION()
+	void OnRep_CollectedItemCount();
+	//~ End BossSpawn
+
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out) const override;
 };

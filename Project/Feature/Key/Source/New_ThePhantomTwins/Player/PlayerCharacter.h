@@ -8,6 +8,7 @@
 #include "GameFramework/Character.h"
 #include "GameplayTagContainer.h"
 #include "SzInterface/Interact.h"
+#include "SzInterface/Holding.h"
 #include "GenericTeamAgentInterface.h"
 #include "PlayerCharacter.generated.h"
 
@@ -40,7 +41,7 @@ enum class EEnemyRange : uint8
 };
 
 UCLASS()
-class NEW_THEPHANTOMTWINS_API APlayerCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IInteract
+class NEW_THEPHANTOMTWINS_API APlayerCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IInteract, public IHolding
 {
 	GENERATED_BODY()
 
@@ -66,18 +67,28 @@ public:
 	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
 	virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
 
+	virtual float GetTime_Implementation() override;
+	virtual void CalculateGaugePercent_Implementation(float Elapsed) override;
+	virtual void SetHoldingGaugeUI_Implementation(const APawn* Interactor, bool bVisible) override;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnRep_RecoveryPercent();
+
 public:
 	// 플레이어 캐릭터 속도
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float WalkSpeed = 150.f;
-	// 리커버리 관련 변수
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
-	FTimerHandle RecoveryTimerHandle;
-	FTimerHandle TempHandle;;
+
 	// 다운 인디케이터
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TObjectPtr<UWidgetComponent> DownedWidget;
 	
+	// 리커버리 관련 변수
+	UPROPERTY(ReplicatedUsing = OnRep_RecoveryPercent, VisibleAnywhere, BlueprintReadWrite)
+	float RecoveryPercent = 0.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
+	float RecoveryTime = 5.0f;
+
 	// Low HP Post Process Vignette 관련 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
 	TObjectPtr<UPostProcessComponent> PostProcessComponent;
@@ -117,6 +128,10 @@ protected:
 	void InputPressedWithNum(int32 InputID, int32 Number);
 	void InputPressedUseItem(int32 InputID);
 	void InputReleased(int32 InputID);
+
+	UFUNCTION(Server, Reliable)
+	void C2S_InputPressed(const int32 InputID);
+	void C2S_InputPressed_Implementation(const int32 InputID);
 
 	UFUNCTION(Server, Reliable)
 	void C2S_InputReleased(const int32 InputID);
@@ -219,11 +234,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TSubclassOf<UUserWidget> DownWidgetClass;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
-	float RecoveryTime = 3.0f;
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
-	float RecoveryPercent = 0.0f;
-
 	// 반경
 	UPROPERTY(VisibleAnywhere)
 	USphereComponent* WallSina;
@@ -245,4 +255,10 @@ protected:
 	TMap<AActor*, EEnemyRange> EnemyRangeMap;
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentWallRange)
 	EEnemyRange CurrentWallRange = EEnemyRange::None;
+
+	
+private:
+	UPROPERTY()
+	FTimerHandle VisibleInventoryTimerHandle;
+
 };

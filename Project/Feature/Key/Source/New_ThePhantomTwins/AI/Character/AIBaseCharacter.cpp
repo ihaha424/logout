@@ -9,6 +9,8 @@
 #include "AbilitySystemGlobals.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AI/Controller/AIBaseController.h"
+#include "GameplayCueInterface.h"
+
 
 #include "../Attributes/AIBaseAttributeSet.h"
 #include "Tags/TPTGameplayTags.h"
@@ -70,6 +72,11 @@ void AAIBaseCharacter::BeginPlay()
             FGameplayAbilitySpec StartSpec(Ability.Value);
             StartSpec.InputID = InputID;
             AbilitySystem->GiveAbility(StartSpec);
+        }
+
+        for (const auto& CueNotify : GamePlayCueNotifys)
+        {
+
         }
 
         AbilitySystem->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Stun)

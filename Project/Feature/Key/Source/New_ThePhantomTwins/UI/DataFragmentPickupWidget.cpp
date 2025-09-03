@@ -4,11 +4,6 @@
 #include "DataFragmentPickupWidget.h"
 #include "Components/TextBlock.h"
 
-void UDataFragmentPickupWidget::NativeConstruct()
-{
-	Super::NativeConstruct();
-}
-
 void UDataFragmentPickupWidget::SetText(const FText& Text)
 {
     if (TextWidget)

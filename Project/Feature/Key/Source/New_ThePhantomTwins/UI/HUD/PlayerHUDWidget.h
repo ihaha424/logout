@@ -17,6 +17,7 @@ class NEW_THEPHANTOMTWINS_API UPlayerHUDWidget : public UUserWidget
 	
 public:
     virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 public:
     void InitializeWidgets(int32 HP=200, int32 Mental=100, int32 Stamina=100, int32 CoreEnergyNum=5, int32 MaxInventorySlots = 5,
@@ -46,6 +47,7 @@ public:
     // 현재 클리어 아이템 갯수 변경
     UFUNCTION(BlueprintCallable, Category = "UI | ClearItem")
     void UpdateClearItem(const int32 CurrentClearItem);
+    FDelegateHandle ItemChangedHandle;
 
 
 /* Skill */

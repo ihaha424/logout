@@ -14,15 +14,12 @@
 
 UGA_HoldItem::UGA_HoldItem()
 {
-    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-    ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
-    NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
-
-    AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_HoldItem);
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_HoldItem);
 
     HeldItemComponent = nullptr;
-    ReplicatedHeldActor = nullptr;
-}
+    ReplicatedHeldActor = nullptr;}
 
 void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
     const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

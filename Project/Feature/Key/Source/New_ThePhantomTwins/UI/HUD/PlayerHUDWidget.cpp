@@ -3,6 +3,7 @@
 
 #include "PlayerHUDWidget.h"
 #include "Blueprint/UserWidget.h"
+#include "GS_PhantomTwins.h"
 
 #include "PlayerStatusWidget.h"
 #include "ClearItemCounterWidget.h"
@@ -17,6 +18,23 @@
 void UPlayerHUDWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+    if (AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>())
+    {
+        ItemChangedHandle = GS->OnCollectedItemCountChanged().AddUObject(
+            this, &UPlayerHUDWidget::UpdateClearItem);
+    }
+}
+
+void UPlayerHUDWidget::NativeDestruct()
+{
+    if (AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>())
+    {
+        if (ItemChangedHandle.IsValid())
+            GS->OnCollectedItemCountChanged().Remove(ItemChangedHandle);
+    }
+
+    Super::NativeDestruct();
 }
 
 void UPlayerHUDWidget::InitializeWidgets(int32 HP/*=200*/, int32 Mental/*=100*/, int32 Stamina/*=100*/, int32 CoreEnergyNum/*=5*/, int32 MaxInventorySlots/*=5*/, UTexture2D* PortraitTexture/*=nullptr*/, UTexture2D* ActiveSkillIcon /*= nullptr*/, UTexture2D* PassiveSkillIcon /*= nullptr*/)

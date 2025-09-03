@@ -2,7 +2,6 @@
 
 
 #include "GA_LookBack.h"
-#include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Log/TPTLog.h"
 #include "Player/PlayerCharacter.h"
@@ -14,24 +13,23 @@ void UGA_LookBack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 
     APlayerCharacter* Player = Cast<APlayerCharacter>(ActorInfo->AvatarActor);
     NULLCHECK_RETURN_LOG(Player, GALog, Error, );
+    USpringArmComponent* SpringArm = Player->GetSpringArm();
+	NULLCHECK_RETURN_LOG(SpringArm, GALog, Error, );
 
-	Player->GetSpringArm()->TargetArmLength = -Player->GetSpringArm()->TargetArmLength;
-	OriginalRotation = Player->GetCamera()->GetRelativeRotation();
+    OriginalLocation = SpringArm->GetRelativeLocation();
+	bIsMoveLeft = OriginalLocation.Y < 0;
 
-    FRotator FlipRot = OriginalRotation;
-    FlipRot.Yaw += 180.f;
-    Player->GetCamera()->SetRelativeRotation(FlipRot);
-}
+    if (!bIsMoveLeft)
+    {
+        FVector MoveLeft(OriginalLocation.X, OriginalLocation.Y - 50.f, OriginalLocation.Z);
+        SpringArm->SetRelativeLocation(MoveLeft);
+    }
+    else
+    {
+        FVector MoveRight(OriginalLocation.X, OriginalLocation.Y + 50.f, OriginalLocation.Z);
+        SpringArm->SetRelativeLocation(MoveRight);
+    }
 
-void UGA_LookBack::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo)
-{
-	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
-    APlayerCharacter* Player = Cast<APlayerCharacter>(ActorInfo->AvatarActor);
-    NULLCHECK_RETURN_LOG(Player, GALog, Error, );
-
-    Player->GetSpringArm()->TargetArmLength = -Player->GetSpringArm()->TargetArmLength;
-	Player->GetCamera()->SetRelativeRotation(OriginalRotation); // 저장된 각도로 복귀
-    
     EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
+

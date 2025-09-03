@@ -55,6 +55,102 @@ APlayerCharacter::APlayerCharacter()
 	PostProcessComponent->Priority = 1.f;
 }
 
+// AI의 감지를 위한 팀설정.
+FGenericTeamId APlayerCharacter::GetGenericTeamId() const
+{
+	if (PS)
+	{
+		return PS->GetGenericTeamId();
+	}
+	return FGenericTeamId::NoTeam;
+}
+
+UAbilitySystemComponent* APlayerCharacter::GetAbilitySystemComponent() const
+{
+	return ASC;
+}
+
+void APlayerCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(APlayerCharacter, RecoveryPercent);
+	DOREPLIFETIME(APlayerCharacter, CurrentWallRange);
+}
+
+void APlayerCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
+
+	UUserWidget* Interact = CreateWidget(GetWorld(), InteractWidgetClass);
+	InteractWidget->SetWidget(Interact);
+	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+
+	UUserWidget* Down = CreateWidget(GetWorld(), DownWidgetClass);
+	DownedWidget->SetWidget(Down);
+	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+
+	FocusTrace->SetIsReplicated(true);
+
+	NULLCHECK_RETURN_LOG(VignetteMaterial, PlayerLog, Error, );
+	VignetteMID = UMaterialInstanceDynamic::Create(VignetteMaterial, this);
+	FWeightedBlendable Blendable;
+	Blendable.Object = VignetteMID;
+	Blendable.Weight = 0.0f;
+
+	PostProcessComponent->Settings.WeightedBlendables.Array.Add(Blendable);
+
+	if (IsLocallyControlled())
+	{
+		PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
+		PlayerController->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
+	}
+
+	// RecoveryGauge Time
+	Time = RecoveryTime;
+}
+
+void APlayerCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	
+	if (ASC)  // TODO : 이게 꼭 여기 있을필요가 없다.
+	{
+		bool bIsDownedTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
+		if (bIsDownedTag)
+		{
+			DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+		}
+		else
+		{
+			DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+
+	if (IsLocallyControlled() && PlayerController && FocusTrace)
+	{
+		FVector2D ViewportSize;
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+
+		FVector WorldLocation;
+		FVector WorldDirection;
+		PlayerController->DeprojectScreenPositionToWorld(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, WorldLocation, WorldDirection);
+
+		// 클라 내에서 카메라 위치와 회전 받아오기
+		FVector CameraLocation;
+		FRotator CameraRotation;
+		PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
+		
+		// 클라에선 FocusTrace 세팅(시각효과용)
+		FocusTrace->SetStart(WorldLocation);
+		FocusTrace->SetDirection(WorldDirection);
+		FocusTrace->SetCollisionType(ECC_WorldDynamic);
+
+		// 서버 RPC 호출에 위치 + 회전 같이 넘기기
+		C2S_SetFocusTrace(CameraLocation, CameraRotation);
+	}
+}
+
 void APlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
@@ -123,270 +219,6 @@ void APlayerCharacter::OnRep_PlayerState()
 	AnimInstance->InitializeWithAbilitySystem(ASC);
 }
 
-void APlayerCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
-
-	UUserWidget* Interact = CreateWidget(GetWorld(), InteractWidgetClass);
-	InteractWidget->SetWidget(Interact);
-	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-
-	UUserWidget* Down = CreateWidget(GetWorld(), DownWidgetClass);
-	DownedWidget->SetWidget(Down);
-	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-
-	FocusTrace->SetIsReplicated(true);
-
-	NULLCHECK_RETURN_LOG(VignetteMaterial, PlayerLog, Error, );
-	VignetteMID = UMaterialInstanceDynamic::Create(VignetteMaterial, this);
-	FWeightedBlendable Blendable;
-	Blendable.Object = VignetteMID;
-	Blendable.Weight = 0.0f;
-
-	PostProcessComponent->Settings.WeightedBlendables.Array.Add(Blendable);
-
-	if (IsLocallyControlled())
-	{
-		PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
-		PlayerController->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
-	}
-}
-
-void APlayerCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-	
-	if (ASC)
-	{
-		bool bIsDownedTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-		if (bIsDownedTag)
-		{
-			DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
-		}
-		else
-		{
-			DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-		}
-	}
-
-	if (IsLocallyControlled() && PlayerController && FocusTrace)
-	{
-		FVector2D ViewportSize;
-		GEngine->GameViewport->GetViewportSize(ViewportSize);
-
-		FVector WorldLocation;
-		FVector WorldDirection;
-		PlayerController->DeprojectScreenPositionToWorld(ViewportSize.X * 0.5f, ViewportSize.Y * 0.5f, WorldLocation, WorldDirection);
-
-		// 클라 내에서 카메라 위치와 회전 받아오기
-		FVector CameraLocation;
-		FRotator CameraRotation;
-		PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
-		
-		// 클라에선 FocusTrace 세팅(시각효과용)
-		FocusTrace->SetStart(WorldLocation);
-		FocusTrace->SetDirection(WorldDirection);
-		FocusTrace->SetCollisionType(ECC_WorldDynamic);
-
-		// 서버 RPC 호출에 위치 + 회전 같이 넘기기
-		C2S_SetFocusTrace(CameraLocation, CameraRotation);
-	}
-}
-
-void APlayerCharacter::C2S_SetFocusTrace_Implementation(const FVector& CameraLocation, const FRotator& CameraRotation)
-{
-	if (HasAuthority() && FocusTrace)
-	{
-		FocusTrace->SetStart(CameraLocation);
-
-		FVector Direction = CameraRotation.Vector(); // 카메라 회전 기반 전방 방향 벡터를 다시 구함
-		FocusTrace->SetDirection(Direction);
-
-		FocusTrace->SetCollisionType(ECC_WorldDynamic);
-	}
-}
-
-void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	// 로컬에서만 일어남.
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	UTPTEnhancedInputComponent* TPTInput = CastChecked<UTPTEnhancedInputComponent>(PlayerInputComponent);
-	check(TPTInput);
-	TPTInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
-	TPTInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
-
-	SetupPlayerInputByTag(TPTInput);
-}
-
-void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInput)
-{
-	if (IsValid(ASC) && IsValid(TPTInput))
-	{
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Started, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
-
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Started, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Started, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
-
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_Q, ETriggerEvent::Started, this, &ThisClass::InputSKillPressed,1);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_E, ETriggerEvent::Started, this, &ThisClass::InputSKillPressed,2);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 1);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 2);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 3);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 4);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 5);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_UseItem, ETriggerEvent::Started, this, &ThisClass::InputPressedUseItem);
-	}
-}
-
-void APlayerCharacter::InputPressed(int32 InputID)
-{
-	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
-	if (Spec)
-	{
-		//Spec->GameplayEventData
-		Spec->InputPressed = true;
-		if (Spec->IsActive())
-		{
-			ASC->AbilitySpecInputPressed(*Spec);
-		}
-		else
-		{
-			ASC->TryActivateAbility(Spec->Handle);
-		}
-	}
-
-	PlayerHUDWidget->VisibleStamina(true);
-}
-
-void APlayerCharacter::InputReleased(int32 InputID)
-{
-	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
-	Spec->InputPressed = false;
-	if (!HasAuthority())
-	{
-		C2S_InputReleased(InputID);
-	}
-	else if (Spec->IsActive())
-	{
-		ASC->AbilitySpecInputReleased(*Spec);
-	}
-}
-
-void APlayerCharacter::C2S_InputReleased_Implementation(const int32 InputID)
-{
-	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
-	if (!Spec) return;
-
-	Spec->InputPressed = false;
-
-	if (Spec->IsActive())
-	{
-		ASC->AbilitySpecInputReleased(*Spec);
-	}
-}
-
-void APlayerCharacter::InputSKillPressed(int32 InputID, int32 SkillNumber)
-{
-	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_Skill_ActiveSkill;
-	FGameplayEventData Payload;
-	Payload.EventTag = EventTag;
-	Payload.Instigator = this;
-	Payload.EventMagnitude = static_cast<float>(SkillNumber);
-
-	ASC->HandleGameplayEvent(EventTag, &Payload);
-}
-
-void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
-{
-	SelectedSlotNumber = SlotNumber;
-	TPT_LOG(PlayerLog, Warning, TEXT(" %d"), SlotNumber);
-
-	PlayerHUDWidget->VisibleInventory(true);
-
-	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Event_Character_HoldItem;
-	FGameplayEventData Payload;
-	Payload.EventTag = EventTag;
-	Payload.Instigator = this;
-	Payload.EventMagnitude = static_cast<float>(SlotNumber);
-	
-	ASC->HandleGameplayEvent(EventTag, &Payload);
-}
-
-void APlayerCharacter::InputPressedUseItem(int32 InputID)
-{
-	UInventoryComponent* InventoryComponent = PS->InventoryComp;
-
-	if (InventoryComponent)
-	{
-		InventoryComponent->UseItem(SelectedSlotNumber);
-	}
-
-	if (HasAuthority())
-	{
-		// 서버에서 실행 시 → 바로 제거 + 멀티캐스트
-		RemoveHeldItemMesh();
-		S2A_RemoveHeldItemMesh();
-	}
-	else
-	{
-		// 클라에서 실행 시 → 서버에 요청
-		C2S_RemoveHeldItemMesh();
-		// 동시에 자기 로컬 메쉬도 제거
-		RemoveHeldItemMesh();
-	}
-
-	SelectedSlotNumber = 0;
-
-}
-
-void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)
-{
-	AttributeSet->OnPlayerLowHP.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-	AttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-	AttributeSet->OnPlayerConfused1st.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-	AttributeSet->OnPlayerConfused2nd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-	AttributeSet->OnPlayerConfused3rd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-	AttributeSet->OnPlayerUseSkill.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-	AttributeSet->OnMentalPointNotMax.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-
-	if (IsLocallyControlled())
-	{
-		AttributeSet->OnChangedHP.AddDynamic(this, &ThisClass::PlayerHUDHPSet);
-		AttributeSet->OnChangedMentalPoint.AddDynamic(this, &ThisClass::PlayerHUDMentalSet);
-		AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
-		AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
-	}
-
-	if (HasAuthority())
-	{
-		WallSina->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapWall);
-		WallSina->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapWall);
-		WallRose->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapWall);
-		WallRose->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapWall);
-		WallMaria->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapWall);
-		WallMaria->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapWall);
-	}
-}
-
-void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
-{
-	FGameplayAbilitySpec* TagID = ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
-	NULLCHECK_RETURN_LOG(TagID, PlayerLog, Warning, );
-	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
-}
-
-void APlayerCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(APlayerCharacter, RecoveryPercent);
-	DOREPLIFETIME(APlayerCharacter, CurrentWallRange);
-}
-
 bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, false);
@@ -403,89 +235,29 @@ bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool 
 
 void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 {
-
-	FTimerDelegate TimerDel;
-	TimerDel.BindLambda([this, Interactor]()
-		{
-			if (GetWorld()->GetTimerManager().IsTimerActive(RecoveryTimerHandle))
-			{
-				float Elapsed = GetWorld()->GetTimerManager().GetTimerElapsed(RecoveryTimerHandle);
-				RecoveryPercent = Elapsed / RecoveryTime;
-				APawn* interactPawn = const_cast<APawn*>(Interactor);
-				APlayerCharacter* interactCharacter = Cast<APlayerCharacter>(interactPawn);
-				interactCharacter->RecoveryPercent = RecoveryPercent;
-			}
-		});
-
-	GetWorld()->GetTimerManager().SetTimer(
-		TempHandle,
-		TimerDel,
-		0.02f,
-		true
-	);
-
-	GetWorld()->GetTimerManager().SetTimer(
-		RecoveryTimerHandle,
-		this,
-		&APlayerCharacter::OnRecoveryCompleted,
-		RecoveryTime,
-		false
-	);
+	OnRecoveryCompleted();
 }
 
 void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	APC_Player* PC = APC_Player::GetLocalPlayerController(Interactor->GetController());
-	if (!ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
-		return;
-	PC->SetWidget(TEXT("RecoveryGauge"), true, EMessageTargetType::Multicast);
+	
 }
 
-void APlayerCharacter::OnRecoveryCompleted()
+float APlayerCharacter::GetTime_Implementation()
 {
-	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
+	return Time;
+}
 
-	FGameplayTag DownedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed;
-	FGameplayTag ConfusedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd;
-	FGameplayTag LowHPTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP;
+void APlayerCharacter::CalculateGaugePercent_Implementation(float Elapsed)
+{
+	RecoveryPercent = Elapsed / Time;
+	OnRep_RecoveryPercent();
+}
 
-	int32 DownedTagCount = ASC->GetTagCount(DownedTag);
-	for (int32 i = 0; i < DownedTagCount; ++i)
-	{
-		ASC->RemoveLooseGameplayTag(DownedTag);
-	}
-
-	int32 LowHPTagCount = ASC-> GetTagCount(LowHPTag);
-	for (int32 i = 0; i < LowHPTagCount; ++i)
-	{
-		ASC->RemoveLooseGameplayTag(LowHPTag);
-	}
-
-	if (ASC->HasMatchingGameplayTag(ConfusedTag))
-	{
-		ASC->RemoveLooseGameplayTag(ConfusedTag);
-	}
-
-	GetWorld()->GetTimerManager().ClearTimer(RecoveryTimerHandle);
-	GetWorld()->GetTimerManager().ClearTimer(TempHandle);
-	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-
-	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
-
-	PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
-	PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
-
-	if (RecoveryGE)
-	{
-		FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
-		ContextHandle.AddSourceObject(this);
-		FGameplayEffectSpecHandle EffectSpecHandle = ASC->MakeOutgoingSpec(RecoveryGE, 1.0f, ContextHandle);
-		if (EffectSpecHandle.IsValid())
-		{
-			ASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
-		}
-	}
+void APlayerCharacter::SetHoldingGaugeUI_Implementation(const APawn* Interactor, bool bVisible)
+{
+	APC_Player* PC = APC_Player::GetLocalPlayerController(Interactor->GetController());
+	PC->SetWidget(TEXT("RecoveryGauge"), bVisible, EMessageTargetType::Multicast);
 }
 
 void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
@@ -533,12 +305,6 @@ void APlayerCharacter::PlayerHUDHPSet(int32 value)
 {
 	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
 	PlayerHUDWidget->UpdateHP(value);
-
-	//PlayerHUD->UpdateClearItem();// 데이터조각(같이공유하는거)
-	//// 태그이용
-	//PlayerHUD->SetActiveSkillIcon();
-	//PlayerHUD->SetPassiveSkillIcon();
-	//PlayerHUD->SetCharPortrait();// 초상화
 }
 
 void APlayerCharacter::PlayerHUDMentalSet(int32 value)
@@ -557,6 +323,294 @@ void APlayerCharacter::PlayerHUDCoreEnergySet(int32 value)
 {
 	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
 	PlayerHUDWidget->UpdateCoreEnergy(value);
+}
+
+void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	// 로컬에서만 일어남.
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	UTPTEnhancedInputComponent* TPTInput = CastChecked<UTPTEnhancedInputComponent>(PlayerInputComponent);
+	check(TPTInput);
+	TPTInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
+	TPTInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
+
+	SetupPlayerInputByTag(TPTInput);
+}
+
+void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInput)
+{
+	if (IsValid(ASC) && IsValid(TPTInput))
+	{
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_Q, ETriggerEvent::Started, this, &ThisClass::InputSKillPressed,1);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_E, ETriggerEvent::Started, this, &ThisClass::InputSKillPressed,2);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 1);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 2);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 3);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 4);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 5);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_UseItem, ETriggerEvent::Started, this, &ThisClass::InputPressedUseItem);
+	}
+}
+
+void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
+{
+	FGameplayAbilitySpec* TagID = ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
+	NULLCHECK_RETURN_LOG(TagID, PlayerLog, Warning, );
+
+	ASC->AddLooseGameplayTag(InputTag);// 로컬에게 비네팅 적용 됨. 다운드 애니메이션 적용 안됨. 서버에선 엎어짐. 서버에만 태그가 붙음.(당연함)
+	ASC->AddReplicatedLooseGameplayTag(InputTag);// 리플리케이트로 붙이면 서버에서는 아무것도 적용안됨. 로컬에서는 다 됨. 태그도 로컬에만 존재함.
+
+	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
+}
+
+void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)
+{
+	if (HasAuthority())
+	{
+		AttributeSet->OnPlayerLowHP.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+		AttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+		AttributeSet->OnPlayerConfused1st.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+		AttributeSet->OnPlayerConfused2nd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+		AttributeSet->OnPlayerConfused3rd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+		AttributeSet->OnPlayerUseSkill.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+		AttributeSet->OnMentalPointNotMax.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+
+		WallSina->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapWall);
+		WallSina->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapWall);
+		WallRose->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapWall);
+		WallRose->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapWall);
+		WallMaria->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapWall);
+		WallMaria->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapWall);
+	}
+
+	if (IsLocallyControlled())
+	{
+		AttributeSet->OnChangedHP.AddDynamic(this, &ThisClass::PlayerHUDHPSet);
+		AttributeSet->OnChangedMentalPoint.AddDynamic(this, &ThisClass::PlayerHUDMentalSet);
+		AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
+		AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
+	}
+}
+
+void APlayerCharacter::OnRecoveryCompleted()
+{
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
+
+	FGameplayTag DownedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed;
+	FGameplayTag ConfusedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd;
+	FGameplayTag LowHPTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP;
+
+	int32 DownedTagCount = ASC->GetTagCount(DownedTag);
+	for (int32 i = 0; i < DownedTagCount; ++i)
+	{
+		ASC->RemoveLooseGameplayTag(DownedTag);
+		ASC->RemoveReplicatedLooseGameplayTag(DownedTag);
+	}
+
+	if (ASC->HasMatchingGameplayTag(LowHPTag))
+	{
+		ASC->RemoveLooseGameplayTag(LowHPTag);
+		ASC->RemoveReplicatedLooseGameplayTag(LowHPTag);
+	}
+
+	if (ASC->HasMatchingGameplayTag(ConfusedTag))
+	{
+		ASC->RemoveLooseGameplayTag(ConfusedTag);
+		ASC->RemoveReplicatedLooseGameplayTag(ConfusedTag);
+	}
+
+	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+
+	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
+
+	PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
+	PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
+
+	if (RecoveryGE)
+	{
+		FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
+		ContextHandle.AddSourceObject(this);
+		FGameplayEffectSpecHandle EffectSpecHandle = ASC->MakeOutgoingSpec(RecoveryGE, 1.0f, ContextHandle);
+		if (EffectSpecHandle.IsValid())
+		{
+			ASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
+		}
+	}
+}
+
+void APlayerCharacter::InputPressed(int32 InputID)
+{
+	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
+	NULLCHECK_RETURN_LOG(Spec,PlayerLog, Warning,);
+
+	//Spec->InputPressed = true;
+	//if (!HasAuthority())
+	//{
+	//	C2S_InputPressed(InputID);
+	//	return;
+	//}
+
+	//EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
+	//FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
+	//ASC->AddLooseGameplayTag(InputTag);
+	//ASC->AddReplicatedLooseGameplayTag(InputTag);
+
+	if (Spec->IsActive())
+	{
+		ASC->AbilitySpecInputPressed(*Spec);
+	}
+	else
+	{
+		ASC->TryActivateAbility(Spec->Handle);
+	}
+
+	PlayerHUDWidget->VisibleStamina(true);
+}
+
+void APlayerCharacter::C2S_InputPressed_Implementation(const int32 InputID)
+{
+	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
+	if (!Spec) return;
+	Spec->InputPressed = true;
+
+	//EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
+	//FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
+	//ASC->AddLooseGameplayTag(InputTag);
+	//ASC->AddReplicatedLooseGameplayTag(InputTag);
+
+	if (Spec->IsActive())
+	{
+		ASC->AbilitySpecInputPressed(*Spec);
+	}
+	else
+	{
+		ASC->TryActivateAbility(Spec->Handle);
+	}
+}
+void APlayerCharacter::InputSKillPressed(int32 InputID, int32 SkillNumber)
+{
+	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_Skill_ActiveSkill;
+	FGameplayEventData Payload;
+	Payload.EventTag = EventTag;
+	Payload.Instigator = this;
+	Payload.EventMagnitude = static_cast<float>(SkillNumber);
+
+	ASC->HandleGameplayEvent(EventTag, &Payload);
+}
+
+void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
+{
+	SelectedSlotNumber = SlotNumber;
+	TPT_LOG(PlayerLog, Warning, TEXT(" %d"), SlotNumber);
+
+	PlayerHUDWidget->VisibleInventory(true);
+
+	// 5초 뒤에 인벤토리(UI) 비활성화
+	GetWorldTimerManager().ClearTimer(VisibleInventoryTimerHandle); // 중복 타이머 방지
+	GetWorld()->GetTimerManager().SetTimer(
+		VisibleInventoryTimerHandle,
+		FTimerDelegate::CreateWeakLambda(this, [this]()
+			{
+				if (PlayerHUDWidget)
+				{
+					PlayerHUDWidget->VisibleInventory(false);
+				}
+			}),
+		5.0f, // 초 단위
+		false // 반복 아님
+	);
+
+
+	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Event_Character_HoldItem;
+	FGameplayEventData Payload;
+	Payload.EventTag = EventTag;
+	Payload.Instigator = this;
+	Payload.EventMagnitude = static_cast<float>(SlotNumber);
+
+	ASC->HandleGameplayEvent(EventTag, &Payload);
+}
+
+void APlayerCharacter::InputPressedUseItem(int32 InputID)
+{
+	UInventoryComponent* InventoryComponent = PS->InventoryComp;
+
+	if (InventoryComponent)
+	{
+		InventoryComponent->UseItem(SelectedSlotNumber);
+	}
+
+	if (HasAuthority())
+	{
+		// 서버에서 실행 시 → 바로 제거 + 멀티캐스트
+		RemoveHeldItemMesh();
+		S2A_RemoveHeldItemMesh();
+	}
+	else
+	{
+		// 클라에서 실행 시 → 서버에 요청
+		C2S_RemoveHeldItemMesh();
+		// 동시에 자기 로컬 메쉬도 제거
+		RemoveHeldItemMesh();
+	}
+
+	SelectedSlotNumber = 0;
+}
+
+void APlayerCharacter::InputReleased(int32 InputID)
+{
+	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
+	Spec->InputPressed = false;
+	if (!HasAuthority())
+	{
+		C2S_InputReleased(InputID);
+	}
+	else if (Spec->IsActive())
+	{
+		EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
+		FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
+		ASC->RemoveLooseGameplayTag(InputTag);
+		ASC->RemoveReplicatedLooseGameplayTag(InputTag);
+		ASC->AbilitySpecInputReleased(*Spec);
+	}
+}
+
+void APlayerCharacter::C2S_InputReleased_Implementation(const int32 InputID)
+{
+	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
+	if (!Spec) return;
+
+	Spec->InputPressed = false;
+
+	if (Spec->IsActive())
+	{
+		EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
+		FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
+		ASC->RemoveLooseGameplayTag(InputTag);
+		ASC->RemoveReplicatedLooseGameplayTag(InputTag);
+		ASC->AbilitySpecInputReleased(*Spec);
+	}
+}
+
+void APlayerCharacter::C2S_SetFocusTrace_Implementation(const FVector& CameraLocation, const FRotator& CameraRotation)
+{
+	if (HasAuthority() && FocusTrace)
+	{
+		FocusTrace->SetStart(CameraLocation);
+
+		FVector Direction = CameraRotation.Vector(); // 카메라 회전 기반 전방 방향 벡터를 다시 구함
+		FocusTrace->SetDirection(Direction);
+
+		FocusTrace->SetCollisionType(ECC_WorldDynamic);
+	}
 }
 
 void APlayerCharacter::Move(const FInputActionValue& Value)
@@ -608,7 +662,7 @@ void APlayerCharacter::CameraSetting()
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->bUsePawnControlRotation = true;
 	SpringArm->bEnableCameraLag = true;
-	SpringArm->TargetArmLength = 150.0f;
+	SpringArm->TargetArmLength = 200.0f;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->bUsePawnControlRotation = false;
@@ -800,16 +854,3 @@ void APlayerCharacter::S2A_RemoveHeldItemMesh_Implementation()
 	RemoveHeldItemMesh();
 }
 
-UAbilitySystemComponent* APlayerCharacter::GetAbilitySystemComponent() const
-{
-	return ASC;
-}
-// AI의 감지를 위한 팀설정.
-FGenericTeamId APlayerCharacter::GetGenericTeamId() const
-{
-	if (PS)
-	{
-		return PS->GetGenericTeamId();
-	}
-	return FGenericTeamId::NoTeam;
-}
