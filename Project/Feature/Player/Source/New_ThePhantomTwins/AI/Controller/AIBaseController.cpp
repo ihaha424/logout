@@ -45,14 +45,12 @@ AAIBaseController::AAIBaseController()
 
     PerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AAIBaseController::OnTargetPerceptionUpdated);
     
-    
-    
                                     
     StimulusPriorityMap = {         
-      { "PlayerActor", {1, 1} },    
-      { "NoiseItem", {2, 100} },    
-      { "PlayerRun", {3, 30} },     
-      { "PlayerWalk", {4, 10} },    
+      { "PlayerActor",  {1, 1} },   
+      { "NoiseItem",    {2, 100} }, 
+      { "PlayerRun",    {3, 30} },  
+      { "PlayerWalk",   {4, 10} },  
     };                              
                                     
                                     
@@ -108,9 +106,9 @@ void AAIBaseController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
     if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
     {
         UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Actor);
-        NULLCHECK_RETURN_LOG(ASC, AILog, Log, );
+        if (nullptr == ASC) return;
         // Player
-        if (IsTargetActor(ASC))
+        if (CheckTargetActorType(ASC))
         {
             if (Stimulus.WasSuccessfullySensed())
             {
@@ -137,10 +135,10 @@ void AAIBaseController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
     }
     else if (Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
     {
-        const int32 Priority = GetStimulusPriority(Stimulus.Tag);
-        const float CurrentTime = GetWorld()->GetTimeSeconds();
         if (Stimulus.WasSuccessfullySensed())
         {
+            const int32 Priority = GetStimulusPriority(Stimulus.Tag);
+            const float CurrentTime = GetWorld()->GetTimeSeconds();
             const float Score = GetStimulusStrength(Stimulus.Tag);
             const float Old = BB->GetValueAsFloat(TEXT("HearingSum"));
             BB->SetValueAsFloat(TEXT("Priority"), Priority);
@@ -154,11 +152,6 @@ void AAIBaseController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
         }
     }
     
-}
-
-bool AAIBaseController::IsTargetActor(UAbilitySystemComponent* ASC)
-{
-    return ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
 }
 
 void AAIBaseController::AddPerceptionSightList(AActor* Actor)
@@ -190,7 +183,7 @@ void AAIBaseController::FindCloseActor()
 {
     AActor* OwnerActor = GetPawn();
     AActor* ClosestActor = nullptr;
-    float ClosestDistanceSq = FLT_MAX;
+    float ClosestDistanceSq = std::numeric_limits<float>::max();
     const float CurrentTime = GetWorld()->GetTimeSeconds();
     UBlackboardComponent* BB = GetBlackboardComponent();
     for (AActor* Target : PerceptionSightList)
@@ -226,10 +219,6 @@ void AAIBaseController::FindCloseActor()
                     if (CurTargetActor != ClosestActor)
                     {
                         BB->SetValueAsObject(TEXT("TargetActor"), ClosestActor);
-
-                        AAIBaseCharacter* AIBaseCharacter = Cast<AAIBaseCharacter>(GetPawn());
-                        AIBaseCharacter->CancleChaseActorGA();
-                        AIBaseCharacter->ExcuteChaseActorGA(ClosestActor);
                     }
                 }
             }
@@ -244,23 +233,30 @@ void AAIBaseController::FindCloseActor()
             if (CurTargetActor != ClosestActor)
             {
                 BB->SetValueAsObject(TEXT("TargetActor"), ClosestActor);
-
-                AAIBaseCharacter* AIBaseCharacter = Cast<AAIBaseCharacter>(GetPawn());
-                AIBaseCharacter->CancleChaseActorGA();
-                AIBaseCharacter->ExcuteChaseActorGA(ClosestActor);
             }
         }
     }
+    else
+    {
+        BB->SetValueAsObject(TEXT("TargetActor"), ClosestActor);
+    }
 }
 
-int32 AAIBaseController::GetStimulusPriority(const FName& Tag)
+int32 AAIBaseController::GetStimulusPriority(const FName& Tag) const
 {
     return StimulusPriorityMap.Contains(Tag) ? StimulusPriorityMap[Tag].X : std::numeric_limits<int32>::max();
 }
 
-int32 AAIBaseController::GetStimulusStrength(const FName& Tag)
+int32 AAIBaseController::GetStimulusStrength(const FName& Tag) const
 {
-    return StimulusPriorityMap.Contains(Tag) ? StimulusPriorityMap[Tag].Y : std::numeric_limits<int32>::max();
+    return StimulusPriorityMap.Contains(Tag) ? StimulusPriorityMap[Tag].Y : 0;
+}
+
+bool AAIBaseController::CheckTargetActorType(UAbilitySystemComponent* ASC) const
+{
+    if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player))
+        return true;
+    return false;
 }
 
 UAbilitySystemComponent* AAIBaseController::GetAbilitySystemComponent() const
