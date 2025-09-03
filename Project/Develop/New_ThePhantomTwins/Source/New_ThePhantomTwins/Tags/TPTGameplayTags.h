@@ -51,6 +51,7 @@ public:
 #undef CUETAG
 
     TMap<FGameplayTag, EFTPTGameplayTags> TagMap;
+    TMap<EFTPTGameplayTags, FGameplayTag> EnumMap;
 private:
     static FTPTGameplayTags GameplayTags;
     static bool bIsInitial;

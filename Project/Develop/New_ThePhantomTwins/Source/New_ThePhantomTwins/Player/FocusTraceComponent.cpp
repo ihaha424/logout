@@ -93,12 +93,17 @@ void UFocusTraceComponent::PerformTrace()
     FCollisionQueryParams Params;
     Params.AddIgnoredActor(Owner); // 자기자신은 무시
  
-    bool bHit = GetWorld()->LineTraceSingleByChannel
-    (Hit,
+    FCollisionShape Sphere = FCollisionShape::MakeSphere(SphereRadius);
+
+    bool bHit = GetWorld()->SweepSingleByChannel(
+        Hit,
         Start,
         End,
+        FQuat::Identity, // 회전 필요 없으면 Identity
         CollisionType,
-        Params);
+        Sphere,
+        Params
+    );
 
     AActor* NewFocusedActor = bHit ? Hit.GetActor() : nullptr;
 	
@@ -113,7 +118,17 @@ void UFocusTraceComponent::PerformTrace()
     }
 
 #if WITH_EDITOR
-   // DrawDebugLine(GetWorld(), Start, End, Hit.GetActor() == FocusedActor ? FColor::Blue : FColor::Silver, false, 1.0f, 0, 0.3f);
+   /* DrawDebugSphere(
+        GetWorld(),
+        Hit.ImpactPoint,
+        SphereRadius,
+        16,
+        (Hit.GetActor() == FocusedActor ? FColor::Blue : FColor::Silver),
+        false,
+        1.0f,
+        0,
+		3.0f
+    );*/
 #endif
 
     if (Pawn->IsLocallyControlled())

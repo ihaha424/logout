@@ -8,11 +8,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
+#include "Player/PlayerCharacter.h"
 
 UGA_MentalRecovery::UGA_MentalRecovery()
 {
-    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-    ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
+    InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor; 
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 }
 
@@ -37,13 +37,18 @@ void UGA_MentalRecovery::HealTick()
 
     if (Players.Num() == 2)
     {
-        AActor* SelfActor = GetAvatarActorFromActorInfo();
-        AActor* Other = (Players[0] == SelfActor) ? Players[1] : Players[0];
+        APlayerCharacter* SelfActor = Cast<APlayerCharacter>(GetAvatarActorFromActorInfo());
+        APlayerCharacter* Other = (Cast<APlayerCharacter>(Players[0]) == SelfActor) ? Cast<APlayerCharacter>(Players[1]) : Cast<APlayerCharacter>(Players[0]);
+        NULLCHECK_RETURN_LOG(SelfActor, GALog, Error, );
+        NULLCHECK_RETURN_LOG(Other, GALog, Error, );
 
         float Dist = FVector::Dist(SelfActor->GetActorLocation(), Other->GetActorLocation());
 
         UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
         NULLCHECK_RETURN_LOG(ASC, GALog, Error, );
+
+		UAbilitySystemComponent* OtherASC = Other->GetAbilitySystemComponent();
+		NULLCHECK_RETURN_LOG(OtherASC, GALog, Error, );
         
         const auto* AttrSet = ASC->GetSet<UPlayerAttributeSet>();
         NULLCHECK_RETURN_LOG(AttrSet, GALog, Error, );
@@ -53,6 +58,15 @@ void UGA_MentalRecovery::HealTick()
 
         // ¸àÅ»ÀÌ °¡µæ Ã¡À¸¸é ¾îºô¸®Æ¼ Á¾·á Àü Å¸ÀÌ¸Ó Å¬¸®¾î
         if (CurrentMental >= MaxMental)
+        {
+            GetWorld()->GetTimerManager().ClearTimer(HealTimerHandle);
+            EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+            return;
+        }
+
+		// ÂÑ±â´Â ÁßÀÌ¸é ¾îºô¸®Æ¼ Á¾·á
+        if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIChasing) 
+        || OtherASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIChasing))
         {
             GetWorld()->GetTimerManager().ClearTimer(HealTimerHandle);
             EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);

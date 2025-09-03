@@ -9,7 +9,6 @@
 UGA_Sprint::UGA_Sprint()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
     NetSecurityPolicy = EGameplayAbilityNetSecurityPolicy::ServerOnly;
     AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_Sprint);

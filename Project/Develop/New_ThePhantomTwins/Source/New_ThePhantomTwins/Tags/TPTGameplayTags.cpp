@@ -74,4 +74,8 @@ void FTPTGameplayTags::InitializeNativeTags()
 #undef TPT_TAG_GEN
 #undef CUETAG
 
+	for (const auto& Pair : GameplayTags.TagMap)
+	{
+		GameplayTags.EnumMap.Add(Pair.Value, Pair.Key);
+	}
 }

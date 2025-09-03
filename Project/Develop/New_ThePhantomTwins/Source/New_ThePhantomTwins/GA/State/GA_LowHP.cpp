@@ -13,7 +13,7 @@
 UGA_LowHP::UGA_LowHP()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly; // 오히려 이거로 하니까 클라에는 하나가 더 붙음. // 서버는 이제 딱 하나만 붙게됨.
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
 }
 
