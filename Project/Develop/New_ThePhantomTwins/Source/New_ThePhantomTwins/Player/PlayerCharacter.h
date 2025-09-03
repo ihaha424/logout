@@ -255,4 +255,10 @@ protected:
 	TMap<AActor*, EEnemyRange> EnemyRangeMap;
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentWallRange)
 	EEnemyRange CurrentWallRange = EEnemyRange::None;
+
+	
+private:
+	UPROPERTY()
+	FTimerHandle VisibleInventoryTimerHandle;
+
 };
