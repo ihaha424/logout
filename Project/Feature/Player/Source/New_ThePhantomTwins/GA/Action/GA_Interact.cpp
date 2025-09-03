@@ -133,6 +133,7 @@ void UGA_Interact::InteractExecute()
 		// 몽타주 골라서 재생
 		if (Cast<APlayerCharacter>(TargetActor))
 		{
+			TPT_LOG(GALog, Warning, TEXT("RecoveryMontage"));
 			PlayRecoveryMontageTask->ReadyForActivation();
 			// TODO : 몽타주 재생시에 움직임이 없으면 풀바디 재생이 되도록 조정하기.
 			// TODO : 릴리즈드가 되면 재생도 멈추게 조정하기.

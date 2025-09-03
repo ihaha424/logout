@@ -452,12 +452,12 @@ void APlayerCharacter::InputPressed(int32 InputID)
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
 	NULLCHECK_RETURN_LOG(Spec,PlayerLog, Warning,);
 
-	Spec->InputPressed = true;
-	if (!HasAuthority())
-	{
-		C2S_InputPressed(InputID);
-		return;
-	}
+	//Spec->InputPressed = true;
+	//if (!HasAuthority())
+	//{
+	//	C2S_InputPressed(InputID);
+	//	return;
+	//}
 
 	//EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
 	//FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
