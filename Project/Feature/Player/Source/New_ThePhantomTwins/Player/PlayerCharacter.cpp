@@ -114,7 +114,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	if (ASC)
+	if (ASC)  // TODO : 이게 꼭 여기 있을필요가 없다.
 	{
 		bool bIsDownedTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 		if (bIsDownedTag)
@@ -180,7 +180,7 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 		StartSpec.InputID = InputID;
 		ASC->GiveAbility(StartSpec);
 	}
-	ASC->AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
+	ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
 	PlayerController = GetController<APC_Player>();
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 
@@ -364,19 +364,32 @@ void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 {
 	FGameplayAbilitySpec* TagID = ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
 	NULLCHECK_RETURN_LOG(TagID, PlayerLog, Warning, );
-	ASC->AddReplicatedLooseGameplayTag(InputTag);
+
+	ASC->AddLooseGameplayTag(InputTag);// 로컬에게 비네팅 적용 됨. 다운드 애니메이션 적용 안됨. 서버에선 엎어짐. 서버에만 태그가 붙음.(당연함)
+	ASC->AddReplicatedLooseGameplayTag(InputTag);// 리플리케이트로 붙이면 서버에서는 아무것도 적용안됨. 로컬에서는 다 됨. 태그도 로컬에만 존재함.
+
 	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
 }
 
 void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)
 {
-	AttributeSet->OnPlayerLowHP.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-	AttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-	AttributeSet->OnPlayerConfused1st.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-	AttributeSet->OnPlayerConfused2nd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-	AttributeSet->OnPlayerConfused3rd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-	AttributeSet->OnPlayerUseSkill.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-	AttributeSet->OnMentalPointNotMax.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+	if (HasAuthority())
+	{
+		AttributeSet->OnPlayerLowHP.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+		AttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+		AttributeSet->OnPlayerConfused1st.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+		AttributeSet->OnPlayerConfused2nd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+		AttributeSet->OnPlayerConfused3rd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+		AttributeSet->OnPlayerUseSkill.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+		AttributeSet->OnMentalPointNotMax.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+
+		WallSina->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapWall);
+		WallSina->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapWall);
+		WallRose->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapWall);
+		WallRose->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapWall);
+		WallMaria->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapWall);
+		WallMaria->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapWall);
+	}
 
 	if (IsLocallyControlled())
 	{
@@ -385,42 +398,32 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 		AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
 		AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
 	}
-
-	if (HasAuthority())
-	{
-		WallSina->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapWall);
-		WallSina->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapWall);
-		WallRose->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapWall);
-		WallRose->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapWall);
-		WallMaria->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapWall);
-		WallMaria->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapWall);
-	}
 }
 
 void APlayerCharacter::OnRecoveryCompleted()
 {
-	TPT_LOG(PlayerLog, Error, TEXT("IS Local? : %d"), IsLocallyControlled());
-	TPT_LOG(PlayerLog, Error, TEXT("Has Authority? : %d"), HasAuthority());
-
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
 
 	FGameplayTag DownedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed;
 	FGameplayTag ConfusedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd;
 	FGameplayTag LowHPTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP;
 
-	TPT_LOG(PlayerLog, Error, TEXT("HasMatchingGameplayTag? : %d"), ASC->HasMatchingGameplayTag(DownedTag));
-	if (ASC->HasMatchingGameplayTag(DownedTag))
+	int32 DownedTagCount = ASC->GetTagCount(DownedTag);
+	for (int32 i = 0; i < DownedTagCount; ++i)
 	{
+		ASC->RemoveLooseGameplayTag(DownedTag);
 		ASC->RemoveReplicatedLooseGameplayTag(DownedTag);
 	}
 
 	if (ASC->HasMatchingGameplayTag(LowHPTag))
 	{
+		ASC->RemoveLooseGameplayTag(LowHPTag);
 		ASC->RemoveReplicatedLooseGameplayTag(LowHPTag);
 	}
 
 	if (ASC->HasMatchingGameplayTag(ConfusedTag))
 	{
+		ASC->RemoveLooseGameplayTag(ConfusedTag);
 		ASC->RemoveReplicatedLooseGameplayTag(ConfusedTag);
 	}
 
@@ -447,21 +450,50 @@ void APlayerCharacter::OnRecoveryCompleted()
 void APlayerCharacter::InputPressed(int32 InputID)
 {
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
-	if (Spec)
+	NULLCHECK_RETURN_LOG(Spec,PlayerLog, Warning,);
+
+	Spec->InputPressed = true;
+	if (!HasAuthority())
 	{
-		//Spec->GameplayEventData
-		Spec->InputPressed = true;
-		if (Spec->IsActive())
-		{
-			ASC->AbilitySpecInputPressed(*Spec);
-		}
-		else
-		{
-			ASC->TryActivateAbility(Spec->Handle);
-		}
+		C2S_InputPressed(InputID);
+		return;
+	}
+
+	//EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
+	//FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
+	//ASC->AddLooseGameplayTag(InputTag);
+	//ASC->AddReplicatedLooseGameplayTag(InputTag);
+
+	if (Spec->IsActive())
+	{
+		ASC->AbilitySpecInputPressed(*Spec);
+	}
+	else
+	{
+		ASC->TryActivateAbility(Spec->Handle);
 	}
 }
 
+void APlayerCharacter::C2S_InputPressed_Implementation(const int32 InputID)
+{
+	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
+	if (!Spec) return;
+	Spec->InputPressed = true;
+
+	//EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
+	//FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
+	//ASC->AddLooseGameplayTag(InputTag);
+	//ASC->AddReplicatedLooseGameplayTag(InputTag);
+
+	if (Spec->IsActive())
+	{
+		ASC->AbilitySpecInputPressed(*Spec);
+	}
+	else
+	{
+		ASC->TryActivateAbility(Spec->Handle);
+	}
+}
 void APlayerCharacter::InputSKillPressed(int32 InputID, int32 SkillNumber)
 {
 	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_Skill_ActiveSkill;
@@ -509,6 +541,10 @@ void APlayerCharacter::InputReleased(int32 InputID)
 	}
 	else if (Spec->IsActive())
 	{
+		EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
+		FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
+		ASC->RemoveLooseGameplayTag(InputTag);
+		ASC->RemoveReplicatedLooseGameplayTag(InputTag);
 		ASC->AbilitySpecInputReleased(*Spec);
 	}
 }
@@ -522,6 +558,10 @@ void APlayerCharacter::C2S_InputReleased_Implementation(const int32 InputID)
 
 	if (Spec->IsActive())
 	{
+		EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
+		FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
+		ASC->RemoveLooseGameplayTag(InputTag);
+		ASC->RemoveReplicatedLooseGameplayTag(InputTag);
 		ASC->AbilitySpecInputReleased(*Spec);
 	}
 }

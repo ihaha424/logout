@@ -15,6 +15,7 @@
 UGA_Downed::UGA_Downed()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 }
 

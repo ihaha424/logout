@@ -24,6 +24,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayEffect> SetSpeedEffect;
+	FActiveGameplayEffectHandle ActiveEffectHandle;
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	TSubclassOf<UGameplayEffect> TagEffect;
 
 	float CrouchSpeed = 80.0f;
 };

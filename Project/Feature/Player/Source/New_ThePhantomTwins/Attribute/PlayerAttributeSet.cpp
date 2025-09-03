@@ -95,7 +95,7 @@ void UPlayerAttributeSet::OnRep_HP(const FGameplayAttributeData& OldValue)
 	// 체력이 0이하라면 다운.
 	if (GetHP() <= 0.0f && !bPlayerDowned)
 	{
-		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed); // 이거와는 관련이 없었음. 태그가 늘지않음. 애초에 이거때문이면 로우와 다운의 태그 갯수가 같아야 말이 됨.
+		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 	}
 	bPlayerDowned = GetHP() <= 0.0f;
 }
