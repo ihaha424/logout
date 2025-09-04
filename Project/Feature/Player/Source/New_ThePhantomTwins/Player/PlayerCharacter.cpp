@@ -115,18 +115,18 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	if (ASC)  // TODO : 이게 꼭 여기 있을필요가 없다.
-	{
-		bool bIsDownedTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-		if (bIsDownedTag)
-		{
-			DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
-		}
-		else
-		{
-			DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-		}
-	}
+	//if (ASC)  // TODO : 이게 꼭 여기 있을필요가 없다.
+	//{
+	//	bool bIsDownedTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
+	//	if (bIsDownedTag)
+	//	{
+	//		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+	//	}
+	//	else
+	//	{
+	//		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	//	}
+	//}
 
 	if (IsLocallyControlled() && PlayerController && FocusTrace)
 	{
@@ -373,6 +373,11 @@ void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 	ASC->AddReplicatedLooseGameplayTag(InputTag);// 리플리케이트로 붙이면 서버에서는 아무것도 적용안됨. 로컬에서는 다 됨. 태그도 로컬에만 존재함.
 
 	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
+
+	if(InputTag == FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed)
+	{
+		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+	}
 }
 
 void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet)
@@ -433,6 +438,7 @@ void APlayerCharacter::OnRecoveryCompleted()
 	}
 
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
 	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
