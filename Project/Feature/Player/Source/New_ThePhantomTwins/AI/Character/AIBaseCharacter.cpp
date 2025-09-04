@@ -9,6 +9,8 @@
 #include "AbilitySystemGlobals.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AI/Controller/AIBaseController.h"
+#include "GameplayCueInterface.h"
+
 
 #include "../Attributes/AIBaseAttributeSet.h"
 #include "Tags/TPTGameplayTags.h"
@@ -20,7 +22,6 @@ AAIBaseCharacter::AAIBaseCharacter()
     PrimaryActorTick.bCanEverTick = true;
 
     AbilitySystem = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystem"));
-    AttributeSet = CreateDefaultSubobject<UAIBaseAttributeSet>(TEXT("AttributeSet"));
 
     AutoPossessPlayer = EAutoReceiveInput::Disabled;
     AIControllerClass = nullptr;
@@ -56,6 +57,8 @@ void AAIBaseCharacter::BeginPlay()
     if (AbilitySystem)
     {
         AbilitySystem->InitAbilityActorInfo(this, this);
+        //AttributeSet = AbilitySystem->GetSet<UAIBaseAttributeSet>();
+        //NULLCHECK_RETURN_LOG(AttributeSet, AILog, Error, );
         AbilitySystem->AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI);
         AbilitySystem->AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI);
 
@@ -70,6 +73,11 @@ void AAIBaseCharacter::BeginPlay()
             FGameplayAbilitySpec StartSpec(Ability.Value);
             StartSpec.InputID = InputID;
             AbilitySystem->GiveAbility(StartSpec);
+        }
+
+        for (const auto& CueNotify : GamePlayCueNotifys)
+        {
+
         }
 
         AbilitySystem->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Stun)
@@ -106,31 +114,21 @@ UAbilitySystemComponent* AAIBaseCharacter::GetAbilitySystemComponent() const
     return AbilitySystem;
 }
 
-UAIBaseAttributeSet* AAIBaseCharacter::GetAIAttributeSet() const
+const UAIBaseAttributeSet* AAIBaseCharacter::GetAIAttributeSet() const
 {
     return AttributeSet;
 }
 
 void AAIBaseCharacter::ApplyStun()
 {
-    AIStateTags.Reset();
-    AIStateTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Stun);
+    AAIController* AIController = Cast<AAIController>(GetController());
+    NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
+    UBlackboardComponent* BB = AIController->GetBlackboardComponent();
+    NULLCHECK_RETURN_LOG(BB, AILog, Warning, );
 
-    // TODO: 움직임 멈추기, 몽타주 중단, 이펙트 재생 등
+    BB->SetValueAsBool("bIsStunned", true);
 }
 
-void AAIBaseCharacter::ResetToDefaultState()
-{
-    AIStateTags.Reset();
-    AIStateTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Default);
-
-    // TODO: 원래 위치로 이동하거나 순찰 재시작
-}
-
-FString AAIBaseCharacter::GetCurrentAIStateAsString() const
-{
-    return AIStateTags.ToStringSimple();
-}
 
 void AAIBaseCharacter::ResetDataForState(const FGameplayTag Tag, int32 TagCount)
 {
@@ -368,7 +366,9 @@ void AAIBaseCharacter::ResetDataForCombatState_Implementation()
 
     BB->SetValueAsFloat("SightDuration", std::numeric_limits<float>::max());
     BB->SetValueAsFloat("HearingSum", std::numeric_limits<float>::max());
-    GetCharacterMovement()->MaxWalkSpeed = ChaseSpeed;
+
+    CurSpeed = ChaseSpeed;
+    GetCharacterMovement()->MaxWalkSpeed = CurSpeed;
 
     AActor* TargetActor = nullptr;
     UObject* Object = BB->GetValueAsObject("TargetActor");
@@ -401,7 +401,8 @@ void AAIBaseCharacter::ResetDataForEscapeCombatState_Implementation()
     BB->SetValueAsFloat("SightDuration", 0.f);
     BB->SetValueAsFloat("HearingSum", 0.f);
     BB->SetValueAsObject("TargetActor", nullptr);
-    GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
+    CurSpeed = MoveSpeed;
+    GetCharacterMovement()->MaxWalkSpeed = CurSpeed;
 
     CancleChaseActorGA();
 }

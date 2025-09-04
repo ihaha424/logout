@@ -2,6 +2,50 @@
 
 
 #include "GM_PhantomTwins.h"
+#include "GS_PhantomTwins.h"
+#include "AI/Utility/BossSpawner.h"
+
+#include "Log/TPTLog.h"
+
+void AGM_PhantomTwins::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (!HasAuthority()) return;
+
+    if (TimeLimitSeconds > 0.f)
+    {
+        GetWorldTimerManager().SetTimer(
+            TimerHandle_SpawnByTime, this, &AGM_PhantomTwins::OnTimeLimitReached,
+            TimeLimitSeconds, false);
+    }
+
+    if (AGS_PhantomTwins* GS = GetGameState<AGS_PhantomTwins>())
+    {
+        ItemChangedHandle = GS->OnCollectedItemCountChanged().AddUObject(
+            this, &AGM_PhantomTwins::OnItemCountChanged);
+
+        if (GS->CoreCount >= RequiredItemCount)
+        {
+            RequestBossSpawn();
+        }
+    }
+}
+
+void AGM_PhantomTwins::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    if (HasAuthority())
+    {
+        AGS_PhantomTwins* GS = GetGameState<AGS_PhantomTwins>();
+        if (GS)
+        {
+            if (ItemChangedHandle.IsValid())
+                GS->OnCollectedItemCountChanged().Remove(ItemChangedHandle);
+        }
+        GetWorldTimerManager().ClearTimer(TimerHandle_SpawnByTime);
+    }
+    Super::EndPlay(EndPlayReason);
+}
 
 void AGM_PhantomTwins::SeverToLevel(const FName LevelName, bool bAbsolute)
 {
@@ -12,4 +56,33 @@ void AGM_PhantomTwins::SeverToLevel(const FName LevelName, bool bAbsolute)
 
     UE_LOG(LogTemp, Log, TEXT("LevelPathWithListen: %s"), *LevelPathWithListen);
     GetWorld()->ServerTravel(LevelPathWithListen, bAbsolute);
+}
+
+void AGM_PhantomTwins::OnItemCountChanged(int32 NewCount)
+{
+    if (NewCount >= RequiredItemCount)
+    {
+        RequestBossSpawn();
+    }
+}
+
+void AGM_PhantomTwins::OnTimeLimitReached()
+{
+    RequestBossSpawn();
+}
+
+void AGM_PhantomTwins::RequestBossSpawn()
+{
+    AGS_PhantomTwins* GS = GetGameState<AGS_PhantomTwins>();
+    if (!GS || GS->bBossSpawned) return;
+
+    if (PreferredSpawnActor.IsValid())
+    {
+        PreferredSpawnActor.Get()->SpawnBossOnce();
+        if (GS->bBossSpawned) return;
+    }
+    else
+    {
+        TPT_LOG(GameRuleLog, Error, TEXT("PreferredSpawnActor is Invalid."));
+    }
 }

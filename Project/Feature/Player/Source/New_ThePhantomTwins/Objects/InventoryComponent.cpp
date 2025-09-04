@@ -94,6 +94,12 @@ EItemType UInventoryComponent::ChoiceItem(int32 SlotIndex)
         if (IsSlotEmpty(InventorySlots[SlotIndex])) return EItemType::None;
         if (selectedNum == -1 || selectedNum != SlotIndex)
         {
+            if (selectedNum != -1)
+            {
+                PlayerHUDWidget->SetOutline(selectedNum, false);
+                PlayerHUDWidget->SetToolTips(false, InventorySlots[selectedNum].ItemType);
+            }
+
             VisibleInventory();
             selectedNum = SlotIndex;
             PlayerHUDWidget->SetOutline(SlotIndex, true);

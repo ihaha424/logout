@@ -25,6 +25,7 @@
 #include "UIManager/UIManager.h"
 #include "Components/WidgetComponent.h"
 #include "Objects/InventoryComponent.h"
+#include "Objects/HeldItemComponent.h"
 #include "UI/HUD/PlayerHUDWidget.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/PostProcessComponent.h"
@@ -54,6 +55,8 @@ APlayerCharacter::APlayerCharacter()
 	PostProcessComponent->SetupAttachment(RootComponent);
 	PostProcessComponent->bUnbound = false;
 	PostProcessComponent->Priority = 1.f;
+
+	HeldItemComponent = CreateDefaultSubobject<UHeldItemComponent>(TEXT("HeldItemComponent"));
 }
 
 // AI의 감지를 위한 팀설정.
@@ -163,8 +166,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 
 	ASC = PS->GetAbilitySystemComponent();
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
-
 	ASC->InitAbilityActorInfo(PS, this);
+
 	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
 	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
 
@@ -521,6 +524,22 @@ void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
 	TPT_LOG(PlayerLog, Warning, TEXT(" %d"), SlotNumber);
 
 	PlayerHUDWidget->VisibleInventory(true);
+
+	// 5초 뒤에 인벤토리(UI) 비활성화
+	GetWorldTimerManager().ClearTimer(VisibleInventoryTimerHandle); // 중복 타이머 방지
+	GetWorld()->GetTimerManager().SetTimer(
+		VisibleInventoryTimerHandle,
+		FTimerDelegate::CreateWeakLambda(this, [this]()
+			{
+				if (PlayerHUDWidget)
+				{
+					PlayerHUDWidget->VisibleInventory(false);
+				}
+			}),
+		5.0f, // 초 단위
+		false // 반복 아님
+	);
+
 
 	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Event_Character_HoldItem;
 	FGameplayEventData Payload;

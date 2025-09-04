@@ -28,60 +28,74 @@ public:
 
     //~ Begin Property
     //~~~   Begin Attack Power
-    UPROPERTY(BlueprintReadWrite, Category = "Attributes|Attack")
+public:
+    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, AttackPower);
+    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, MentalityAttackPower);
+    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, AttackCoolTime);
+
+protected:
+    UPROPERTY(ReplicatedUsing = OnRep_AttackPower, BlueprintReadWrite, Category = "Attributes|Attack")
     FGameplayAttributeData AttackPower;
-    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, AttackPower)
-
-    UPROPERTY(BlueprintReadWrite, Category = "Attributes|Attack")
+    UPROPERTY(ReplicatedUsing = OnRep_MentalityAttackPower, BlueprintReadWrite, Category = "Attributes|Attack")
     FGameplayAttributeData MentalityAttackPower;
-    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, MentalityAttackPower)
-
-    UPROPERTY(BlueprintReadWrite, Category = "Attributes|Attack")
+    UPROPERTY(ReplicatedUsing = OnRep_AttackCoolTime, BlueprintReadWrite, Category = "Attributes|Attack")
     FGameplayAttributeData AttackCoolTime;
-    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, AttackCoolTime)
     //~~~   End Attack Power
 
 
     //~~~   Begin Perception Stat
+public:
+    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, SightRadius);
+    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, LoseSightRadius);
+    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, SightAngle);
+    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, SightAge);
+    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, HearingRange);
+    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, HearingAge);
+    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, ImmediateDetectionRange);
+
+protected:
     UPROPERTY(BlueprintReadWrite, Category = "Attributes|Perception")
     FGameplayAttributeData SightRadius;
-    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, SightRadius)
-        
     UPROPERTY(BlueprintReadWrite, Category = "Attributes|Perception")
     FGameplayAttributeData LoseSightRadius;
-    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, LoseSightRadius)
-
     UPROPERTY(BlueprintReadWrite, Category = "Attributes|Perception")
     FGameplayAttributeData SightAngle;
-    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, SightAngle)
-
     UPROPERTY(BlueprintReadWrite, Category = "Attributes|Perception")
     FGameplayAttributeData SightAge;
-    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, SightAge)
-
     UPROPERTY(BlueprintReadWrite, Category = "Attributes|Perception")
     FGameplayAttributeData HearingRange;
-    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, HearingRange)
-
     UPROPERTY(BlueprintReadWrite, Category = "Attributes|Perception")
     FGameplayAttributeData HearingAge;
-    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, HearingAge)
-
     UPROPERTY(BlueprintReadWrite, Category = "Attributes|Perception")
     FGameplayAttributeData ImmediateDetectionRange;
-    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, ImmediateDetectionRange)
     //~~~   End Perception Stat
 
 
     //~~~   Begin Move Speed
-    UPROPERTY(BlueprintReadWrite, Category = "Attributes|Move Speed")
-    FGameplayAttributeData MoveSpeed;
-    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, MoveSpeed)
+public:
+    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, MoveSpeed);
+    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, ChaseMoveSpeed);
 
-    UPROPERTY(BlueprintReadWrite, Category = "Attributes|Move Speed")
+protected:
+    UPROPERTY(ReplicatedUsing = OnRep_MoveSpeed, BlueprintReadWrite, Category = "Attributes|Move Speed")
+    FGameplayAttributeData MoveSpeed;
+    UPROPERTY(ReplicatedUsing = OnRep_ChaseMoveSpeed, BlueprintReadWrite, Category = "Attributes|Move Speed")
     FGameplayAttributeData ChaseMoveSpeed;
-    ATTRIBUTE_ACCESSORS(UAIBaseAttributeSet, ChaseMoveSpeed)
     //~~~   End Move Speed
     //~ End Property
 
+public:
+    UFUNCTION()
+    void OnRep_AttackPower(const FGameplayAttributeData& OldValue);
+    UFUNCTION()
+    void OnRep_MentalityAttackPower(const FGameplayAttributeData& OldValue);
+    UFUNCTION()
+    void OnRep_AttackCoolTime(const FGameplayAttributeData& OldValue);
+    UFUNCTION()
+    void OnRep_MoveSpeed(const FGameplayAttributeData& OldValue);
+    UFUNCTION()
+    void OnRep_ChaseMoveSpeed(const FGameplayAttributeData& OldValue);
+
+protected:
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

@@ -97,6 +97,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
 	TObjectPtr<UMaterialInstanceDynamic> VignetteMID;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
+	TObjectPtr<class UHeldItemComponent> HeldItemComponent;
+
 public:
 	// À§Á¬ ¼³Á¤
 	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);
@@ -267,4 +270,10 @@ protected:
 	TMap<AActor*, EEnemyRange> EnemyRangeMap;
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentWallRange)
 	EEnemyRange CurrentWallRange = EEnemyRange::None;
+
+	
+private:
+	UPROPERTY()
+	FTimerHandle VisibleInventoryTimerHandle;
+
 };
