@@ -325,10 +325,8 @@ void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
 
 void APlayerCharacter::HidePlayerHUDStaminaSet(int32 value)
 {
-	//TODO : 스태미나 숨기기
-	//
-	//
-	//
+	//TODO : 스태미나 숨기기 (타이머 하기)
+	PlayerHUDWidget->VisibleStamina(false);
 }
 
 void APlayerCharacter::PlayerHUDCoreEnergySet(int32 value)
