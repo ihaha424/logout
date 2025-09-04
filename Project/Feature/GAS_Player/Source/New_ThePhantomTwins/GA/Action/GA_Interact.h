@@ -37,6 +37,11 @@ public:
 	AActor* TargetActor = nullptr;
 
 	// Interact 중에 재생할 애니메이션 몽타주
+
+
+	//TArray<FName> ComboSectionNames; //
+
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
 	TObjectPtr<UAnimMontage> InteractMontage;
 
