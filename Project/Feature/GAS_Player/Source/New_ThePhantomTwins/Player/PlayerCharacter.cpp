@@ -387,7 +387,7 @@ void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 
 	if(InputTag == FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed)
 	{
-		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+		S2A_OnDownedWidget(true);
 	}
 }
 
@@ -450,8 +450,7 @@ void APlayerCharacter::OnRecoveryCompleted()
 	}
 
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	S2A_OnDownedWidget(false);
 
 	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
 
@@ -893,4 +892,14 @@ void APlayerCharacter::S2A_RemoveHeldItemMesh_Implementation()
 	RemoveHeldItemMesh();
 }
 
-
+void APlayerCharacter::S2A_OnDownedWidget_Implementation(bool Visible)
+{
+	if (Visible)
+	{
+		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+	}
+	else
+	{
+		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
