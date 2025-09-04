@@ -64,24 +64,20 @@ void UGA_MentalRecovery::HealTick()
             return;
         }
 
-		// 쫓기는 중이면 어빌리티 종료
-        if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIChasing) 
-        || OtherASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIChasing))
+        // 둘다 쫓기는 상태가 아니면 회복
+        if (!ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIChasing) 
+        && !OtherASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIChasing))
         {
-            GetWorld()->GetTimerManager().ClearTimer(HealTimerHandle);
-            EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-            return;
-        }
+            float HealAmount = 0.f;
+            if (Dist <= 300.f)
+                HealAmount = 5.f;
 
-        float HealAmount = 0.f;
-        if (Dist <= 300.f)
-            HealAmount = 5.f;
-
-        FGameplayEffectSpecHandle MentalHealSpec = MakeOutgoingGameplayEffectSpec(MentalHealEffect, 1.0f);
-        if (MentalHealSpec.IsValid())
-        {
-            MentalHealSpec.Data->SetSetByCallerMagnitude(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_MentalPoint, HealAmount);
-            GetAbilitySystemComponentFromActorInfo()->ApplyGameplayEffectSpecToSelf(*MentalHealSpec.Data.Get());
+            FGameplayEffectSpecHandle MentalHealSpec = MakeOutgoingGameplayEffectSpec(MentalHealEffect, 1.0f);
+            if (MentalHealSpec.IsValid())
+            {
+                MentalHealSpec.Data->SetSetByCallerMagnitude(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_MentalPoint, HealAmount);
+                GetAbilitySystemComponentFromActorInfo()->ApplyGameplayEffectSpecToSelf(*MentalHealSpec.Data.Get());
+            }
         }
     }
 }

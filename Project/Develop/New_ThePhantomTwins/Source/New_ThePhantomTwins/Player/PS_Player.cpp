@@ -15,7 +15,7 @@ APS_Player::APS_Player()
 
 	ASC->SetIsReplicated(true);
 
-	AttributeSet = CreateDefaultSubobject<UPlayerAttributeSet>(TEXT("AttributeSet"));
+	//AttributeSet = CreateDefaultSubobject<UPlayerAttributeSet>(TEXT("AttributeSet"));
 
 	TeamID = FGenericTeamId(1);
 
@@ -27,7 +27,7 @@ void APS_Player::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APS_Player, ASC);
-	DOREPLIFETIME(APS_Player, AttributeSet);
+	//DOREPLIFETIME(APS_Player, AttributeSet);
 	DOREPLIFETIME(APS_Player, PassiveSkillTags);
 	DOREPLIFETIME(APS_Player, TeamID);
 	DOREPLIFETIME(APS_Player, bIsRecovery);
