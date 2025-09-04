@@ -42,7 +42,7 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 	if (TargetActor->GetClass()->ImplementsInterface(UHolding::StaticClass())) // 플레이어 오브젝트
 	{
-		TPT_LOG(GALog, Error, TEXT("TEST__ ImplementsInterface"));
+		//TPT_LOG(GALog, Error, TEXT("TEST__ ImplementsInterface"));
 		Time = IHolding::Execute_GetTime(TargetActor);
 		IHolding::Execute_SetHoldingGaugeUI(TargetActor, Character, true);
 
@@ -72,7 +72,7 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	}
 	else
 	{
-		TPT_LOG(GALog, Error, TEXT("TEST__ else"));
+		//TPT_LOG(GALog, Error, TEXT("TEST__ else"));
 		InteractExecute();
 	}
 }
@@ -135,14 +135,14 @@ void UGA_Interact::InteractExecute()
 		// 몽타주 골라서 재생
 		if (Cast<APlayerCharacter>(TargetActor))
 		{
-			TPT_LOG(GALog, Error, TEXT("TEST__ RecoveryMontage"));
+			//TPT_LOG(GALog, Error, TEXT("TEST__ RecoveryMontage"));
 			PlayRecoveryMontageTask->ReadyForActivation();
 			// TODO : 몽타주 재생시에 움직임이 없으면 풀바디 재생이 되도록 조정하기.
 			// TODO : 릴리즈드가 되면 재생도 멈추게 조정하기.
 		}
 		else
 		{
-			TPT_LOG(GALog, Error, TEXT("TEST__ InteractExecuteMontage"));
+			//TPT_LOG(GALog, Error, TEXT("TEST__ InteractExecuteMontage"));
 			PlayInteractMontageTask->ReadyForActivation();
 		}
 	}
