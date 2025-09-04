@@ -149,6 +149,8 @@ protected:
 
 	// 플레이어 초기 세팅.
 	void MovementSetting();
+	UFUNCTION()
+	void SpeedSetting(int32 Speed);
 	void CameraSetting();
 	void OverlapRangeSetting();
 	UFUNCTION(BlueprintImplementableEvent)

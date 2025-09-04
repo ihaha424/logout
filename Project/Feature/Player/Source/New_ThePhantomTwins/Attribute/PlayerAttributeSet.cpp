@@ -146,9 +146,17 @@ void UPlayerAttributeSet::OnRep_CoreEnergy(const FGameplayAttributeData& OldValu
 	OnChangedCoreEnergy.Broadcast(GetCoreEnergy());
 }
 void UPlayerAttributeSet::OnRep_MaxCoreEnergy(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, MaxCoreEnergy, OldValue); }
-void UPlayerAttributeSet::OnRep_Speed(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, Speed, OldValue); }
+void UPlayerAttributeSet::OnRep_Speed(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, Speed, OldValue);
+	OnChangedSpeed.Broadcast(GetSpeed());
+}
 void UPlayerAttributeSet::OnRep_SpeedAdjustment(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, SpeedAdjustment, OldValue); }
-void UPlayerAttributeSet::OnRep_FinalSpeed(const FGameplayAttributeData& OldValue) {GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, FinalSpeed, OldValue);}
+void UPlayerAttributeSet::OnRep_FinalSpeed(const FGameplayAttributeData& OldValue)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, FinalSpeed, OldValue);
+	//OnChangedSpeed.Broadcast(GetFinalSpeed());
+}
 void UPlayerAttributeSet::OnRep_ExecuteSprintSkill(const FGameplayAttributeData& OldValue)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, ExecuteSprintSkill, OldValue);
@@ -196,6 +204,7 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	{
 		SetStamina(FMath::Clamp(GetStamina(), MinimumPoint, GetMaxStamina()));
 		OnChangedStamina.Broadcast(GetStamina());
+
 	}
 
 	// 스피드나 증감스피드가 변경될때 마다  final 스피드가 업데이트 되도록함.
@@ -203,6 +212,7 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	{
 		SetSpeed(FMath::Clamp(GetSpeed(), MinimumPoint, 10000));
 		SetFinalSpeed(FMath::Clamp(GetSpeed() + GetSpeedAdjustment(), MinimumPoint, 10000));
+		OnChangedSpeed.Broadcast(GetSpeed());
 	}
 
 	if (Data.EvaluatedData.Attribute == GetSpeedAdjustmentAttribute())
@@ -212,6 +222,7 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	// 체력이 30% 보다 늘어나면 Low HP 태그 제거.
 	if (GetHP() >= GetMaxHP() * 0.3f && Data.Target.HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP))
 	{
+		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
 		Data.Target.RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
 	}
 	// 체력이 MaxHp의 30%이하라면 Low HP 효과 발동.
@@ -230,6 +241,7 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	// 정신력이 MAX가 아니라면 거리별회복 GA 호출
 	if (GetMentalPoint() < GetMaxMentalPoint() && !bMentalPointNotMax)
 	{
+		Data.Target.AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalRecovery);
 		Data.Target.AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalRecovery);
 		OnMentalPointNotMax.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalRecovery);
 	}
@@ -238,12 +250,13 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	if (GetMentalPoint() > 50.0f && Data.Target.HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st))
 	{
 		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
+		Data.Target.RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
 	}
 	// 정신력이 50 이하라면 착란 1단계
 	if (GetMentalPoint() > 25.0f && GetMentalPoint() <= 50.0f && !bPlayerConfused1st)
 	{
 		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
-		Data.Target.AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
+		Data.Target.RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
 		OnPlayerConfused1st.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
 	}
 	bPlayerConfused1st = (GetMentalPoint() > 25.0f && GetMentalPoint() <= 50.0f);
@@ -251,9 +264,10 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	// 정신력이 25 이하라면 착란 2단계
 	if (GetMentalPoint() > 0.0f && GetMentalPoint() <= 25.0f && !bPlayerConfused2nd)
 	{
+		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
 		Data.Target.RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
+		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
 		Data.Target.RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
-		Data.Target.AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
 		OnPlayerConfused2nd.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
 	}
 	bPlayerConfused2nd = (GetMentalPoint() > 0.0f && GetMentalPoint() <= 25.0f);
@@ -261,8 +275,8 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	// 정신력이 0 이라면 착란 3단계
 	if (GetMentalPoint() <= 0.0f && !bPlayerConfused3rd)
 	{
+		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
 		Data.Target.RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
-		Data.Target.AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
 		OnPlayerConfused3rd.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
 	}
 	bPlayerConfused3rd = GetMentalPoint() <= 0.0f;

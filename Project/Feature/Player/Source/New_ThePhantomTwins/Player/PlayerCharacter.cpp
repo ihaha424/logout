@@ -36,6 +36,7 @@ APlayerCharacter::APlayerCharacter()
 	SetReplicates(true);
 
 	MovementSetting();
+	SpeedSetting(WalkSpeed);
 	CameraSetting();
 	OverlapRangeSetting();
 
@@ -393,9 +394,10 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 		WallMaria->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapWall);
 		WallMaria->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapWall);
 	}
-
+		//AttributeSet->OnChangedSpeed.AddDynamic(this, &ThisClass::SpeedSetting);  //GA에서 직접하는것보다 동기화가 늦는다. 이유는 모름.
+		
 	if (IsLocallyControlled())
-	{
+	{	
 		AttributeSet->OnChangedHP.AddDynamic(this, &ThisClass::PlayerHUDHPSet);
 		AttributeSet->OnChangedMentalPoint.AddDynamic(this, &ThisClass::PlayerHUDMentalSet);
 		AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
@@ -454,18 +456,6 @@ void APlayerCharacter::InputPressed(int32 InputID)
 {
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
 	NULLCHECK_RETURN_LOG(Spec,PlayerLog, Warning,);
-
-	//Spec->InputPressed = true;
-	//if (!HasAuthority())
-	//{
-	//	C2S_InputPressed(InputID);
-	//	return;
-	//}
-
-	//EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
-	//FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
-	//ASC->AddLooseGameplayTag(InputTag);
-	//ASC->AddReplicatedLooseGameplayTag(InputTag);
 
 	if (Spec->IsActive())
 	{
@@ -588,10 +578,10 @@ void APlayerCharacter::InputReleased(int32 InputID)
 	}
 	else if (Spec->IsActive())
 	{
-		EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
-		FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
-		ASC->RemoveLooseGameplayTag(InputTag);
-		ASC->RemoveReplicatedLooseGameplayTag(InputTag);
+		//EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
+		//FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
+		//ASC->RemoveLooseGameplayTag(InputTag);
+		//ASC->RemoveReplicatedLooseGameplayTag(InputTag);
 		ASC->AbilitySpecInputReleased(*Spec);
 	}
 }
@@ -605,10 +595,10 @@ void APlayerCharacter::C2S_InputReleased_Implementation(const int32 InputID)
 
 	if (Spec->IsActive())
 	{
-		EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
-		FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
-		ASC->RemoveLooseGameplayTag(InputTag);
-		ASC->RemoveReplicatedLooseGameplayTag(InputTag);
+		//EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
+		//FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
+		//ASC->RemoveLooseGameplayTag(InputTag);
+		//ASC->RemoveReplicatedLooseGameplayTag(InputTag);
 		ASC->AbilitySpecInputReleased(*Spec);
 	}
 }
@@ -664,11 +654,13 @@ void APlayerCharacter::MovementSetting()
 	GetCharacterMovement()->JumpZVelocity = 500.f;
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 0.f;
-	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = 80.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 600.f;
 }
-
+void APlayerCharacter::SpeedSetting(int32 Speed)
+{
+	GetCharacterMovement()->MaxWalkSpeed = Speed;
+}
 void APlayerCharacter::CameraSetting()
 {
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));

@@ -103,6 +103,10 @@ void UGA_Run::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGame
 
 void UGA_Run::SetSpeed(float Speed, const FGameplayAbilityActorInfo* ActorInfo)
 {
+	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
+	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
+	Character->GetCharacterMovement()->MaxWalkSpeed = Speed;
+
 	// 스피드 재정의 GE 부여
 	FGameplayEffectSpecHandle SetSpeedEffectSpecHandle = MakeOutgoingGameplayEffectSpec(SetSpeedEffect, 1.0f);
 	if (SetSpeedEffectSpecHandle.IsValid())
@@ -111,23 +115,6 @@ void UGA_Run::SetSpeed(float Speed, const FGameplayAbilityActorInfo* ActorInfo)
 		SetSpeedEffectSpecHandle.Data->SetSetByCallerMagnitude(SpeedOverrideTag, Speed);
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, SetSpeedEffectSpecHandle);
 	}
-	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
-	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
-	// 재정의된 스피드 적용
-	FTimerHandle TimerHandle;
-	ActorInfo->AvatarActor->GetWorldTimerManager().SetTimer(
-		TimerHandle, [this, ActorInfo]()
-		{
-			APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
-			NULLCHECK_RETURN_LOG(Character, GALog, Warning, )
-
-				const UPlayerAttributeSet* Attribute = Character->GetAbilitySystemComponent()->GetSet<UPlayerAttributeSet>();
-
-			float Speed = Attribute->GetFinalSpeed();
-
-			Character->GetCharacterMovement()->MaxWalkSpeed = Speed;
-		}, 0.05f, false); // 0.05초 정도 후에 반영
-
 }
 
 void UGA_Run::OnSprintTagChanged(const FGameplayTag Tag, int32 TagCount)

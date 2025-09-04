@@ -13,8 +13,8 @@
 		GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 		GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHUDDelegate, const int32, value);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAttributeDelegate, const FGameplayTag, InputTag);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAttValueDelegate, const int32, value);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAttTagDelegate, const FGameplayTag, InputTag);
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UPlayerAttributeSet : public UAttributeSet
@@ -69,18 +69,19 @@ public:
 	virtual bool PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data) override;
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 
-	mutable FAttributeDelegate OnPlayerLowHP;
-	mutable FAttributeDelegate OnPlayerDowned;
-	mutable FAttributeDelegate OnPlayerConfused1st;
-	mutable FAttributeDelegate OnPlayerConfused2nd;
-	mutable FAttributeDelegate OnPlayerConfused3rd;
-	mutable FAttributeDelegate OnPlayerUseSkill;
-	mutable FAttributeDelegate OnMentalPointNotMax;
+	mutable FAttTagDelegate OnPlayerLowHP;
+	mutable FAttTagDelegate OnPlayerDowned;
+	mutable FAttTagDelegate OnPlayerConfused1st;
+	mutable FAttTagDelegate OnPlayerConfused2nd;
+	mutable FAttTagDelegate OnPlayerConfused3rd;
+	mutable FAttTagDelegate OnPlayerUseSkill;
+	mutable FAttTagDelegate OnMentalPointNotMax;
 
-	mutable FHUDDelegate OnChangedHP;
-	mutable FHUDDelegate OnChangedMentalPoint;
-	mutable FHUDDelegate OnChangedCoreEnergy;
-	mutable FHUDDelegate OnChangedStamina;
+	mutable FAttValueDelegate OnChangedHP;
+	mutable FAttValueDelegate OnChangedMentalPoint;
+	mutable FAttValueDelegate OnChangedCoreEnergy;
+	mutable FAttValueDelegate OnChangedStamina;
+	mutable FAttValueDelegate OnChangedSpeed;
 
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_HP, BlueprintReadOnly, Category = "Stat", Meta = (AllowPrivateAccess = true))
