@@ -6,3 +6,9 @@
 // AI Scanner
 TPT_TAG_GEN(Notify, Scanner_Berserker, "Scanner Berserker")
 
+// AI Footstep_Mansion
+// 저택 맵에 들어갈 적 발소리 테스트용입니다.
+TPT_TAG_GEN(Notify, Mansion_Footstep, "Mansion_Footstep_Left")
+TPT_TAG_GEN(Notify, Mansion_Footstep, "Mansion_Footstep_Right")
+
+
