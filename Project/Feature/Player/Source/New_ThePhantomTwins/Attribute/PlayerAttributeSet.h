@@ -81,6 +81,7 @@ public:
 	mutable FAttValueDelegate OnChangedMentalPoint;
 	mutable FAttValueDelegate OnChangedCoreEnergy;
 	mutable FAttValueDelegate OnChangedStamina;
+	mutable FAttValueDelegate OnFullStamina;
 	mutable FAttValueDelegate OnChangedSpeed;
 
 protected:

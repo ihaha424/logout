@@ -104,6 +104,10 @@ void UPlayerAttributeSet::OnRep_Stamina(const FGameplayAttributeData& OldValue)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, Stamina, OldValue);
 	OnChangedStamina.Broadcast(GetStamina());
+	if (GetStamina() >= GetMaxStamina())
+	{
+		OnFullStamina.Broadcast(GetStamina());
+	}
 }
 void UPlayerAttributeSet::OnRep_MaxStamina(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, MaxStamina, OldValue); }
 void UPlayerAttributeSet::OnRep_MentalPoint(const FGameplayAttributeData& OldValue)
@@ -204,7 +208,10 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	{
 		SetStamina(FMath::Clamp(GetStamina(), MinimumPoint, GetMaxStamina()));
 		OnChangedStamina.Broadcast(GetStamina());
-
+		if (GetStamina()>= GetMaxStamina())
+		{
+			OnFullStamina.Broadcast(GetStamina());
+		}
 	}
 
 	// 스피드나 증감스피드가 변경될때 마다  final 스피드가 업데이트 되도록함.

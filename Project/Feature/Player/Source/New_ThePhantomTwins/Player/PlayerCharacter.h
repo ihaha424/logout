@@ -107,6 +107,8 @@ public:
 	UFUNCTION()
 	void PlayerHUDStaminaSet(int32 value);
 	UFUNCTION()
+	void HidePlayerHUDStaminaSet(int32 value);
+	UFUNCTION()
 	void PlayerHUDCoreEnergySet(int32 value);
 protected:
 	// 플레이어 인풋 바인딩

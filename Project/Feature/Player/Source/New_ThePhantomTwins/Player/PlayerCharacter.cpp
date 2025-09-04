@@ -320,6 +320,14 @@ void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
 	PlayerHUDWidget->UpdateStamina(value);
 }
 
+void APlayerCharacter::HidePlayerHUDStaminaSet(int32 value)
+{
+	//TODO : 스태미나 숨기기
+	//
+	//
+	//
+}
+
 void APlayerCharacter::PlayerHUDCoreEnergySet(int32 value)
 {
 	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
@@ -406,6 +414,7 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 		AttributeSet->OnChangedHP.AddDynamic(this, &ThisClass::PlayerHUDHPSet);
 		AttributeSet->OnChangedMentalPoint.AddDynamic(this, &ThisClass::PlayerHUDMentalSet);
 		AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
+		AttributeSet->OnFullStamina.AddDynamic(this, &ThisClass::HidePlayerHUDStaminaSet);
 		AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
 	}
 }
