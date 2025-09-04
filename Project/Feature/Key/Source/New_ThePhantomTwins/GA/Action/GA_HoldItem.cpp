@@ -122,8 +122,6 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
     }
     else
     {
-        TPT_LOG(GALog, Warning, TEXT("투척 아이템 X => 손에 있는 Mesh 지우기"));
-
         C2S_DestroyReplicatedHeldItem();    // 투척 아이템 아니면 손에 있는 Mesh 지우기
     }
 
