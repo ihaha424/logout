@@ -126,6 +126,8 @@ protected:
 	void InputPressed(int32 InputID);
 	void InputSKillPressed(int32 InputID, int32 Number);
 	void InputPressedWithNum(int32 InputID, int32 Number);
+	void InputMouseWheelUp(const FInputActionValue& Value);
+	void InputMouseWheelDown(const FInputActionValue& Value);
 	void InputPressedUseItem(int32 InputID);
 	void InputReleased(int32 InputID);
 
@@ -204,8 +206,14 @@ protected:
 	TObjectPtr<UInputAction> MoveAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> LookAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> MouseWheelUpAction;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> MouseWheelDownAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 	int32 SelectedSlotNumber = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
+	int32 MaxSlotNumber = 5;
 
 	// Ä«¸Þ¶ó
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))

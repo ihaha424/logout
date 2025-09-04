@@ -333,6 +333,9 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	check(TPTInput);
 	TPTInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
 	TPTInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
+	TPTInput->BindAction(MouseWheelUpAction, ETriggerEvent::Triggered, this, &ThisClass::InputMouseWheelUp);
+	TPTInput->BindAction(MouseWheelDownAction, ETriggerEvent::Triggered, this, &ThisClass::InputMouseWheelDown);
+
 
 	SetupPlayerInputByTag(TPTInput);
 }
@@ -521,6 +524,32 @@ void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
 	Payload.EventMagnitude = static_cast<float>(SlotNumber);
 
 	ASC->HandleGameplayEvent(EventTag, &Payload);
+}
+
+void APlayerCharacter::InputMouseWheelUp(const FInputActionValue& Value)
+{
+	SelectedSlotNumber++;
+
+	// 인벤토리 슬롯 개수 넘으면 처음으로
+	if (SelectedSlotNumber > MaxSlotNumber)
+	{
+		SelectedSlotNumber = 1;
+	}
+
+	InputPressedWithNum(0, SelectedSlotNumber);
+}
+
+void APlayerCharacter::InputMouseWheelDown(const FInputActionValue& Value)
+{
+	SelectedSlotNumber--;
+
+	// 인벤토리 슬롯 개수보다 적으면 끝으로
+	if (SelectedSlotNumber < 1)
+	{
+		SelectedSlotNumber = MaxSlotNumber;
+	}
+
+	InputPressedWithNum(0, SelectedSlotNumber);
 }
 
 void APlayerCharacter::InputPressedUseItem(int32 InputID)
@@ -837,4 +866,5 @@ void APlayerCharacter::S2A_RemoveHeldItemMesh_Implementation()
 {
 	RemoveHeldItemMesh();
 }
+
 
