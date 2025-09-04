@@ -58,6 +58,11 @@ private:
     void C2S_DestroyReplicatedHeldItem();
     void C2S_DestroyReplicatedHeldItem_Implementation();
 
+    // Multicast RPC: 모든 클라이언트에서 해당 PlayerState의 Pawn 소켓에 붙어있는 (로컬) StaticMesh들을 제거
+    UFUNCTION(NetMulticast, Reliable)
+    void S2A_RemoveLocalAttachedMeshes(APlayerState* OwnerPlayerState, FName SocketName);
+    void S2A_RemoveLocalAttachedMeshes_Implementation(APlayerState* OwnerPlayerState, FName SocketName);
+
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
