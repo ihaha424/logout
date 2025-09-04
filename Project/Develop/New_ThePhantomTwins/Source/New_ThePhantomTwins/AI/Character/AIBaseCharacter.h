@@ -37,6 +37,10 @@ public:
 	const UAIBaseAttributeSet* GetAIAttributeSet() const;
 	//~ End IAbilitySystemInterface interface & Additional GAS System
 
+	//~ Begin GameplayCueNotify
+	TArray<UGameplayCueInterface> GamePlayCueNotifys;
+	//~ End GameplayCueNotify
+
 	//~ Begin State Control
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	void ApplyStun();

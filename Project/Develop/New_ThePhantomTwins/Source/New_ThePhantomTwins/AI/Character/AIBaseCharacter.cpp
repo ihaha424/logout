@@ -75,6 +75,11 @@ void AAIBaseCharacter::BeginPlay()
             AbilitySystem->GiveAbility(StartSpec);
         }
 
+        for (const auto& CueNotify : GamePlayCueNotifys)
+        {
+
+        }
+
         AbilitySystem->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Stun)
             .AddUObject(this, &AAIBaseCharacter::ResetDataForState);
         AbilitySystem->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Default)

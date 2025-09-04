@@ -62,6 +62,12 @@ TPT_TAG_GEN(Character, Action, OpenObstacle, "AI Action: OpenObstacle")
 TPT_TAG_GEN(Character, Action, ScanCloestPlayer, "AI Action: ScanCloestPlayer")
 
 
+/*
+	Object
+*/
+TPT_TAG_GEN(Character, Object, Key, "Object: Key")
+
+
 
 /*
 	Common
