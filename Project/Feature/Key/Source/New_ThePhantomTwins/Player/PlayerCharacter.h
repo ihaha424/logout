@@ -97,6 +97,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
 	TObjectPtr<UMaterialInstanceDynamic> VignetteMID;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
+	TObjectPtr<class UHeldItemComponent> HeldItemComponent;
+
 public:
 	// À§Á¬ ¼³Á¤
 	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);

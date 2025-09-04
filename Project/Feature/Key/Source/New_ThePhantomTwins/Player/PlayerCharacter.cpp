@@ -25,6 +25,7 @@
 #include "UIManager/UIManager.h"
 #include "Components/WidgetComponent.h"
 #include "Objects/InventoryComponent.h"
+#include "Objects/HeldItemComponent.h"
 #include "UI/HUD/PlayerHUDWidget.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/PostProcessComponent.h"
@@ -53,6 +54,8 @@ APlayerCharacter::APlayerCharacter()
 	PostProcessComponent->SetupAttachment(RootComponent);
 	PostProcessComponent->bUnbound = false;
 	PostProcessComponent->Priority = 1.f;
+
+	HeldItemComponent = CreateDefaultSubobject<UHeldItemComponent>(TEXT("HeldItemComponent"));
 }
 
 // AI의 감지를 위한 팀설정.
