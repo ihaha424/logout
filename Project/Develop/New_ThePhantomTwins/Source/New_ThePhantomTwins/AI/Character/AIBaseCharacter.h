@@ -34,18 +34,12 @@ public:
 
 	//~ Begin IAbilitySystemInterface interface & Additional GAS System
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	UAIBaseAttributeSet* GetAIAttributeSet() const;
+	const UAIBaseAttributeSet* GetAIAttributeSet() const;
 	//~ End IAbilitySystemInterface interface & Additional GAS System
 
-	//~ Begin GameplayCueNotify
-	TArray<UGameplayCueInterface> GamePlayCueNotifys;
-	//~ End GameplayCueNotify
-
 	//~ Begin State Control
-	void ApplyStun();
-	void ResetToDefaultState();
 	UFUNCTION(BlueprintCallable, Category = "AI")
-	FString  GetCurrentAIStateAsString() const;
+	void ApplyStun();
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	void  ResetDataForState(const FGameplayTag Tag, int32 TagCount);
 	//~ End State Control
@@ -98,7 +92,7 @@ protected:
 
 	//~ Begin AI Attribute
 	UPROPERTY()
-	TObjectPtr<UAIBaseAttributeSet> AttributeSet;
+	TObjectPtr<const UAIBaseAttributeSet> AttributeSet;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI Attribute")
 	float ChaseMentalAttackValue = 10;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI Attribute")
@@ -107,10 +101,9 @@ protected:
 	float MoveSpeed = 200;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI Attribute")
 	float ChaseSpeed = 300;
+	float CurSpeed = 0.f;
 	//~ End AI Attribute
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
-	FGameplayTagContainer AIStateTags;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
 	TMap<FGameplayTag, TSubclassOf<UGameplayAbility>>Abilities;
@@ -143,13 +136,13 @@ protected:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AI")
 	void ResetDataForEscapeCombatState();
 
-	void ResetDataForDefaultState_Implementation();
-	void ResetDataForSuspicionState_Implementation();
-	void ResetDataForStunState_Implementation();
-	void ResetDataForCombatState_Implementation();
-	void ResetDataForEscapeDefaultState_Implementation();
-	void ResetDataForEscapeSuspicionState_Implementation();
-	void ResetDataForEscapeStunState_Implementation();
-	void ResetDataForEscapeCombatState_Implementation();
+	virtual void ResetDataForDefaultState_Implementation();
+	virtual void ResetDataForSuspicionState_Implementation();
+	virtual void ResetDataForStunState_Implementation();
+	virtual void ResetDataForCombatState_Implementation();
+	virtual void ResetDataForEscapeDefaultState_Implementation();
+	virtual void ResetDataForEscapeSuspicionState_Implementation();
+	virtual void ResetDataForEscapeStunState_Implementation();
+	virtual void ResetDataForEscapeCombatState_Implementation();
 	//~ End State Control
 };

@@ -162,8 +162,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 
 	ASC = PS->GetAbilitySystemComponent();
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
-
 	ASC->InitAbilityActorInfo(PS, this);
+
 	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
 	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
 
