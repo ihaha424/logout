@@ -52,6 +52,8 @@ TPT_TAG_GEN(Character, AIState, Suspicion, "AI State: Suspicion")
 TPT_TAG_GEN(Character, AIState, Combat, "AI State: Combat")
 TPT_TAG_GEN(Character, AIState, PerformingAction, "AI State: PerformingAction")
 
+// AI Effect
+TPT_TAG_GEN(Character, AIEffect, Berserker, "AI Effect: Berserker")
 
 // AI Action
 TPT_TAG_GEN(Character, Action, MeleeAttack, "AI Action: MeleeAttack")

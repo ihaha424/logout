@@ -11,4 +11,5 @@
 #elif defined(CUETAG)
 #include "CueTag_Effect.inl"
 #include "CueTag_Sound.inl"
+#include "CueTag_Notify.inl"
 #endif

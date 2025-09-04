@@ -270,7 +270,7 @@ inline void AAIBaseController::SetPerceptionByCharacterAttributeSet(APawn* InPaw
     AAIBaseCharacter* AIChar = Cast<AAIBaseCharacter>(InPawn);
     if (AIChar && AIChar->GetAbilitySystemComponent())
     {
-        UAIBaseAttributeSet* AttrSet = Cast<UAIBaseAttributeSet>(AIChar->GetAIAttributeSet());
+        const UAIBaseAttributeSet* AttrSet = Cast<UAIBaseAttributeSet>(AIChar->GetAIAttributeSet());
         if (AttrSet)
         {
             if (SightConfig)

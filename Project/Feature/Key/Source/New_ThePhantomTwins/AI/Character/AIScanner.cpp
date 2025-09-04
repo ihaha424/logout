@@ -6,6 +6,7 @@
 #include "Tags/TPTGameplayTags.h"
 #include "AbilitySystemGlobals.h"
 #include "Log/TPTLog.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 #include "Components/SpotLightComponent.h"
 #include "Engine/SpotLight.h"
@@ -18,6 +19,14 @@ bool AAIScanner::MatchingChaseActorType(AActor* OtherActor) const
         return false;
 
     return ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player) || ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI);
+}
+
+void AAIScanner::BeginPlay()
+{
+    Super::BeginPlay();
+
+    AbilitySystem->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_AIEffect_Berserker)
+        .AddUObject(this, &AAIScanner::SetBerserkerMode);
 }
 
 void AAIScanner::Tick(float DeltaTime)
@@ -97,3 +106,37 @@ void AAIScanner::UpdateNearbySpotLights()
             It.RemoveCurrent();
     }
 }
+
+void AAIScanner::SetBerserkerMode(const FGameplayTag Tag, int32 TagCount)
+{
+    const EFTPTGameplayTags* EnumTag = FTPTGameplayTags::Get().TagMap.Find(Tag);
+    NULLCHECK_RETURN_LOG(EnumTag, AILog, Warning, );
+
+    if (*EnumTag != EFTPTGameplayTags::TPTGameplay_Character_AIEffect_Berserker)
+        return;
+
+    if (TagCount > 0)
+    {
+        AdditionalBerserkerSpeed = BerserkerSpeed;
+    }
+    else
+    {
+        AdditionalBerserkerSpeed = 0.f;
+    }
+    GetCharacterMovement()->MaxWalkSpeed = CurSpeed + AdditionalBerserkerSpeed;
+}
+
+void AAIScanner::ResetDataForCombatState_Implementation()
+{
+    Super::ResetDataForCombatState_Implementation();
+
+    GetCharacterMovement()->MaxWalkSpeed = CurSpeed + AdditionalBerserkerSpeed;
+}
+
+void AAIScanner::ResetDataForEscapeCombatState_Implementation()
+{
+    Super::ResetDataForEscapeCombatState_Implementation();
+
+    GetCharacterMovement()->MaxWalkSpeed = CurSpeed + AdditionalBerserkerSpeed;
+}
+
