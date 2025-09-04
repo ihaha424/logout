@@ -110,6 +110,8 @@ public:
 	UFUNCTION()
 	void PlayerHUDStaminaSet(int32 value);
 	UFUNCTION()
+	void HidePlayerHUDStaminaSet(int32 value);
+	UFUNCTION()
 	void PlayerHUDCoreEnergySet(int32 value);
 protected:
 	// 플레이어 인풋 바인딩
@@ -129,6 +131,8 @@ protected:
 	void InputPressed(int32 InputID);
 	void InputSKillPressed(int32 InputID, int32 Number);
 	void InputPressedWithNum(int32 InputID, int32 Number);
+	void InputMouseWheelUp(const FInputActionValue& Value);
+	void InputMouseWheelDown(const FInputActionValue& Value);
 	void InputPressedUseItem(int32 InputID);
 	void InputReleased(int32 InputID);
 
@@ -150,6 +154,8 @@ protected:
 
 	// 플레이어 초기 세팅.
 	void MovementSetting();
+	UFUNCTION()
+	void SpeedSetting(int32 Speed);
 	void CameraSetting();
 	void OverlapRangeSetting();
 	UFUNCTION(BlueprintImplementableEvent)
@@ -207,8 +213,14 @@ protected:
 	TObjectPtr<UInputAction> MoveAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> LookAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> MouseWheelUpAction;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> MouseWheelDownAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 	int32 SelectedSlotNumber = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
+	int32 MaxSlotNumber = 5;
 
 	// 카메라
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", Meta = (AllowPrivateAccess = "true"))

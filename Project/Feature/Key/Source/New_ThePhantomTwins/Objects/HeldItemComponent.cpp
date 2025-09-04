@@ -152,9 +152,6 @@ void UHeldItemComponent::DestroyLocalHeldItemMesh()
     // 특정 소켓에 부착된 StaticMesh 컴포넌트들 찾아서 제거 (추가 안전장치)
     APlayerCharacter* Character = Cast<APlayerCharacter>(GetOwner());
     if (!Character) return;
-    {
-        return;
-    }
 
     USkeletalMeshComponent* MeshComp = Character->GetMesh();
     if (!MeshComp)  return;
