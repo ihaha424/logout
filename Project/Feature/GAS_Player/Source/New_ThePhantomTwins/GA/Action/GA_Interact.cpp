@@ -34,15 +34,27 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	PlayInteractMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("InteractMontage"), InteractMontage, 1.0f, TEXT("Interact"));
 	PlayInteractMontageTask->OnCompleted.AddDynamic(this, &UGA_Interact::OnCompleteCallback);
 
-	FTimerDelegate TimerDel;
-	float Time = 0.0f;
+	
+
+	// 몽타주 골라서 재생
+	PlayInteractMontageTask->ReadyForActivation();
+	if (Cast<APlayerCharacter>(TargetActor))
+	{
+		MontageJumpToSection(TEXT("Recovery"));
+	}
+	else
+	{
+		MontageJumpToSection(TEXT("Interact"));
+		// todo: 몽타주 다 재생되게 조정하기
+	}
 
 	if (TargetActor->GetClass()->ImplementsInterface(UHolding::StaticClass())) // 플레이어 오브젝트
 	{
 		//TPT_LOG(GALog, Error, TEXT("TEST__ ImplementsInterface"));
-		Time = IHolding::Execute_GetTime(TargetActor);
+		float Time = IHolding::Execute_GetTime(TargetActor);
 		IHolding::Execute_SetHoldingGaugeUI(TargetActor, Character, true);
 
+		FTimerDelegate TimerDel;
 		TimerDel.BindLambda([this, Time]()
 			{
 				if (GetWorld()->GetTimerManager().IsTimerActive(CompleteHandle))
@@ -127,19 +139,6 @@ void UGA_Interact::InteractExecute()
 			C2S_Interact(TargetActor, Character);
 		}
 		IInteract::Execute_OnInteractClient(TargetActor, Character);
-
-		// 몽타주 골라서 재생
-		if (Cast<APlayerCharacter>(TargetActor))
-		{
-			PlayInteractMontageTask->ReadyForActivation();
-			MontageJumpToSection(TEXT("Recovery"));
-			// TODO : 릴리즈드가 되면 재생도 멈추게 조정하기.//
-		}
-		else
-		{
-			PlayInteractMontageTask->ReadyForActivation();
-			MontageJumpToSection(TEXT("Interact"));
-		}
 	}
 	else
 	{
