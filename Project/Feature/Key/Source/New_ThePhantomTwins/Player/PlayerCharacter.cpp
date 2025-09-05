@@ -325,10 +325,20 @@ void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
 
 void APlayerCharacter::HidePlayerHUDStaminaSet(int32 value)
 {
-	//TODO : 스태미나 숨기기
-	//
-	//
-	//
+	FTimerHandle TimerHandle_HideStamina;
+
+	GetWorldTimerManager().SetTimer(
+		TimerHandle_HideStamina,
+		[this]()
+		{
+			if (PlayerHUDWidget)
+			{
+				PlayerHUDWidget->VisibleStamina(false);
+			}
+		},
+		2.0f,
+		false
+	);
 }
 
 void APlayerCharacter::PlayerHUDCoreEnergySet(int32 value)
