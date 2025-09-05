@@ -82,14 +82,23 @@ inline void UBTS_AIStimulusMonitor::DetermineStateTransition(
     EAIBaseState NextState = CurrentState;
 
     // 상태 전이 판단
-    if (CurrentState == EAIBaseState::Default)
+    switch (CurrentState)
     {
+    case EAIBaseState::Die:
+        break;
+
+
+    case EAIBaseState::Default:
         /*
         // 소음 아이템과 플레이어 행동 소음에 할당된 포인트를 누적하여 의심상태로 변동
         // 시야 범위 내의 플레이어/적 액터를 인지한 시간이 1.0초 이하일 경우 의심 상태로 변경
         // 의심 상태로 변동시, 가장 마지막에 인지한 자극의 위치로 이동
         */
-        if (BB->GetValueAsBool(StunKey.SelectedKeyName))
+        if (BB->GetValueAsBool(DieKey.SelectedKeyName))
+        {
+            NextState = EAIBaseState::Die;
+        }
+        else if (BB->GetValueAsBool(StunKey.SelectedKeyName))
         {
             NextState = EAIBaseState::Stun;
         }
@@ -102,23 +111,28 @@ inline void UBTS_AIStimulusMonitor::DetermineStateTransition(
         {
             NextState = EAIBaseState::Combat;
         }
-        else if ((SightDuration >= SightSuspicionThreshold && SightDuration < SightCombatThreshold) 
+        else if ((SightDuration >= SightSuspicionThreshold && SightDuration < SightCombatThreshold)
             || HearingSum >= HearingSuspicionThreshold)
         {
             NextState = EAIBaseState::Suspicion;
         }
-    }
-    else if (CurrentState == EAIBaseState::Suspicion)
-    {
+        break;
+
+
+    case EAIBaseState::Suspicion:
         /*
-        // 의심 상태로 변동 시, 가장 마지막에 인지한 자극의위치로 이동
-        // 우선 순위가 높은 자극이 발생하면 새로운 자극의 위치로 이동
-        // 완료 조건:
-                Move to Stimulus Location 행동을 완료 할 떄까지 추가 소음 자극이 없으면 가장 가까운 Spluine Path 탐색을 시작(시야 자극이 발생하면 시야 자극 추적)
-                Spline Path 탐색을 시작하면 추가 소음 자극을 업데이트하지 않음 (시야 자극이 발생하면 시야 자극 추적)
-                Spline Path 탐색이 완료되면 저장한 자극 정보를 초기화하고 기본 상태로 변동
-        */
-        if (BB->GetValueAsBool(StunKey.SelectedKeyName))
+       // 의심 상태로 변동 시, 가장 마지막에 인지한 자극의위치로 이동
+       // 우선 순위가 높은 자극이 발생하면 새로운 자극의 위치로 이동
+       // 완료 조건:
+               Move to Stimulus Location 행동을 완료 할 떄까지 추가 소음 자극이 없으면 가장 가까운 Spluine Path 탐색을 시작(시야 자극이 발생하면 시야 자극 추적)
+               Spline Path 탐색을 시작하면 추가 소음 자극을 업데이트하지 않음 (시야 자극이 발생하면 시야 자극 추적)
+               Spline Path 탐색이 완료되면 저장한 자극 정보를 초기화하고 기본 상태로 변동
+       */
+        if (BB->GetValueAsBool(DieKey.SelectedKeyName))
+        {
+            NextState = EAIBaseState::Die;
+        }
+        else if (BB->GetValueAsBool(StunKey.SelectedKeyName))
         {
             NextState = EAIBaseState::Stun;
         }
@@ -131,9 +145,10 @@ inline void UBTS_AIStimulusMonitor::DetermineStateTransition(
         {
             NextState = EAIBaseState::Combat;
         }
-    }
-    else if (CurrentState == EAIBaseState::Combat)
-    {
+        break;
+
+
+    case EAIBaseState::Combat:
         /*
         // 전투 상태면 소음 자극 무시
         // 추적 중에 자극이 사야 범위를 벗어날 경우 마지막으로 인식한 시야 자극의 위치로 이동
@@ -142,7 +157,11 @@ inline void UBTS_AIStimulusMonitor::DetermineStateTransition(
                 Spline Path 탐색을 시작하면 추가 소음 자극을 업데이트 하지 않음(시야 자극이 발생하면 시야 자극 추적)
                 Spline 탐색이 완료되면 저장한 자극 정보를 초기화 하고 기본 상태로 변동
         */
-        if (BB->GetValueAsBool(StunKey.SelectedKeyName))
+        if (BB->GetValueAsBool(DieKey.SelectedKeyName))
+        {
+            NextState = EAIBaseState::Die;
+        }
+        else if (BB->GetValueAsBool(StunKey.SelectedKeyName))
         {
             NextState = EAIBaseState::Stun;
         }
@@ -158,15 +177,14 @@ inline void UBTS_AIStimulusMonitor::DetermineStateTransition(
                 NextState = EAIBaseState::Suspicion;
             }
         }
-    }
-    else if (CurrentState == EAIBaseState::Stun)
-    {
-        // TPT_LOG(AILog, Log, TEXT("CurrentState == EAIBaseState::Stun: Nothing"));
-    }
-    else
-    {
-        TPT_LOG(AILog, Warning, TEXT("State: Failed."));
-    }
+        break;
 
+
+    case EAIBaseState::Stun:
+        break;
+    default:
+        TPT_LOG(AILog, Warning, TEXT("State: Failed."));
+        break;
+    }
     UAIHelperLibrary::SetAIStateAndTag(&OwnerComp, BB, CurrentState, NextState, AIStateKey.SelectedKeyName);
 }

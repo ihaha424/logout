@@ -29,6 +29,9 @@ protected:
     UPROPERTY(EditAnywhere, Category = "Ability")
     bool bHasTarget;
 
+    UPROPERTY(EditAnywhere, Category = "Ability")
+    FName StringData;
+
     /**
      * @brief If need To Target Ability
      */
