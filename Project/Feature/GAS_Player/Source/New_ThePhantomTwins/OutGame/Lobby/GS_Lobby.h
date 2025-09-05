@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h"
-#include "../../CharacterType.h"
+#include "Data/CharacterType.h"
 #include "GS_Lobby.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSetIdentifyCharacterData, FIdentifyCharacterData, IdentifyCharacterData);

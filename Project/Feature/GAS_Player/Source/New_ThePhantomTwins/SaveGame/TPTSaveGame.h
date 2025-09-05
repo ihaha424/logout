@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
-#include "CharacterType.h"
+#include "Data/CharacterType.h"
 #include "TPTSaveGame.generated.h"
 
 /**

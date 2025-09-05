@@ -5,6 +5,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/DecalComponent.h"
 
 
 AInteractableObject::AInteractableObject() : ABaseObject()
@@ -72,6 +73,13 @@ void AInteractableObject::OnInteractClient_Implementation(const APawn* Interacto
 void AInteractableObject::SetWidgetVisible(bool bVisible)
 {
     InteractWidgetComp->SetVisibility(bVisible);
+
+    // UDecalComponent 가 있고 이름이 FName("InteractDecal") 이라면 bVisible 상태에 따라 아래 로직 실행
+    if (InteractDecalComp)
+    {
+        InteractDecalComp->SetHiddenInGame(!bVisible);
+    }
+
 }
 
 void AInteractableObject::OnRep_bIsActived()

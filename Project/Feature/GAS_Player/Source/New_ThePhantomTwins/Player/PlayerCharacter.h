@@ -280,5 +280,6 @@ protected:
 private:
 	UPROPERTY()
 	FTimerHandle VisibleInventoryTimerHandle;
+	FTimerHandle VisibleStaminaTimerHandle;
 
 };

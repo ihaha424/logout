@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "../../GM_PhantomTwins.h"
-#include "../../CharacterType.h"
+#include "Data/CharacterType.h"
 #include "GM_Lobby.generated.h"
 
 UCLASS()
