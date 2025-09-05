@@ -32,9 +32,6 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	NULLCHECK_CODE_RETURN_LOG(TargetActor, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
 
 	PlayInteractMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("InteractMontage"), InteractMontage, 1.0f, TEXT("Interact"));
-	PlayInteractMontageTask->OnCompleted.AddDynamic(this, &UGA_Interact::OnCompleteCallback);
-
-	
 
 	// ¸ùÅ¸ÁÖ °ñ¶ó¼­ Àç»ý
 	PlayInteractMontageTask->ReadyForActivation();
@@ -116,11 +113,6 @@ void UGA_Interact::C2S_Interact_Implementation(UObject* interact, AActor* Owner)
 	{
 		IInteract::Execute_OnInteractServer(interact, OwnerCharacter);
 	}
-}
-
-void UGA_Interact::OnCompleteCallback()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UGA_Interact::InteractExecute()
