@@ -5,14 +5,11 @@
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Player/PlayerCharacter.h"
-#include "Attribute/PlayerAttributeSet.h"
 #include "Log/TPTLog.h"
 #include "Player/FocusTraceComponent.h"
 #include "SzInterface/Interact.h"
 #include "SzInterface/Holding.h"
-#include "Kismet/GameplayStatics.h"
 #include "Tags/TPTGameplayTags.h"
-#include "Player/PC_Player.h"
 
 UGA_Interact::UGA_Interact()
 {
