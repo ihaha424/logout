@@ -22,6 +22,9 @@ public:
 	TObjectPtr<class USceneComponent> RootSceneComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | Components")
+	TObjectPtr<class UBoxComponent> BoxComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | Components")
 	TObjectPtr<class UOutlineComponent> OutlineComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject")
