@@ -4,7 +4,9 @@
 #include "SzObjects/BaseObject.h"
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/DecalComponent.h"
 #include "SzComponents/OutlineComponent.h"
+
 
 ABaseObject::ABaseObject()
 {
@@ -34,6 +36,24 @@ void ABaseObject::BeginPlay()
         if (MeshComp)
         {
             MeshComp->SetCanEverAffectNavigation(false);
+        }
+    }
+
+
+    TArray<UDecalComponent*> InteractDecalComponent;
+    GetComponents<UDecalComponent>(InteractDecalComponent);
+
+    // BP에서 배치한 UDecalComponent를 찾음
+    TArray<UDecalComponent*> DecalComponents;
+    GetComponents<UDecalComponent>(DecalComponents);
+
+    for (UDecalComponent* DecalComp : DecalComponents)
+    {
+        if (DecalComp && DecalComp->GetFName() == FName("InteractDecal"))
+        {
+            InteractDecalComp = DecalComp;
+            InteractDecalComp->SetHiddenInGame(true); // 시작 시 숨김
+            break;
         }
     }
 }
