@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "../../CharacterType.h"
+#include "Data/CharacterType.h"
 #include "PC_Lobby.generated.h"
 
 /**

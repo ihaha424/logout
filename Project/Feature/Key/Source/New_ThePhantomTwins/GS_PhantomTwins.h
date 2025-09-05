@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h"
+#include "Data/MapType.h"
 #include "GS_PhantomTwins.generated.h"
 
 
@@ -33,6 +34,11 @@ public:
 	void MarkBossSpawned(AActor* InBoss);
 	//~ End BossSpawn
 
+	//~ Begin MapData
+	EMapType GetMapData() const { return MapData; }
+	void SetMapData(EMapType mapType) { MapData = MapData; }
+	//~ End MapData
+
 protected:
 	//~ Begin BossSpawn
 	FOnCollectedItemCountChanged CollectedItemCountChanged;
@@ -41,6 +47,10 @@ protected:
 	UFUNCTION()
 	void OnRep_CollectedItemCount();
 	//~ End BossSpawn
+
+	//~ Begin MapData
+	EMapType MapData;
+	//~ End MapData
 
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out) const override;

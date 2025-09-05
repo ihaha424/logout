@@ -128,4 +128,5 @@ protected:
 	bool bPlayerUseSprintSkill = false;
 	bool bPlayerUseOutLineSkill = false;
 	bool bMentalPointNotMax = false;
+	bool bFullStamina = false;
 };

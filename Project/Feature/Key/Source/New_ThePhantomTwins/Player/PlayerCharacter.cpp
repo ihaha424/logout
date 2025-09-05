@@ -325,10 +325,10 @@ void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
 
 void APlayerCharacter::HidePlayerHUDStaminaSet(int32 value)
 {
-	FTimerHandle TimerHandle_HideStamina;
+	GetWorldTimerManager().ClearTimer(VisibleStaminaTimerHandle); // 중복 타이머 방지
 
 	GetWorldTimerManager().SetTimer(
-		TimerHandle_HideStamina,
+		VisibleStaminaTimerHandle,
 		[this]()
 		{
 			if (PlayerHUDWidget)

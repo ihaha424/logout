@@ -57,7 +57,6 @@ EBTNodeResult::Type UBTT_ApplyEffectByTarget::Execute_Task(UBehaviorTreeComponen
                             ASCResolved->RemoveActiveGameplayEffect(HandleCopy);
                         }
                     }
-                    TPT_LOG(AILog, Error, TEXT("ApplyEffectByTarget: RemoveActiveGameplayEffect Faild."));
                 }
             ),
             Duration,

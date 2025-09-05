@@ -7,7 +7,7 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
 #include "GenericTeamAgentInterface.h"
-#include "CharacterType.h"
+#include "Data/CharacterType.h"
 #include "PS_Player.generated.h"
 
 class UPlayerAttributeSet;
