@@ -17,6 +17,7 @@ TPT_TAG_GEN(Character, State, Confused3rd, "Character is Confused 3rd")
 TPT_TAG_GEN(Character, State, AIChasing, "Ai is Chasing player")
 TPT_TAG_GEN(Character, State, HoldItem, "Character Hold Item ")
 TPT_TAG_GEN(Character, State, UseItem, "Character Use Item ")
+TPT_TAG_GEN(Character, State, DrinkPotion, "Character Drink Potion ")
 TPT_TAG_GEN(Character, State, ThrowItem, "Character Throw Item ")
 
 // Skilling State

@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/DecalComponent.h"
 #include "SzComponents/OutlineComponent.h"
+#include "Components/BoxComponent.h"
 
 
 ABaseObject::ABaseObject()
@@ -18,6 +19,11 @@ ABaseObject::ABaseObject()
 
     // Outline
     OutlineComp = CreateDefaultSubobject<UOutlineComponent>(TEXT("OutlineComponent"));
+
+    // Box
+	BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
+	BoxComp->SetupAttachment(RootComponent);
+    BoxComp->SetCollisionProfileName(TEXT("Interactable"));
 
     // "Interactable" 태그 추가
     Tags.Add(FName("Interactable"));

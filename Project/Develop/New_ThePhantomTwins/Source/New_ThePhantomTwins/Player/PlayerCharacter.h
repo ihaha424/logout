@@ -186,7 +186,9 @@ private:
 	void S2A_RemoveHeldItemMesh();
 	void S2A_RemoveHeldItemMesh_Implementation();
 
-
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_OnDownedWidget(bool Visible);
+	void S2A_OnDownedWidget_Implementation(bool Visible);
 protected:
 
 	UPROPERTY()
@@ -205,6 +207,9 @@ protected:
 	TSubclassOf<UGameplayEffect> InitAttributeSetEffect;
 	UPROPERTY(EditAnywhere, Category = "Recovery")
 	TSubclassOf<UGameplayEffect> RecoveryGE;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BoxCollision")
+	TObjectPtr<class UBoxComponent> BoxComp;
 
 	// ¿Œ«≤
 	UPROPERTY(EditDefaultsOnly, Category = "Input")

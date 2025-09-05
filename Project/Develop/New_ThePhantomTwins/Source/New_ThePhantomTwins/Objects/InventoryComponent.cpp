@@ -320,7 +320,7 @@ void UInventoryComponent::ExecuteGameplayAbility(TSubclassOf<UGameplayAbility> A
     if (Handle.IsValid())
     {
         OwnerASC->TryActivateAbility(Handle);
-        OwnerASC->ClearAbility(Handle);
+        //OwnerASC->ClearAbility(Handle);
     }
 }
 

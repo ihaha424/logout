@@ -29,6 +29,7 @@
 #include "UI/HUD/PlayerHUDWidget.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/PostProcessComponent.h"
+#include "Components/BoxComponent.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -55,6 +56,10 @@ APlayerCharacter::APlayerCharacter()
 	PostProcessComponent->SetupAttachment(RootComponent);
 	PostProcessComponent->bUnbound = false;
 	PostProcessComponent->Priority = 1.f;
+
+	BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
+	BoxComp->SetupAttachment(RootComponent);
+	BoxComp->SetCollisionProfileName(TEXT("Interactable"));
 
 	HeldItemComponent = CreateDefaultSubobject<UHeldItemComponent>(TEXT("HeldItemComponent"));
 }
@@ -117,19 +122,6 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	//if (ASC)  // TODO : 이게 꼭 여기 있을필요가 없다.
-	//{
-	//	bool bIsDownedTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-	//	if (bIsDownedTag)
-	//	{
-	//		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
-	//	}
-	//	else
-	//	{
-	//		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-	//	}
-	//}
 
 	if (IsLocallyControlled() && PlayerController && FocusTrace)
 	{
@@ -148,7 +140,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 		// 클라에선 FocusTrace 세팅(시각효과용)
 		FocusTrace->SetStart(WorldLocation);
 		FocusTrace->SetDirection(WorldDirection);
-		FocusTrace->SetCollisionType(ECC_WorldDynamic);
+		FocusTrace->SetCollisionType(ECC_GameTraceChannel1);
 
 		// 서버 RPC 호출에 위치 + 회전 같이 넘기기
 		C2S_SetFocusTrace(CameraLocation, CameraRotation);
@@ -397,7 +389,7 @@ void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 
 	if(InputTag == FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed)
 	{
-		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+		S2A_OnDownedWidget(true);
 	}
 }
 
@@ -460,8 +452,7 @@ void APlayerCharacter::OnRecoveryCompleted()
 	}
 
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	S2A_OnDownedWidget(false);
 
 	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
 
@@ -656,7 +647,7 @@ void APlayerCharacter::C2S_SetFocusTrace_Implementation(const FVector& CameraLoc
 		FVector Direction = CameraRotation.Vector(); // 카메라 회전 기반 전방 방향 벡터를 다시 구함
 		FocusTrace->SetDirection(Direction);
 
-		FocusTrace->SetCollisionType(ECC_WorldDynamic);
+		FocusTrace->SetCollisionType(ECC_GameTraceChannel1);
 	}
 }
 
@@ -903,4 +894,14 @@ void APlayerCharacter::S2A_RemoveHeldItemMesh_Implementation()
 	RemoveHeldItemMesh();
 }
 
-
+void APlayerCharacter::S2A_OnDownedWidget_Implementation(bool Visible)
+{
+	if (Visible)
+	{
+		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+	}
+	else
+	{
+		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
