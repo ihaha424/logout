@@ -78,9 +78,6 @@ void AInteractableObject::SetWidgetVisible(bool bVisible)
     if (InteractDecalComp)
     {
         InteractDecalComp->SetHiddenInGame(!bVisible);
-
-        UE_LOG(LogTemp, Log, TEXT("%s"), bVisible ? TEXT("데칼보임")
-            : TEXT("데칼안보임"));
     }
 
 }
