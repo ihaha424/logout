@@ -39,14 +39,11 @@ public:
 	// Interact 중에 재생할 애니메이션 몽타주
 
 
-	//TArray<FName> ComboSectionNames; //
+	// TArray<FName> ComboSectionNames; //
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
 	TObjectPtr<UAnimMontage> InteractMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
-	TObjectPtr<UAnimMontage> RecoveryMontage;
 
 	// 리커버리 관련 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
@@ -54,5 +51,4 @@ public:
 	FTimerHandle UpdateHandle;;
 
 	UAbilityTask_PlayMontageAndWait* PlayInteractMontageTask = nullptr;
-	UAbilityTask_PlayMontageAndWait* PlayRecoveryMontageTask = nullptr;
 };
