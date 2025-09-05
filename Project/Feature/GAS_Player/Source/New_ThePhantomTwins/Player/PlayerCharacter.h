@@ -208,6 +208,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Recovery")
 	TSubclassOf<UGameplayEffect> RecoveryGE;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BoxCollision")
+	TObjectPtr<class UBoxComponent> BoxComp;
+
 	// ¿Œ«≤
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UDA_InputConfig* InputConfig;

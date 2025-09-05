@@ -29,6 +29,7 @@
 #include "UI/HUD/PlayerHUDWidget.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/PostProcessComponent.h"
+#include "Components/BoxComponent.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -55,6 +56,10 @@ APlayerCharacter::APlayerCharacter()
 	PostProcessComponent->SetupAttachment(RootComponent);
 	PostProcessComponent->bUnbound = false;
 	PostProcessComponent->Priority = 1.f;
+
+	BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
+	BoxComp->SetupAttachment(RootComponent);
+	BoxComp->SetCollisionProfileName(TEXT("Interactable"));
 
 	HeldItemComponent = CreateDefaultSubobject<UHeldItemComponent>(TEXT("HeldItemComponent"));
 }
