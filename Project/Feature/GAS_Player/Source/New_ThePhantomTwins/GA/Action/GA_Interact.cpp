@@ -28,18 +28,22 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	TargetActor = Cast<AActor>(Character->GetFocusTrace()->GetFocusedActor());
 	NULLCHECK_CODE_RETURN_LOG(TargetActor, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
 
-	PlayInteractMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("InteractMontage"), InteractMontage, 1.0f, TEXT("Interact"));
+	// 사물 상호작용
+	PlayInteractMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("InteractMontage"), InteractMontage, 1.0f);
+	PlayInteractMontageTask->OnCompleted.AddDynamic(this, &UGA_Interact::OnMontageComplete);
+	// 회복 상호작용
+	PlayRecoveryMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("RecoveryMontage"), RecoveryMontage, 1.0f);
 
 	// 몽타주 골라서 재생
-	PlayInteractMontageTask->ReadyForActivation();
 	if (Cast<APlayerCharacter>(TargetActor))
 	{
-		MontageJumpToSection(TEXT("Recovery"));
+		CurrentPlayingMontage = RecoveryMontage;
+		PlayRecoveryMontageTask->ReadyForActivation();
 	}
 	else
 	{
-		MontageJumpToSection(TEXT("Interact"));
-		// todo: 몽타주 다 재생되게 조정하기
+		CurrentPlayingMontage = InteractMontage;
+		PlayInteractMontageTask->ReadyForActivation();
 	}
 
 	if (TargetActor->GetClass()->ImplementsInterface(UHolding::StaticClass())) // 플레이어 오브젝트
@@ -84,6 +88,11 @@ void UGA_Interact::CancelAbility(const FGameplayAbilitySpecHandle Handle, const 
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 }
 
+void UGA_Interact::OnMontageComplete()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}
+
 void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, )
@@ -96,9 +105,9 @@ void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const 
 
 		IHolding::Execute_SetHoldingGaugeUI(TargetActor, Character, false);
 		IHolding::Execute_CalculateGaugePercent(TargetActor, 0.0f);
-	}
 
-	CancelAbility(Handle, ActorInfo, ActivationInfo, true);
+		CancelAbility(Handle, ActorInfo, ActivationInfo, true);
+	}
 }
 
 void UGA_Interact::C2S_Interact_Implementation(UObject* interact, AActor* Owner)
@@ -128,9 +137,10 @@ void UGA_Interact::InteractExecute()
 			C2S_Interact(TargetActor, Character);
 		}
 		IInteract::Execute_OnInteractClient(TargetActor, Character);
-	}
-	else
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		if (CurrentPlayingMontage == RecoveryMontage)
+		{
+			Character->GetMesh()->GetAnimInstance()->Montage_Stop(0.1f, RecoveryMontage);
+			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		}
 	}
 }

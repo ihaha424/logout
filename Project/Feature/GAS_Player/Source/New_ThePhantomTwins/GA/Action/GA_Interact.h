@@ -26,7 +26,8 @@ public:
 	UFUNCTION(Server, Reliable)
 	void C2S_Interact(UObject* interact, AActor* Owner);
 	void C2S_Interact_Implementation(UObject* interact, AActor* Owner);
-
+	UFUNCTION()
+	void OnMontageComplete();
 	void InteractExecute();
 
 	APlayerCharacter* Character = nullptr;
@@ -40,6 +41,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
 	TObjectPtr<UAnimMontage> InteractMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+	TObjectPtr<UAnimMontage> RecoveryMontage;
 
 	// 府目滚府 包访 函荐
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
@@ -47,4 +50,6 @@ public:
 	FTimerHandle UpdateHandle;;
 
 	UAbilityTask_PlayMontageAndWait* PlayInteractMontageTask = nullptr;
+	UAbilityTask_PlayMontageAndWait* PlayRecoveryMontageTask = nullptr;
+	UAnimMontage* CurrentPlayingMontage = nullptr;
 };
