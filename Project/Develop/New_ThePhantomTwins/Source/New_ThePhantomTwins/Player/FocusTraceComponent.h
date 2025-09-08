@@ -31,13 +31,13 @@ public:
     // 라인의 두께
 	UPROPERTY(EditAnywhere)
     float SphereRadius = 50.f;
+	UPROPERTY(ReplicatedUsing = OnRep_FocusedActor)
+	AActor* FocusedActor;
 protected:
     virtual void BeginPlay() override;
 
 private:
 
-    UPROPERTY(ReplicatedUsing = OnRep_FocusedActor)
-    AActor* FocusedActor;
     UPROPERTY()
     AActor* PrevActor = nullptr;
     UPROPERTY(EditAnywhere)
