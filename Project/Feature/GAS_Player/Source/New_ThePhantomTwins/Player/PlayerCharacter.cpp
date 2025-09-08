@@ -222,9 +222,13 @@ bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool 
 
 	if (bIsTag && bIsDetected)
 	{
+		if (!Interactor->IsLocallyControlled())
+			return true;
 		InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
 		return true;
 	}
+	if (!Interactor->IsLocallyControlled())
+		return false;
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 	return false;
 }
@@ -232,6 +236,11 @@ bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool 
 void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	OnRecoveryCompleted();
+	const APlayerCharacter* C = Cast<APlayerCharacter>(Interactor);
+	if(C)
+	{
+		C->GetFocusTrace()->FocusedActor = nullptr;
+	}
 }
 
 void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
@@ -253,6 +262,7 @@ void APlayerCharacter::CalculateGaugePercent_Implementation(float Elapsed)
 void APlayerCharacter::SetHoldingGaugeUI_Implementation(const APawn* Interactor, bool bVisible)
 {
 	APC_Player* PC = APC_Player::GetLocalPlayerController(Interactor->GetController());
+	// UI 
 	PC->SetWidget(TEXT("RecoveryGauge"), bVisible, EMessageTargetType::Multicast);
 }
 

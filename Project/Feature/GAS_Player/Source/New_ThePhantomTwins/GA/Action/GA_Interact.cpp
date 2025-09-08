@@ -10,6 +10,7 @@
 #include "SzInterface/Interact.h"
 #include "SzInterface/Holding.h"
 #include "Tags/TPTGameplayTags.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 UGA_Interact::UGA_Interact()
 {
@@ -25,7 +26,10 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
 	NULLCHECK_CODE_RETURN_LOG(Character, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
 
+	UKismetSystemLibrary::PrintString(this, TEXT("xx"));
 	TargetActor = Cast<AActor>(Character->GetFocusTrace()->GetFocusedActor());
+	if (!TargetActor)
+		UKismetSystemLibrary::PrintString(this, TEXT("zz"));
 	NULLCHECK_CODE_RETURN_LOG(TargetActor, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
 
 	// 사물 상호작용
