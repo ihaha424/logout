@@ -45,17 +45,16 @@ void AInteractableObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 bool AInteractableObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
-    if (!Interactor->IsLocallyControlled()) return false;
-
     bCanInteract = bIsDetected;
+
+    if (!Interactor->IsLocallyControlled()) return bCanInteract;
+    SetWidgetVisible(bCanInteract);
 
     //UE_LOG(LogTemp, Log,
     //    TEXT("AItemObject::CanInteract - %s | %s | Role: %s"),
     //    bCanInteract ? TEXT("true") : TEXT("false"),
     //    *Interactor->GetName(),
     //    *UEnum::GetValueAsString(GetLocalRole()));
-
-    SetWidgetVisible(bCanInteract);
 
     return bCanInteract;
 }

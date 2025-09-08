@@ -26,10 +26,7 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
 	NULLCHECK_CODE_RETURN_LOG(Character, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
 
-	UKismetSystemLibrary::PrintString(this, TEXT("xx"));
 	TargetActor = Cast<AActor>(Character->GetFocusTrace()->GetFocusedActor());
-	if (!TargetActor)
-		UKismetSystemLibrary::PrintString(this, TEXT("zz"));
 	NULLCHECK_CODE_RETURN_LOG(TargetActor, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
 
 	// 사물 상호작용
@@ -130,8 +127,11 @@ void UGA_Interact::InteractExecute()
 	NULLCHECK_RETURN_LOG(TargetActor, GALog, Warning, );
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
 
-	TargetActor->GetWorld()->GetTimerManager().ClearTimer(CompleteHandle);
-	TargetActor->GetWorld()->GetTimerManager().ClearTimer(UpdateHandle);
+	if (TargetActor->GetClass()->ImplementsInterface(UHolding::StaticClass()))
+	{
+		TargetActor->GetWorld()->GetTimerManager().ClearTimer(CompleteHandle);
+		TargetActor->GetWorld()->GetTimerManager().ClearTimer(UpdateHandle);
+	}
 
 	// 플레이어가 상호작용할 수 있는 오브젝트가 있는지 확인
 	if (TargetActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
