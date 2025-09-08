@@ -1,9 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "GA/Object/GA_Key.h"
-
-#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Player/PlayerCharacter.h"
+#include "Player/FocusTraceComponent.h"
+#include "Objects/ConsoleObject.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
 
@@ -17,16 +15,22 @@ UGA_Key::UGA_Key()
 
 void UGA_Key::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	TPT_LOG(GALog, Log, TEXT("UGA_Key :: ActivateAbility()"));
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	UAbilityTask_PlayMontageAndWait* PlayDrinkMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("UseKeyMontage"), UseKeyMontage, 1.0f);
-	PlayDrinkMontageTask->OnCompleted.AddDynamic(this, &UGA_Key::OnMontageComplete);
 
-	PlayDrinkMontageTask->ReadyForActivation();
-}
+	TPT_LOG(GALog, Log, TEXT("UGA_Key :: ActivateAbility()"));
 
-void UGA_Key::OnMontageComplete()
-{
-	TPT_LOG(GALog, Error, TEXT(""));
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
+	NULLCHECK_CODE_RETURN_LOG(Character, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
+
+	TargetActor = Cast<AActor>(Character->GetFocusTrace()->GetFocusedActor());
+	NULLCHECK_CODE_RETURN_LOG(TargetActor, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
+
+	// TargetActor 정보 출력
+	if (TargetActor)
+	{
+		TPT_LOG(GALog, Log, TEXT("TargetActor Name: %s, Class: %s"), *TargetActor->GetName(), *TargetActor->GetClass()->GetName());
+	}
+
+
+	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
