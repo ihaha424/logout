@@ -18,7 +18,7 @@ UHeldItemComponent::UHeldItemComponent()
     PrimaryComponentTick.bCanEverTick = false;
 
     // 네트워킹 설정
-    SetIsReplicatedByDefault(true);
+        SetIsReplicatedByDefault(true);
 
     LocalHeldItemComponent = nullptr;
     ReplicatedHeldActor = nullptr;
@@ -38,7 +38,7 @@ void UHeldItemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 
 void UHeldItemComponent::SpawnAndAttachHeldItem(EItemType ItemType)
 {
-    // 투척 아이템이 아니면 기존 아이템 제거
+    // 투척 아이템이 아니면 기존 아이템 제거+
     if (ItemType != EItemType::EMP && ItemType != EItemType::NoiseBomb && ItemType != EItemType::Key)
     {
         DestroyHeldItem();
