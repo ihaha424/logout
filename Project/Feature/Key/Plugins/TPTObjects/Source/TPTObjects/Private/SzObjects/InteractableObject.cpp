@@ -45,17 +45,16 @@ void AInteractableObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 bool AInteractableObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
-    if (!Interactor->IsLocallyControlled()) return false;
-
     bCanInteract = bIsDetected;
+
+    if (!Interactor->IsLocallyControlled()) return bCanInteract;
+    SetWidgetVisible(bCanInteract);
 
     //UE_LOG(LogTemp, Log,
     //    TEXT("AItemObject::CanInteract - %s | %s | Role: %s"),
     //    bCanInteract ? TEXT("true") : TEXT("false"),
     //    *Interactor->GetName(),
     //    *UEnum::GetValueAsString(GetLocalRole()));
-
-    SetWidgetVisible(bCanInteract);
 
     return bCanInteract;
 }
@@ -78,9 +77,6 @@ void AInteractableObject::SetWidgetVisible(bool bVisible)
     if (InteractDecalComp)
     {
         InteractDecalComp->SetHiddenInGame(!bVisible);
-
-        UE_LOG(LogTemp, Log, TEXT("%s"), bVisible ? TEXT("µ¥Ä®º¸ÀÓ")
-            : TEXT("µ¥Ä®¾Èº¸ÀÓ"));
     }
 
 }

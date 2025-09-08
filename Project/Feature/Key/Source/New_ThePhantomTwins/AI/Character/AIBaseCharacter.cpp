@@ -80,6 +80,8 @@ void AAIBaseCharacter::BeginPlay()
 
         }
 
+        AbilitySystem->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Die)
+            .AddUObject(this, &AAIBaseCharacter::ResetDataForState);
         AbilitySystem->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Stun)
             .AddUObject(this, &AAIBaseCharacter::ResetDataForState);
         AbilitySystem->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Default)
@@ -104,10 +106,7 @@ void AAIBaseCharacter::PostInitializeComponents()
 void AAIBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
     Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
-
-
 
 UAbilitySystemComponent* AAIBaseCharacter::GetAbilitySystemComponent() const
 {
@@ -119,7 +118,7 @@ const UAIBaseAttributeSet* AAIBaseCharacter::GetAIAttributeSet() const
     return AttributeSet;
 }
 
-void AAIBaseCharacter::ApplyStun()
+void AAIBaseCharacter::ApplyStun_Implementation()
 {
     AAIController* AIController = Cast<AAIController>(GetController());
     NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
@@ -127,6 +126,16 @@ void AAIBaseCharacter::ApplyStun()
     NULLCHECK_RETURN_LOG(BB, AILog, Warning, );
 
     BB->SetValueAsBool("bIsStunned", true);
+}
+
+void AAIBaseCharacter::ApplyDie_Implementation()
+{
+    AAIController* AIController = Cast<AAIController>(GetController());
+    NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
+    UBlackboardComponent* BB = AIController->GetBlackboardComponent();
+    NULLCHECK_RETURN_LOG(BB, AILog, Warning, );
+
+    BB->SetValueAsBool("bIsDie", true);
 }
 
 
@@ -139,6 +148,9 @@ void AAIBaseCharacter::ResetDataForState(const FGameplayTag Tag, int32 TagCount)
     {
         switch (*EnumTag)
         {
+        case EFTPTGameplayTags::TPTGameplay_Character_AIState_Die:
+            ResetDataForStunState();
+            break;
         case EFTPTGameplayTags::TPTGameplay_Character_AIState_Stun:
             ResetDataForStunState();
             break;
@@ -159,6 +171,9 @@ void AAIBaseCharacter::ResetDataForState(const FGameplayTag Tag, int32 TagCount)
     {
         switch (*EnumTag)
         {
+        case EFTPTGameplayTags::TPTGameplay_Character_AIState_Die:
+            ResetDataForEscapeDieState();
+            break;
         case EFTPTGameplayTags::TPTGameplay_Character_AIState_Stun:
             ResetDataForEscapeStunState();
             break;
@@ -328,6 +343,11 @@ void AAIBaseCharacter::CancleChaseActorGA()
     AbilitySystem->CancelAbilities(&CancelTags);
 }
 
+void AAIBaseCharacter::ResetDataForDieState_Implementation()
+{
+
+}
+
 void AAIBaseCharacter::ResetDataForStunState_Implementation()
 {
 
@@ -384,6 +404,10 @@ void AAIBaseCharacter::ResetDataForEscapeDefaultState_Implementation()
 }
 
 void AAIBaseCharacter::ResetDataForEscapeSuspicionState_Implementation()
+{
+}
+
+void AAIBaseCharacter::ResetDataForEscapeDieState_Implementation()
 {
 }
 

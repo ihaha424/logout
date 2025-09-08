@@ -37,6 +37,8 @@ protected:
     UPROPERTY(EditAnywhere, Category = "Blackboard")
     FBlackboardKeySelector StunKey;
     UPROPERTY(EditAnywhere, Category = "Blackboard")
+    FBlackboardKeySelector DieKey;
+    UPROPERTY(EditAnywhere, Category = "Blackboard")
     FBlackboardKeySelector TargetActorKey;
     //~ End Blackboard Key
 

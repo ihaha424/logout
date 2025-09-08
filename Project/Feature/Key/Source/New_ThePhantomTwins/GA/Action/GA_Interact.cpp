@@ -5,14 +5,12 @@
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Player/PlayerCharacter.h"
-#include "Attribute/PlayerAttributeSet.h"
 #include "Log/TPTLog.h"
 #include "Player/FocusTraceComponent.h"
 #include "SzInterface/Interact.h"
 #include "SzInterface/Holding.h"
-#include "Kismet/GameplayStatics.h"
 #include "Tags/TPTGameplayTags.h"
-#include "Player/PC_Player.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 UGA_Interact::UGA_Interact()
 {
@@ -31,21 +29,31 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	TargetActor = Cast<AActor>(Character->GetFocusTrace()->GetFocusedActor());
 	NULLCHECK_CODE_RETURN_LOG(TargetActor, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
 
+	// 사물 상호작용
 	PlayInteractMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("InteractMontage"), InteractMontage, 1.0f);
-	PlayInteractMontageTask->OnCompleted.AddDynamic(this, &UGA_Interact::OnCompleteCallback);
-
+	PlayInteractMontageTask->OnCompleted.AddDynamic(this, &UGA_Interact::OnMontageComplete);
+	// 회복 상호작용
 	PlayRecoveryMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("RecoveryMontage"), RecoveryMontage, 1.0f);
-	PlayRecoveryMontageTask->OnCompleted.AddDynamic(this, &UGA_Interact::OnCompleteCallback);
 
-	FTimerDelegate TimerDel;
-	float Time = 0.0f;
+	// 몽타주 골라서 재생
+	if (Cast<APlayerCharacter>(TargetActor))
+	{
+		CurrentPlayingMontage = RecoveryMontage;
+		PlayRecoveryMontageTask->ReadyForActivation();
+	}
+	else
+	{
+		CurrentPlayingMontage = InteractMontage;
+		PlayInteractMontageTask->ReadyForActivation();
+	}
 
 	if (TargetActor->GetClass()->ImplementsInterface(UHolding::StaticClass())) // 플레이어 오브젝트
 	{
 		//TPT_LOG(GALog, Error, TEXT("TEST__ ImplementsInterface"));
-		Time = IHolding::Execute_GetTime(TargetActor);
+		float Time = IHolding::Execute_GetTime(TargetActor);
 		IHolding::Execute_SetHoldingGaugeUI(TargetActor, Character, true);
 
+		FTimerDelegate TimerDel;
 		TimerDel.BindLambda([this, Time]()
 			{
 				if (GetWorld()->GetTimerManager().IsTimerActive(CompleteHandle))
@@ -72,7 +80,6 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	}
 	else
 	{
-		//TPT_LOG(GALog, Error, TEXT("TEST__ else"));
 		InteractExecute();
 	}
 }
@@ -80,6 +87,11 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 void UGA_Interact::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+}
+
+void UGA_Interact::OnMontageComplete()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
@@ -94,9 +106,9 @@ void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const 
 
 		IHolding::Execute_SetHoldingGaugeUI(TargetActor, Character, false);
 		IHolding::Execute_CalculateGaugePercent(TargetActor, 0.0f);
-	}
 
-	CancelAbility(Handle, ActorInfo, ActivationInfo, true);
+		CancelAbility(Handle, ActorInfo, ActivationInfo, true);
+	}
 }
 
 void UGA_Interact::C2S_Interact_Implementation(UObject* interact, AActor* Owner)
@@ -110,18 +122,16 @@ void UGA_Interact::C2S_Interact_Implementation(UObject* interact, AActor* Owner)
 	}
 }
 
-void UGA_Interact::OnCompleteCallback()
-{
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-}
-
 void UGA_Interact::InteractExecute()
 {
 	NULLCHECK_RETURN_LOG(TargetActor, GALog, Warning, );
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
 
-	TargetActor->GetWorld()->GetTimerManager().ClearTimer(CompleteHandle);
-	TargetActor->GetWorld()->GetTimerManager().ClearTimer(UpdateHandle);
+	if (TargetActor->GetClass()->ImplementsInterface(UHolding::StaticClass()))
+	{
+		TargetActor->GetWorld()->GetTimerManager().ClearTimer(CompleteHandle);
+		TargetActor->GetWorld()->GetTimerManager().ClearTimer(UpdateHandle);
+	}
 
 	// 플레이어가 상호작용할 수 있는 오브젝트가 있는지 확인
 	if (TargetActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
@@ -131,23 +141,10 @@ void UGA_Interact::InteractExecute()
 			C2S_Interact(TargetActor, Character);
 		}
 		IInteract::Execute_OnInteractClient(TargetActor, Character);
-
-		// 몽타주 골라서 재생
-		if (Cast<APlayerCharacter>(TargetActor))
+		if (CurrentPlayingMontage == RecoveryMontage)
 		{
-			//TPT_LOG(GALog, Error, TEXT("TEST__ RecoveryMontage"));
-			PlayRecoveryMontageTask->ReadyForActivation();
-			// TODO : 몽타주 재생시에 움직임이 없으면 풀바디 재생이 되도록 조정하기.
-			// TODO : 릴리즈드가 되면 재생도 멈추게 조정하기.
+			Character->GetMesh()->GetAnimInstance()->Montage_Stop(0.1f, RecoveryMontage);
+			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 		}
-		else
-		{
-			//TPT_LOG(GALog, Error, TEXT("TEST__ InteractExecuteMontage"));
-			PlayInteractMontageTask->ReadyForActivation();
-		}
-	}
-	else
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	}
 }

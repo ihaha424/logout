@@ -55,28 +55,28 @@ void UFocusTraceComponent::SetCollisionType(ECollisionChannel CollisionChannel)
 
 void UFocusTraceComponent::OnRep_FocusedActor()
 {
-    APlayerCharacter* Character = Cast<APlayerCharacter>(GetOwner());
-    if (!Character) return;
+	APlayerCharacter* Character = Cast<APlayerCharacter>(GetOwner());
+	if (!Character) return;
 
-    if (!Character->IsLocallyControlled()) return;
+	if (!Character->IsLocallyControlled()) return;
 
-    if (IsValid(PrevActor) && PrevActor != FocusedActor)
-    {
-        if (PrevActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
-            IInteract::Execute_CanInteract(PrevActor, Character, false);
-    }
-    if (IsValid(FocusedActor))
-    {
-        if (FocusedActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
-        {
-            if (!IInteract::Execute_CanInteract(FocusedActor, Character, true))
-            {
-                FocusedActor = nullptr;
-            }
-        }
-    }
+	if (IsValid(PrevActor) && PrevActor != FocusedActor)
+	{
+		if (PrevActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
+			IInteract::Execute_CanInteract(PrevActor, Character, false);
+	}
+	if (IsValid(FocusedActor))
+	{
+		if (FocusedActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
+		{
+			if (!IInteract::Execute_CanInteract(FocusedActor, Character, true))
+			{
+				FocusedActor = nullptr;
+			}
+		}
+	}
 
-    PrevActor = FocusedActor;
+	PrevActor = FocusedActor;
 }
 
 void UFocusTraceComponent::PerformTrace()
@@ -86,6 +86,20 @@ void UFocusTraceComponent::PerformTrace()
     APawn* Pawn = Cast<APawn>(Owner);
     if (!Pawn->HasAuthority())
     {
+        /*APlayerCharacter* Character = Cast<APlayerCharacter>(GetOwner());
+		if (!Character) return;
+
+		if (!Character->IsLocallyControlled()) return;
+        if (IsValid(FocusedActor))
+        {
+			if (FocusedActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
+            {
+				if(!IInteract::Execute_CanInteract(FocusedActor, Character, true))
+				{
+					FocusedActor = nullptr;
+				}
+            }
+        }*/
         return;
     }
     FVector End = Start + Direction * TraceDistance;
@@ -110,12 +124,9 @@ void UFocusTraceComponent::PerformTrace()
     APlayerCharacter* Character = Cast<APlayerCharacter>(Owner);
     NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
 
-    // 중복 세팅 방지: 값이 변경됐을 때만 갱신
-    if (FocusedActor != NewFocusedActor)
-    {
-        PrevActor = FocusedActor;
-        FocusedActor = NewFocusedActor;
-    }
+	PrevActor = FocusedActor;
+	FocusedActor = NewFocusedActor;
+
 
 #if WITH_EDITOR
    /* DrawDebugSphere(
@@ -131,22 +142,20 @@ void UFocusTraceComponent::PerformTrace()
     );*/
 #endif
 
-    if (Pawn->IsLocallyControlled())
-    {
-        if (IsValid(PrevActor) && PrevActor != FocusedActor)
-        {
-            if (PrevActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
-                IInteract::Execute_CanInteract(PrevActor, Character, false);
-        }
-        if (IsValid(FocusedActor))
-        {
-            if (FocusedActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
-            {
-                if (!IInteract::Execute_CanInteract(FocusedActor, Character, true))
-                {
-                    FocusedActor = nullptr;
-                }
-            }
-        }
-    }
+	if (IsValid(PrevActor) && PrevActor != FocusedActor)
+	{
+		if (PrevActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
+			IInteract::Execute_CanInteract(PrevActor, Character, false);
+	}
+	if (IsValid(FocusedActor))
+	{
+		if (FocusedActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
+		{
+			if (!IInteract::Execute_CanInteract(FocusedActor, Character, true))
+			{
+				FocusedActor = nullptr;
+			}
+		}
+	}
+    
 }

@@ -27,7 +27,6 @@ bool UUIManager::RegisterUI(const FString& Key, UUserWidget* Widget, int32 Order
 	}
 	if (UIMap.Contains(Key))
 	{
-		UE_LOG(LogUIManager, Log, TEXT("RegisterUI: Key is already Register."));
 		return false;
 	}
 
@@ -50,7 +49,6 @@ bool UUIManager::UnregisterUI(const FString& Key, UUserWidget* Widget)
 	}
 	if (UIMap.Contains(Key))
 	{
-		UE_LOG(LogUIManager, Log, TEXT("UnRegisterUI: Key is  Non-Register."));
 		return false;
 	}
 	if (UIMap[Key].UI != Widget)
@@ -76,7 +74,6 @@ bool UUIManager::SetWidget(const FString& Key, bool bActive)
 	{
 		if (UIMap[Key].bIsActivate)
 		{
-			UE_LOG(LogUIManager, Log, TEXT("SetWidget: %s is already Show."), *Key);
 			return false;
 		}
 		UIMap[Key].UI->AddToViewport(UIMap[Key].Order);
@@ -86,7 +83,6 @@ bool UUIManager::SetWidget(const FString& Key, bool bActive)
 	{
 		if (!UIMap[Key].bIsActivate)
 		{
-			UE_LOG(LogUIManager, Log, TEXT("SetWidget: %s is already Hide."), *Key);
 			return false;
 		}
 		UIMap[Key].UI->RemoveFromParent();
@@ -105,7 +101,6 @@ UUserWidget* UUIManager::GetWidget(const FString& Key) const
 
 	if (UIMap[Key].bIsActivate)
 	{
-		UE_LOG(LogUIManager, Log, TEXT("GetWidget: %s is already Show."), *Key);
 		return UIMap[Key].UI;
 	}
 

@@ -26,20 +26,21 @@ public:
 	UFUNCTION(Server, Reliable)
 	void C2S_Interact(UObject* interact, AActor* Owner);
 	void C2S_Interact_Implementation(UObject* interact, AActor* Owner);
-
-	// 몽타주를 위한 함수.
 	UFUNCTION()
-	void OnCompleteCallback();
-
+	void OnMontageComplete();
 	void InteractExecute();
 
 	APlayerCharacter* Character = nullptr;
 	AActor* TargetActor = nullptr;
 
 	// Interact 중에 재생할 애니메이션 몽타주
+
+
+	// TArray<FName> ComboSectionNames; //
+
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
 	TObjectPtr<UAnimMontage> InteractMontage;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
 	TObjectPtr<UAnimMontage> RecoveryMontage;
 
@@ -50,4 +51,5 @@ public:
 
 	UAbilityTask_PlayMontageAndWait* PlayInteractMontageTask = nullptr;
 	UAbilityTask_PlayMontageAndWait* PlayRecoveryMontageTask = nullptr;
+	UAnimMontage* CurrentPlayingMontage = nullptr;
 };

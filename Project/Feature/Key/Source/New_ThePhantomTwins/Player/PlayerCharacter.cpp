@@ -29,6 +29,7 @@
 #include "UI/HUD/PlayerHUDWidget.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/PostProcessComponent.h"
+#include "Components/BoxComponent.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -55,6 +56,10 @@ APlayerCharacter::APlayerCharacter()
 	PostProcessComponent->SetupAttachment(RootComponent);
 	PostProcessComponent->bUnbound = false;
 	PostProcessComponent->Priority = 1.f;
+
+	BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
+	BoxComp->SetupAttachment(RootComponent);
+	BoxComp->SetCollisionProfileName(TEXT("Interactable"));
 
 	HeldItemComponent = CreateDefaultSubobject<UHeldItemComponent>(TEXT("HeldItemComponent"));
 }
@@ -117,19 +122,6 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	//if (ASC)  // TODO : 이게 꼭 여기 있을필요가 없다.
-	//{
-	//	bool bIsDownedTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-	//	if (bIsDownedTag)
-	//	{
-	//		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
-	//	}
-	//	else
-	//	{
-	//		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-	//	}
-	//}
 
 	if (IsLocallyControlled() && PlayerController && FocusTrace)
 	{
@@ -148,7 +140,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 		// 클라에선 FocusTrace 세팅(시각효과용)
 		FocusTrace->SetStart(WorldLocation);
 		FocusTrace->SetDirection(WorldDirection);
-		FocusTrace->SetCollisionType(ECC_WorldDynamic);
+		FocusTrace->SetCollisionType(ECC_GameTraceChannel1);
 
 		// 서버 RPC 호출에 위치 + 회전 같이 넘기기
 		C2S_SetFocusTrace(CameraLocation, CameraRotation);
@@ -230,9 +222,13 @@ bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool 
 
 	if (bIsTag && bIsDetected)
 	{
+		if (!Interactor->IsLocallyControlled())
+			return true;
 		InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
 		return true;
 	}
+	if (!Interactor->IsLocallyControlled())
+		return false;
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 	return false;
 }
@@ -240,6 +236,11 @@ bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool 
 void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	OnRecoveryCompleted();
+	const APlayerCharacter* C = Cast<APlayerCharacter>(Interactor);
+	if(C)
+	{
+		C->GetFocusTrace()->FocusedActor = nullptr;
+	}
 }
 
 void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
@@ -261,6 +262,7 @@ void APlayerCharacter::CalculateGaugePercent_Implementation(float Elapsed)
 void APlayerCharacter::SetHoldingGaugeUI_Implementation(const APawn* Interactor, bool bVisible)
 {
 	APC_Player* PC = APC_Player::GetLocalPlayerController(Interactor->GetController());
+	// UI 
 	PC->SetWidget(TEXT("RecoveryGauge"), bVisible, EMessageTargetType::Multicast);
 }
 
@@ -397,7 +399,7 @@ void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 
 	if(InputTag == FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed)
 	{
-		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+		S2A_OnDownedWidget(true);
 	}
 }
 
@@ -460,8 +462,7 @@ void APlayerCharacter::OnRecoveryCompleted()
 	}
 
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	S2A_OnDownedWidget(false);
 
 	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
 
@@ -656,7 +657,7 @@ void APlayerCharacter::C2S_SetFocusTrace_Implementation(const FVector& CameraLoc
 		FVector Direction = CameraRotation.Vector(); // 카메라 회전 기반 전방 방향 벡터를 다시 구함
 		FocusTrace->SetDirection(Direction);
 
-		FocusTrace->SetCollisionType(ECC_WorldDynamic);
+		FocusTrace->SetCollisionType(ECC_GameTraceChannel1);
 	}
 }
 
@@ -866,7 +867,7 @@ void APlayerCharacter::RemoveHeldItemMesh()
 	USkeletalMeshComponent* MeshComp = GetMesh();
 	if (!MeshComp) return;
 
-	const FName HandSocketName = TEXT("RightHandSocket");
+	const FName HandSocketName = TEXT("LeftHandSocket");
 
 	// 캐릭터 Mesh에 붙은 자식 컴포넌트 전부 탐색
 	TArray<USceneComponent*> AttachedComponents;
@@ -882,7 +883,7 @@ void APlayerCharacter::RemoveHeldItemMesh()
 			if (UStaticMeshComponent* HeldMeshComp = Cast<UStaticMeshComponent>(Comp))
 			{
 				HeldMeshComp->DestroyComponent();
-				UE_LOG(LogTemp, Log, TEXT("Removed HeldItem StaticMesh from RightHandSocket"));
+				UE_LOG(LogTemp, Log, TEXT("Removed HeldItem StaticMesh from LeftHandSocket"));
 				return; // 하나만 제거하면 되므로 바로 종료
 			}
 		}
@@ -903,4 +904,14 @@ void APlayerCharacter::S2A_RemoveHeldItemMesh_Implementation()
 	RemoveHeldItemMesh();
 }
 
-
+void APlayerCharacter::S2A_OnDownedWidget_Implementation(bool Visible)
+{
+	if (Visible)
+	{
+		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+	}
+	else
+	{
+		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	}
+}

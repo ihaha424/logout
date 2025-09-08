@@ -17,6 +17,7 @@ TPT_TAG_GEN(Character, State, Confused3rd, "Character is Confused 3rd")
 TPT_TAG_GEN(Character, State, AIChasing, "Ai is Chasing player")
 TPT_TAG_GEN(Character, State, HoldItem, "Character Hold Item ")
 TPT_TAG_GEN(Character, State, UseItem, "Character Use Item ")
+TPT_TAG_GEN(Character, State, DrinkPotion, "Character Drink Potion ")
 TPT_TAG_GEN(Character, State, ThrowItem, "Character Throw Item ")
 
 // Skilling State
@@ -56,6 +57,7 @@ TPT_TAG_GEN(Character, AIState, PerformingAction, "AI State: PerformingAction")
 TPT_TAG_GEN(Character, AIEffect, Berserker, "AI Effect: Berserker")
 
 // AI Action
+TPT_TAG_GEN(Character, Action, Animation, "AI Action: Animation")
 TPT_TAG_GEN(Character, Action, MeleeAttack, "AI Action: MeleeAttack")
 TPT_TAG_GEN(Character, Action, SmashObstacle, "AI Action: SmashObstacle")
 TPT_TAG_GEN(Character, Action, OpenObstacle, "AI Action: OpenObstacle")
