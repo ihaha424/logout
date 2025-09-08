@@ -61,9 +61,9 @@ bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bo
 	// 다른 사람이 이미 들어가 있을 때 return
 	if (HidePlayer && HidePlayer != Interactor) return false;
 
-	if (!Interactor->IsLocallyControlled()) return false;
-
 	bCanInteract = bIsDetected;
+
+	if (!Interactor->IsLocallyControlled()) return bCanInteract;
 
 	//TPT_LOG(ObjectLog, Log,
 	//	TEXT("InteractHideObject::CanInteract - %s | %s | Role: %s"),

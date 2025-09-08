@@ -86,7 +86,7 @@ void UFocusTraceComponent::PerformTrace()
     APawn* Pawn = Cast<APawn>(Owner);
     if (!Pawn->HasAuthority())
     {
-        APlayerCharacter* Character = Cast<APlayerCharacter>(GetOwner());
+        /*APlayerCharacter* Character = Cast<APlayerCharacter>(GetOwner());
 		if (!Character) return;
 
 		if (!Character->IsLocallyControlled()) return;
@@ -99,7 +99,7 @@ void UFocusTraceComponent::PerformTrace()
 					FocusedActor = nullptr;
 				}
             }
-        }
+        }*/
         return;
     }
     FVector End = Start + Direction * TraceDistance;
@@ -141,7 +141,6 @@ void UFocusTraceComponent::PerformTrace()
 		3.0f
     );*/
 #endif
-
 
 	if (IsValid(PrevActor) && PrevActor != FocusedActor)
 	{
