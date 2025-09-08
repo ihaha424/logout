@@ -1,7 +1,7 @@
 #include "GA/Object/GA_Key.h"
 #include "Player/PlayerCharacter.h"
 #include "Player/FocusTraceComponent.h"
-#include "Objects/ConsoleObject.h"
+#include "SzObjects/InteractableObject.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
 
@@ -26,9 +26,17 @@ void UGA_Key::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	NULLCHECK_CODE_RETURN_LOG(TargetActor, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
 
 	// TargetActor 정보 출력
-	if (TargetActor)
+	//if (TargetActor)
+	//{
+	//	TPT_LOG(GALog, Log, TEXT("TargetActor Name: %s, Class: %s"), *TargetActor->GetName(), *TargetActor->GetClass()->GetName());
+	//}
+
+	// LeverActor의 태그가 KeyLever 라면 LeverActor->bIsActived = true; 를 해라.
+	AInteractableObject* LeverActor = Cast<AInteractableObject>(TargetActor);
+	if (LeverActor && LeverActor->ActorHasTag(TEXT("KeyLever")))
 	{
-		TPT_LOG(GALog, Log, TEXT("TargetActor Name: %s, Class: %s"), *TargetActor->GetName(), *TargetActor->GetClass()->GetName());
+		LeverActor->bIsActived = true;
+		//TPT_LOG(GALog, Log, TEXT("LeverActor Tag: KeyLever, bIsActived = true"));
 	}
 
 
