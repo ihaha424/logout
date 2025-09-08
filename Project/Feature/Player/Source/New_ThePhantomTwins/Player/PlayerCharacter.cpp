@@ -25,7 +25,6 @@
 #include "UIManager/UIManager.h"
 #include "Components/WidgetComponent.h"
 #include "Objects/InventoryComponent.h"
-#include "Objects/HeldItemComponent.h"
 #include "UI/HUD/PlayerHUDWidget.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/PostProcessComponent.h"
@@ -55,8 +54,6 @@ APlayerCharacter::APlayerCharacter()
 	PostProcessComponent->SetupAttachment(RootComponent);
 	PostProcessComponent->bUnbound = false;
 	PostProcessComponent->Priority = 1.f;
-
-	HeldItemComponent = CreateDefaultSubobject<UHeldItemComponent>(TEXT("HeldItemComponent"));
 }
 
 // AI의 감지를 위한 팀설정.
@@ -117,19 +114,6 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	//if (ASC)  // TODO : 이게 꼭 여기 있을필요가 없다.
-	//{
-	//	bool bIsDownedTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
-	//	if (bIsDownedTag)
-	//	{
-	//		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
-	//	}
-	//	else
-	//	{
-	//		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-	//	}
-	//}
 
 	if (IsLocallyControlled() && PlayerController && FocusTrace)
 	{
@@ -166,8 +150,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 
 	ASC = PS->GetAbilitySystemComponent();
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
-	ASC->InitAbilityActorInfo(PS, this);
 
+	ASC->InitAbilityActorInfo(PS, this);
 	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
 	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
 
@@ -323,14 +307,6 @@ void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
 	PlayerHUDWidget->UpdateStamina(value);
 }
 
-void APlayerCharacter::HidePlayerHUDStaminaSet(int32 value)
-{
-	//TODO : 스태미나 숨기기
-	//
-	//
-	//
-}
-
 void APlayerCharacter::PlayerHUDCoreEnergySet(int32 value)
 {
 	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
@@ -387,7 +363,7 @@ void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 
 	if(InputTag == FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed)
 	{
-		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+		S2A_OnDownedWidget(true);
 	}
 }
 
@@ -417,7 +393,6 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 		AttributeSet->OnChangedHP.AddDynamic(this, &ThisClass::PlayerHUDHPSet);
 		AttributeSet->OnChangedMentalPoint.AddDynamic(this, &ThisClass::PlayerHUDMentalSet);
 		AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
-		AttributeSet->OnFullStamina.AddDynamic(this, &ThisClass::HidePlayerHUDStaminaSet);
 		AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
 	}
 }
@@ -450,8 +425,8 @@ void APlayerCharacter::OnRecoveryCompleted()
 	}
 
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	//DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	S2A_OnDownedWidget(false);
 
 	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
 
@@ -524,22 +499,6 @@ void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
 	TPT_LOG(PlayerLog, Warning, TEXT(" %d"), SlotNumber);
 
 	PlayerHUDWidget->VisibleInventory(true);
-
-	// 5초 뒤에 인벤토리(UI) 비활성화
-	GetWorldTimerManager().ClearTimer(VisibleInventoryTimerHandle); // 중복 타이머 방지
-	GetWorld()->GetTimerManager().SetTimer(
-		VisibleInventoryTimerHandle,
-		FTimerDelegate::CreateWeakLambda(this, [this]()
-			{
-				if (PlayerHUDWidget)
-				{
-					PlayerHUDWidget->VisibleInventory(false);
-				}
-			}),
-		5.0f, // 초 단위
-		false // 반복 아님
-	);
-
 
 	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Event_Character_HoldItem;
 	FGameplayEventData Payload;
@@ -893,4 +852,14 @@ void APlayerCharacter::S2A_RemoveHeldItemMesh_Implementation()
 	RemoveHeldItemMesh();
 }
 
-
+void APlayerCharacter::S2A_OnDownedWidget_Implementation(bool Visible)
+{
+	if (Visible)
+	{
+		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+	}
+	else
+	{
+		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	}
+}

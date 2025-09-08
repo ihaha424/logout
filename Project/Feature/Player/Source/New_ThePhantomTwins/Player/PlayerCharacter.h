@@ -109,8 +109,8 @@ public:
 	void PlayerHUDMentalSet(int32 value);
 	UFUNCTION()
 	void PlayerHUDStaminaSet(int32 value);
-	UFUNCTION()
-	void HidePlayerHUDStaminaSet(int32 value);
+	//UFUNCTION()
+	//void HidePlayerHUDStaminaSet(int32 value);
 	UFUNCTION()
 	void PlayerHUDCoreEnergySet(int32 value);
 protected:
@@ -186,6 +186,9 @@ private:
 	void S2A_RemoveHeldItemMesh();
 	void S2A_RemoveHeldItemMesh_Implementation();
 
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_OnDownedWidget(bool Visible);
+	void S2A_OnDownedWidget_Implementation(bool Visible);
 
 protected:
 
