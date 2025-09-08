@@ -17,16 +17,18 @@ void UGA_LookBack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	NULLCHECK_RETURN_LOG(SpringArm, GALog, Error, );
 
     OriginalLocation = SpringArm->GetRelativeLocation();
-	bIsMoveLeft = OriginalLocation.Y < 0;
 
     if (!bIsMoveLeft)
     {
-        FVector MoveLeft(OriginalLocation.X, OriginalLocation.Y - 50.f, OriginalLocation.Z);
+        bIsMoveLeft = true;
+        PositionY = OriginalLocation.Y;
+        FVector MoveLeft(OriginalLocation.X, OriginalLocation.Y - MoveDistance, OriginalLocation.Z);
         SpringArm->SetRelativeLocation(MoveLeft);
     }
     else
     {
-        FVector MoveRight(OriginalLocation.X, OriginalLocation.Y + 50.f, OriginalLocation.Z);
+        bIsMoveLeft = false;
+        FVector MoveRight(OriginalLocation.X, PositionY, OriginalLocation.Z);
         SpringArm->SetRelativeLocation(MoveRight);
     }
 

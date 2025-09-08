@@ -712,7 +712,7 @@ void APlayerCharacter::CameraSetting()
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->bUsePawnControlRotation = true;
 	SpringArm->bEnableCameraLag = true;
-	SpringArm->TargetArmLength = 200.0f;
+	SpringArm->TargetArmLength = 100.0f;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->bUsePawnControlRotation = false;
