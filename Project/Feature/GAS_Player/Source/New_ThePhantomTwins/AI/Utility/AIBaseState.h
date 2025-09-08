@@ -10,5 +10,6 @@ enum class EAIBaseState : uint8
     Default		UMETA(DisplayName = "Default"),
     Suspicion	UMETA(DisplayName = "Suspicion"),
     Combat		UMETA(DisplayName = "Combat"),
-    Stun		UMETA(DisplayName = "Stun")
+    Stun		UMETA(DisplayName = "Stun"),
+    Die         UMETA(DisplayName = "Die"),
 };

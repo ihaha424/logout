@@ -6,7 +6,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
 #include "GameplayTagContainer.h"
-
+#include "Data/NamePayload.h"
 #include "../../../Character/AIBaseCharacter.h"
 #include "Log/TPTLog.h"
 
@@ -40,6 +40,12 @@ EBTNodeResult::Type UBTT_PlayAbility::Execute_Task(UBehaviorTreeComponent& Owner
     FGameplayEventData EventData;
     EventData.Instigator = AIPawn;
     EventData.Target = TargetActor;
+    if (!StringData.IsNone())
+    {
+        UNamePayload* Payload = NewObject<UNamePayload>();
+        Payload->Name = StringData;
+        EventData.OptionalObject = Payload;
+    }
 
     ASC->HandleGameplayEvent(AbilityTag, &EventData);
 

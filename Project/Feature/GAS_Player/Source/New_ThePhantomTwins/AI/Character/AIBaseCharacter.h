@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
+#include "AI/AIEventReceiver.h"
 #include "AIBaseCharacter.generated.h"
 
 class UGameplayAbility;
@@ -18,7 +19,10 @@ class UGameplayEffect;
 class UGameplayCueInterface;
 
 UCLASS()
-class NEW_THEPHANTOMTWINS_API AAIBaseCharacter : public ACharacter, public IAbilitySystemInterface
+class NEW_THEPHANTOMTWINS_API AAIBaseCharacter 
+	: public ACharacter
+	, public IAbilitySystemInterface
+	, public IAIEventReceiver
 {
 	GENERATED_BODY()
 
@@ -37,13 +41,16 @@ public:
 	const UAIBaseAttributeSet* GetAIAttributeSet() const;
 	//~ End IAbilitySystemInterface interface & Additional GAS System
 
+	//~ Begin IAIEventReceiver
+	void ApplyStun_Implementation();
+	void ApplyDie_Implementation();
+	//~ End IAIEventReceiver
+
 	//~ Begin GameplayCueNotify
 	TArray<UGameplayCueInterface> GamePlayCueNotifys;
 	//~ End GameplayCueNotify
 
 	//~ Begin State Control
-	UFUNCTION(BlueprintCallable, Category = "AI")
-	void ApplyStun();
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	void  ResetDataForState(const FGameplayTag Tag, int32 TagCount);
 	//~ End State Control
@@ -124,6 +131,8 @@ protected:
 protected:
 	//~ Begin State Control
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AI")
+	void ResetDataForDieState();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AI")
 	void ResetDataForStunState();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AI")
 	void ResetDataForDefaultState();
@@ -131,6 +140,9 @@ protected:
 	void ResetDataForSuspicionState();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AI")
 	void ResetDataForCombatState();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AI")
+	void ResetDataForEscapeDieState();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AI")
 	void ResetDataForEscapeStunState();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AI")
@@ -140,13 +152,16 @@ protected:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AI")
 	void ResetDataForEscapeCombatState();
 
+	virtual void ResetDataForDieState_Implementation();
+	virtual void ResetDataForStunState_Implementation();
 	virtual void ResetDataForDefaultState_Implementation();
 	virtual void ResetDataForSuspicionState_Implementation();
-	virtual void ResetDataForStunState_Implementation();
 	virtual void ResetDataForCombatState_Implementation();
+
+	virtual void ResetDataForEscapeDieState_Implementation();
+	virtual void ResetDataForEscapeStunState_Implementation();
 	virtual void ResetDataForEscapeDefaultState_Implementation();
 	virtual void ResetDataForEscapeSuspicionState_Implementation();
-	virtual void ResetDataForEscapeStunState_Implementation();
 	virtual void ResetDataForEscapeCombatState_Implementation();
 	//~ End State Control
 };

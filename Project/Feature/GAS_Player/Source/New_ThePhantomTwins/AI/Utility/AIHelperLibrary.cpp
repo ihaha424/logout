@@ -56,6 +56,8 @@ FGameplayTag UAIHelperLibrary::GetTagFromAIState(EAIBaseState State)
         return FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Combat;
     case EAIBaseState::Stun:
         return FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Stun;
+    case EAIBaseState::Die:
+        return FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Die;
     default:
         return FGameplayTag();
     }
