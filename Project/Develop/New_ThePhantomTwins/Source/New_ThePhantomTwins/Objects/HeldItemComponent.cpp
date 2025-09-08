@@ -114,7 +114,7 @@ void UHeldItemComponent::CreateLocalHeldItemMesh(EItemType ItemType)
     if (!ItemMesh) return;
 
 
-    const FName HandSocketName = TEXT("RightHandSocket");
+    const FName HandSocketName = TEXT("LeftHandSocket");
 
     // 로컬 즉시 표시용 StaticMeshComponent 생성
     UStaticMeshComponent* LocalMeshComp = NewObject<UStaticMeshComponent>(Character);
@@ -157,7 +157,7 @@ void UHeldItemComponent::DestroyLocalHeldItemMesh()
     if (!MeshComp)  return;
 
 
-    const FName HandSocketName = TEXT("RightHandSocket");
+    const FName HandSocketName = TEXT("LeftHandSocket");
 
     TArray<USceneComponent*> ComponentsToRemove;
 
@@ -209,7 +209,7 @@ void UHeldItemComponent::C2S_SpawnAndAttachHeldItem_Implementation(EItemType Ite
 	if (!World || !CharMesh) return;
 
 
-    const FName HandSocketName = TEXT("RightHandSocket");
+    const FName HandSocketName = TEXT("LeftHandSocket");
     FVector SpawnLocation = Character->GetActorLocation();
     FRotator SpawnRotation = Character->GetActorRotation();
 
@@ -440,7 +440,7 @@ void UHeldItemComponent::C2S_DestroyReplicatedHeldItem_Implementation()
         //TPT_LOG(GALog, Log, TEXT("Server_DestroyReplicatedHeldItem: 복제된 아이템 액터 파괴 완료"));
 
         // 모든 클라이언트에 해당 플레이어의 소켓에 붙은 로컬 메쉬 제거 지시
-        const FName HandSocketName = TEXT("RightHandSocket");
+        const FName HandSocketName = TEXT("LeftHandSocket");
         if (OwnerPS)
         {
             S2A_RemoveLocalAttachedMeshes(OwnerPS, HandSocketName);
@@ -453,7 +453,7 @@ void UHeldItemComponent::C2S_DestroyReplicatedHeldItem_Implementation()
         if (Character)
         {
             APlayerState* OwnerPS = Character->GetPlayerState<APlayerState>();
-            const FName HandSocketName = TEXT("RightHandSocket");
+            const FName HandSocketName = TEXT("LeftHandSocket");
             if (OwnerPS)
             {
                 S2A_RemoveLocalAttachedMeshes(OwnerPS, HandSocketName);
