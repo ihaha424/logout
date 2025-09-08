@@ -19,4 +19,8 @@ public:
 private:
 	FVector OriginalLocation;
 	bool bIsMoveLeft = false;
+
+	UPROPERTY(EditAnywhere, Category = "MoveLeft")
+	float MoveDistance = 50.f;
+	float PositionY;
 };
