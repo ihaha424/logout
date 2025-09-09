@@ -551,7 +551,6 @@ void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
 		false // 반복 아님
 	);
 
-
 	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Event_Character_HoldItem;
 	FGameplayEventData Payload;
 	Payload.EventTag = EventTag;

@@ -24,17 +24,19 @@ void UGA_ExecuteActiveSkill::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	float SkillNumber = TriggerEventData->EventMagnitude;
-	//SkillValue[SkillNumber] = 1.0f;
-
-	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-	ApplyEffect();
-	FGameplayEffectSpecHandle CoolDownSpecHandle = MakeOutgoingGameplayEffectSpec(CoolDownEffect, 1.0f);
-	if (CoolDownSpecHandle.IsValid())
+	if (SkillNumber==2)
 	{
-		CoolDownSpecHandle.Data->SetSetByCallerMagnitude(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_CoolDownCount, 1.0f);
-		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, CoolDownSpecHandle);
+		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+		ApplyEffect();
+		FGameplayEffectSpecHandle CoolDownSpecHandle = MakeOutgoingGameplayEffectSpec(CoolDownEffect, 1.0f);
+		if (CoolDownSpecHandle.IsValid())
+		{
+			CoolDownSpecHandle.Data->SetSetByCallerMagnitude(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_CoolDownCount, 1.0f);
+			ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, CoolDownSpecHandle);
+		}
+		ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_SkillCoolDown, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnCoolDownTagChanged);
+		
 	}
-	ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_SkillCoolDown, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnCoolDownTagChanged);
 }
 
 void UGA_ExecuteActiveSkill::OnCoolDownTagChanged(const FGameplayTag InputTag, int32 TagCount)
@@ -43,6 +45,7 @@ void UGA_ExecuteActiveSkill::OnCoolDownTagChanged(const FGameplayTag InputTag, i
 	if (!bHasCoolDownTag)
 	{
 		//SkillValue = -1.0f;
+		OutLineSkillValue = -1.0f;
 		ApplyEffect();
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	}
@@ -50,7 +53,7 @@ void UGA_ExecuteActiveSkill::OnCoolDownTagChanged(const FGameplayTag InputTag, i
 
 void UGA_ExecuteActiveSkill::ApplyEffect()
 {
-	FGameplayEffectSpecHandle ExecuteSprintSkillSpecHandle = MakeOutgoingGameplayEffectSpec(ExecuteSprintSkillEffect, 1.f);
-	ExecuteSprintSkillSpecHandle.Data->SetSetByCallerMagnitude(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_UseSkill, SprintSkillValue);
-	ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, ExecuteSprintSkillSpecHandle);
+	FGameplayEffectSpecHandle ExecuteOutLineSkillEffectSpecHandle = MakeOutgoingGameplayEffectSpec(ExecuteOutLineSkillEffect, 1.f);
+	ExecuteOutLineSkillEffectSpecHandle.Data->SetSetByCallerMagnitude(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_UseSkill, OutLineSkillValue);
+	ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, ExecuteOutLineSkillEffectSpecHandle);
 }

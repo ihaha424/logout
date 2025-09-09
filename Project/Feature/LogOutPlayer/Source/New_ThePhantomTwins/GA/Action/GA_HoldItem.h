@@ -6,6 +6,8 @@
 #include "Objects/ItemData.h"
 #include "GA_HoldItem.generated.h"
 
+class UAbilityTask_PlayMontageAndWait;
+
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UGA_HoldItem : public UGameplayAbility
 {
@@ -16,7 +18,21 @@ public:
 
     virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
+    UFUNCTION()
+    void OnMontageComplete();
+
+
 protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
     TObjectPtr<UDataTable> ItemAbilityTable;
+    EItemType ChoiceItemType = EItemType::None;
+    UPROPERTY()
+	UAbilitySystemComponent* ASC = nullptr;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+    TObjectPtr<UAnimMontage> StartHoldMontage;
+
+    UPROPERTY()
+    UAbilityTask_PlayMontageAndWait* PlayStartHoldMontageTask = nullptr;
+
 };

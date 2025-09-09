@@ -22,6 +22,4 @@ public:
 
 protected:
 	FActiveGameplayEffectHandle ActiveEffectHandle;
-	UPROPERTY(EditAnywhere, Category = "GAS")
-	TSubclassOf<UGameplayEffect> TagEffect;
 };
