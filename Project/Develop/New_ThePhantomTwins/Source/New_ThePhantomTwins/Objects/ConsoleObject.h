@@ -66,4 +66,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | Door")
 	TObjectPtr<class ADoor> ConnectedDoor;
 
+private:
+	// 트리거 안에 있는 플레이어 추적
+	UPROPERTY()
+	TSet<AActor*> OverlappingPlayers;
+
 };

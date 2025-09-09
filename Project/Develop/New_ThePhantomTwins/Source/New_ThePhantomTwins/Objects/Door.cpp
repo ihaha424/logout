@@ -73,7 +73,7 @@ void ADoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 
 bool ADoor::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
-	if (!Interactor->IsLocallyControlled()) return false;
+	if (!Interactor->IsLocallyControlled()) return bIsDetected;
 	// 거리가 멀어져 감지되지 않은 경우
 	if (!bIsDetected)
 	{
