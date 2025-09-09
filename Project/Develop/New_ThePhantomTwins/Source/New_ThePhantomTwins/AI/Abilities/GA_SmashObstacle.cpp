@@ -54,11 +54,11 @@ void UGA_SmashObstacle::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UGA_SmashObstacle::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-    Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-
     if (UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo())
     {
         MyASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_SmashObstacle);
         MyASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
     }
+
+    Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }

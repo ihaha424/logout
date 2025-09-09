@@ -10,7 +10,7 @@
 #include "../../../Utility/SplineActor.h"
 #include "Log/TPTLog.h"
 
-struct FSplineTaskData
+struct FSplineTaskData : FBaseTaskNodeMemory
 {
 	int32 MaxIndex = 0;
 	int32 CurIndex = 0;

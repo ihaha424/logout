@@ -7,7 +7,7 @@
 #include "AIController.h"
 #include "Log/TPTLog.h"
 
-struct FChaseTargetTaskData
+struct FChaseTargetTaskData : FBaseTaskNodeMemory
 {
 	FAIRequestID MoveId = FAIRequestID();
 };

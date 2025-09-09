@@ -27,6 +27,14 @@ enum class EGameplayTagCheckPhase : uint8
     ExecuteAndTick      // Check tags in both Execute and Tick
 };
 
+struct FBaseTaskNodeMemory
+{
+private:
+    bool bExcuteTaskWait = false;
+
+    friend class UBTT_GASBaseTask;
+};
+
 class UAbilitySystemComponent;
 
 UCLASS(Abstract)
@@ -41,6 +49,7 @@ public:
     virtual EBTNodeResult::Type Execute_TaskException(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) { return EBTNodeResult::Succeeded; }
     virtual void Execute_TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) {}
     virtual void Execute_TickTaskException(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) {}
+    virtual uint16 GetInstanceMemorySize() const override;
 
 protected:
     UPROPERTY(EditAnywhere, Category = "Tag Blocking")
@@ -64,4 +73,6 @@ private:
     virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) final;
     virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) final;
     EGASTagCheckMode EvaluateTagBlocking(UAbilitySystemComponent* ASC);
+    inline void SetbExcuteTaskWait(uint8* NodeMemory, bool bBool);
+    inline bool GetbExcuteTaskWait(uint8* NodeMemory) const;
 };
