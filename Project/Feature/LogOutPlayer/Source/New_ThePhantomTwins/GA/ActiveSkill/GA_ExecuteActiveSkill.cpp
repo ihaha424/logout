@@ -26,6 +26,7 @@ void UGA_ExecuteActiveSkill::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 	float SkillNumber = TriggerEventData->EventMagnitude;
 	if (SkillNumber==2)
 	{
+		TPT_LOG(GALog, Warning, TEXT("HI"));
 		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 		ApplyEffect();
 		FGameplayEffectSpecHandle CoolDownSpecHandle = MakeOutgoingGameplayEffectSpec(CoolDownEffect, 1.0f);
