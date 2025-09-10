@@ -11,6 +11,11 @@
 
 #include "Log/TPTLog.h"
 
+struct FCurrentSpeed : FBaseTaskNodeMemory
+{
+    float CurrentSpeed;
+};
+
 UBTT_Rush::UBTT_Rush()
 {
 	NodeName = TEXT("Rush");
@@ -39,7 +44,7 @@ EBTNodeResult::Type UBTT_Rush::Execute_Task(UBehaviorTreeComponent& OwnerComp, u
     RushDirection.Normalize();
 
     CachedOwnerComp = &OwnerComp;
-    CurrentSpeedPtr = (float*)NodeMemory;
+    CurrentSpeedPtr = &((FCurrentSpeed*)NodeMemory)->CurrentSpeed;
     *CurrentSpeedPtr = InitialSpeed;
 
 
@@ -71,7 +76,7 @@ void UBTT_Rush::Execute_TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
     ACharacter* Character = Cast<ACharacter>(Pawn);
     NULLCHECK_RETURN_LOG(Character, AILog, Warning, );
 
-    float& CurrentSpeed = *(float*)NodeMemory;
+    float& CurrentSpeed = ((FCurrentSpeed*)NodeMemory)->CurrentSpeed;
     CurrentSpeed += Acceleration * DeltaSeconds;
 
     Character->GetCharacterMovement()->MaxWalkSpeed = MaxSpeed;
@@ -102,7 +107,7 @@ FString UBTT_Rush::GetStaticDescription() const
 
 uint16 UBTT_Rush::GetInstanceMemorySize() const
 {
-    return sizeof(float);
+    return sizeof(FCurrentSpeed);
 }
 
 void UBTT_Rush::OnHit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

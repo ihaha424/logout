@@ -30,6 +30,9 @@ protected:
     bool bHasTarget;
 
     UPROPERTY(EditAnywhere, Category = "Ability")
+    bool bWaitAbility;
+
+    UPROPERTY(EditAnywhere, Category = "Ability")
     FName StringData;
 
     /**

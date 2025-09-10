@@ -63,6 +63,14 @@ void AAIBaseController::BeginPlay()
    
 }
 
+void AAIBaseController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    if (SightTimerHandle.IsValid())
+        GetWorld()->GetTimerManager().ClearTimer(SightTimerHandle);
+
+    Super::EndPlay(EndPlayReason);
+}
+
 void AAIBaseController::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);

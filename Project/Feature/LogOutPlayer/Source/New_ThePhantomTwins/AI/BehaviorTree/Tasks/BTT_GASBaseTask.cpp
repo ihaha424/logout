@@ -14,34 +14,36 @@ UBTT_GASBaseTask::UBTT_GASBaseTask()
     RequiredTagMode = EGASTagCheckMode::None;
 }
 
+uint16 UBTT_GASBaseTask::GetInstanceMemorySize() const
+{
+    return sizeof(FBaseTaskNodeMemory);
+}
+
 EBTNodeResult::Type UBTT_GASBaseTask::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
     if (TagCheckPhase == EGameplayTagCheckPhase::OnExecuteOnly || TagCheckPhase == EGameplayTagCheckPhase::ExecuteAndTick)
     {
         AAIController* AIController = OwnerComp.GetAIOwner();
         APawn* AIPawn = AIController ? AIController->GetPawn() : nullptr;
-        NULLCHECK_RETURN_LOG(AIPawn, AILog, Warning, EBTNodeResult::Failed;)
+        NULLCHECK_RETURN_LOG(AIPawn, AILog, Warning, EBTNodeResult::Failed;);
 
         UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(AIPawn);
-        NULLCHECK_RETURN_LOG(ASC, AILog, Warning, EBTNodeResult::Failed;)
+        NULLCHECK_RETURN_LOG(ASC, AILog, Warning, EBTNodeResult::Failed;);
 
         const EGASTagCheckMode TagResult = EvaluateTagBlocking(ASC);
         switch (TagResult)
         {
         case EGASTagCheckMode::Fail:
             return EBTNodeResult::Failed;
-            break;
         case EGASTagCheckMode::Succeed:
             return EBTNodeResult::Succeeded;
-            break;
         case EGASTagCheckMode::Wait:
-            break;
+            SetbExcuteTaskWait(NodeMemory, true);
+            return EBTNodeResult::InProgress;
         case EGASTagCheckMode::Abort:
             return EBTNodeResult::Aborted;
-            break;
         case EGASTagCheckMode::Exception:
             return Execute_TaskException(OwnerComp, NodeMemory);
-            break;
         default:
             break;
         }
@@ -51,14 +53,14 @@ EBTNodeResult::Type UBTT_GASBaseTask::ExecuteTask(UBehaviorTreeComponent& OwnerC
 
 void UBTT_GASBaseTask::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-    if (TagCheckPhase == EGameplayTagCheckPhase::OnTickOnly || TagCheckPhase == EGameplayTagCheckPhase::ExecuteAndTick)
+    if (GetbExcuteTaskWait(NodeMemory))
     {
         AAIController* AIController = OwnerComp.GetAIOwner();
         APawn* AIPawn = AIController ? AIController->GetPawn() : nullptr;
-        NULLCHECK_CODE_RETURN_LOG(AIPawn, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, )
+        NULLCHECK_CODE_RETURN_LOG(AIPawn, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, );
 
         UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(AIPawn);
-        NULLCHECK_CODE_RETURN_LOG(ASC, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, )
+        NULLCHECK_CODE_RETURN_LOG(ASC, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, );
 
         const EGASTagCheckMode TagResult = EvaluateTagBlocking(ASC);
         switch (TagResult)
@@ -71,7 +73,54 @@ void UBTT_GASBaseTask::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMe
             return;
         case EGASTagCheckMode::Wait:
             return;
+        case EGASTagCheckMode::Abort:
+            FinishLatentTask(OwnerComp, EBTNodeResult::Aborted);
+            return;
+        case EGASTagCheckMode::Exception:
+            Execute_TickTaskException(OwnerComp, NodeMemory, DeltaSeconds);
+            return;
+        default:
             break;
+        }
+
+        SetbExcuteTaskWait(NodeMemory, false);
+        switch (EBTNodeResult::Type result = Execute_Task(OwnerComp, NodeMemory))
+        {
+        case EBTNodeResult::Failed:
+            FinishLatentTask(OwnerComp, result);
+            return;
+        case EBTNodeResult::Succeeded:
+            FinishLatentTask(OwnerComp, result);
+            return;
+        case EBTNodeResult::Aborted:
+            FinishLatentTask(OwnerComp, result);
+            return;
+        case EBTNodeResult::InProgress:
+        default:
+            break;
+        }
+    }
+
+    if (TagCheckPhase == EGameplayTagCheckPhase::OnTickOnly || TagCheckPhase == EGameplayTagCheckPhase::ExecuteAndTick)
+    {
+        AAIController* AIController = OwnerComp.GetAIOwner();
+        APawn* AIPawn = AIController ? AIController->GetPawn() : nullptr;
+        NULLCHECK_CODE_RETURN_LOG(AIPawn, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, );
+
+        UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(AIPawn);
+        NULLCHECK_CODE_RETURN_LOG(ASC, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, );
+
+        const EGASTagCheckMode TagResult = EvaluateTagBlocking(ASC);
+        switch (TagResult)
+        {
+        case EGASTagCheckMode::Fail:
+            FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+            return;
+        case EGASTagCheckMode::Succeed:
+            FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+            return;
+        case EGASTagCheckMode::Wait:
+            return;
         case EGASTagCheckMode::Abort:
             FinishLatentTask(OwnerComp, EBTNodeResult::Aborted);
             return;
@@ -99,7 +148,6 @@ EGASTagCheckMode UBTT_GASBaseTask::EvaluateTagBlocking(UAbilitySystemComponent* 
             default:                            return 0;
             }
         };
-
     EGASTagCheckMode BlockResult = EGASTagCheckMode::None;
     if (BlockTagMode != EGASTagCheckMode::None)
     {
@@ -117,3 +165,14 @@ EGASTagCheckMode UBTT_GASBaseTask::EvaluateTagBlocking(UAbilitySystemComponent* 
     // 우선순위 비교
     return GetPriority(BlockResult) >= GetPriority(RequiredResult) ? BlockResult : RequiredResult;
 }
+
+inline void UBTT_GASBaseTask::SetbExcuteTaskWait(uint8* NodeMemory, bool bBool)
+{
+    ((FBaseTaskNodeMemory*)NodeMemory)->bExcuteTaskWait = bBool;
+}
+
+inline bool UBTT_GASBaseTask::GetbExcuteTaskWait(uint8* NodeMemory) const
+{
+    return ((FBaseTaskNodeMemory*)NodeMemory)->bExcuteTaskWait;
+}
+
