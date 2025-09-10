@@ -7,6 +7,7 @@
 #include "Engine/World.h"
 #include "Log/TPTLog.h"
 #include "Player/PlayerCharacter.h"
+#include "Components/BoxComponent.h"
 #include "SzInterface/Interact.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
@@ -83,6 +84,8 @@ void UFocusTraceComponent::PerformTrace()
 {
     AActor* Owner = GetOwner();
     NULLCHECK_RETURN_LOG(Owner, PlayerLog, Warning, );
+	APlayerCharacter* Character = Cast<APlayerCharacter>(Owner);
+    NULLCHECK_RETURN_LOG(Character, PlayerLog, Warning, );
     APawn* Pawn = Cast<APawn>(Owner);
     if (!Pawn->HasAuthority())
     {
@@ -106,23 +109,25 @@ void UFocusTraceComponent::PerformTrace()
     FHitResult Hit;
     FCollisionQueryParams Params;
     Params.AddIgnoredActor(Owner); // 자기자신은 무시
+    Params.AddIgnoredComponent(Character->BoxComp);
+
+    FCollisionObjectQueryParams ObjParams;
+    ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
+    ObjParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
  
     FCollisionShape Sphere = FCollisionShape::MakeSphere(SphereRadius);
 
-    bool bHit = GetWorld()->SweepSingleByChannel(
+    bool bHit = GetWorld()->SweepSingleByObjectType(
         Hit,
         Start,
         End,
         FQuat::Identity, // 회전 필요 없으면 Identity
-        CollisionType,
+        ObjParams,
         Sphere,
         Params
     );
 
     AActor* NewFocusedActor = bHit ? Hit.GetActor() : nullptr;
-	
-    APlayerCharacter* Character = Cast<APlayerCharacter>(Owner);
-    NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
 
 	PrevActor = FocusedActor;
 	FocusedActor = NewFocusedActor;

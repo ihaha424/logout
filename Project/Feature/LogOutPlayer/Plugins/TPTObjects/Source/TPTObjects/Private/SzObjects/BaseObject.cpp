@@ -23,7 +23,9 @@ ABaseObject::ABaseObject()
     // Box
 	BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
 	BoxComp->SetupAttachment(RootComponent);
-    BoxComp->SetCollisionProfileName(TEXT("Interactable"));
+    //BoxComp->SetCollisionProfileName(TEXT("Interactable"));
+    BoxComp->SetCollisionProfileName(TEXT("OverlapAll"));
+    BoxComp->SetCollisionObjectType(ECC_GameTraceChannel1); // Object Type 설정
 
     // "Interactable" 태그 추가
     Tags.Add(FName("Interactable"));

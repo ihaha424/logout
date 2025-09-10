@@ -59,7 +59,7 @@ APlayerCharacter::APlayerCharacter()
 
 	BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
 	BoxComp->SetupAttachment(RootComponent);
-	BoxComp->SetCollisionProfileName(TEXT("Interactable"));
+	BoxComp->SetCollisionProfileName(TEXT("OverlapAll"));
 
 	HeldItemComponent = CreateDefaultSubobject<UHeldItemComponent>(TEXT("HeldItemComponent"));
 }
@@ -140,7 +140,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 		// 클라에선 FocusTrace 세팅(시각효과용)
 		FocusTrace->SetStart(WorldLocation);
 		FocusTrace->SetDirection(WorldDirection);
-		FocusTrace->SetCollisionType(ECC_GameTraceChannel1);
 
 		// 서버 RPC 호출에 위치 + 회전 같이 넘기기
 		C2S_SetFocusTrace(CameraLocation, CameraRotation);
