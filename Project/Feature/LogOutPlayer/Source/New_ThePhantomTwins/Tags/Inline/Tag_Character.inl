@@ -86,4 +86,3 @@ TPT_TAG_GEN(Character, Action, InteractActor, "Action: GA_InteractActor")
 TPT_TAG_GEN(Character, Identifier, Player, "Identifier: Player")
 TPT_TAG_GEN(Character, Identifier, AI, "Identifier: AI")
 TPT_TAG_GEN(Character, Identifier, Object, "Identifier: Object")
-

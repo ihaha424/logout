@@ -30,7 +30,6 @@ void UGA_ExecuteActiveSkill::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 	//스프린트 스킬
 	if (SkillNumber == 1)
 	{
-		TPT_LOG(GALog, Warning, TEXT("SprintSkill"));
 		FGameplayEffectSpecHandle CoolDownSpecHandle = MakeOutgoingGameplayEffectSpec(CoolDownEffect, 1.0f);
 		if (CoolDownSpecHandle.IsValid())
 		{
@@ -43,7 +42,6 @@ void UGA_ExecuteActiveSkill::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 	//오라보기 스킬
 	if (SkillNumber == 2)
 	{
-		TPT_LOG(GALog, Warning, TEXT("OutLineSkill"));
 		FGameplayEffectSpecHandle CoolDownSpecHandle = MakeOutgoingGameplayEffectSpec(CoolDownEffect, 1.0f);
 		if (CoolDownSpecHandle.IsValid())
 		{

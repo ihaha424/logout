@@ -25,7 +25,6 @@ UGA_SceneAura::UGA_SceneAura()
 void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-    TPT_LOG(GALog, Warning, TEXT("Scan Aura!"));
     if (!Super::CommitAbility(Handle, ActorInfo, ActivationInfo))
     {
         EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
@@ -51,7 +50,6 @@ void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 
     // Ã¹ Å½Áö ½ÇÇà
     ScanTargets();
-
 }
 
 void UGA_SceneAura::ScanTargets()
@@ -134,7 +132,6 @@ void UGA_SceneAura::ApplyAuraToTarget(AActor* Target)
 
 	if (UMeshComponent* Mesh = Target->FindComponentByClass<UMeshComponent>())
 	{
-        TPT_LOG(GALog, Warning, TEXT("See Aura"));
 		Mesh->SetRenderCustomDepth(true);
 		Mesh->SetCustomDepthStencilValue(1);
 	}

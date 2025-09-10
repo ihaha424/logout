@@ -17,7 +17,6 @@ UGA_Sprint::UGA_Sprint()
 void UGA_Sprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, 
     const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-    TPT_LOG(GALog, Error, TEXT("Has Authority : %d, Is Locally : %d"), ActorInfo->IsNetAuthority(), ActorInfo->IsLocallyControlled());
     if (!Super::CommitAbility(Handle, ActorInfo, ActivationInfo))
     {
         EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
