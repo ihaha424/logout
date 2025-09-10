@@ -53,14 +53,14 @@ void AConsoleObject::BeginPlay()
 
 void AConsoleObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AConsoleObject, HasPlayerNum);
 }
 
 bool AConsoleObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
-	if (!Interactor->IsLocallyControlled()) return false;
+	if (!Interactor->IsLocallyControlled()) return bIsDetected;
 
 	// 거리가 멀어져 감지되지 않은 경우
 	if (!bIsDetected)
@@ -85,7 +85,7 @@ void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 	if (!bCanInteract) return;
 	if (!AreAllTriggerActived() || HasPlayerNum != MaxPlayerNum) return;
 
-    // 여기서 3초 지났는지 확인
+	// 여기서 3초 지났는지 확인
 
 	TPT_LOG(ObjectLog, Log, TEXT("AConsoleObject :: OnInteractServer"));
 
@@ -143,31 +143,37 @@ void AConsoleObject::SetWidgetVisible(bool bVisible)
 
 void AConsoleObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	// 1. APlayerCharacter인지 체크
+	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(OtherActor);
+	if (!PlayerChar) return;
+
+	// 이미 들어와 있다면 무시
+	if (OverlappingPlayers.Contains(PlayerChar))
+	{
+		return;
+	}
+
+	OverlappingPlayers.Add(PlayerChar);
 
 	HasPlayerNum = FMath::Clamp(HasPlayerNum + 1, 0, MaxPlayerNum);
+	TPT_LOG(ObjectLog, Log, TEXT("Enter :: %s, HasPlayerNum = %d"), *PlayerChar->GetName(), HasPlayerNum);
 
-	if (AreAllTriggerActived() && HasPlayerNum == MaxPlayerNum)
-	{
-		bCanInteract = true;
-	}
-	else
-	{
-		bCanInteract = false;
-	}
+	bCanInteract = (AreAllTriggerActived() && HasPlayerNum == MaxPlayerNum);
 }
 
 void AConsoleObject::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	HasPlayerNum = FMath::Clamp(HasPlayerNum - 1, 0, MaxPlayerNum);
+	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(OtherActor);
+	if (!PlayerChar) return;
 
-	if (AreAllTriggerActived() && HasPlayerNum == MaxPlayerNum)
+	if (OverlappingPlayers.Contains(PlayerChar))
 	{
-		bCanInteract = true;
+		OverlappingPlayers.Remove(PlayerChar);
+		HasPlayerNum = FMath::Clamp(HasPlayerNum - 1, 0, MaxPlayerNum);
+		TPT_LOG(ObjectLog, Log, TEXT("Exit :: %s, HasPlayerNum = %d"), *PlayerChar->GetName(), HasPlayerNum);
 	}
-	else
-	{
-		bCanInteract = false;
-	}
+
+	bCanInteract = (AreAllTriggerActived() && HasPlayerNum == MaxPlayerNum);
 }
 
 bool AConsoleObject::AreAllTriggerActived() const

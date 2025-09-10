@@ -84,7 +84,7 @@ bool ADoor::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected
 
 	// 감지되었고 상호작용 가능한 상태
 	//bCanInteract = true;
-	
+
 	// Interactor가 APlayerCharacter 인 경우에만 위젯을 띄어라
 	const APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(const_cast<APawn*>(Interactor));
 	if (PlayerChar)

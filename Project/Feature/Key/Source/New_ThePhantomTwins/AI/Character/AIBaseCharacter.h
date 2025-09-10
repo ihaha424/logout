@@ -44,6 +44,7 @@ public:
 	//~ Begin IAIEventReceiver
 	void ApplyStun_Implementation();
 	void ApplyDie_Implementation();
+	void ApplyDestroy_Implementation();
 	//~ End IAIEventReceiver
 
 	//~ Begin GameplayCueNotify

@@ -17,6 +17,8 @@ UGA_MeleeAttack::UGA_MeleeAttack()
 
     AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_MeleeAttack);
     ActivationOwnedTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Combat);
+    ActivationOwnedTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_MeleeAttack);
+    ActivationOwnedTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
     ActivationBlockedTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_MeleeAttack);
 
     FAbilityTriggerData TriggerData;
@@ -30,14 +32,6 @@ void UGA_MeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
     AActor* Target = TriggerEventData ? const_cast<AActor*>(TriggerEventData->Target.Get()) : nullptr;
-
-    if (UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo())
-    {
-        MyASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_MeleeAttack);
-        MyASC->AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_MeleeAttack);
-        MyASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
-        MyASC->AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
-    }
 
     NULLCHECK_CODE_RETURN_LOG(AttackMontage, AILog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
     if (ActorInfo->AvatarActor.IsValid())
@@ -63,13 +57,6 @@ void UGA_MeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 void UGA_MeleeAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
     Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-    if (UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo())
-    {
-        MyASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_MeleeAttack);
-        MyASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_MeleeAttack);
-        MyASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
-        MyASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
-    }
 
     AAIBaseCharacter* Character = Cast<AAIBaseCharacter>(ActorInfo->AvatarActor.Get());
     NULLCHECK_CODE_RETURN_LOG(Character, AILog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );

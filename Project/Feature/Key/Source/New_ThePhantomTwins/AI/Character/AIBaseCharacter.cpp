@@ -10,7 +10,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AI/Controller/AIBaseController.h"
 #include "GameplayCueInterface.h"
-
+#include "BrainComponent.h"
 
 #include "../Attributes/AIBaseAttributeSet.h"
 #include "Tags/TPTGameplayTags.h"
@@ -136,6 +136,41 @@ void AAIBaseCharacter::ApplyDie_Implementation()
     NULLCHECK_RETURN_LOG(BB, AILog, Warning, );
 
     BB->SetValueAsBool("bIsDie", true);
+}
+
+void AAIBaseCharacter::ApplyDestroy_Implementation()
+{
+    if (GetLocalRole() != ROLE_Authority)
+        return;
+
+    // GAS 정리: 능력/이펙트/큐 강제 종료
+    if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this))
+    {
+        ASC->CancelAllAbilities();        // 활성 GA 전부 취소
+        ASC->RemoveAllGameplayCues();     // 활성 GameplayCue 제거
+
+        // 활성 GE 전부 제거
+        FGameplayEffectQuery Q;
+        Q.CustomMatchDelegate.BindLambda([](const FActiveGameplayEffect&) { return true; });
+        const int32 Removed = ASC->RemoveActiveEffects(Q);
+    }
+
+    // BT/AI 정지
+    AAIController* AIController = Cast<AAIController>(GetController());
+    if (AIController)
+    {
+        if (AIController->BrainComponent)
+        { 
+            AIController->BrainComponent->StopLogic(TEXT("KillNow"));
+        }
+    }
+    DetachFromControllerPendingDestroy();
+
+    // 파괴(실패 대비 Lifespan 백업)
+    if (!Destroy())
+    {
+       SetLifeSpan(0.01f);
+    }
 }
 
 
