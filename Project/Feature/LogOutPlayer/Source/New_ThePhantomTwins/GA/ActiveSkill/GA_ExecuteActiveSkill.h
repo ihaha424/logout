@@ -32,6 +32,7 @@ public:
 	TSubclassOf<UGameplayEffect> CoolDownEffect;
 
 	bool bHasCoolDownTag = false;
+	float SkillNumber = -1.0f;
 	float SprintSkillValue = 1.0f;
 	float OutLineSkillValue = 1.0f;
 	TArray<float> SkillValue = {0, 0};

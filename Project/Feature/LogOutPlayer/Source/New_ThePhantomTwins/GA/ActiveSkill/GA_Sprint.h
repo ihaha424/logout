@@ -18,12 +18,14 @@ public:
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
+	UFUNCTION()
+	void OnCoolDownTagChanged(const FGameplayTag InputTag, int32 TagCount);
+
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayEffect> SprintEffect;
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayEffect> CoolDownEffect;
 
-	UPROPERTY(EditAnywhere, Category = "GAS")
-	float CoolDownValue = 15.0f;
+	bool bHasCoolDownTag = false;
 };

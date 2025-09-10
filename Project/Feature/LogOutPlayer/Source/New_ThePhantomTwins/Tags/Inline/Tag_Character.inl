@@ -23,6 +23,8 @@ TPT_TAG_GEN(Character, State, DrinkPotion, "Character Drink Potion ")
 
 // Skilling State
 TPT_TAG_GEN(Character, State, SkillCoolDown, "Character's skill is CoolDowning")
+TPT_TAG_GEN(Character, State, SprintCoolDown, "Character's Sprint skill is CoolDowning")
+TPT_TAG_GEN(Character, State, OutLineCoolDown, "Character's OutLine skill is CoolDowning")
 TPT_TAG_GEN(Character, State, Sprinting, "Character is Sprinting")
 TPT_TAG_GEN(Character, State, UsingOutLine, "Character is Using OutLine")
 TPT_TAG_GEN(Character, State, MentalHealingByPlayer, "Character's Mental is Healing")

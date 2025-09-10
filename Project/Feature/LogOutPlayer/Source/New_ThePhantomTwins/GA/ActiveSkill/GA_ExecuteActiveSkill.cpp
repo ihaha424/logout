@@ -23,12 +23,14 @@ void UGA_ExecuteActiveSkill::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 	}
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	float SkillNumber = TriggerEventData->EventMagnitude;
-	if (SkillNumber==2)
+	SkillNumber = TriggerEventData->EventMagnitude;
+	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+	ApplyEffect();
+
+	//스프린트 스킬
+	if (SkillNumber == 1)
 	{
-		TPT_LOG(GALog, Warning, TEXT("HI"));
-		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-		ApplyEffect();
+		TPT_LOG(GALog, Warning, TEXT("SprintSkill"));
 		FGameplayEffectSpecHandle CoolDownSpecHandle = MakeOutgoingGameplayEffectSpec(CoolDownEffect, 1.0f);
 		if (CoolDownSpecHandle.IsValid())
 		{
@@ -36,7 +38,19 @@ void UGA_ExecuteActiveSkill::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 			ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, CoolDownSpecHandle);
 		}
 		ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_SkillCoolDown, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnCoolDownTagChanged);
-		
+	}
+
+	//오라보기 스킬
+	if (SkillNumber == 2)
+	{
+		TPT_LOG(GALog, Warning, TEXT("OutLineSkill"));
+		FGameplayEffectSpecHandle CoolDownSpecHandle = MakeOutgoingGameplayEffectSpec(CoolDownEffect, 1.0f);
+		if (CoolDownSpecHandle.IsValid())
+		{
+			CoolDownSpecHandle.Data->SetSetByCallerMagnitude(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_CoolDownCount, 1.0f);
+			ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, CoolDownSpecHandle);
+		}
+		ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_SkillCoolDown, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnCoolDownTagChanged);
 	}
 }
 
@@ -47,7 +61,7 @@ void UGA_ExecuteActiveSkill::OnCoolDownTagChanged(const FGameplayTag InputTag, i
 	{
 		//SkillValue = -1.0f;
 		OutLineSkillValue = -1.0f;
-		ApplyEffect();
+		//ApplyEffect();
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	}
 }

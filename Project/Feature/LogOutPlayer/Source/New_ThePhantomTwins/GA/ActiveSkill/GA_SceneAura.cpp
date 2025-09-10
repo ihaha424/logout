@@ -2,6 +2,8 @@
 
 
 #include "GA/ActiveSkill/GA_SceneAura.h"
+
+#include "AbilitySystemComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/SphereComponent.h"
@@ -18,58 +20,38 @@ UGA_SceneAura::UGA_SceneAura()
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
     Sphere = FCollisionShape::MakeSphere(SenseRadius);
     AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_E);
-    AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_OutLine);
 }
 
-void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
     TPT_LOG(GALog, Warning, TEXT("Scan Aura!"));
+    if (!Super::CommitAbility(Handle, ActorInfo, ActivationInfo))
+    {
+        EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+        return;
+    }
+    UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+
+    // 스킬 실행후 이 GA가 종료되는 시점을 정해줄 쿨타임 이펙트.
+    FGameplayEffectSpecHandle CoolDownSpecHandle = MakeOutgoingGameplayEffectSpec(CoolDownEffect, 1.0f);
+    if (CoolDownSpecHandle.IsValid())
+    {
+    	ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, CoolDownSpecHandle);
+    }
+    ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_OutLineCoolDown, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnCoolDownTagChanged);
+
+    // 아우라가 실행되는 시간만큼 태그를 붙여줄 이펙트 실행. ( = 20초)
+    FGameplayEffectSpecHandle SceneAuraSpecHandle = MakeOutgoingGameplayEffectSpec(SceneAuraEffect, 1.0f);
+    if (SceneAuraSpecHandle.IsValid())
+    {
+        ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SceneAuraSpecHandle);
+    }
+    ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_UsingOutLine).AddUObject(this, &ThisClass::OnSceneAuraTagChanged);
 
     // 첫 탐지 실행
     ScanTargets();
 
-    // 주기적 탐지 시작
-    GetWorld()->GetTimerManager().SetTimer(
-        ScanTimerHandle,
-        this,
-        &UGA_SceneAura::ScanTargets,
-        ScanInterval,
-        true
-    );
-
-    // 지속 시간 타이머
-	GetWorld()->GetTimerManager().SetTimer(
-		DurationTimerHandle,
-		[this, Handle, ActorInfo, ActivationInfo]()
-		{
-			EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-		},
-		AuraDuration,
-		false
-    );
-}
-
-void UGA_SceneAura::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
-{
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-
-    // 타이머 제거
-    GetWorld()->GetTimerManager().ClearTimer(ScanTimerHandle);
-    GetWorld()->GetTimerManager().ClearTimer(DurationTimerHandle);
-
-    // Aura 해제
-    for (auto& TargetPtr : CurrentAuraTargets)
-    {
-        if (AActor* Target = TargetPtr.Get())
-        {
-            RemoveAuraFromTarget(Target);
-        }
-    }
-    CurrentAuraTargets.Empty();
 }
 
 void UGA_SceneAura::ScanTargets()
@@ -95,7 +77,6 @@ void UGA_SceneAura::ScanTargets()
         }
     }
 
-    
     // 2) 적 
     {
         TArray<FOverlapResult> Overlaps;
@@ -167,4 +148,40 @@ void UGA_SceneAura::RemoveAuraFromTarget(AActor* Target)
 	{
 		Mesh->SetRenderCustomDepth(false);
 	}
+}
+
+void UGA_SceneAura::OnSceneAuraTagChanged(const FGameplayTag InputTag, int32 TagCount)
+{
+    if (TagCount > 0)
+    {
+        // 주기적 탐지 시작
+        GetWorld()->GetTimerManager().SetTimer(
+            ScanTimerHandle,
+            this,
+            &UGA_SceneAura::ScanTargets,
+            ScanInterval,
+            true
+        );
+    }
+    else
+    {
+        GetWorld()->GetTimerManager().ClearTimer(ScanTimerHandle);
+        for (auto& TargetPtr : CurrentAuraTargets)
+        {
+            if (AActor* Target = TargetPtr.Get())
+            {
+                RemoveAuraFromTarget(Target);
+            }
+        }
+        CurrentAuraTargets.Empty();
+    }
+}
+
+void UGA_SceneAura::OnCoolDownTagChanged(const FGameplayTag InputTag, int32 TagCount)
+{
+    bHasCoolDownTag = TagCount > 0; // 태그가 붙었으면 true, 없으면 false
+    if (!bHasCoolDownTag)
+    {
+        EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+    }
 }

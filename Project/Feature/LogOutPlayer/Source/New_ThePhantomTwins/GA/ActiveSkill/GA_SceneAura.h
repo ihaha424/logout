@@ -18,7 +18,6 @@ public:
     UGA_SceneAura();
 
     virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-    virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 protected:
    
@@ -28,16 +27,24 @@ protected:
     void ApplyAuraToTarget(AActor* Target);
     void RemoveAuraFromTarget(AActor* Target);
 
+    UFUNCTION()
+    void OnSceneAuraTagChanged(const FGameplayTag InputTag, int32 TagCount);
+    UFUNCTION()
+    void OnCoolDownTagChanged(const FGameplayTag InputTag, int32 TagCount);
+
     // 타이머
     FTimerHandle ScanTimerHandle;
-    FTimerHandle DurationTimerHandle;
 
     // 현재 Aura가 적용된 대상들
     TSet<TWeakObjectPtr<AActor>> CurrentAuraTargets;
 
     // === Configurable Variables ===
-    UPROPERTY(EditDefaultsOnly, Category="Aura")
-    float AuraDuration = 20.f;
+
+    UPROPERTY(EditAnywhere, Category = "GAS")
+    TSubclassOf<UGameplayEffect> SceneAuraEffect;
+
+    UPROPERTY(EditAnywhere, Category = "GAS")
+    TSubclassOf<UGameplayEffect> CoolDownEffect;
 
     UPROPERTY(EditDefaultsOnly, Category="Aura")
     float SenseRadius = 5000.f; 
@@ -45,6 +52,7 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category="Aura")
     float ScanInterval = 0.5f; 
 
+    bool bHasCoolDownTag = false;
 private:
     FCollisionShape Sphere;
 };
