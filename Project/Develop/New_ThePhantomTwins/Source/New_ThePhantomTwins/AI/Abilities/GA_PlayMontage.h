@@ -40,10 +40,4 @@ public:
 protected:
     UPROPERTY(EditDefaultsOnly, Category = "Animation")
     TObjectPtr<UAnimMontage> AnimationMontage;
-
-    static bool StopCurrentOrJumpIfSame(
-        const FGameplayAbilityActorInfo* ActorInfo,
-        UAnimMontage* Montage,
-        const FName SectionToJump,
-        float StopBlendOut = 0.1f);
 };

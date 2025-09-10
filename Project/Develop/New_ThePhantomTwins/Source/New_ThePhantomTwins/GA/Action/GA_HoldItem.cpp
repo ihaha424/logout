@@ -24,7 +24,7 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
     }
 
     float SlotNumber = TriggerEventData ? TriggerEventData->EventMagnitude : -1.f;
-    TPT_LOG(GALog, Warning, TEXT("SlotNumber %f"), SlotNumber);
+    //TPT_LOG(GALog, Warning, TEXT("SlotNumber %f"), SlotNumber);
 
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
@@ -77,7 +77,7 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
         // 투척 아이템인 경우 스폰 및 부착
         HeldItemComp->SpawnAndAttachHeldItem(ChoiceItemType);
 
-        TPT_LOG(GALog, Log, TEXT("투척 아이템 (%d) 손에 부착 완료"), static_cast<int32>(ChoiceItemType));
+        //TPT_LOG(GALog, Log, TEXT("투척 아이템 (%d) 손에 부착 완료"), static_cast<int32>(ChoiceItemType));
 
         // 여기서 포물선 인디케이터 출력 로직 추가 가능
     }
@@ -86,7 +86,7 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
         // 투척 아이템이 아닌 경우 기존 아이템 제거
         HeldItemComp->DestroyHeldItem();
 
-        TPT_LOG(GALog, Log, TEXT("투척 아이템이 아니므로 손에 있는 아이템 제거"));
+        //TPT_LOG(GALog, Log, TEXT("투척 아이템이 아니므로 손에 있는 아이템 제거"));
     }
 
     EndAbility(Handle, ActorInfo, ActivationInfo, true, false);

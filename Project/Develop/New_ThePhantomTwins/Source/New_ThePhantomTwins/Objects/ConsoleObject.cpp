@@ -53,7 +53,7 @@ void AConsoleObject::BeginPlay()
 
 void AConsoleObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AConsoleObject, HasPlayerNum);
 }
@@ -85,9 +85,9 @@ void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 	if (!bCanInteract) return;
 	if (!AreAllTriggerActived() || HasPlayerNum != MaxPlayerNum) return;
 
-    // 여기서 3초 지났는지 확인
+	// 여기서 3초 지났는지 확인
 
-	TPT_LOG(ObjectLog, Log, TEXT("AConsoleObject :: OnInteractServer"));
+	//TPT_LOG(ObjectLog, Log, TEXT("AConsoleObject :: OnInteractServer"));
 
 	bIsActived = true;
 
@@ -156,7 +156,7 @@ void AConsoleObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedCompon
 	OverlappingPlayers.Add(PlayerChar);
 
 	HasPlayerNum = FMath::Clamp(HasPlayerNum + 1, 0, MaxPlayerNum);
-	TPT_LOG(ObjectLog, Log, TEXT("Enter :: %s, HasPlayerNum = %d"), *PlayerChar->GetName(), HasPlayerNum);
+	//TPT_LOG(ObjectLog, Log, TEXT("Enter :: %s, HasPlayerNum = %d"), *PlayerChar->GetName(), HasPlayerNum);
 
 	bCanInteract = (AreAllTriggerActived() && HasPlayerNum == MaxPlayerNum);
 }
@@ -170,7 +170,7 @@ void AConsoleObject::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponen
 	{
 		OverlappingPlayers.Remove(PlayerChar);
 		HasPlayerNum = FMath::Clamp(HasPlayerNum - 1, 0, MaxPlayerNum);
-		TPT_LOG(ObjectLog, Log, TEXT("Exit :: %s, HasPlayerNum = %d"), *PlayerChar->GetName(), HasPlayerNum);
+		//TPT_LOG(ObjectLog, Log, TEXT("Exit :: %s, HasPlayerNum = %d"), *PlayerChar->GetName(), HasPlayerNum);
 	}
 
 	bCanInteract = (AreAllTriggerActived() && HasPlayerNum == MaxPlayerNum);
