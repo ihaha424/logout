@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SzObjects/BaseObject.h"
+#include "GameFramework/Pawn.h"
 #include "NoiseBomb.generated.h"
 
 UCLASS()
-class NEW_THEPHANTOMTWINS_API ANoiseBomb : public ABaseObject
+class NEW_THEPHANTOMTWINS_API ANoiseBomb : public APawn
 {
 	GENERATED_BODY()
 
@@ -17,6 +17,16 @@ public:
 public:
     virtual void BeginPlay() override;
 
+    // 气惯/面倒 贸府
+    UFUNCTION()
+    void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, 
+               UPrimitiveComponent* OtherComponent, FVector NormalImpulse, 
+               const FHitResult& Hit);
+
+private:
+    void ExplodeAndMakeNoise();
+
+public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components") 
     TObjectPtr<class USphereComponent> CollisionComponent;
 
@@ -29,12 +39,7 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<class UNoiseComponent> NoiseComponent;
 
-    // 气惯/面倒 贸府
-    UFUNCTION()
-    void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, 
-               UPrimitiveComponent* OtherComponent, FVector NormalImpulse, 
-               const FHitResult& Hit);
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NoiseBomb")
+    float NoiseDuration = 10.0f;
 
-private:
-    void ExplodeAndMakeNoise();
 };

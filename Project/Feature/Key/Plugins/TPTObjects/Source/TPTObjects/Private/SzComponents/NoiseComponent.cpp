@@ -63,7 +63,11 @@ void UNoiseComponent::GenerateNoise()
 		static_cast<float>(noisePoint),
 		OwnerPawn,
 		OwnerPawn->GetActorLocation(),
-		noiseRange
+		noiseRange,
+		"NoiseItem"
 	);
+
+	UE_LOG(LogTemp, Log, TEXT("UNoiseComponent::GenerateNoise BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"));
+
 
 }

@@ -40,9 +40,6 @@ ANoiseBomb::ANoiseBomb()
 
     // 소음 컴포넌트
     NoiseComponent = CreateDefaultSubobject<UNoiseComponent>(TEXT("NoiseComponent"));
-
-    // 생명주기 설정 (폭발하지 않으면 자동 소멸)
-    InitialLifeSpan = 10.0f;
 }
 
 void ANoiseBomb::BeginPlay()
@@ -74,29 +71,11 @@ void ANoiseBomb::ExplodeAndMakeNoise()
         ProjectileMovementComponent->Deactivate();
     }
 
-    // 폭발 이펙트 스폰 (필요하면 활성화)
-    // if (ExplosionEffect) { UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionEffect, GetActorLocation()); }
-
-    // 폭발 사운드 재생 (필요하면 활성화)
-    // if (ExplosionSound) { UGameplayStatics::PlaySoundAtLocation(GetWorld(), ExplosionSound, GetActorLocation()); }
-
     // 소음 시작
     if (NoiseComponent)
     {
         NoiseComponent->StartNoise();
     }
-
-    //// 메시 숨기기 (선택사항)
-    //if (MeshComponent)
-    //{
-    //    MeshComponent->SetVisibility(false);
-    //}
-
-    //// 충돌 비활성화
-    //if (CollisionComponent)
-    //{
-    //    CollisionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    //}
 
     // 일정 시간 후 액터 파괴 (소음이 끝난 후)
     FTimerHandle DestroyTimer;
@@ -104,7 +83,8 @@ void ANoiseBomb::ExplodeAndMakeNoise()
     {
         GetWorld()->GetTimerManager().SetTimer(DestroyTimer, [this]()
             {
+                NoiseComponent->StopNoise();
                 Destroy();
-            }, 15.0f, false); // 소음이 충분히 지속된 후 파괴
+            }, NoiseDuration, false); // 소음이 충분히 지속된 후 파괴
     }
 }

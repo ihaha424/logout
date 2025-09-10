@@ -22,8 +22,8 @@ protected:
     TSubclassOf<class ANoiseBomb> NoiseBombClass;
 
     // 투척 거리 (목표까지의 거리)
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile")
-    float ThrowDistance = 1000.0f;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile")
+    float ThrowDistance = 4000.0f;
 
     // 궤적 아크 값 (0.0 - 1.0, 값이 클수록 높게 던짐)
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Projectile")
