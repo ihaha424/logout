@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "GameplayTagContainer.h"
 #include "ThrowNoiseBomb.generated.h"
 
 UCLASS()
@@ -22,6 +23,11 @@ public:
     void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, 
                UPrimitiveComponent* OtherComponent, FVector NormalImpulse, 
                const FHitResult& Hit);
+
+
+    // 아이템에 대한 자체 이펙트(상자 오픈 이펙트)를 재생하기 위한 함수
+    void InvokeGameplayCue();
+
 
 private:
     void ExplodeAndMakeNoise();
@@ -42,4 +48,6 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Noise")
     float NoiseDuration = 10.0f;
 
+    UPROPERTY(EditAnywhere, Category = "Noise", Meta=(Categories=GameplayCue))
+	FGameplayTag GameplayCueTag;
 };

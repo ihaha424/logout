@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ThrowNoiseBomb.h"
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -62,6 +64,25 @@ void AThrowNoiseBomb::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActo
     }
 }
 
+void AThrowNoiseBomb::InvokeGameplayCue()
+{
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    if (PC && PC->GetPawn())
+    {
+        AActor* TargetActor = PC->GetPawn();
+        UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+
+        if (TargetASC)
+        {
+            FGameplayCueParameters Param;
+            Param.SourceObject = this;
+            Param.Instigator = TargetActor;
+            Param.Location = GetActorLocation();
+            TargetASC->ExecuteGameplayCue(GameplayCueTag, Param);
+        }
+    }
+}
+
 void AThrowNoiseBomb::ExplodeAndMakeNoise()
 {
     // 투사체 이동 정지
@@ -76,6 +97,8 @@ void AThrowNoiseBomb::ExplodeAndMakeNoise()
     {
         NoiseComponent->StartNoise();
     }
+
+    InvokeGameplayCue();
 
     // 일정 시간 후 액터 파괴 (소음이 끝난 후)
     FTimerHandle DestroyTimer;
