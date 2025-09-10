@@ -35,4 +35,10 @@ protected:
     UPROPERTY()
     UAbilityTask_PlayMontageAndWait* PlayStartHoldMontageTask = nullptr;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+    TObjectPtr<UAnimMontage> EndHoldMontage;
+
+    UPROPERTY()
+    UAbilityTask_PlayMontageAndWait* PlayEndHoldMontageTask = nullptr;
+
 };
