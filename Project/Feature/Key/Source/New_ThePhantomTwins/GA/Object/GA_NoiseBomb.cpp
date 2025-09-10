@@ -12,14 +12,14 @@
 UGA_NoiseBomb::UGA_NoiseBomb()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-    NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+    NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 }
 
 void UGA_NoiseBomb::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-    if (HasAuthorityOrPredictionKey(ActorInfo, &ActivationInfo))
+    if (HasAuthority(&ActivationInfo))
     {
         SpawnNoiseBomb();
     }
@@ -64,14 +64,17 @@ void UGA_NoiseBomb::SpawnNoiseBomb()
 
     // 5) 액터 스폰
     UWorld* World = GetWorld();
-    if (!World)
-        return;
+    if (!World) return;
 
     AThrowNoiseBomb* NoiseBomb = World->SpawnActor<AThrowNoiseBomb>(NoiseBombClass, SpawnLocation, SpawnRotation, SpawnParams);
     if (!NoiseBomb)
     {
         UE_LOG(LogTemp, Warning, TEXT("Failed to spawn NoiseBomb actor."));
         return;
+    }
+    else
+    {
+        TPT_LOG(GALog, Log, TEXT("AThrowNoiseBomb 생성"));
     }
 
     // 6) Launch Velocity 계산 (포물선 궤적)

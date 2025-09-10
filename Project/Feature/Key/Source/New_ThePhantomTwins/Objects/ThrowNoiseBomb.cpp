@@ -92,13 +92,13 @@ void AThrowNoiseBomb::ExplodeAndMakeNoise()
         ProjectileMovementComponent->Deactivate();
     }
 
+    InvokeGameplayCue();
+
     // 소음 시작
     if (NoiseComponent)
     {
         NoiseComponent->StartNoise();
     }
-
-    InvokeGameplayCue();
 
     // 일정 시간 후 액터 파괴 (소음이 끝난 후)
     FTimerHandle DestroyTimer;
