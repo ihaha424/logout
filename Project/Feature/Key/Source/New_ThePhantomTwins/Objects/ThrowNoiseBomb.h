@@ -4,15 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-#include "NoiseBomb.generated.h"
+#include "ThrowNoiseBomb.generated.h"
 
 UCLASS()
-class NEW_THEPHANTOMTWINS_API ANoiseBomb : public APawn
+class NEW_THEPHANTOMTWINS_API AThrowNoiseBomb : public APawn
 {
 	GENERATED_BODY()
 
 public:
-    ANoiseBomb();
+    AThrowNoiseBomb();
 
 public:
     virtual void BeginPlay() override;
@@ -39,7 +39,7 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<class UNoiseComponent> NoiseComponent;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NoiseBomb")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Noise")
     float NoiseDuration = 10.0f;
 
 };

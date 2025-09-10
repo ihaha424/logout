@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "NoiseBomb.h"
+#include "ThrowNoiseBomb.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -9,7 +9,7 @@
 #include "TimerManager.h"
 #include "Log/TPTLog.h"
 
-ANoiseBomb::ANoiseBomb()
+AThrowNoiseBomb::AThrowNoiseBomb()
 {
     PrimaryActorTick.bCanEverTick = false;
 
@@ -42,18 +42,18 @@ ANoiseBomb::ANoiseBomb()
     NoiseComponent = CreateDefaultSubobject<UNoiseComponent>(TEXT("NoiseComponent"));
 }
 
-void ANoiseBomb::BeginPlay()
+void AThrowNoiseBomb::BeginPlay()
 {
     Super::BeginPlay();
 
     // Hit 이벤트 바인딩 (BeginPlay에서 하는 것이 안전함)
     if (CollisionComponent)
     {
-        CollisionComponent->OnComponentHit.AddDynamic(this, &ANoiseBomb::OnHit);
+        CollisionComponent->OnComponentHit.AddDynamic(this, &AThrowNoiseBomb::OnHit);
     }
 }
 
-void ANoiseBomb::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
+void AThrowNoiseBomb::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
     // 자기 자신이나 소유자와의 충돌은 무시
     if (OtherActor && OtherActor != this && OtherActor != GetOwner())
@@ -62,7 +62,7 @@ void ANoiseBomb::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UP
     }
 }
 
-void ANoiseBomb::ExplodeAndMakeNoise()
+void AThrowNoiseBomb::ExplodeAndMakeNoise()
 {
     // 투사체 이동 정지
     if (ProjectileMovementComponent)

@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GA_NoiseBomb.h"
-#include "Objects/NoiseBomb.h"
+#include "Objects/ThrowNoiseBomb.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -67,7 +67,7 @@ void UGA_NoiseBomb::SpawnNoiseBomb()
     if (!World)
         return;
 
-    ANoiseBomb* NoiseBomb = World->SpawnActor<ANoiseBomb>(NoiseBombClass, SpawnLocation, SpawnRotation, SpawnParams);
+    AThrowNoiseBomb* NoiseBomb = World->SpawnActor<AThrowNoiseBomb>(NoiseBombClass, SpawnLocation, SpawnRotation, SpawnParams);
     if (!NoiseBomb)
     {
         UE_LOG(LogTemp, Warning, TEXT("Failed to spawn NoiseBomb actor."));
