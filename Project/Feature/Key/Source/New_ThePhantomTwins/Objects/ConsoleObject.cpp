@@ -87,7 +87,7 @@ void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 
 	// 여기서 3초 지났는지 확인
 
-	TPT_LOG(ObjectLog, Log, TEXT("AConsoleObject :: OnInteractServer"));
+	//TPT_LOG(ObjectLog, Log, TEXT("AConsoleObject :: OnInteractServer"));
 
 	bIsActived = true;
 
@@ -156,7 +156,7 @@ void AConsoleObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedCompon
 	OverlappingPlayers.Add(PlayerChar);
 
 	HasPlayerNum = FMath::Clamp(HasPlayerNum + 1, 0, MaxPlayerNum);
-	TPT_LOG(ObjectLog, Log, TEXT("Enter :: %s, HasPlayerNum = %d"), *PlayerChar->GetName(), HasPlayerNum);
+	//TPT_LOG(ObjectLog, Log, TEXT("Enter :: %s, HasPlayerNum = %d"), *PlayerChar->GetName(), HasPlayerNum);
 
 	bCanInteract = (AreAllTriggerActived() && HasPlayerNum == MaxPlayerNum);
 }
@@ -170,7 +170,7 @@ void AConsoleObject::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponen
 	{
 		OverlappingPlayers.Remove(PlayerChar);
 		HasPlayerNum = FMath::Clamp(HasPlayerNum - 1, 0, MaxPlayerNum);
-		TPT_LOG(ObjectLog, Log, TEXT("Exit :: %s, HasPlayerNum = %d"), *PlayerChar->GetName(), HasPlayerNum);
+		//TPT_LOG(ObjectLog, Log, TEXT("Exit :: %s, HasPlayerNum = %d"), *PlayerChar->GetName(), HasPlayerNum);
 	}
 
 	bCanInteract = (AreAllTriggerActived() && HasPlayerNum == MaxPlayerNum);

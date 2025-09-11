@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -17,21 +17,21 @@ public:
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
-    // ¼ÒÀ½ÆøÅº ¾×ÅÍ Å¬·¡½º
+    // ì†ŒìŒí­íƒ„ ì•¡í„° í´ë˜ìŠ¤
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Noise")
     TSubclassOf<class AThrowNoiseBomb> NoiseBombClass;
 
-    // ÅõÃ´ °Å¸® (¸ñÇ¥±îÁöÀÇ °Å¸®)
+    // íˆ¬ì²™ ê±°ë¦¬ (ëª©í‘œê¹Œì§€ì˜ ê±°ë¦¬)
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Noise")
     float ThrowDistance = 4000.0f;
 
-    // ±ËÀû ¾ÆÅ© °ª (0.0 - 1.0, °ªÀÌ Å¬¼ö·Ï ³ô°Ô ´øÁü)
+    // ê¶¤ì  ì•„í¬ ê°’ (0.0 - 1.0, ê°’ì´ í´ìˆ˜ë¡ ë†’ê²Œ ë˜ì§)
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Noise")
     float Arc = 0.5f;
 
 private:
     void SpawnNoiseBomb();
     FVector CalculateTargetLocation(const FVector& StartLocation);
-    FVector GetLeftHandSocketLocation() const;
+    FVector GetRightHandSocketLocation() const;
     FRotator GetThrowRotation(const FVector& StartLocation, const FVector& TargetLocation) const;
 };

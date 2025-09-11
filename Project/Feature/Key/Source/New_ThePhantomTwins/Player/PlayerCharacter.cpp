@@ -59,7 +59,7 @@ APlayerCharacter::APlayerCharacter()
 
 	BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
 	BoxComp->SetupAttachment(RootComponent);
-	BoxComp->SetCollisionProfileName(TEXT("Interactable"));
+	BoxComp->SetCollisionProfileName(TEXT("OverlapAll"));
 
 	HeldItemComponent = CreateDefaultSubobject<UHeldItemComponent>(TEXT("HeldItemComponent"));
 }
@@ -140,7 +140,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 		// 클라에선 FocusTrace 세팅(시각효과용)
 		FocusTrace->SetStart(WorldLocation);
 		FocusTrace->SetDirection(WorldDirection);
-		FocusTrace->SetCollisionType(ECC_GameTraceChannel1);
 
 		// 서버 RPC 호출에 위치 + 회전 같이 넘기기
 		C2S_SetFocusTrace(CameraLocation, CameraRotation);
@@ -376,8 +375,8 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Started, this, &ThisClass::InputPressed);
 
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_Q, ETriggerEvent::Started, this, &ThisClass::InputSKillPressed,1);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_E, ETriggerEvent::Started, this, &ThisClass::InputSKillPressed,2);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_Q, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_E, ETriggerEvent::Started, this, &ThisClass::InputPressed);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 1);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 2);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 3);
@@ -550,7 +549,6 @@ void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
 		5.0f, // 초 단위
 		false // 반복 아님
 	);
-
 
 	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Event_Character_HoldItem;
 	FGameplayEventData Payload;
@@ -867,7 +865,7 @@ void APlayerCharacter::RemoveHeldItemMesh()
 	USkeletalMeshComponent* MeshComp = GetMesh();
 	if (!MeshComp) return;
 
-	const FName HandSocketName = TEXT("LeftHandSocket");
+	const FName HandSocketName = TEXT("RightHandSocket");
 
 	// 캐릭터 Mesh에 붙은 자식 컴포넌트 전부 탐색
 	TArray<USceneComponent*> AttachedComponents;
@@ -883,7 +881,7 @@ void APlayerCharacter::RemoveHeldItemMesh()
 			if (UStaticMeshComponent* HeldMeshComp = Cast<UStaticMeshComponent>(Comp))
 			{
 				HeldMeshComp->DestroyComponent();
-				UE_LOG(LogTemp, Log, TEXT("Removed HeldItem StaticMesh from LeftHandSocket"));
+				UE_LOG(LogTemp, Log, TEXT("Removed HeldItem StaticMesh from RightHandSocket"));
 				return; // 하나만 제거하면 되므로 바로 종료
 			}
 		}
