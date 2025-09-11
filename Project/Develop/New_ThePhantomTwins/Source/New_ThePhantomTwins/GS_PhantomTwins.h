@@ -36,7 +36,7 @@ public:
 
 	//~ Begin MapData
 	EMapType GetMapData() const { return MapData; }
-	void SetMapData(EMapType mapType) { MapData = MapData; }
+	void SetMapData(EMapType mapType) { MapData = mapType; }
 	//~ End MapData
 
 protected:

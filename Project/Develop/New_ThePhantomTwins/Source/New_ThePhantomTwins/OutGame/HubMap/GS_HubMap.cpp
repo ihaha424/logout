@@ -24,6 +24,13 @@ void AGS_HubMap::SetIdentifyCharacterData(ECharacterType ChractorType, bool bIsH
     OnRep_IdentifyCharacterData();
 }
 
+void AGS_HubMap::OnRep_MapData()
+{
+    UTPTSaveGame* TPTLocalPlayerSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
+    TPTLocalPlayerSaveGame->IdentifyMapData.MapType = MapData;
+    UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTSaveGame>(TPTLocalPlayerSaveGame);
+}
+
 void AGS_HubMap::OnRep_IdentifyCharacterData()
 {
 	UTPTSaveGame* TPTLocalPlayerSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
@@ -38,4 +45,6 @@ void AGS_HubMap::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AGS_HubMap, IdentifyCharacterData);
+	DOREPLIFETIME(AGS_HubMap, NextLevel);
+	DOREPLIFETIME(AGS_HubMap, MapData);
 }
