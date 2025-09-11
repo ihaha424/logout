@@ -32,6 +32,6 @@ protected:
 private:
     void SpawnNoiseBomb();
     FVector CalculateTargetLocation(const FVector& StartLocation);
-    FVector GetLeftHandSocketLocation() const;
+    FVector GetRightHandSocketLocation() const;
     FRotator GetThrowRotation(const FVector& StartLocation, const FVector& TargetLocation) const;
 };

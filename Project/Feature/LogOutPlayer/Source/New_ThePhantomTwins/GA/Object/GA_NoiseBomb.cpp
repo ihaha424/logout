@@ -42,8 +42,8 @@ void UGA_NoiseBomb::SpawnNoiseBomb()
         return;
     }
 
-    // 1) 스폰 시작 위치: LeftHandSocket (있으면)
-    FVector SpawnLocation = GetLeftHandSocketLocation();
+    // 1) 스폰 시작 위치: RightHandSocket (있으면)
+    FVector SpawnLocation = GetRightHandSocketLocation();
     if (SpawnLocation.IsZero())
     {
         // 실패 시 액터 위치를 사용
@@ -131,7 +131,7 @@ FVector UGA_NoiseBomb::CalculateTargetLocation(const FVector& StartLocation)
     return StartLocation + ViewDir.GetSafeNormal() * ThrowDistance;
 }
 
-FVector UGA_NoiseBomb::GetLeftHandSocketLocation() const
+FVector UGA_NoiseBomb::GetRightHandSocketLocation() const
 {
     AActor* OwnerAvatar = GetAvatarActorFromActorInfo();
     if (!OwnerAvatar) return FVector::ZeroVector;
@@ -143,9 +143,9 @@ FVector UGA_NoiseBomb::GetLeftHandSocketLocation() const
     {
         if (const USkeletalMeshComponent* MeshComp = PlayerChar->GetMesh())
         {
-            if (MeshComp->DoesSocketExist(TEXT("LeftHandSocket")))
+            if (MeshComp->DoesSocketExist(TEXT("RightHandSocket")))
             {
-                return MeshComp->GetSocketLocation(TEXT("LeftHandSocket"));
+                return MeshComp->GetSocketLocation(TEXT("RightHandSocket"));
             }
         }
     }
