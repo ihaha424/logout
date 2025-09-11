@@ -21,13 +21,23 @@ void UGA_NoiseBomb::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 
     if (HasAuthority(&ActivationInfo))
     {
-        SpawnNoiseBomb();
+        EItemType ItemType = EItemType::None;
+
+        // TriggerEventData에서 ItemType 추출
+        if (TriggerEventData)
+        {
+            ItemType = static_cast<EItemType>((int32)TriggerEventData->EventMagnitude);
+        }
+
+        SpawnThrowableItem(ItemType); // 수정된 함수 호출
     }
+
+
 
     EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
-void UGA_NoiseBomb::SpawnNoiseBomb()
+void UGA_NoiseBomb::SpawnThrowableItem(EItemType ItemType)
 {
     if (!NoiseBombClass)
     {

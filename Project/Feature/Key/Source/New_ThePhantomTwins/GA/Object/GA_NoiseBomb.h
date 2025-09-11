@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "Objects/ItemData.h"
 #include "GA_NoiseBomb.generated.h"
 
 UCLASS()
@@ -30,7 +31,7 @@ protected:
     float Arc = 0.5f;
 
 private:
-    void SpawnNoiseBomb();
+    void SpawnThrowableItem(EItemType ItemType);
     FVector CalculateTargetLocation(const FVector& StartLocation);
     FVector GetRightHandSocketLocation() const;
     FRotator GetThrowRotation(const FVector& StartLocation, const FVector& TargetLocation) const;

@@ -288,7 +288,7 @@ void UInventoryComponent::ExecuteItemEffects(EItemType ItemType)
     }
     if (ItemData->GameAbility)
     {
-        ExecuteGameplayAbility(ItemData->GameAbility);
+        ExecuteGameplayAbility(ItemType, ItemData->GameAbility);
     }
     if (ItemData->GameEffect)
     {
@@ -308,20 +308,23 @@ FItemDataTable* UInventoryComponent::GetItemAbilityData(EItemType ItemType)
     return ItemAbilityTable->FindRow<FItemDataTable>(FName(*EnumName), TEXT("GetItemAbilityData"));
 }
 
-void UInventoryComponent::ExecuteGameplayAbility(TSubclassOf<UGameplayAbility> AbilityClass)
+void UInventoryComponent::ExecuteGameplayAbility(EItemType ItemType, TSubclassOf<UGameplayAbility> AbilityClass)
 {
     APS_Player* PS = Cast<APS_Player>(GetOwner());
     APC_Player* PC = PS ? Cast<APC_Player>(PS->GetPlayerController()) : nullptr;
     APlayerCharacter* OwnerPlayer = PC ? Cast<APlayerCharacter>(PC->GetCharacter()) : nullptr;
     UAbilitySystemComponent* OwnerASC = OwnerPlayer ? OwnerPlayer->GetAbilitySystemComponent() : nullptr;
     if (!OwnerASC) return;
+
+    // GameplayEventData 생성
+    FGameplayEventData EventData;
+    EventData.EventMagnitude = static_cast<float>((int32)ItemType); // ItemType 전달
+    EventData.Instigator = OwnerPlayer;
+    EventData.Target = OwnerPlayer;
+
+    // GiveAbilityAndActivateOnce - EventData와 함께 실행
     FGameplayAbilitySpec AbilitySpec(AbilityClass, 1);
-    FGameplayAbilitySpecHandle Handle = OwnerASC->GiveAbility(AbilitySpec);
-    if (Handle.IsValid())
-    {
-        OwnerASC->TryActivateAbility(Handle);
-        //OwnerASC->ClearAbility(Handle);
-    }
+    OwnerASC->GiveAbilityAndActivateOnce(AbilitySpec, &EventData);
 }
 
 void UInventoryComponent::ApplyGameplayEffect(TSubclassOf<UGameplayEffect> EffectClass)
