@@ -4,28 +4,23 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "GA_Sprint.generated.h"
+#include "GA_AimItem.generated.h"
 
+class UAbilityTask_PlayMontageAndWait;
 /**
  * 
  */
 UCLASS()
-class NEW_THEPHANTOMTWINS_API UGA_Sprint : public UGameplayAbility
+class NEW_THEPHANTOMTWINS_API UGA_AimItem : public UGameplayAbility
 {
 	GENERATED_BODY()
 public:
-	UGA_Sprint();
-
+	UGA_AimItem();
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
-	UFUNCTION()
-	void OnCoolDownTagChanged(const FGameplayTag InputTag, int32 TagCount);
 
-	UPROPERTY(EditAnywhere, Category = "GAS")
-	TSubclassOf<UGameplayEffect> SprintEffect;
-
-	UPROPERTY(EditAnywhere, Category = "GAS")
-	TSubclassOf<UGameplayEffect> CoolDownEffect;
-
-	bool bHasCoolDownTag = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+	TObjectPtr<UAnimMontage> HoldingItemMontage;
+	UPROPERTY()
+	UAbilityTask_PlayMontageAndWait* PlayHoldingItemMontageTask = nullptr;
 };

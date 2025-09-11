@@ -31,7 +31,7 @@ void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 
 	MyASC->CancelAbilities(&CancelTags);
 	// 스프린트로 인한 달리기 속도 변경을 태그바인딩을 통해 실행.
-	MyASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_Sprint).AddUObject(this, &UGA_Run::OnSprintTagChanged);
+	MyASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_Sprinting).AddUObject(this, &UGA_Run::OnSprintTagChanged);
 
 	// 스태미너 감소 GE 부여
 	FGameplayEffectSpecHandle StaminaDrainEffectSpecHandle = MakeOutgoingGameplayEffectSpec(StaminaDrainEffect, GetAbilityLevel());

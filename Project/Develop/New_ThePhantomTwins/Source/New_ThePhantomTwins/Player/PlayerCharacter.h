@@ -82,7 +82,10 @@ public:
 	// 다운 인디케이터
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TObjectPtr<UWidgetComponent> DownedWidget;
-	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BoxCollision")
+	TObjectPtr<class UBoxComponent> BoxComp;
+
 	// 리커버리 관련 변수
 	UPROPERTY(ReplicatedUsing = OnRep_RecoveryPercent, VisibleAnywhere, BlueprintReadWrite)
 	float RecoveryPercent = 0.0f;
@@ -207,9 +210,6 @@ protected:
 	TSubclassOf<UGameplayEffect> InitAttributeSetEffect;
 	UPROPERTY(EditAnywhere, Category = "Recovery")
 	TSubclassOf<UGameplayEffect> RecoveryGE;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BoxCollision")
-	TObjectPtr<class UBoxComponent> BoxComp;
 
 	// 인풋
 	UPROPERTY(EditDefaultsOnly, Category = "Input")

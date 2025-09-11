@@ -49,7 +49,10 @@ public:
 	FTimerHandle CompleteHandle;
 	FTimerHandle UpdateHandle;;
 
+	UPROPERTY()
 	UAbilityTask_PlayMontageAndWait* PlayInteractMontageTask = nullptr;
+	UPROPERTY()
 	UAbilityTask_PlayMontageAndWait* PlayRecoveryMontageTask = nullptr;
+	UPROPERTY()
 	UAnimMontage* CurrentPlayingMontage = nullptr;
 };
