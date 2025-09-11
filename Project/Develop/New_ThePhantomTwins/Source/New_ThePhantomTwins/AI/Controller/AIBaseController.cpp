@@ -200,7 +200,7 @@ void AAIBaseController::FindCloseActor()
         if (!IsValid(Target) || Target == OwnerActor)
             continue;
         UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
-        if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
+        if (!IsValid(ASC) || ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
             continue;
         float DistSq = OwnerActor->GetDistanceTo(Target);
 
