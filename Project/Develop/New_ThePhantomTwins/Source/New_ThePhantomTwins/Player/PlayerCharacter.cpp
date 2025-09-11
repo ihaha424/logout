@@ -865,7 +865,7 @@ void APlayerCharacter::RemoveHeldItemMesh()
 	USkeletalMeshComponent* MeshComp = GetMesh();
 	if (!MeshComp) return;
 
-	const FName HandSocketName = TEXT("LeftHandSocket");
+	const FName HandSocketName = TEXT("RightHandSocket");
 
 	// 캐릭터 Mesh에 붙은 자식 컴포넌트 전부 탐색
 	TArray<USceneComponent*> AttachedComponents;
@@ -881,7 +881,7 @@ void APlayerCharacter::RemoveHeldItemMesh()
 			if (UStaticMeshComponent* HeldMeshComp = Cast<UStaticMeshComponent>(Comp))
 			{
 				HeldMeshComp->DestroyComponent();
-				UE_LOG(LogTemp, Log, TEXT("Removed HeldItem StaticMesh from LeftHandSocket"));
+				UE_LOG(LogTemp, Log, TEXT("Removed HeldItem StaticMesh from RightHandSocket"));
 				return; // 하나만 제거하면 되므로 바로 종료
 			}
 		}
