@@ -531,7 +531,7 @@ void APlayerCharacter::InputSKillPressed(int32 InputID, int32 SkillNumber)
 void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
 {
 	SelectedSlotNumber = SlotNumber;
-	TPT_LOG(PlayerLog, Warning, TEXT(" %d"), SlotNumber);
+	TPT_LOG(PlayerLog, Log, TEXT(" %d"), SlotNumber);
 
 	PlayerHUDWidget->VisibleInventory(true);
 
