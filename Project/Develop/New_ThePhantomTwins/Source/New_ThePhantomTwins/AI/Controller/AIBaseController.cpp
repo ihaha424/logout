@@ -111,6 +111,7 @@ void AAIBaseController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
     if (!Actor || !GetBlackboardComponent()) return;
 
     UBlackboardComponent* BB = GetBlackboardComponent();
+
     if (Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
     {
         UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Actor);
