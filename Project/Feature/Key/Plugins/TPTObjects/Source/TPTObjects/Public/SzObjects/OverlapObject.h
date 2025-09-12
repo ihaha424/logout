@@ -21,6 +21,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
 	UFUNCTION()
@@ -35,6 +36,10 @@ public:
 	void InvokeGameplayCue(AActor* Interactor);
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "OverlapObject | Control")
+	bool bEnableEffectAndCue = true;
+
+protected:
 	// 실제로 GE를 적용/해제할 때 쓰는 핸들 저장 맵
 	UPROPERTY()
 	TMap<AActor*, FActiveGameplayEffectHandle> ActiveEffectHandles;
