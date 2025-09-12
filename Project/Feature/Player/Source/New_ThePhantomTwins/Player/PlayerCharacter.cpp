@@ -244,7 +244,7 @@ void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 
 void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	
+
 }
 
 float APlayerCharacter::GetTime_Implementation()
@@ -478,6 +478,8 @@ void APlayerCharacter::OnRecoveryCompleted()
 			ASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
 		}
 	}
+
+	SpringArm->SocketOffset += FVector(0.f, 0.f, 100.f);
 }
 
 void APlayerCharacter::InputPressed(int32 InputID)
