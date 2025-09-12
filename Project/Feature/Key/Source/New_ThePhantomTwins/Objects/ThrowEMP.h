@@ -52,12 +52,23 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<class UProjectileMovementComponent> ProjectileMovementComponent;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EMP")
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EMP|Enemy")
+    float EnemyStunRadius = 1000.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EMP|Enemy")
     float EnemyStunDuration = 5.0f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EMP")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EMP|GlitchTrap")
+    float GlitchTrapDisableRadius = 1000.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EMP|GlitchTrap")
     float GlitchTrapDisableDuration = 10.0f;
 
     UPROPERTY(EditAnywhere, Category = "EMP", Meta=(Categories=GameplayCue))
 	FGameplayTag GameplayCueTag;
+
+
+
+
 };

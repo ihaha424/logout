@@ -23,7 +23,7 @@ protected:
 	TSubclassOf<class AThrowEMP> EMPClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ThrowItem")
-	float ThrowDistance = 1000.0f;
+	float ThrowDistance = 3000.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ThrowItem")
 	float Arc = 0.5f;

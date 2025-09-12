@@ -7,6 +7,8 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
+#include "player/PlayerCharacter.h"
+#include "AI/Character/AIBaseCharacter.h"
 #include "AI/AIEventReceiver.h"
 #include "Log/TPTLog.h"
 
@@ -96,7 +98,7 @@ void AThrowEMP::ExplodeAndMakeNoise()
     ApplyStunToEnemy();
 
     // 2. 글리치함정에 닿으면 10초간 비활성화
-    DisableGlitchTrap();
+    //DisableGlitchTrap();
 
     // 일정 시간 후 액터 파괴 (소음이 끝난 후)
     FTimerHandle DestroyTimer;
@@ -111,16 +113,63 @@ void AThrowEMP::ExplodeAndMakeNoise()
 
 void AThrowEMP::ApplyStunToEnemy()
 {
+    TPT_LOG(GALog, Log, TEXT("AThrowEMP::DisableGlitchTrap()"));
+
     TArray<AActor*> OverlappingEnemys;
 
-    // 적은 인터페이스로 체크
+    // 검사할 오브젝트 타입 설정 (Pawn 타입 => 적/캐릭터를 대상으로)
+    TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+    ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
 
-    for (AActor* OverlapEnemy : OverlappingEnemys) // 배열 반복
+    // 무시할 액터
+    TArray<AActor*> ActorsToIgnore;
+
+    TArray<AActor*> AllPlayerCharacters;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerCharacter::StaticClass(), AllPlayerCharacters);
+
+    // 찾은 모든 플레이어 캐릭터를 무시 리스트에 추가
+    for (AActor* PlayerCharacter : AllPlayerCharacters)
+    {
+        if (PlayerCharacter)
+        {
+            ActorsToIgnore.Add(PlayerCharacter);
+            TPT_LOG(GALog, Log, TEXT("Added PlayerCharacter to ignore list: %s"), *PlayerCharacter->GetName());
+        }
+    }
+
+// 디버깅
+#if UE_BUILD_DEVELOPMENT || UE_BUILD_DEBUG
+    DrawDebugSphere(
+        GetWorld(),                        // 월드 컨텍스트
+        GetActorLocation(),                // 구의 중심 위치
+        EnemyStunRadius,                   // 구의 반경
+        12,                                // 구체의 세분화 정도 (원형면의 세그먼트 수, 적절하게 조절)
+        FColor::Red,                      // 색상 (빨강 추천)
+        false,                            // 지속 시간 (false면 한 프레임만)
+        2.0f                              // 지속 시간 (초)
+    );
+#endif
+
+    // AAIBaseCharacter 클래스 필터를 사용해서 적 캐릭터만 검색
+    UKismetSystemLibrary::SphereOverlapActors(
+        GetWorld(),                    // WorldContextObject
+        GetActorLocation(),      // SpherePos - 구의 중심 위치
+        EnemyStunRadius,         // SphereRadius - 구의 반경
+        ObjectTypes,             // ObjectTypes - Pawn 타입만 검색
+        AAIBaseCharacter::StaticClass(), // ActorClassFilter - AAIBaseCharacter 클래스만 필터링
+        ActorsToIgnore,          // ActorsToIgnore - 무시할 액터들
+        OverlappingEnemys        // OutActors - 결과를 담을 배열
+    );
+
+
+    // 찾은 액터들에 대해 인터페이스로 스턴 호출
+    for (AActor* OverlapEnemy : OverlappingEnemys)
     {
         if (!OverlapEnemy) continue;
 
         if (OverlapEnemy->GetClass()->ImplementsInterface(UAIEventReceiver::StaticClass()))
         {
+            // 인터페이스에 정의된 ApplyStun 호출
             IAIEventReceiver::Execute_ApplyStun(OverlapEnemy);
             TPT_LOG(GALog, Log, TEXT("Applied stun to enemy: %s"), *OverlapEnemy->GetName());
         }
@@ -132,6 +181,7 @@ void AThrowEMP::DisableGlitchTrap()
     TArray<AActor*> OverlappingGlitchTraps;
     
     // 글리치함정은 tag로 체크
+    TPT_LOG(GALog, Log, TEXT("AThrowEMP::DisableGlitchTrap()"));
 
 }
 
