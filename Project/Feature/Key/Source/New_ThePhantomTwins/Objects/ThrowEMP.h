@@ -33,6 +33,15 @@ public:
 private:
     void ExplodeAndMakeNoise();
 
+    // 적에게 닿으면 5초간 스턴
+    void ApplyStunToEnemy();
+
+    // 글리치함정에 닿으면 10초간 비활성화
+    void DisableGlitchTrap();
+
+    // 범위 내 처리
+    // void ApplyEffectInRadius(TArray<AActor*> OverlappingActors, const FVector& Center, float Radius, float DurationSeconds);
+
 public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components") 
     TObjectPtr<class USphereComponent> CollisionComponent;

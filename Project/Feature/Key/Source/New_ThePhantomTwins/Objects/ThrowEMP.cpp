@@ -7,6 +7,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
+#include "AI/AIEventReceiver.h"
 #include "Log/TPTLog.h"
 
 AThrowEMP::AThrowEMP()
@@ -92,9 +93,10 @@ void AThrowEMP::ExplodeAndMakeNoise()
     InvokeGameplayCue();
 
     // 1. 적에게 닿으면 5초간 스턴
+    ApplyStunToEnemy();
 
     // 2. 글리치함정에 닿으면 10초간 비활성화
-
+    DisableGlitchTrap();
 
     // 일정 시간 후 액터 파괴 (소음이 끝난 후)
     FTimerHandle DestroyTimer;
@@ -106,3 +108,30 @@ void AThrowEMP::ExplodeAndMakeNoise()
             }, EnemyStunDuration, false); // 소음이 충분히 지속된 후 파괴
     }
 }
+
+void AThrowEMP::ApplyStunToEnemy()
+{
+    TArray<AActor*> OverlappingEnemys;
+
+    // 적은 인터페이스로 체크
+
+    for (AActor* OverlapEnemy : OverlappingEnemys) // 배열 반복
+    {
+        if (!OverlapEnemy) continue;
+
+        if (OverlapEnemy->GetClass()->ImplementsInterface(UAIEventReceiver::StaticClass()))
+        {
+            IAIEventReceiver::Execute_ApplyStun(OverlapEnemy);
+            TPT_LOG(GALog, Log, TEXT("Applied stun to enemy: %s"), *OverlapEnemy->GetName());
+        }
+    }
+}
+
+void AThrowEMP::DisableGlitchTrap()
+{
+    TArray<AActor*> OverlappingGlitchTraps;
+    
+    // 글리치함정은 tag로 체크
+
+}
+
