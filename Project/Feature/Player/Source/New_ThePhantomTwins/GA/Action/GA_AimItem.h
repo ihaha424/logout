@@ -33,7 +33,7 @@ public:
 	UPROPERTY()
 	USplineComponent* SplineComp = nullptr;
 	UPROPERTY()
-	UStaticMeshComponent* OwnerMeshComp = nullptr;
+	USkeletalMeshComponent* OwnerMeshComp = nullptr;
 	UPROPERTY()
 	AActor* OwnerActor = nullptr;
 

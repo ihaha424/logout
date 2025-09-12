@@ -31,11 +31,11 @@ void UGA_AimItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
     // Spline 컴포넌트 생성 후 플레이어에 붙임
 	SplineComp = NewObject<USplineComponent>(OwnerActor, USplineComponent::StaticClass(), TEXT("AimSpline"));
     // 플레이어로부터 메쉬 컴포넌트 찾기
-	OwnerMeshComp = OwnerActor->FindComponentByClass<UStaticMeshComponent>();
+	OwnerMeshComp = OwnerActor->FindComponentByClass<USkeletalMeshComponent>();
     NULLCHECK_CODE_RETURN_LOG(OwnerMeshComp, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, false, false); , )
 
-    // 소켓을 부모로 설정
-	SplineComp->SetupAttachment(OwnerMeshComp, TEXT("RightHand"));
+    // 부모로 설정
+	SplineComp->SetupAttachment(OwnerActor->GetRootComponent());
     SplineComp->RegisterComponent();
 
 	// 주기적 위치 업데이트
@@ -64,7 +64,7 @@ void UGA_AimItem::UpdateParabola()
     SplineMeshes.Empty();
 
     // 시작 위치 & 발사 방향
-    FVector StartLocation = OwnerMeshComp->GetSocketLocation(TEXT("RightHand"));
+	FVector StartLocation = OwnerMeshComp->GetSocketLocation(TEXT("RightHand")) + FVector{0, -10.f, 0};
     //TPT_LOG(GALog, Warning, TEXT("%d, %d, %d"), StartLocation.X, StartLocation.Y, StartLocation.Z);
     FVector ForwardVector = OwnerActor->GetActorForwardVector() * 1000.f;
 
