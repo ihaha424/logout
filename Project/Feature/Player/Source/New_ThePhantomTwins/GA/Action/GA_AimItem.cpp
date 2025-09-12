@@ -42,13 +42,13 @@ void UGA_AimItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
 	GetWorld()->GetTimerManager().SetTimer(
 		UpdateTimerHandle,
 		this,
-		&UGA_AimItem::Updateparabola,
+		&UGA_AimItem::UpdateParabola,
 		0.5f,
 		true
 	);
 }
 
-void UGA_AimItem::Updateparabola()
+void UGA_AimItem::UpdateParabola()
 {
     NULLCHECK_CODE_RETURN_LOG(OwnerActor, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false); , )
     NULLCHECK_CODE_RETURN_LOG(OwnerMeshComp, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);, )
