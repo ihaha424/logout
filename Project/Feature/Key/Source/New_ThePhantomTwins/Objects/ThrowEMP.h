@@ -25,7 +25,6 @@ public:
                UPrimitiveComponent* OtherComponent, FVector NormalImpulse, 
                const FHitResult& Hit);
 
-
     // 아이템에 대한 자체 이펙트(상자 오픈 이펙트)를 재생하기 위한 함수
     void InvokeGameplayCue();
 
@@ -33,14 +32,11 @@ public:
 private:
     void ExplodeAndMakeNoise();
 
-    // 적에게 닿으면 5초간 스턴
+    // 적에게 닿으면 n초간 스턴
     void ApplyStunToEnemy();
 
-    // 글리치함정에 닿으면 10초간 비활성화
+    // 글리치함정에 닿으면 n초간 비활성화
     void DisableGlitchTrap();
-
-    // 범위 내 처리
-    // void ApplyEffectInRadius(TArray<AActor*> OverlappingActors, const FVector& Center, float Radius, float DurationSeconds);
 
 public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components") 
@@ -67,8 +63,5 @@ public:
 
     UPROPERTY(EditAnywhere, Category = "EMP", Meta=(Categories=GameplayCue))
 	FGameplayTag GameplayCueTag;
-
-
-
 
 };

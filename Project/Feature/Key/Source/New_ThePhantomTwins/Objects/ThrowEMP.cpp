@@ -10,6 +10,7 @@
 #include "player/PlayerCharacter.h"
 #include "AI/Character/AIBaseCharacter.h"
 #include "AI/AIEventReceiver.h"
+#include "SzObjects/OverlapObject.h"
 #include "Log/TPTLog.h"
 
 AThrowEMP::AThrowEMP()
@@ -98,7 +99,7 @@ void AThrowEMP::ExplodeAndMakeNoise()
     ApplyStunToEnemy();
 
     // 2. 글리치함정에 닿으면 10초간 비활성화
-    //DisableGlitchTrap();
+    DisableGlitchTrap();
 
     // 일정 시간 후 액터 파괴 (소음이 끝난 후)
     FTimerHandle DestroyTimer;
@@ -178,10 +179,110 @@ void AThrowEMP::ApplyStunToEnemy()
 
 void AThrowEMP::DisableGlitchTrap()
 {
-    TArray<AActor*> OverlappingGlitchTraps;
-    
     // 글리치함정은 tag로 체크
     TPT_LOG(GALog, Log, TEXT("AThrowEMP::DisableGlitchTrap()"));
 
+    TArray<AActor*> OverlappingGlitchTraps;
+
+    // 검사할 오브젝트 타입 설정 (WorldStatic => GlitchTrap 액터)
+    TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+    ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
+
+    // 무시할 액터
+    TArray<AActor*> ActorsToIgnore;
+    TArray<AActor*> AllPlayerCharacters;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerCharacter::StaticClass(), AllPlayerCharacters);
+    for (AActor* PlayerCharacter : AllPlayerCharacters)
+    {
+        if (PlayerCharacter)
+        {
+            ActorsToIgnore.Add(PlayerCharacter);
+            TPT_LOG(GALog, Log, TEXT("Added PlayerCharacter to ignore list: %s"), *PlayerCharacter->GetName());
+        }
+    }
+
+    // 디버깅
+#if UE_BUILD_DEVELOPMENT || UE_BUILD_DEBUG
+    DrawDebugSphere(
+        GetWorld(),                        // 월드 컨텍스트
+        GetActorLocation(),                // 구의 중심 위치
+        GlitchTrapDisableRadius,           // 구의 반경
+        12,                                // 구체의 세분화 정도 (원형면의 세그먼트 수, 적절하게 조절)
+        FColor::Blue,                      // 색상 (빨강 추천)
+        false,                            // 지속 시간 (false면 한 프레임만)
+        GlitchTrapDisableDuration         // 지속 시간 (초)
+    );
+#endif
+
+    // AAIBaseCharacter 클래스 필터를 사용해서 적 캐릭터만 검색
+    UKismetSystemLibrary::SphereOverlapActors(
+        GetWorld(),                       // WorldContextObject
+        GetActorLocation(),              // SpherePos - 구의 중심 위치
+        GlitchTrapDisableRadius,         // SphereRadius - 구의 반경
+        ObjectTypes,                     
+        AOverlapObject::StaticClass(),  // ActorClassFilter - AOverlapObject 클래스만 필터링
+        ActorsToIgnore,                 // ActorsToIgnore - 무시할 액터들
+        OverlappingGlitchTraps          // OutActors - 결과를 담을 배열
+    );
+
+
+    // GlitchTrap 태그 붙은 AOverlapObject만 GE, CUE 비활성화
+    for (AActor* OverlapActor : OverlappingGlitchTraps)
+    {
+        AOverlapObject* GlitchTrap = Cast<AOverlapObject>(OverlapActor);
+        if (GlitchTrap && GlitchTrap->Tags.Contains(FName("GlitchTrap")))
+        {
+            // 1) GE 및 Cue 제거
+            UAbilitySystemComponent* TrapASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GlitchTrap);
+            if (TrapASC && GlitchTrap->GameplayEffectClass)
+            {
+                // 적용된 모든 지속형 GE 핸들 제거
+                for (auto& Pair : GlitchTrap->ActiveEffectHandles)
+                {
+                    TrapASC->RemoveActiveGameplayEffect(Pair.Value);
+                }
+                GlitchTrap->ActiveEffectHandles.Empty();
+
+                // Cue 제거
+                TrapASC->RemoveGameplayCue(GlitchTrap->GameplayCueTag);
+            }
+
+            // 2) 일정 시간 후 다시 활성화
+            FTimerHandle ReactivateTimer;
+            FTimerDelegate ReactivateDelegate;
+            ReactivateDelegate.BindLambda([GlitchTrap]()
+                {
+                    if (!IsValid(GlitchTrap))
+                        return;
+
+                    UAbilitySystemComponent* ReactivateASC =
+                        UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GlitchTrap);
+                    if (ReactivateASC && GlitchTrap->GameplayEffectClass)
+                    {
+                        // 다시 지속형 GE 적용
+                        FGameplayEffectContextHandle Context = ReactivateASC->MakeEffectContext();
+                        Context.AddSourceObject(GlitchTrap);
+                        FGameplayEffectSpecHandle Spec = ReactivateASC->MakeOutgoingSpec(
+                            GlitchTrap->GameplayEffectClass, 1, Context);
+                        if (Spec.IsValid())
+                        {
+                            FActiveGameplayEffectHandle NewHandle =
+                                ReactivateASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+                            GlitchTrap->ActiveEffectHandles.Add(GlitchTrap, NewHandle);
+                        }
+
+                        // 다시 Cue 실행
+                        GlitchTrap->InvokeGameplayCue(GlitchTrap);
+                    }
+                });
+
+            GetWorld()->GetTimerManager().SetTimer(
+                ReactivateTimer,
+                ReactivateDelegate,
+                GlitchTrapDisableDuration,
+                false
+            );
+        }
+    }
 }
 

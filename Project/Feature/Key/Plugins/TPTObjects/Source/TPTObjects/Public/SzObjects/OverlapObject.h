@@ -34,7 +34,7 @@ public:
 	UFUNCTION()
 	void InvokeGameplayCue(AActor* Interactor);
 
-protected:
+public:
 	// 실제로 GE를 적용/해제할 때 쓰는 핸들 저장 맵
 	UPROPERTY()
 	TMap<AActor*, FActiveGameplayEffectHandle> ActiveEffectHandles;
