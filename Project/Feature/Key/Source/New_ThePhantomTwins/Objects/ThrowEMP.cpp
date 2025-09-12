@@ -232,56 +232,56 @@ void AThrowEMP::DisableGlitchTrap()
         AOverlapObject* GlitchTrap = Cast<AOverlapObject>(OverlapActor);
         if (GlitchTrap && GlitchTrap->Tags.Contains(FName("GlitchTrap")))
         {
-            // 1) GE 및 Cue 제거
-            UAbilitySystemComponent* TrapASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GlitchTrap);
-            if (TrapASC && GlitchTrap->GameplayEffectClass)
-            {
-                // 적용된 모든 지속형 GE 핸들 제거
-                for (auto& Pair : GlitchTrap->ActiveEffectHandles)
-                {
-                    TrapASC->RemoveActiveGameplayEffect(Pair.Value);
-                }
-                GlitchTrap->ActiveEffectHandles.Empty();
+            //// 1) GE 및 Cue 제거
+            //UAbilitySystemComponent* TrapASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GlitchTrap);
+            //if (TrapASC && GlitchTrap->GameplayEffectClass)
+            //{
+            //    // 적용된 모든 지속형 GE 핸들 제거
+            //    for (auto& Pair : GlitchTrap->ActiveEffectHandles)
+            //    {
+            //        TrapASC->RemoveActiveGameplayEffect(Pair.Value);
+            //    }
+            //    GlitchTrap->ActiveEffectHandles.Empty();
 
-                // Cue 제거
-                TrapASC->RemoveGameplayCue(GlitchTrap->GameplayCueTag);
-            }
+            //    // Cue 제거
+            //    TrapASC->RemoveGameplayCue(GlitchTrap->GameplayCueTag);
+            //}
 
-            // 2) 일정 시간 후 다시 활성화
-            FTimerHandle ReactivateTimer;
-            FTimerDelegate ReactivateDelegate;
-            ReactivateDelegate.BindLambda([GlitchTrap]()
-                {
-                    if (!IsValid(GlitchTrap))
-                        return;
+            //// 2) 일정 시간 후 다시 활성화
+            //FTimerHandle ReactivateTimer;
+            //FTimerDelegate ReactivateDelegate;
+            //ReactivateDelegate.BindLambda([GlitchTrap]()
+            //    {
+            //        if (!IsValid(GlitchTrap))
+            //            return;
 
-                    UAbilitySystemComponent* ReactivateASC =
-                        UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GlitchTrap);
-                    if (ReactivateASC && GlitchTrap->GameplayEffectClass)
-                    {
-                        // 다시 지속형 GE 적용
-                        FGameplayEffectContextHandle Context = ReactivateASC->MakeEffectContext();
-                        Context.AddSourceObject(GlitchTrap);
-                        FGameplayEffectSpecHandle Spec = ReactivateASC->MakeOutgoingSpec(
-                            GlitchTrap->GameplayEffectClass, 1, Context);
-                        if (Spec.IsValid())
-                        {
-                            FActiveGameplayEffectHandle NewHandle =
-                                ReactivateASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
-                            GlitchTrap->ActiveEffectHandles.Add(GlitchTrap, NewHandle);
-                        }
+            //        UAbilitySystemComponent* ReactivateASC =
+            //            UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GlitchTrap);
+            //        if (ReactivateASC && GlitchTrap->GameplayEffectClass)
+            //        {
+            //            // 다시 지속형 GE 적용
+            //            FGameplayEffectContextHandle Context = ReactivateASC->MakeEffectContext();
+            //            Context.AddSourceObject(GlitchTrap);
+            //            FGameplayEffectSpecHandle Spec = ReactivateASC->MakeOutgoingSpec(
+            //                GlitchTrap->GameplayEffectClass, 1, Context);
+            //            if (Spec.IsValid())
+            //            {
+            //                FActiveGameplayEffectHandle NewHandle =
+            //                    ReactivateASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+            //                GlitchTrap->ActiveEffectHandles.Add(GlitchTrap, NewHandle);
+            //            }
 
-                        // 다시 Cue 실행
-                        GlitchTrap->InvokeGameplayCue(GlitchTrap);
-                    }
-                });
+            //            // 다시 Cue 실행
+            //            GlitchTrap->InvokeGameplayCue(GlitchTrap);
+            //        }
+            //    });
 
-            GetWorld()->GetTimerManager().SetTimer(
-                ReactivateTimer,
-                ReactivateDelegate,
-                GlitchTrapDisableDuration,
-                false
-            );
+            //GetWorld()->GetTimerManager().SetTimer(
+            //    ReactivateTimer,
+            //    ReactivateDelegate,
+            //    GlitchTrapDisableDuration,
+            //    false
+            //);
         }
     }
 }
