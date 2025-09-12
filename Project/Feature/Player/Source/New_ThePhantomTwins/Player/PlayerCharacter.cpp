@@ -493,8 +493,16 @@ void APlayerCharacter::InputPressed(int32 InputID)
 	{
 		ASC->TryActivateAbility(Spec->Handle);
 	}
+	// 스태미나 위젯 조정.
+	const EFTPTGameplayTags* TagEnum = FTPTGameplayTags::Get().TagMap.Find(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run);
+	int32 InputNum = static_cast<int32>(*TagEnum);
 
-	PlayerHUDWidget->VisibleStamina(true);
+	FGameplayTag DownedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed;
+	FGameplayTag ConfusedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd;
+	if (!ASC->HasMatchingGameplayTag(DownedTag) && !ASC->HasMatchingGameplayTag(ConfusedTag) && InputID == InputNum)
+	{
+		PlayerHUDWidget->VisibleStamina(true);
+	}
 }
 
 void APlayerCharacter::C2S_InputPressed_Implementation(const int32 InputID)
@@ -679,8 +687,8 @@ void APlayerCharacter::Move(const FInputActionValue& Value)
 void APlayerCharacter::Look(const FInputActionValue& Value)
 {
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
-	FVector2D LookAxisVector = Value.Get<FVector2D>();
-
+	float MouseSensitivity = 0.3f;
+	FVector2D LookAxisVector = Value.Get<FVector2D>() * MouseSensitivity;
 	AddControllerYawInput(LookAxisVector.X);
 	AddControllerPitchInput(LookAxisVector.Y);
 }
@@ -758,25 +766,25 @@ void APlayerCharacter::OnEndOverlapWall(UPrimitiveComponent* Comp, AActor* Other
 void APlayerCharacter::OnBeginOverlap(EEnemyRange Range, AActor* OtherActor)
 {
 	UAbilitySystemComponent* AIASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
-
-	NULLCHECK_RETURN_LOG(AIASC, PlayerLog, Log, );
-	bool AIHasTag = AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI);
-	if (AIHasTag)
+	if (AIASC)
 	{
-		EEnemyRange* Found = EnemyRangeMap.Find(OtherActor);
-		if (!Found || Range < *Found)
+		bool AIHasTag = AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI);
+		if (AIHasTag)
 		{
-			EnemyRangeMap.Add(OtherActor, Range);
+			EEnemyRange* Found = EnemyRangeMap.Find(OtherActor);
+			if (!Found || Range < *Found)
+			{
+				EnemyRangeMap.Add(OtherActor, Range);
+			}
 		}
+		SetNearestEnemyRange();
 	}
-	SetNearestEnemyRange();
 }
 
 void APlayerCharacter::OnEndOverlap(EEnemyRange Range, AActor* OtherActor)
 {
 	UAbilitySystemComponent* AIASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
-	NULLCHECK_RETURN_LOG(AIASC, PlayerLog, Log, );
-	if (AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI))
+	if (AIASC && AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI))
 	{
 		EEnemyRange* Found = EnemyRangeMap.Find(OtherActor);
 		if (Found && *Found == Range)
