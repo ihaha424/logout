@@ -17,6 +17,9 @@ AThrowEMP::AThrowEMP()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+    SetReplicates(true);  // 복제 활성화
+    SetReplicateMovement(true);  // 이동 복제 활성화
+
     // 충돌 컴포넌트 (루트)
     CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComponent"));
     CollisionComponent->InitSphereRadius(10.0f);
@@ -32,6 +35,8 @@ AThrowEMP::AThrowEMP()
     MeshComponent->SetupAttachment(CollisionComponent);
     MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     MeshComponent->SetRelativeLocation(FVector::ZeroVector);
+
+    MeshComponent->SetIsReplicated(true);
 
     // 투사체 이동 컴포넌트
     ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
