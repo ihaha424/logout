@@ -78,7 +78,7 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 		{
 			if (!ThrowActor) return false;
 
-			TPT_LOG(GALog, Warning, TEXT("UGA_ThrowItem :: %s 생성"), *ThrowActor->GetName());
+			//TPT_LOG(GALog, Warning, TEXT("UGA_ThrowItem :: %s 생성"), *ThrowActor->GetName());
 
 			UProjectileMovementComponent* ProjectileMovementComponent = nullptr;
 

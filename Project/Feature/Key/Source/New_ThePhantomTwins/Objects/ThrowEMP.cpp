@@ -64,7 +64,7 @@ void AThrowEMP::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPr
     // 자기 자신이나 소유자와의 충돌은 무시
     if (OtherActor && OtherActor != this && OtherActor != GetOwner())
     {
-        TPT_LOG(GALog, Log, TEXT("AThrowEMP OnHit!!!!!!!!!!!!!!!"));
+        //TPT_LOG(GALog, Log, TEXT("AThrowEMP OnHit!!!!!!!!!!!!!!!"));
 
         ExplodeAndMakeNoise();
     }
@@ -119,7 +119,7 @@ void AThrowEMP::ExplodeAndMakeNoise()
 
 void AThrowEMP::ApplyStunToEnemy()
 {
-    TPT_LOG(GALog, Log, TEXT("AThrowEMP::DisableGlitchTrap()"));
+    //TPT_LOG(GALog, Log, TEXT("AThrowEMP::DisableGlitchTrap()"));
 
     TArray<AActor*> OverlappingEnemys;
 
@@ -139,22 +139,22 @@ void AThrowEMP::ApplyStunToEnemy()
         if (PlayerCharacter)
         {
             ActorsToIgnore.Add(PlayerCharacter);
-            TPT_LOG(GALog, Log, TEXT("Added PlayerCharacter to ignore list: %s"), *PlayerCharacter->GetName());
+            //TPT_LOG(GALog, Log, TEXT("Added PlayerCharacter to ignore list: %s"), *PlayerCharacter->GetName());
         }
     }
 
 // 디버깅
-#if UE_BUILD_DEVELOPMENT || UE_BUILD_DEBUG
-    DrawDebugSphere(
-        GetWorld(),                        // 월드 컨텍스트
-        GetActorLocation(),                // 구의 중심 위치
-        EnemyStunRadius,                   // 구의 반경
-        12,                                // 구체의 세분화 정도 (원형면의 세그먼트 수, 적절하게 조절)
-        FColor::Red,                      // 색상 (빨강 추천)
-        false,                            // 지속 시간 (false면 한 프레임만)
-        2.0f                              // 지속 시간 (초)
-    );
-#endif
+//#if UE_BUILD_DEVELOPMENT || UE_BUILD_DEBUG
+//    DrawDebugSphere(
+//        GetWorld(),                        // 월드 컨텍스트
+//        GetActorLocation(),                // 구의 중심 위치
+//        EnemyStunRadius,                   // 구의 반경
+//        12,                                // 구체의 세분화 정도 (원형면의 세그먼트 수, 적절하게 조절)
+//        FColor::Red,                      // 색상
+//        false,                            // 지속 시간 (false면 한 프레임만)
+//        2.0f                              // 지속 시간 (초)
+//    );
+//#endif
 
     // AAIBaseCharacter 클래스 필터를 사용해서 적 캐릭터만 검색
     UKismetSystemLibrary::SphereOverlapActors(
@@ -177,7 +177,7 @@ void AThrowEMP::ApplyStunToEnemy()
         {
             // 인터페이스에 정의된 ApplyStun 호출
             IAIEventReceiver::Execute_ApplyStun(OverlapEnemy);
-            TPT_LOG(GALog, Log, TEXT("Applied stun to enemy: %s"), *OverlapEnemy->GetName());
+            //TPT_LOG(GALog, Log, TEXT("Applied stun to enemy: %s"), *OverlapEnemy->GetName());
         }
     }
 }
@@ -185,7 +185,7 @@ void AThrowEMP::ApplyStunToEnemy()
 void AThrowEMP::DisableGlitchTrap()
 {
     // 글리치함정은 tag로 체크
-    TPT_LOG(GALog, Log, TEXT("AThrowEMP::DisableGlitchTrap()"));
+    //TPT_LOG(GALog, Log, TEXT("AThrowEMP::DisableGlitchTrap()"));
 
     TArray<AActor*> OverlappingGlitchTraps;
 
@@ -202,22 +202,22 @@ void AThrowEMP::DisableGlitchTrap()
         if (PlayerCharacter)
         {
             ActorsToIgnore.Add(PlayerCharacter);
-            TPT_LOG(GALog, Log, TEXT("Added PlayerCharacter to ignore list: %s"), *PlayerCharacter->GetName());
+            //TPT_LOG(GALog, Log, TEXT("Added PlayerCharacter to ignore list: %s"), *PlayerCharacter->GetName());
         }
     }
 
     // 디버깅
-#if UE_BUILD_DEVELOPMENT || UE_BUILD_DEBUG
-    DrawDebugSphere(
-        GetWorld(),                        // 월드 컨텍스트
-        GetActorLocation(),                // 구의 중심 위치
-        GlitchTrapDisableRadius,           // 구의 반경
-        12,                                // 구체의 세분화 정도 (원형면의 세그먼트 수, 적절하게 조절)
-        FColor::Blue,                      // 색상 (빨강 추천)
-        false,                            // 지속 시간 (false면 한 프레임만)
-        GlitchTrapDisableDuration         // 지속 시간 (초)
-    );
-#endif
+//#if UE_BUILD_DEVELOPMENT || UE_BUILD_DEBUG
+//    DrawDebugSphere(
+//        GetWorld(),                        // 월드 컨텍스트
+//        GetActorLocation(),                // 구의 중심 위치
+//        GlitchTrapDisableRadius,           // 구의 반경
+//        12,                                // 구체의 세분화 정도 (원형면의 세그먼트 수, 적절하게 조절)
+//        FColor::Green,                     // 색상
+//        false,                            // 지속 시간 (false면 한 프레임만)
+//        GlitchTrapDisableDuration         // 지속 시간 (초)
+//    );
+//#endif
 
     // AAIBaseCharacter 클래스 필터를 사용해서 적 캐릭터만 검색
     UKismetSystemLibrary::SphereOverlapActors(
@@ -249,7 +249,7 @@ void AThrowEMP::DisableGlitchTrap()
                     if (GlitchTrap)
                     {
                         GlitchTrap->bEnableEffectAndCue = true;
-                        TPT_LOG(GALog, Log, TEXT("GlitchTrap re-enabled: %s"), *GlitchTrap->GetName());
+                        //TPT_LOG(GALog, Log, TEXT("GlitchTrap re-enabled: %s"), *GlitchTrap->GetName());
                     }
                 },
                 GlitchTrapDisableDuration,
