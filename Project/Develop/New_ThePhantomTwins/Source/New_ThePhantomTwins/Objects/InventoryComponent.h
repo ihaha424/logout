@@ -71,7 +71,7 @@ private:
     FItemDataTable* GetItemAbilityData(EItemType ItemType);
 
     // GameplayAbility 실행
-    void ExecuteGameplayAbility(TSubclassOf<UGameplayAbility> AbilityClass);
+    void ExecuteGameplayAbility(EItemType ItemType, TSubclassOf<UGameplayAbility> AbilityClass);
 
     // GameplayEffect 적용
     void ApplyGameplayEffect(TSubclassOf<UGameplayEffect> EffectClass);
