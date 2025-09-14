@@ -16,6 +16,7 @@ class NEW_THEPHANTOMTWINS_API AGM_PhantomTwins : public AGameModeBase
 public:
 
     //~ Begin AGameModeBase
+    virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
     virtual void BeginPlay() override;
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     //~ End AGameModeBase

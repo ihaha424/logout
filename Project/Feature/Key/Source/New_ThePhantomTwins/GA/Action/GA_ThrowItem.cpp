@@ -18,7 +18,6 @@ void UGA_ThrowItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
 	if (HasAuthority(&ActivationInfo))
 	{
 		EItemType ItemType = EItemType::None;
