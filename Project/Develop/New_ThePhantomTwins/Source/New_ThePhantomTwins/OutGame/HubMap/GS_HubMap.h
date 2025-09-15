@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h"
 #include "Data/CharacterType.h"
+#include "Data/MapType.h"
 #include "GS_HubMap.generated.h"
 
 
@@ -29,23 +30,38 @@ class NEW_THEPHANTOMTWINS_API AGS_HubMap : public AGameStateBase
 	GENERATED_BODY()
 public:
 	// ~Begin HubMap
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "HubMap")
 	void SetCurState(EHubMapState State) { OnChangeHubMapState.Broadcast(CurState, State); CurState = State; }
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "HubMap")
 	EHubMapState GetCurState() const { return CurState; }
+	UFUNCTION(BlueprintCallable, Category = "HubMap")
+	void SetNextLevel(FName State) { NextLevel = State; }
+	UFUNCTION(BlueprintCallable, Category = "HubMap")
+	FName GetNextLevel() const { return NextLevel; }
+	UFUNCTION(BlueprintCallable, Category = "HubMap")
+	void SetMapType(EMapType State) { MapData = State; OnRep_MapData(); }
+	UFUNCTION(BlueprintCallable, Category = "HubMap")
+	EMapType GetMapType() const { return MapData; }
 	// ~End HubMap
 
 	// ~Begin Lobby(Character Seletect)
 	void SetIdentifyCharacterData(ECharacterType ChractorType, bool bIsHost);
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, Category = "HubMap | Character Seletect")
 	FSetIdentifyCharacterData OnSetIdentifyCharacterData;
 	// ~End Lobby(Character Seletect)
 
 private:
 	// ~Begin HubMap
 	EHubMapState CurState;
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, Category = "HubMap")
 	FHubMapChanged OnChangeHubMapState;
+	UPROPERTY(Replicated)
+	FName NextLevel;
+	UPROPERTY(ReplicatedUsing = OnRep_MapData)
+	EMapType MapData;
+	UFUNCTION()
+
+	void OnRep_MapData();
 	// ~End HubMap
 
 
