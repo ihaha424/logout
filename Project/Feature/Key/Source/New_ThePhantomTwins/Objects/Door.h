@@ -74,7 +74,10 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
     int32 MinRequiredCount = 0;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door", ReplicatedUsing = OnRep_bKeyUsed)
 	bool bKeyUsed = false;
+
+	UFUNCTION()
+	virtual void OnRep_bKeyUsed();
 };
 // Door 클래스 함수 중 블프에서 수정할 수 있는 함수 : AreAllTriggerActived(), OpenDoor(), CloseDoor()

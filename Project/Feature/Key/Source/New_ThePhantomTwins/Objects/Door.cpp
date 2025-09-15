@@ -69,6 +69,8 @@ void ADoor::SetWidgetVisible(bool bVisible)
 void ADoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ADoor, bKeyUsed);
 }
 
 bool ADoor::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
@@ -211,4 +213,9 @@ void ADoor::S2A_OpenDoor_Implementation()
 void ADoor::S2A_CloseDoor_Implementation()
 {
 	CloseDoor();
+}
+
+void ADoor::OnRep_bKeyUsed()
+{
+
 }
