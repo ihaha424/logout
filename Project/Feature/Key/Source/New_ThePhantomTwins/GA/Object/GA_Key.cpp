@@ -10,7 +10,7 @@
 UGA_Key::UGA_Key()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
 	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Object_Key);
 }
 

@@ -217,5 +217,14 @@ void ADoor::S2A_CloseDoor_Implementation()
 
 void ADoor::OnRep_bKeyUsed()
 {
-
+	if (!AreAllTriggerActived())
+	{
+		InteractWidgetComp->SetVisibility(false);
+		LockWidgetComp->SetVisibility(true);
+	}
+	else // 트리거들이 활성화된 경우 → NearWidget
+	{
+		InteractWidgetComp->SetVisibility(true);
+		LockWidgetComp->SetVisibility(false);
+	}
 }
