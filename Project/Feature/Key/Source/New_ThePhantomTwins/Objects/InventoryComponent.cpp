@@ -12,6 +12,7 @@
 #include "Log/TPTLog.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/FocusTraceComponent.h"
+#include "Objects/Door.h"
 
 
 UInventoryComponent::UInventoryComponent()
@@ -397,7 +398,6 @@ bool UInventoryComponent::CanUseItem(EItemType ItemType, int32 SlotIndex)
 
 bool UInventoryComponent::CanUseKey()
 {
-    // 플레이어와 타겟 액터 가져오기
     APS_Player* PS = Cast<APS_Player>(GetOwner());
     if (!PS) return false;
 
@@ -407,25 +407,37 @@ bool UInventoryComponent::CanUseKey()
     APlayerCharacter* OwnerPlayer = Cast<APlayerCharacter>(PC->GetCharacter());
     if (!OwnerPlayer) return false;
 
-    // 포커스된 액터 가져오기 (FocusTrace 시스템 사용)
     AActor* TargetActor = Cast<AActor>(OwnerPlayer->GetFocusTrace()->GetFocusedActor());
 
-    // TargetActor가 KeyInteract 태그를 갖고 있을때만 사용 가능
+    // 사용 불가 시 위젯 띄우고 타이머 설정하는 함수
+    auto ShowCannotUseWidget = [PC]()
+        {
+            PC->SetWidget(TEXT("CannotUseItem"), true, EMessageTargetType::LocalClient);
+
+            FTimerHandle TimerHandle;
+            FTimerDelegate TimerDel;
+            TimerDel.BindLambda([PC]()
+                {
+                    PC->SetWidget(TEXT("CannotUseItem"), false, EMessageTargetType::LocalClient);
+                });
+
+            PC->GetWorldTimerManager().SetTimer(TimerHandle, TimerDel, 2.0f, false);
+        };
+
+    // TargetActor 검사
     if (!TargetActor || !TargetActor->ActorHasTag(TEXT("KeyInteract")))
     {
-        // TODO :: 사용 불가 widget 띄어줌
-        TPT_LOG(ObjectLog,Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 불가"));
-        PC->SetWidget(TEXT("CannotUseItem"), true, EMessageTargetType::LocalClient);
+        TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 불가 - 태그 없음"));
+        ShowCannotUseWidget();
+        return false;
+    }
 
-        // 2초 뒤에 위젯 숨기도록 타이머 설정
-        FTimerHandle TimerHandle;
-        FTimerDelegate TimerDel;
-        TimerDel.BindLambda([PC]()
-            {
-                PC->SetWidget(TEXT("CannotUseItem"), false, EMessageTargetType::LocalClient);
-            });
-        PC->GetWorldTimerManager().SetTimer(TimerHandle, TimerDel, 2.0f, false);
-
+    // KeyInteract 태그가 있을 때, Door 사용 여부 검사
+    ADoor* TargetDoor = Cast<ADoor>(TargetActor);
+    if (TargetDoor && TargetDoor->bKeyUsed)
+    {
+        TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 불가 - 이미 사용됨"));
+        ShowCannotUseWidget();
         return false;
     }
 
