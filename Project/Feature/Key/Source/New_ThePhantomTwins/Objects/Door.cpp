@@ -168,7 +168,22 @@ bool ADoor::AreAllTriggerActived_Implementation() const
 		}
 	}
 
-	return triggerActive >= MinRequiredCount;
+	if (triggerActive >= MinRequiredCount)
+	{
+		return true;
+	}
+	else
+	{
+		// 오브젝트가 만약 열쇠를 사용했다면 true
+		if (ActorHasTag(TEXT("KeyInteract")) && bKeyUsed)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 }
 
 void ADoor::OnRep_bIsActived()

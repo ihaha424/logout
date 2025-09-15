@@ -73,5 +73,8 @@ public:
 	// 필요 활성화 수 (0이면 RequiredList의 전체 수가 기본값)
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
     int32 MinRequiredCount = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
+	bool bKeyUsed = false;
 };
 // Door 클래스 함수 중 블프에서 수정할 수 있는 함수 : AreAllTriggerActived(), OpenDoor(), CloseDoor()
