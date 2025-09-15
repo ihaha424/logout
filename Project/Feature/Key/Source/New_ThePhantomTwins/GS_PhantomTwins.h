@@ -10,6 +10,7 @@
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCollectedItemCountChanged, int32);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBossSpawnedDynamic, AActor*, BossActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCollectedItem, AActor*, DataFragment);
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API AGS_PhantomTwins : public AGameStateBase
@@ -30,7 +31,7 @@ public:
 
 	FOnCollectedItemCountChanged& OnCollectedItemCountChanged() { return CollectedItemCountChanged; }
 	UFUNCTION(BlueprintCallable, Category = "BossSpawn")
-	void AddCollectedItem(int32 Delta = 1);
+	void AddCollectedItem(AActor* DataFragment, int32 Delta = 1);
 	void MarkBossSpawned(AActor* InBoss);
 	//~ End BossSpawn
 
@@ -40,6 +41,11 @@ public:
 	//~ End MapData
 
 protected:
+	//~ Begin DataFragment
+	UPROPERTY(BlueprintAssignable, Category = "DataFragment")
+	FOnCollectedItem DataFragmentChanged;
+	//~ End DataFragment
+
 	//~ Begin BossSpawn
 	FOnCollectedItemCountChanged CollectedItemCountChanged;
 	UFUNCTION()
