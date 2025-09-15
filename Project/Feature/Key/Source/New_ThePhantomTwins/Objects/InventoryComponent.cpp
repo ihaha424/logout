@@ -415,6 +415,17 @@ bool UInventoryComponent::CanUseKey()
     {
         // TODO :: 사용 불가 widget 띄어줌
         TPT_LOG(ObjectLog,Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 불가"));
+        PC->SetWidget(TEXT("CannotUseItem"), true, EMessageTargetType::LocalClient);
+
+        // 2초 뒤에 위젯 숨기도록 타이머 설정
+        FTimerHandle TimerHandle;
+        FTimerDelegate TimerDel;
+        TimerDel.BindLambda([PC]()
+            {
+                PC->SetWidget(TEXT("CannotUseItem"), false, EMessageTargetType::LocalClient);
+            });
+        PC->GetWorldTimerManager().SetTimer(TimerHandle, TimerDel, 2.0f, false);
+
         return false;
     }
 
