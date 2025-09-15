@@ -33,7 +33,9 @@ enum class EItemType : uint8
     // 오라 탐지기
     AuraDetector,
     // 룰렛
-	Roulette
+	Roulette,
+    // 네비게이션
+    Navigation
 };
 
 // Item DataTable 구조체
