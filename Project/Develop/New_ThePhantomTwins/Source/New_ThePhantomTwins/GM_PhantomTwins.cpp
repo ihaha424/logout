@@ -32,7 +32,6 @@ void AGM_PhantomTwins::BeginPlay()
         UTPTSaveGame* TPTLocalPlayerSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
         GS->SetMapData(TPTLocalPlayerSaveGame->IdentifyMapData.MapType);
 
-
         ItemChangedHandle = GS->OnCollectedItemCountChanged().AddUObject(
             this, &AGM_PhantomTwins::OnItemCountChanged);
 
