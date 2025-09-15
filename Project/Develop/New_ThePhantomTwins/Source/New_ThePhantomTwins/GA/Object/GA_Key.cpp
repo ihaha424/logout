@@ -2,7 +2,7 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Player/PlayerCharacter.h"
 #include "Player/FocusTraceComponent.h"
-#include "SzObjects/InteractableObject.h"
+#include "Objects/Door.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
 
@@ -25,10 +25,10 @@ void UGA_Key::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	NULLCHECK_CODE_RETURN_LOG(TargetActor, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
 
 	// LeverActor의 태그가 KeyLever 라면 LeverActor->bIsActived = true; 를 해라.
-	AInteractableObject* LeverActor = Cast<AInteractableObject>(TargetActor);
-	if (LeverActor && LeverActor->ActorHasTag(TEXT("KeyLever")))
+	ADoor* KeyInteractActor = Cast<ADoor>(TargetActor);
+	if (KeyInteractActor && KeyInteractActor->ActorHasTag(TEXT("KeyInteract")))
 	{
-		LeverActor->bIsActived = true;
+		KeyInteractActor->bKeyUsed = true;
 	}
 
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);

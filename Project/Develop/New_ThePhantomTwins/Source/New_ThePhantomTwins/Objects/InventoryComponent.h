@@ -87,6 +87,15 @@ private:
     // 5초 뒤 인벤토리 위젯이 사라지는 함수
     void VisibleInventory();
 
+
+    // 각 아이템 타입별 조건 검증 함수들
+    UFUNCTION()
+    bool CanUseItem(EItemType ItemType, int32 SlotIndex);
+
+    bool CanUseKey();
+
+
+
 protected:
     UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_InventorySlots)
     TArray<FItemSlot> InventorySlots;
