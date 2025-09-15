@@ -11,6 +11,8 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Log/TPTLog.h"
 #include "Kismet/GameplayStatics.h"
+#include "Player/FocusTraceComponent.h"
+
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -59,16 +61,26 @@ EItemType UInventoryComponent::UseItem(int32 SlotIndex)
         return EItemType::None;
     }
 
+    // 아이템 타입 미리 가져오기
+    const FItemSlot& LocalSlot = InventorySlots[SlotIndex - 1];
+    EItemType ItemType = LocalSlot.ItemType;
+
+    // 조건 검증 - 서버와 클라이언트 모두에서 체크
+    if (!CanUseItem(ItemType, SlotIndex))
+    {
+        // 조건을 만족하지 않으면 아무것도 하지 않음 (UI 변경도 없음)
+        return EItemType::None;
+    }
+
     VisibleInventory();
 
     if (GetOwnerRole() != ROLE_Authority)
     {
-        // 클라: 배열은 건드리지 않고, 현재 로컬 스냅샷로 타입만 반환(게임 흐름 유지용)
-        const FItemSlot& LocalSlot = InventorySlots[SlotIndex - 1];
+        // 클라: 이미 위에서 선언한 LocalSlot을 재사용
         EItemType Predicted = (LocalSlot.ItemQuantity > 0) ? LocalSlot.ItemType : EItemType::None;
+
         // 서버에 실제 사용 요청
         C2S_UseItem(SlotIndex);
-
         selectedNum = -1;
         return Predicted;
     }
@@ -159,6 +171,21 @@ void UInventoryComponent::C2S_AddItem_Implementation(EItemType eItemType)
 
 void UInventoryComponent::C2S_UseItem_Implementation(int32 SlotIndex)
 {
+    // 서버에서도 한번 더 검증 (보안을 위해)
+    if (SlotIndex <= 0 || SlotIndex > InventorySlots.Num())
+    {
+        return;
+    }
+
+    const FItemSlot& LocalSlot = InventorySlots[SlotIndex - 1];
+    EItemType ItemType = LocalSlot.ItemType;
+
+    if (!CanUseItem(ItemType, SlotIndex))
+    {
+        // 서버에서 조건 불만족시 아무것도 하지 않음
+        return;
+    }
+
     UseItem_ServerAuth(SlotIndex);
     RefreshUIFromInventory();
 }
@@ -341,4 +368,56 @@ void UInventoryComponent::ApplyGameplayEffect(TSubclassOf<UGameplayEffect> Effec
     {
         OwnerASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
     }
+}
+
+
+bool UInventoryComponent::CanUseItem(EItemType ItemType, int32 SlotIndex)
+{
+    // 기본 조건들 먼저 체크
+    if (SlotIndex <= 0 || SlotIndex > InventorySlots.Num())
+    {
+        return false;
+    }
+
+    const FItemSlot& itemSlot = InventorySlots[SlotIndex - 1];
+    if (itemSlot.ItemQuantity <= 0 || itemSlot.ItemType == EItemType::None)
+    {
+        return false;
+    }
+
+    switch (ItemType)
+    {
+    case EItemType::Key:
+        return CanUseKey();
+
+    default:
+        return true;
+    }
+}
+
+bool UInventoryComponent::CanUseKey()
+{
+    // 플레이어와 타겟 액터 가져오기
+    APS_Player* PS = Cast<APS_Player>(GetOwner());
+    if (!PS) return false;
+
+    APC_Player* PC = Cast<APC_Player>(PS->GetPlayerController());
+    if (!PC) return false;
+
+    APlayerCharacter* OwnerPlayer = Cast<APlayerCharacter>(PC->GetCharacter());
+    if (!OwnerPlayer) return false;
+
+    // 포커스된 액터 가져오기 (FocusTrace 시스템 사용)
+    AActor* TargetActor = Cast<AActor>(OwnerPlayer->GetFocusTrace()->GetFocusedActor());
+
+    // TargetActor가 KeyInteract 태그를 갖고 있을때만 사용 가능
+    if (!TargetActor || !TargetActor->ActorHasTag(TEXT("KeyInteract")))
+    {
+        // TODO :: 사용 불가 widget 띄어줌
+        TPT_LOG(ObjectLog,Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 불가"));
+        return false;
+    }
+
+    TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 가능"));
+    return true;
 }
