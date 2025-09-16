@@ -53,8 +53,7 @@ public:
         , GameAbility(nullptr)
         , GameEffect(nullptr)
         , MaxStack(3)
-        , RandomProbability(0)
-        , GenerateCount(0)
+
     {}
 
 public:
@@ -82,12 +81,4 @@ public:
     // 인벤토리 최대 스택
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     int32 MaxStack;             
-
-    // 랜덤박스 확률
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    int32 RandomProbability;    
-
-    // 물음표 박스에서의 아이템 생성 갯수
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    int32 GenerateCount = 0;    
 };

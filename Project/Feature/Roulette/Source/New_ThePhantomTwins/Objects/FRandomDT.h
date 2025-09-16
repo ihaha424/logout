@@ -5,32 +5,31 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "ItemData.h"
-#include "FThrowItemDT.generated.h"
+#include "FRandomDT.generated.h"
 
 
 USTRUCT(BlueprintType)
-struct FThrowItemDT : public FTableRowBase
+struct FRandomDT : public FTableRowBase
 {
     GENERATED_BODY()
 
 public:
-    FThrowItemDT(){}
-
+    FRandomDT()
+        : ItemType(EItemType::None)
+        , RandomProbability(10)
+        , GenerateCount(1)
+    {}
 
 public:
     // 아이템 타입
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     EItemType ItemType;             
 
-    // 발사 방향과 속도
+    // 랜덤박스 확률
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    FVector    LaunchVelocity;      
+    int32 RandomProbability;    
 
-    // 충돌 체크할 때 투사체 반경
+    // 물음표 박스에서의 아이템 생성 갯수
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float       ProjectileRadius;      
-
-    // 중력 가속도
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float       OverrideGravityZ;      
+    int32 GenerateCount = 0; 
 };

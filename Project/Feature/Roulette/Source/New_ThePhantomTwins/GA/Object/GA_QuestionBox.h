@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "Objects/ItemData.h"
+#include "Objects/FRandomDT.h"
 #include "GA_QuestionBox.generated.h"
 
 
@@ -26,14 +26,14 @@ protected:
 
 private:
     // 데이터테이블에서 물음표박스에서 뽑을 수 있는 행들 수집
-    void GatherPickableRows(TArray<FItemDataTable*>& OutRows) const;
+    void GatherPickableRows(TArray<FRandomDT*>& OutRows) const;
 
     // 가중치(RandomProbability)를 사용해 하나 선택
-    FItemDataTable* SelectWeightedRandomRow(const TArray<FItemDataTable*>& Rows) const;
+    FRandomDT* SelectWeightedRandomRow(const TArray<FRandomDT*>& Rows) const;
 
     // 선택된 행(아이템)을 처리: None(꽝)인지, 인벤토리에 넣을지 등
-    bool ProcessSelectedRow(AActor* AvatarActor, FItemDataTable* SelectedRow);
+    bool ProcessSelectedRow(AActor* AvatarActor, FRandomDT* SelectedRow);
 
     // 인벤토리에 아이템을 실제로 추가하는 함수
-    bool AddItemToInventory(AActor* AvatarActor, EItemType ItemType, int32 Quantity, const FItemDataTable& RowData);
+    bool AddItemToInventory(AActor* AvatarActor, EItemType ItemType, int32 Quantity, const FRandomDT& RowData);
 };

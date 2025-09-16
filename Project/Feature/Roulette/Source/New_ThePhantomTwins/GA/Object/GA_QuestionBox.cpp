@@ -43,12 +43,12 @@ void UGA_QuestionBox::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 	}
 
 // 1) DataTable에서 뽑을 수 있는 행들을 수집
-	TArray<FItemDataTable*> Rows;
+	TArray<FRandomDT*> Rows;
 	GatherPickableRows(Rows);
 
 
 // 2) 가중치로 하나 선택
-	FItemDataTable* Selected = SelectWeightedRandomRow(Rows);
+	FRandomDT* Selected = SelectWeightedRandomRow(Rows);
 
 
 // 3) 선택된 항목 처리 (None == 꽝 포함)
@@ -67,7 +67,7 @@ void UGA_QuestionBox::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 /** 데이터테이블에서 뽑을 수 있는 행들 수집.
  *  필요하다면 ItemType으로 필터링(예: QuestionBox 타입 제외) 추가.
  */
-void UGA_QuestionBox::GatherPickableRows(TArray<FItemDataTable*>& OutRows) const
+void UGA_QuestionBox::GatherPickableRows(TArray<FRandomDT*>& OutRows) const
 {
 	OutRows.Reset();
 	if (!ItemDataTable) return;
@@ -75,7 +75,7 @@ void UGA_QuestionBox::GatherPickableRows(TArray<FItemDataTable*>& OutRows) const
 	const TArray<FName> RowNames = ItemDataTable->GetRowNames();
 	for (const FName& RowName : RowNames)
 	{
-		FItemDataTable* Row = ItemDataTable->FindRow<FItemDataTable>(RowName, TEXT("UGA_QuestionBox"));
+		FRandomDT* Row = ItemDataTable->FindRow<FRandomDT>(RowName, TEXT("UGA_QuestionBox"));
 		if (Row)
 		{
 			// 예: 물음표박스 자체(QuestionBox) 행은 제외
@@ -93,10 +93,10 @@ void UGA_QuestionBox::GatherPickableRows(TArray<FItemDataTable*>& OutRows) const
 /** 가중치 선택. RandomProbability 를 가중치로 사용.
  *  모든 가중치가 0이면 nullptr 반환(즉 꽝 처리는 호출자에서 함).
  */
-FItemDataTable* UGA_QuestionBox::SelectWeightedRandomRow(const TArray<FItemDataTable*>& Rows) const
+FRandomDT* UGA_QuestionBox::SelectWeightedRandomRow(const TArray<FRandomDT*>& Rows) const
 {
 	int32 TotalWeight = 0;
-	for (const FItemDataTable* R : Rows)
+	for (const FRandomDT* R : Rows)
 	{
 		TotalWeight += FMath::Max(0, R->RandomProbability);
 	}
@@ -108,7 +108,7 @@ FItemDataTable* UGA_QuestionBox::SelectWeightedRandomRow(const TArray<FItemDataT
 
 	int32 Roll = FMath::RandRange(1, TotalWeight);
 	int32 Accum = 0;
-	for (FItemDataTable* R : Rows)
+	for (FRandomDT* R : Rows)
 	{
 		Accum += FMath::Max(0, R->RandomProbability);
 		if (Roll <= Accum)
@@ -123,7 +123,7 @@ FItemDataTable* UGA_QuestionBox::SelectWeightedRandomRow(const TArray<FItemDataT
  *  - ItemType == None => 꽝
  *  - 그 외 => GenerateCount 만큼 인벤토리로 넣기 시도
  */
-bool UGA_QuestionBox::ProcessSelectedRow(AActor* AvatarActor, FItemDataTable* SelectedRow)
+bool UGA_QuestionBox::ProcessSelectedRow(AActor* AvatarActor, FRandomDT* SelectedRow)
 {
 	if (!AvatarActor || !SelectedRow) return false;
 
@@ -165,7 +165,7 @@ bool UGA_QuestionBox::ProcessSelectedRow(AActor* AvatarActor, FItemDataTable* Se
 	return true;
 }
 
-bool UGA_QuestionBox::AddItemToInventory(AActor* AvatarActor, EItemType ItemType, int32 Quantity, const FItemDataTable& RowData)
+bool UGA_QuestionBox::AddItemToInventory(AActor* AvatarActor, EItemType ItemType, int32 Quantity, const FRandomDT& RowData)
 {
 	return true;
 }
