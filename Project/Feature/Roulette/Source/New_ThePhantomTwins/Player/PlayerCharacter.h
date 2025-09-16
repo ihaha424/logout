@@ -116,6 +116,9 @@ public:
 	void HidePlayerHUDStaminaSet(int32 value);
 	UFUNCTION()
 	void PlayerHUDCoreEnergySet(int32 value);
+
+	FORCEINLINE APS_Player* GetPS() const { return PS.Get(); }
+
 protected:
 	// 플레이어 인풋 바인딩
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -192,8 +195,8 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_OnDownedWidget(bool Visible);
 	void S2A_OnDownedWidget_Implementation(bool Visible);
-protected:
 
+protected:
 	UPROPERTY()
 	TObjectPtr<APS_Player> PS;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GAS")

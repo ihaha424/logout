@@ -44,9 +44,11 @@ protected:
 
 	UPROPERTY(Replicated, EditAnywhere, Category = "Recovery")
 	bool bIsGroggy = false;
+
 private:
 	UPROPERTY(Replicated)
 	FGenericTeamId TeamID;
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 	TObjectPtr<class UInventoryComponent> InventoryComp;

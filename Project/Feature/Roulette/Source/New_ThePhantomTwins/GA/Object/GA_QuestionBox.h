@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
 #include "Objects/FRandomDT.h"
+#include "UI/QuestionBoxTextWidget.h"
 #include "GA_QuestionBox.generated.h"
 
 
@@ -35,5 +36,25 @@ private:
     bool ProcessSelectedRow(AActor* AvatarActor, FRandomDT* SelectedRow);
 
     // 인벤토리에 아이템을 실제로 추가하는 함수
-    bool AddItemToInventory(AActor* AvatarActor, EItemType ItemType, int32 Quantity, const FRandomDT& RowData);
+	void AddItemToInventory(EItemType ItemType, int32 Quantity);
+
+
+private:
+	TObjectPtr<class APlayerCharacter> Character = nullptr;
+	TObjectPtr<class APS_Player> PS = nullptr;
+
+	// 데이터조각을 먹으면 팝업으로 뜰 위젯
+	UPROPERTY(EditDefaultsOnly, Category = "QuestionBox | UI")
+	TSubclassOf<UQuestionBoxTextWidget> QuestionBoxWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UQuestionBoxTextWidget> QuestionBoxWidget;
+
+	// 표시할 텍스트
+	UPROPERTY(EditAnywhere, Category = "QuestionBox | UI")
+	FText QuestionBoxText;
+
+	// 위젯 표시 유지 시간
+	UPROPERTY(EditAnywhere, Category = "QuestionBox | UI")
+	int32 QuestionBoxWidgetDuration = 2;
 };

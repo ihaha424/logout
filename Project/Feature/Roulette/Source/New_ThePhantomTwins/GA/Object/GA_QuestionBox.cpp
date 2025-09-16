@@ -3,6 +3,8 @@
 
 #include "GA_QuestionBox.h"
 #include "Player/PlayerCharacter.h"
+#include "Player/PS_Player.h"
+#include "Objects/InventoryComponent.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
 
@@ -15,6 +17,12 @@ UGA_QuestionBox::UGA_QuestionBox()
 void UGA_QuestionBox::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
+	NULLCHECK_CODE_RETURN_LOG(Character, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false); , );
+
+	PS = Character->GetPS();
+	NULLCHECK_CODE_RETURN_LOG(PS, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
 
 	TPT_LOG(GALog, Log, TEXT("UGA_QuestionBox::ActivateAbility"));
 
@@ -120,7 +128,7 @@ FRandomDT* UGA_QuestionBox::SelectWeightedRandomRow(const TArray<FRandomDT*>& Ro
 
 
 /** 선택된 행을 처리:
- *  - ItemType == None => 꽝
+ *  - ItemType == Miss => 꽝
  *  - 그 외 => GenerateCount 만큼 인벤토리로 넣기 시도
  */
 bool UGA_QuestionBox::ProcessSelectedRow(AActor* AvatarActor, FRandomDT* SelectedRow)
@@ -135,37 +143,30 @@ bool UGA_QuestionBox::ProcessSelectedRow(AActor* AvatarActor, FRandomDT* Selecte
 	// None(꽝) 처리
 	if (SelectedRow->ItemType == EItemType::Miss)
 	{
-		TPT_LOG(GALog, Log, TEXT("UGA_QuestionBox::ProcessSelectedRow - Got 'None' (Miss/꽝)"));
+		TPT_LOG(GALog, Log, TEXT("UGA_QuestionBox::ProcessSelectedRow - Got 'Miss' (Miss/꽝)"));
 		// 꽝 처리: 클라이언트에 알림, SFX 재생 등
 
 		return true;
 	}
 
-	// GenerateCount 가 없으면 기본 1 사용
-	int32 SpawnCount = 1;
-#if WITH_EDITOR
-	// 가정: FItemDataTable에 GenerateCount가 있으면 사용
-	// SpawnCount = SelectedRow->GenerateCount > 0 ? SelectedRow->GenerateCount : 1;
-#endif
-
 	// 인벤토리에 추가 시도
-	bool bAdded = AddItemToInventory(AvatarActor, SelectedRow->ItemType, SpawnCount, *SelectedRow);
-
-	if (bAdded)
-	{
-		//NotifyClient_ItemAcquired(AvatarActor, *SelectedRow, SpawnCount);
-	}
-	else
-	{
-		// 인벤토리 부족 등 실패 시 처리: 월드 드롭 / 메시지 등
-		// (예: SpawnActor to drop item in world)
-		UE_LOG(LogTemp, Warning, TEXT("UGA_QuestionBox::ProcessSelectedRow - failed to add to inventory. Consider dropping to world."));
-	}
+	AddItemToInventory(SelectedRow->ItemType, SelectedRow->GenerateCount);
 
 	return true;
 }
 
-bool UGA_QuestionBox::AddItemToInventory(AActor* AvatarActor, EItemType ItemType, int32 Quantity, const FRandomDT& RowData)
+void UGA_QuestionBox::AddItemToInventory(EItemType ItemType, int32 Quantity)
 {
-	return true;
+	if (ItemType == EItemType::NoiseBomb
+		|| ItemType == EItemType::EMP
+		|| ItemType == EItemType::HealPack
+		|| ItemType == EItemType::MentalPack
+		|| ItemType == EItemType::Key
+		|| ItemType == EItemType::Navigation )
+	{
+		for (int i = 0; i < Quantity; i++)
+		{
+			PS->InventoryComp->AddItem(ItemType);
+		}
+	}
 }
