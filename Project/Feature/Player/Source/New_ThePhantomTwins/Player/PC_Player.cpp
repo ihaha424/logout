@@ -8,6 +8,12 @@
 #include "UI/HUD/HUD_PhantomTwins.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/PS_Player.h"
+#include "CM_LogOut.h"
+
+APC_Player::APC_Player()
+{
+	CheatClass = UCM_LogOut::StaticClass();
+}
 
 APC_Player* APC_Player::GetLocalPlayerController(AActor* Actor)
 {

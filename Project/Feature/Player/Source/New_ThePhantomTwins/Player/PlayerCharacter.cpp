@@ -479,7 +479,7 @@ void APlayerCharacter::OnRecoveryCompleted()
 		}
 	}
 
-	SpringArm->SocketOffset += FVector(0.f, 0.f, 100.f);
+	//SpringArm->SocketOffset += FVector(0.f, 0.f, 100.f);
 }
 
 void APlayerCharacter::InputPressed(int32 InputID)
