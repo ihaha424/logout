@@ -7,9 +7,9 @@
 #include "GA_AimItem.generated.h"
 
 class UAbilityTask_PlayMontageAndWait;
-/**
- * 
- */
+class USplineComponent;
+class USplineMeshComponent;
+
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UGA_AimItem : public UGameplayAbility
 {
@@ -18,10 +18,12 @@ public:
 	UGA_AimItem();
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-	void UpdateAim();
+	void UpdateParabola();
 	void EndAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
+	// 타이머
+	FTimerHandle UpdateTimerHandle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
 	TObjectPtr<UAnimMontage> HoldingItemMontage;
@@ -29,11 +31,16 @@ public:
 	UAbilityTask_PlayMontageAndWait* PlayHoldingItemMontageTask = nullptr;
 
 	UPROPERTY()
-	UDecalComponent* AimDecal;
+	USplineComponent* SplineComp = nullptr;
+	UPROPERTY()
+	USkeletalMeshComponent* OwnerMeshComp = nullptr;
+	UPROPERTY()
+	AActor* OwnerActor = nullptr;
 
-	UPROPERTY(EditAnywhere, Category = "Aim")
-	UMaterialInterface* DecalMaterial;
-
-	UPROPERTY(EditAnywhere, Category = "Aim")
-	float IndicatorRadius = 200.f; // 떨어질 때 반경
+	UPROPERTY()
+	TArray<USplineMeshComponent*> SplineMeshes;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline")
+	TObjectPtr<UStaticMesh> SplineStaticMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline")
+	TObjectPtr<UMaterialInterface> SplineMaterial;
 };

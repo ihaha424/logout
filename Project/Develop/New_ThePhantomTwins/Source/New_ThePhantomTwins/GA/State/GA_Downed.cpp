@@ -10,7 +10,9 @@
 #include "Player/PS_Player.h"
 #include "Player/PC_Player.h"
 #include "Blueprint/UserWidget.h"
+#include "Camera/CameraComponent.h"
 #include "Components/WidgetComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 
 UGA_Downed::UGA_Downed()
 {
@@ -36,6 +38,11 @@ void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	NULLCHECK_RETURN_LOG(PC, GALog, Warning, );
 	PC->SetWidget(TEXT("WASD"), true, EMessageTargetType::LocalClient);
 	Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+
+	if (USpringArmComponent* SpringArm = Character->GetSpringArm())
+	{
+		SpringArm->SocketOffset += FVector(0.f, 0.f, -100.f);
+	}
 
 	SetSpeed(DownedSpeed, GAActorInfo);
 }
@@ -88,6 +95,7 @@ void UGA_Downed::OnDownedTagChanged(const FGameplayTag Tag, int32 TagCount)
 	{
 		PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
 		Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+		Character->GetSpringArm()->SocketOffset += FVector(0.f, 0.f, 100.f);
 
 		bool bReplicatedEndAbility = true;
 		bool bWasCancelled = false;

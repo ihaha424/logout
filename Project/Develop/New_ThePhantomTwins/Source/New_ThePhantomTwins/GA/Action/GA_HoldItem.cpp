@@ -22,10 +22,7 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
     APawn* Pawn = Cast<APawn>(ActorInfo->AvatarActor.Get());
-    if (Pawn && !Pawn->IsLocallyControlled())
-    {
-        EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-    }
+	NULLCHECK_CODE_RETURN_LOG(Pawn, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
 
     float SlotNumber = TriggerEventData ? TriggerEventData->EventMagnitude : -1.f;
 
@@ -60,12 +57,13 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
     {
         // 투척 아이템인 경우 스폰 및 부착
         HeldItemComp->SpawnAndAttachHeldItem(ChoiceItemType);
-        PlayStartHoldMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("StartHoldMontage"), StartHoldMontage, 1.0f);
+        /*PlayStartHoldMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("StartHoldMontage"), StartHoldMontage, 1.0f);
         PlayStartHoldMontageTask->OnCompleted.AddDynamic(this, &UGA_HoldItem::OnMontageComplete);
-        PlayStartHoldMontageTask->ReadyForActivation();
-
+        PlayStartHoldMontageTask->ReadyForActivation();*/
+        FGameplayTag InputTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_AimItem;
+        ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
+        ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
         TPT_LOG(GALog, Log, TEXT("투척 아이템 (%d) 손에 부착 완료"), static_cast<int32>(ChoiceItemType));
-        // 여기서 포물선 인디케이터 출력 로직 추가 가능
     }
     else
     {
@@ -75,8 +73,8 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
         //PlayEndHoldMontageTask->ReadyForActivation();
         HeldItemComp->DestroyHeldItem();
         TPT_LOG(GALog, Log, TEXT("투척 아이템이 아니므로 손에 있는 아이템 제거"));
-        EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
     }
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 
 }
 

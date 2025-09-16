@@ -50,6 +50,16 @@ void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 
     // 첫 탐지 실행
     ScanTargets();
+
+    // 주기적 탐지 시작
+    GetWorld()->GetTimerManager().SetTimer(
+        ScanTimerHandle,
+        this,
+        &UGA_SceneAura::ScanTargets,
+        ScanInterval,
+        true
+    );
+
 }
 
 void UGA_SceneAura::ScanTargets()
@@ -149,18 +159,7 @@ void UGA_SceneAura::RemoveAuraFromTarget(AActor* Target)
 
 void UGA_SceneAura::OnSceneAuraTagChanged(const FGameplayTag InputTag, int32 TagCount)
 {
-    if (TagCount > 0)
-    {
-        // 주기적 탐지 시작
-        GetWorld()->GetTimerManager().SetTimer(
-            ScanTimerHandle,
-            this,
-            &UGA_SceneAura::ScanTargets,
-            ScanInterval,
-            true
-        );
-    }
-    else
+    if (TagCount <= 0)
     {
         GetWorld()->GetTimerManager().ClearTimer(ScanTimerHandle);
         for (auto& TargetPtr : CurrentAuraTargets)

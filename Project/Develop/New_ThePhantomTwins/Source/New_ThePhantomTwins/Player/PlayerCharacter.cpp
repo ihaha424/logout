@@ -245,7 +245,7 @@ void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 
 void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	
+
 }
 
 float APlayerCharacter::GetTime_Implementation()
@@ -407,6 +407,7 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 {
 	if (HasAuthority())
 	{
+		AttributeSet->OnPlayerDamaged.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 		AttributeSet->OnPlayerLowHP.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 		AttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 		AttributeSet->OnPlayerConfused1st.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
@@ -422,8 +423,9 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 		WallMaria->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapWall);
 		WallMaria->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapWall);
 	}
-		//AttributeSet->OnChangedSpeed.AddDynamic(this, &ThisClass::SpeedSetting);  //GA에서 직접하는것보다 동기화가 늦는다. 이유는 모름.
-		
+	//AttributeSet->OnChangedSpeed.AddDynamic(this, &ThisClass::SpeedSetting);  //GA에서 직접하는것보다 동기화가 늦는다. 이유는 모름.
+	ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIChasing).AddUObject(this, &ThisClass::OnTagChanged);
+
 	if (IsLocallyControlled())
 	{	
 		AttributeSet->OnChangedHP.AddDynamic(this, &ThisClass::PlayerHUDHPSet);
@@ -431,6 +433,14 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 		AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
 		AttributeSet->OnFullStamina.AddDynamic(this, &ThisClass::HidePlayerHUDStaminaSet);
 		AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
+	}
+}
+
+void APlayerCharacter::OnTagChanged(const FGameplayTag InputTag, int32 Count)
+{
+	if (Count)
+	{
+		ExecuteAbilityByTag(InputTag);
 	}
 }
 
@@ -479,6 +489,8 @@ void APlayerCharacter::OnRecoveryCompleted()
 			ASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
 		}
 	}
+
+	//SpringArm->SocketOffset += FVector(0.f, 0.f, 100.f);
 }
 
 void APlayerCharacter::InputPressed(int32 InputID)
@@ -494,8 +506,16 @@ void APlayerCharacter::InputPressed(int32 InputID)
 	{
 		ASC->TryActivateAbility(Spec->Handle);
 	}
+	// 스태미나 위젯 조정.
+	const EFTPTGameplayTags* TagEnum = FTPTGameplayTags::Get().TagMap.Find(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run);
+	int32 InputNum = static_cast<int32>(*TagEnum);
 
-	PlayerHUDWidget->VisibleStamina(true);
+	FGameplayTag DownedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed;
+	FGameplayTag ConfusedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd;
+	if (!ASC->HasMatchingGameplayTag(DownedTag) && !ASC->HasMatchingGameplayTag(ConfusedTag) && InputID == InputNum)
+	{
+		PlayerHUDWidget->VisibleStamina(true);
+	}
 }
 
 void APlayerCharacter::C2S_InputPressed_Implementation(const int32 InputID)
@@ -532,7 +552,7 @@ void APlayerCharacter::InputSKillPressed(int32 InputID, int32 SkillNumber)
 void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
 {
 	SelectedSlotNumber = SlotNumber;
-	TPT_LOG(PlayerLog, Warning, TEXT(" %d"), SlotNumber);
+	TPT_LOG(PlayerLog, Log, TEXT(" %d"), SlotNumber);
 
 	PlayerHUDWidget->VisibleInventory(true);
 
@@ -680,8 +700,8 @@ void APlayerCharacter::Move(const FInputActionValue& Value)
 void APlayerCharacter::Look(const FInputActionValue& Value)
 {
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
-	FVector2D LookAxisVector = Value.Get<FVector2D>();
-
+	float MouseSensitivity = 0.3f;
+	FVector2D LookAxisVector = Value.Get<FVector2D>() * MouseSensitivity;
 	AddControllerYawInput(LookAxisVector.X);
 	AddControllerPitchInput(LookAxisVector.Y);
 }
@@ -759,25 +779,25 @@ void APlayerCharacter::OnEndOverlapWall(UPrimitiveComponent* Comp, AActor* Other
 void APlayerCharacter::OnBeginOverlap(EEnemyRange Range, AActor* OtherActor)
 {
 	UAbilitySystemComponent* AIASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
-
-	NULLCHECK_RETURN_LOG(AIASC, PlayerLog, Log, );
-	bool AIHasTag = AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI);
-	if (AIHasTag)
+	if (AIASC)
 	{
-		EEnemyRange* Found = EnemyRangeMap.Find(OtherActor);
-		if (!Found || Range < *Found)
+		bool AIHasTag = AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI);
+		if (AIHasTag)
 		{
-			EnemyRangeMap.Add(OtherActor, Range);
+			EEnemyRange* Found = EnemyRangeMap.Find(OtherActor);
+			if (!Found || Range < *Found)
+			{
+				EnemyRangeMap.Add(OtherActor, Range);
+			}
 		}
+		SetNearestEnemyRange();
 	}
-	SetNearestEnemyRange();
 }
 
 void APlayerCharacter::OnEndOverlap(EEnemyRange Range, AActor* OtherActor)
 {
 	UAbilitySystemComponent* AIASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
-	NULLCHECK_RETURN_LOG(AIASC, PlayerLog, Log, );
-	if (AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI))
+	if (AIASC && AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI))
 	{
 		EEnemyRange* Found = EnemyRangeMap.Find(OtherActor);
 		if (Found && *Found == Range)

@@ -8,6 +8,7 @@
 #include "PS_Player.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Log/TPTLog.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 #if WITH_EDITOR
 #include "Misc/DataValidation.h"
@@ -39,5 +40,12 @@ void UPlayerAnimInstance::NativeInitializeAnimation()
 void UPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
+
+
+	//for (auto& item: MontageInstances)
+	//{
+	//	if (!item || !item->Montage) continue;
+	//	UKismetSystemLibrary::PrintString(this, item->Montage->GetName(), true, true, FLinearColor(0.0f, 0.66f, 1.0f), 2, item->Montage->GetFName());
+	//}
 
 }
