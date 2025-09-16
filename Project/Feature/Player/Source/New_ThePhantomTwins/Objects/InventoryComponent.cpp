@@ -11,6 +11,9 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Log/TPTLog.h"
 #include "Kismet/GameplayStatics.h"
+#include "Player/FocusTraceComponent.h"
+#include "Objects/Door.h"
+
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -59,16 +62,26 @@ EItemType UInventoryComponent::UseItem(int32 SlotIndex)
         return EItemType::None;
     }
 
+    // 아이템 타입 미리 가져오기
+    const FItemSlot& LocalSlot = InventorySlots[SlotIndex - 1];
+    EItemType ItemType = LocalSlot.ItemType;
+
+    // 조건 검증 - 서버와 클라이언트 모두에서 체크
+    if (!CanUseItem(ItemType, SlotIndex))
+    {
+        // 조건을 만족하지 않으면 아무것도 하지 않음 (UI 변경도 없음)
+        return EItemType::None;
+    }
+
     VisibleInventory();
 
     if (GetOwnerRole() != ROLE_Authority)
     {
-        // 클라: 배열은 건드리지 않고, 현재 로컬 스냅샷로 타입만 반환(게임 흐름 유지용)
-        const FItemSlot& LocalSlot = InventorySlots[SlotIndex - 1];
+        // 클라: 이미 위에서 선언한 LocalSlot을 재사용
         EItemType Predicted = (LocalSlot.ItemQuantity > 0) ? LocalSlot.ItemType : EItemType::None;
+
         // 서버에 실제 사용 요청
         C2S_UseItem(SlotIndex);
-
         selectedNum = -1;
         return Predicted;
     }
@@ -159,6 +172,21 @@ void UInventoryComponent::C2S_AddItem_Implementation(EItemType eItemType)
 
 void UInventoryComponent::C2S_UseItem_Implementation(int32 SlotIndex)
 {
+    // 서버에서도 한번 더 검증 (보안을 위해)
+    if (SlotIndex <= 0 || SlotIndex > InventorySlots.Num())
+    {
+        return;
+    }
+
+    const FItemSlot& LocalSlot = InventorySlots[SlotIndex - 1];
+    EItemType ItemType = LocalSlot.ItemType;
+
+    if (!CanUseItem(ItemType, SlotIndex))
+    {
+        // 서버에서 조건 불만족시 아무것도 하지 않음
+        return;
+    }
+
     UseItem_ServerAuth(SlotIndex);
     RefreshUIFromInventory();
 }
@@ -173,7 +201,7 @@ void UInventoryComponent::AddItem_ServerAuth(EItemType eItemType)
     {
         if (InventorySlots[i].ItemType == eItemType)
         {
-            if (InventorySlots[i].ItemQuantity < MaxQuantity)
+            if (InventorySlots[i].ItemQuantity < GetMaxQuantity(eItemType))
             {
                 InventorySlots[i].ItemQuantity++;
                 return;
@@ -288,7 +316,7 @@ void UInventoryComponent::ExecuteItemEffects(EItemType ItemType)
     }
     if (ItemData->GameAbility)
     {
-        ExecuteGameplayAbility(ItemData->GameAbility);
+        ExecuteGameplayAbility(ItemType, ItemData->GameAbility);
     }
     if (ItemData->GameEffect)
     {
@@ -308,20 +336,23 @@ FItemDataTable* UInventoryComponent::GetItemAbilityData(EItemType ItemType)
     return ItemAbilityTable->FindRow<FItemDataTable>(FName(*EnumName), TEXT("GetItemAbilityData"));
 }
 
-void UInventoryComponent::ExecuteGameplayAbility(TSubclassOf<UGameplayAbility> AbilityClass)
+void UInventoryComponent::ExecuteGameplayAbility(EItemType ItemType, TSubclassOf<UGameplayAbility> AbilityClass)
 {
     APS_Player* PS = Cast<APS_Player>(GetOwner());
     APC_Player* PC = PS ? Cast<APC_Player>(PS->GetPlayerController()) : nullptr;
     APlayerCharacter* OwnerPlayer = PC ? Cast<APlayerCharacter>(PC->GetCharacter()) : nullptr;
     UAbilitySystemComponent* OwnerASC = OwnerPlayer ? OwnerPlayer->GetAbilitySystemComponent() : nullptr;
     if (!OwnerASC) return;
+
+    // GameplayEventData 생성
+    FGameplayEventData EventData;
+    EventData.EventMagnitude = static_cast<float>((int32)ItemType); // ItemType 전달
+    EventData.Instigator = OwnerPlayer;
+    EventData.Target = OwnerPlayer;
+
+    // GiveAbilityAndActivateOnce - EventData와 함께 실행
     FGameplayAbilitySpec AbilitySpec(AbilityClass, 1);
-    FGameplayAbilitySpecHandle Handle = OwnerASC->GiveAbility(AbilitySpec);
-    if (Handle.IsValid())
-    {
-        OwnerASC->TryActivateAbility(Handle);
-        //OwnerASC->ClearAbility(Handle);
-    }
+    OwnerASC->GiveAbilityAndActivateOnce(AbilitySpec, &EventData);
 }
 
 void UInventoryComponent::ApplyGameplayEffect(TSubclassOf<UGameplayEffect> EffectClass)
@@ -338,4 +369,93 @@ void UInventoryComponent::ApplyGameplayEffect(TSubclassOf<UGameplayEffect> Effec
     {
         OwnerASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
     }
+}
+
+
+bool UInventoryComponent::CanUseItem(EItemType ItemType, int32 SlotIndex)
+{
+    // 기본 조건들 먼저 체크
+    if (SlotIndex <= 0 || SlotIndex > InventorySlots.Num())
+    {
+        return false;
+    }
+
+    const FItemSlot& itemSlot = InventorySlots[SlotIndex - 1];
+    if (itemSlot.ItemQuantity <= 0 || itemSlot.ItemType == EItemType::None)
+    {
+        return false;
+    }
+
+    switch (ItemType)
+    {
+    case EItemType::Key:
+        return CanUseKey();
+
+    default:
+        return true;
+    }
+}
+
+bool UInventoryComponent::CanUseKey()
+{
+    APS_Player* PS = Cast<APS_Player>(GetOwner());
+    if (!PS) return false;
+
+    APC_Player* PC = Cast<APC_Player>(PS->GetPlayerController());
+    if (!PC) return false;
+
+    APlayerCharacter* OwnerPlayer = Cast<APlayerCharacter>(PC->GetCharacter());
+    if (!OwnerPlayer) return false;
+
+    AActor* TargetActor = Cast<AActor>(OwnerPlayer->GetFocusTrace()->GetFocusedActor());
+
+    // 사용 불가 시 위젯 띄우고 타이머 설정하는 함수
+    auto ShowCannotUseWidget = [PC]()
+        {
+            PC->SetWidget(TEXT("CannotUseItem"), true, EMessageTargetType::LocalClient);
+
+            FTimerHandle TimerHandle;
+            FTimerDelegate TimerDel;
+            TimerDel.BindLambda([PC]()
+                {
+                    PC->SetWidget(TEXT("CannotUseItem"), false, EMessageTargetType::LocalClient);
+                });
+
+            PC->GetWorldTimerManager().SetTimer(TimerHandle, TimerDel, 2.0f, false);
+        };
+
+    // TargetActor 검사
+    if (!TargetActor || !TargetActor->ActorHasTag(TEXT("KeyInteract")))
+    {
+        TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 불가 - 태그 없음"));
+        ShowCannotUseWidget();
+        return false;
+    }
+
+    // KeyInteract 태그가 있을 때, Door 사용 여부 검사
+    ADoor* TargetDoor = Cast<ADoor>(TargetActor);
+    if (TargetDoor && TargetDoor->bKeyUsed)
+    {
+        TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 불가 - 이미 사용됨"));
+        ShowCannotUseWidget();
+        return false;
+    }
+
+    TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 가능"));
+    return true;
+}
+
+int32 UInventoryComponent::GetMaxQuantity(EItemType ItemType)
+{
+    if (!ItemAbilityTable) return -1;
+
+    // 해당 아이템 타입의 데이터 가져오기
+    FItemDataTable* ItemData = GetItemAbilityData(ItemType);
+    if (!ItemData)
+    {
+        return -1; // 해당 타입의 데이터가 없으면 -1 반환
+    }
+
+    // 해당 아이템의 MaxStack 반환
+    return ItemData->MaxStack;
 }

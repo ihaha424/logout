@@ -51,12 +51,12 @@ void UGA_PlayMontage::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
     if (ActorInfo->AvatarActor.IsValid())
     {
         // 몽타주 재생을 위해서는 어빌리티 태스크(시간소요관리, 상태관리를 비동기적으로 처리할수있음)를 이용.
-        UAbilityTask_PlayMontageAndWait* PlayAttackTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-            this, TEXT("PlayAttack"), AnimationMontage, 1.0f, MontageSectionName); // 이 어빌리티를 소유할 곳, 이 어빌리티의 이름, 캐릭터에서 제공받을 몽타주 에셋, 시작섹션
-        NULLCHECK_CODE_RETURN_LOG(PlayAttackTask, AILog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
-        PlayAttackTask->OnCompleted.AddDynamic(this, &UGA_PlayMontage::OnCompleteCallback);
-        PlayAttackTask->OnInterrupted.AddDynamic(this, &UGA_PlayMontage::OnInterruptedCallback);
-        PlayAttackTask->ReadyForActivation();
+        UAbilityTask_PlayMontageAndWait* PlayMontage = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+            this, TEXT("PlayMontage"), AnimationMontage, 1.0f, MontageSectionName); // 이 어빌리티를 소유할 곳, 이 어빌리티의 이름, 캐릭터에서 제공받을 몽타주 에셋, 시작섹션
+        NULLCHECK_CODE_RETURN_LOG(PlayMontage, AILog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
+        PlayMontage->OnCompleted.AddDynamic(this, &UGA_PlayMontage::OnCompleteCallback);
+        PlayMontage->OnInterrupted.AddDynamic(this, &UGA_PlayMontage::OnInterruptedCallback);
+        PlayMontage->ReadyForActivation();
         return;
     }
 

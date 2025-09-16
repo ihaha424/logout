@@ -2,6 +2,7 @@
 
 
 #include "SzObjects/OverlapObject.h"
+#include "Net/UnrealNetwork.h"
 #include "Components/BoxComponent.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -25,10 +26,20 @@ void AOverlapObject::BeginPlay()
 	}
 }
 
-void AOverlapObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AOverlapObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	if (!OtherActor || OtherActor == this)
-		return;
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AOverlapObject, bEnableEffectAndCue);
+}
+
+void AOverlapObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!OtherActor || OtherActor == this) return;
+
+	// 실행 여부 체크
+	if (!bEnableEffectAndCue) return;
 
 	// 이미 적용된 대상이 아니면
 	if (!ActiveEffectHandles.Contains(OtherActor))

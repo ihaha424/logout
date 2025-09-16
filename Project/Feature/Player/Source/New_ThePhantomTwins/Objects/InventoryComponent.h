@@ -71,7 +71,7 @@ private:
     FItemDataTable* GetItemAbilityData(EItemType ItemType);
 
     // GameplayAbility 실행
-    void ExecuteGameplayAbility(TSubclassOf<UGameplayAbility> AbilityClass);
+    void ExecuteGameplayAbility(EItemType ItemType, TSubclassOf<UGameplayAbility> AbilityClass);
 
     // GameplayEffect 적용
     void ApplyGameplayEffect(TSubclassOf<UGameplayEffect> EffectClass);
@@ -87,6 +87,15 @@ private:
     // 5초 뒤 인벤토리 위젯이 사라지는 함수
     void VisibleInventory();
 
+
+    // 각 아이템 타입별 조건 검증 함수들
+    UFUNCTION()
+    bool CanUseItem(EItemType ItemType, int32 SlotIndex);
+
+    bool CanUseKey();
+
+    int32 GetMaxQuantity(EItemType ItemType);
+
 protected:
     UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_InventorySlots)
     TArray<FItemSlot> InventorySlots;
@@ -94,8 +103,8 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     TObjectPtr<UDataTable> ItemAbilityTable;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-    int32 MaxQuantity = 3;  // 아이템 당 최대 스택 수
+    //UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+    //int32 MaxQuantity = 3;  // 아이템 당 최대 스택 수
 
     UPROPERTY()
     TObjectPtr<class UPlayerHUDWidget> PlayerHUDWidget;

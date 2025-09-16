@@ -4,8 +4,15 @@
 #include "GM_PhantomTwins.h"
 #include "GS_PhantomTwins.h"
 #include "AI/Utility/BossSpawner.h"
+#include "SaveGame/TPTSaveGameHelperLibrary.h"
+
 
 #include "Log/TPTLog.h"
+
+void AGM_PhantomTwins::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+    Super::InitGame(MapName, Options, ErrorMessage);
+}
 
 void AGM_PhantomTwins::BeginPlay()
 {
@@ -22,6 +29,9 @@ void AGM_PhantomTwins::BeginPlay()
 
     if (AGS_PhantomTwins* GS = GetGameState<AGS_PhantomTwins>())
     {
+        UTPTSaveGame* TPTLocalPlayerSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
+        GS->SetMapData(TPTLocalPlayerSaveGame->IdentifyMapData.MapType);
+
         ItemChangedHandle = GS->OnCollectedItemCountChanged().AddUObject(
             this, &AGM_PhantomTwins::OnItemCountChanged);
 

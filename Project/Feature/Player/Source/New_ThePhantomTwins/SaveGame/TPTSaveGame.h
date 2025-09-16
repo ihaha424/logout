@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
 #include "Data/CharacterType.h"
+#include "Data/MapType.h"
 #include "TPTSaveGame.generated.h"
 
 /**
@@ -17,4 +18,6 @@ class NEW_THEPHANTOMTWINS_API UTPTSaveGame : public USaveGame
 public:
 	UPROPERTY()
 	FIdentifyCharacterData IdentifyCharacterData;
+	UPROPERTY()
+	FIdentifyMapData IdentifyMapData;
 };

@@ -159,7 +159,7 @@ void UGA_SceneAura::RemoveAuraFromTarget(AActor* Target)
 
 void UGA_SceneAura::OnSceneAuraTagChanged(const FGameplayTag InputTag, int32 TagCount)
 {
-    if (TagCount < 0)
+    if (TagCount <= 0)
     {
         GetWorld()->GetTimerManager().ClearTimer(ScanTimerHandle);
         for (auto& TargetPtr : CurrentAuraTargets)

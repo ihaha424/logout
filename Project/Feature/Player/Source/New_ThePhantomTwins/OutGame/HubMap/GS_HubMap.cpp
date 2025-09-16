@@ -24,18 +24,27 @@ void AGS_HubMap::SetIdentifyCharacterData(ECharacterType ChractorType, bool bIsH
     OnRep_IdentifyCharacterData();
 }
 
+void AGS_HubMap::OnRep_MapData()
+{
+    UTPTSaveGame* TPTLocalPlayerSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
+    TPTLocalPlayerSaveGame->IdentifyMapData.MapType = MapData;
+    UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTSaveGame>(TPTLocalPlayerSaveGame);
+}
+
 void AGS_HubMap::OnRep_IdentifyCharacterData()
 {
-	UTPTSaveGame* TPTLocalPlayerSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
-	TPTLocalPlayerSaveGame->IdentifyCharacterData = IdentifyCharacterData;
-	UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTSaveGame>(TPTLocalPlayerSaveGame);
+    UTPTSaveGame* TPTLocalPlayerSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
+    TPTLocalPlayerSaveGame->IdentifyCharacterData = IdentifyCharacterData;
+    UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTSaveGame>(TPTLocalPlayerSaveGame);
 
-	OnSetIdentifyCharacterData.Broadcast(IdentifyCharacterData);
+    OnSetIdentifyCharacterData.Broadcast(IdentifyCharacterData);
 }
 
 void AGS_HubMap::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AGS_HubMap, IdentifyCharacterData);
+    DOREPLIFETIME(AGS_HubMap, IdentifyCharacterData);
+    DOREPLIFETIME(AGS_HubMap, NextLevel);
+    DOREPLIFETIME(AGS_HubMap, MapData);
 }

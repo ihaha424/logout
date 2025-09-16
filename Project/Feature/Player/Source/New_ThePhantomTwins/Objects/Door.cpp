@@ -69,6 +69,8 @@ void ADoor::SetWidgetVisible(bool bVisible)
 void ADoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ADoor, bKeyUsed);
 }
 
 bool ADoor::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
@@ -168,7 +170,22 @@ bool ADoor::AreAllTriggerActived_Implementation() const
 		}
 	}
 
-	return triggerActive >= MinRequiredCount;
+	if (triggerActive >= MinRequiredCount)
+	{
+		return true;
+	}
+	else
+	{
+		// 오브젝트가 만약 열쇠를 사용했다면 true
+		if (ActorHasTag(TEXT("KeyInteract")) && bKeyUsed)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 }
 
 void ADoor::OnRep_bIsActived()
@@ -196,4 +213,18 @@ void ADoor::S2A_OpenDoor_Implementation()
 void ADoor::S2A_CloseDoor_Implementation()
 {
 	CloseDoor();
+}
+
+void ADoor::OnRep_bKeyUsed()
+{
+	if (!AreAllTriggerActived())
+	{
+		InteractWidgetComp->SetVisibility(false);
+		LockWidgetComp->SetVisibility(true);
+	}
+	else // 트리거들이 활성화된 경우 → NearWidget
+	{
+		InteractWidgetComp->SetVisibility(true);
+		LockWidgetComp->SetVisibility(false);
+	}
 }

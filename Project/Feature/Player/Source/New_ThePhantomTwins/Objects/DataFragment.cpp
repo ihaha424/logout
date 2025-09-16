@@ -49,7 +49,7 @@ void ADataFragment::SetDataFragmentPickupWidget()
 		AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>();
 		if (GS)
 		{
-			GS->AddCollectedItem();
+			GS->AddCollectedItem(this);
 		}
 		
 		// 팝업 위젯

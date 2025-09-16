@@ -33,6 +33,10 @@ void UGA_MentalRecovery::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 void UGA_MentalRecovery::HealTick()
 {
     TArray<AActor*> Players;
+    UWorld* World = GetWorld();
+    AActor* AvatarActor = GetAvatarActorFromActorInfo();
+    NULLCHECK_RETURN_LOG(World, GALog, Error, );
+    NULLCHECK_RETURN_LOG(AvatarActor, GALog, Error, );
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), GetAvatarActorFromActorInfo()->GetClass(), Players);
 
     if (Players.Num() == 2)
@@ -65,7 +69,7 @@ void UGA_MentalRecovery::HealTick()
         }
 
         // 둘다 쫓기는 상태가 아니면 회복
-        if (!ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIChasing) 
+        if (!ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIChasing)
         && !OtherASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIChasing))
         {
             float HealAmount = 0.f;

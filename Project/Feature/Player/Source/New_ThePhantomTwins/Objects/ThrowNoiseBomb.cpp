@@ -48,7 +48,7 @@ void AThrowNoiseBomb::BeginPlay()
 {
     Super::BeginPlay();
 
-    // Hit 이벤트 바인딩 (BeginPlay에서 하는 것이 안전함)
+    // Hit 이벤트 바인딩
     if (CollisionComponent)
     {
         CollisionComponent->OnComponentHit.AddDynamic(this, &AThrowNoiseBomb::OnHit);

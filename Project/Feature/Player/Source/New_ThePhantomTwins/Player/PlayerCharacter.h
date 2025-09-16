@@ -243,6 +243,9 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UPlayerHUDWidget> PlayerHUDWidget;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> CannotUseItemWidgetClass;
+
 	// 상호작용 위젯
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TObjectPtr<UWidgetComponent> InteractWidget;

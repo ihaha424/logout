@@ -15,13 +15,14 @@ void AGS_PhantomTwins::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
     DOREPLIFETIME(AGS_PhantomTwins, BossActor);
 }
 
-void AGS_PhantomTwins::AddCollectedItem(int32 Delta)
+void AGS_PhantomTwins::AddCollectedItem(AActor* DataFragment, int32 Delta)
 {
     if (!HasAuthority()) return;
 
     CoreCount = FMath::Max(0, CoreCount + Delta);
 
     CollectedItemCountChanged.Broadcast(CoreCount);
+    DataFragmentChanged.Broadcast(DataFragment);
 }
 
 void AGS_PhantomTwins::MarkBossSpawned(AActor* InBoss)
