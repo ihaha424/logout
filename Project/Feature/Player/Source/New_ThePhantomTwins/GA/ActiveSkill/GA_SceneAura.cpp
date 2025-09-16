@@ -50,6 +50,8 @@ void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 
     // 첫 탐지 실행
     ScanTargets();
+
+
 }
 
 void UGA_SceneAura::ScanTargets()
@@ -151,6 +153,7 @@ void UGA_SceneAura::OnSceneAuraTagChanged(const FGameplayTag InputTag, int32 Tag
 {
     if (TagCount > 0)
     {
+        TPT_LOG(GALog, Warning, TEXT(""));
         // 주기적 탐지 시작
         GetWorld()->GetTimerManager().SetTimer(
             ScanTimerHandle,
