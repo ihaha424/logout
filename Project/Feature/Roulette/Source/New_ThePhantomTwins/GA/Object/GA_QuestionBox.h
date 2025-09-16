@@ -38,23 +38,20 @@ private:
     // 인벤토리에 아이템을 실제로 추가하는 함수
 	void AddItemToInventory(EItemType ItemType, int32 Quantity);
 
+	// 위젯에 들어갈 텍스트 설정 및 visible 설정
+	void SetQuestionBoxWidget(FRandomDT* SelectedRow);
+
 
 private:
 	TObjectPtr<class APlayerCharacter> Character = nullptr;
 	TObjectPtr<class APS_Player> PS = nullptr;
-
-	// 데이터조각을 먹으면 팝업으로 뜰 위젯
-	UPROPERTY(EditDefaultsOnly, Category = "QuestionBox | UI")
-	TSubclassOf<UQuestionBoxTextWidget> QuestionBoxWidgetClass;
-
-	UPROPERTY()
-	TObjectPtr<UQuestionBoxTextWidget> QuestionBoxWidget;
+	TObjectPtr<class APC_Player> PC = nullptr;
 
 	// 표시할 텍스트
-	UPROPERTY(EditAnywhere, Category = "QuestionBox | UI")
+	//UPROPERTY(EditAnywhere, Category = "QuestionBox | UI")
 	FText QuestionBoxText;
 
 	// 위젯 표시 유지 시간
 	UPROPERTY(EditAnywhere, Category = "QuestionBox | UI")
-	int32 QuestionBoxWidgetDuration = 2;
+	float QuestionBoxWidgetDuration = 2;
 };

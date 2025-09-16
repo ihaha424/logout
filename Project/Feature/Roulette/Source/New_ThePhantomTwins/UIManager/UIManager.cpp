@@ -99,12 +99,7 @@ UUserWidget* UUIManager::GetWidget(const FString& Key) const
 		return nullptr;
 	}
 
-	if (UIMap[Key].bIsActivate)
-	{
-		return UIMap[Key].UI;
-	}
-
-	return nullptr;
+	return UIMap[Key].UI;
 }
 
 bool UUIManager::IsRegisterUI(const FString& Key) const
@@ -112,8 +107,5 @@ bool UUIManager::IsRegisterUI(const FString& Key) const
 	if (!UIMap.Contains(Key))
 		return false;
 
-	if (UIMap[Key].bIsActivate)
-		return true;
-
-	return false;
+	return true;
 }

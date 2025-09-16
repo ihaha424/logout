@@ -16,6 +16,7 @@ struct FRandomDT : public FTableRowBase
 public:
     FRandomDT()
         : ItemType(EItemType::None)
+        , ItemName(FText::GetEmpty())
         , RandomProbability(10)
         , GenerateCount(1)
     {}
@@ -23,7 +24,11 @@ public:
 public:
     // 아이템 타입
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    EItemType ItemType;             
+    EItemType ItemType;      
+    
+    // 아이템 이름
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FText ItemName;
 
     // 랜덤박스 확률
     UPROPERTY(EditAnywhere, BlueprintReadWrite)

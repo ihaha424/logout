@@ -114,6 +114,7 @@ void APlayerCharacter::BeginPlay()
 		PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
 		PlayerController->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
 		PlayerController->RegisterWidget(TEXT("CannotUseItem"), CreateWidget<UUserWidget>(GetWorld(), CannotUseItemWidgetClass));
+		PlayerController->RegisterWidget(TEXT("QuestionBoxText"), CreateWidget<UUserWidget>(GetWorld(), QuestionBoxWidgetClass));
 	}
 
 	// RecoveryGauge Time

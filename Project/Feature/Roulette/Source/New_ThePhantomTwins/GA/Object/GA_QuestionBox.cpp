@@ -4,6 +4,7 @@
 #include "GA_QuestionBox.h"
 #include "Player/PlayerCharacter.h"
 #include "Player/PS_Player.h"
+#include "Player/PC_Player.h"
 #include "Objects/InventoryComponent.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
@@ -23,6 +24,9 @@ void UGA_QuestionBox::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 
 	PS = Character->GetPS();
 	NULLCHECK_CODE_RETURN_LOG(PS, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
+
+	APlayerController* PlayerController = ActorInfo->PlayerController.Get();
+	PC = Cast<APC_Player>(PlayerController);
 
 	TPT_LOG(GALog, Log, TEXT("UGA_QuestionBox::ActivateAbility"));
 
@@ -152,11 +156,15 @@ bool UGA_QuestionBox::ProcessSelectedRow(AActor* AvatarActor, FRandomDT* Selecte
 	// 인벤토리에 추가 시도
 	AddItemToInventory(SelectedRow->ItemType, SelectedRow->GenerateCount);
 
+	// 위젯 설정
+	SetQuestionBoxWidget(SelectedRow);
+
 	return true;
 }
 
 void UGA_QuestionBox::AddItemToInventory(EItemType ItemType, int32 Quantity)
 {
+
 	if (ItemType == EItemType::NoiseBomb
 		|| ItemType == EItemType::EMP
 		|| ItemType == EItemType::HealPack
@@ -167,6 +175,75 @@ void UGA_QuestionBox::AddItemToInventory(EItemType ItemType, int32 Quantity)
 		for (int i = 0; i < Quantity; i++)
 		{
 			PS->InventoryComp->AddItem(ItemType);
+		}
+	}
+}
+
+void UGA_QuestionBox::SetQuestionBoxWidget(FRandomDT* SelectedRow)
+{
+	if (! IsLocallyControlled()) return;
+	
+	UQuestionBoxTextWidget* QuestionBoxTextWidget = Cast<UQuestionBoxTextWidget>(PC->GetWidget(TEXT("QuestionBoxText")));
+	FText Text = FText::GetEmpty();
+
+	if (SelectedRow->ItemType ==  EItemType::Miss)
+	{
+		// 꽝이면 이름만 갖고 와서 위젯에 글씨 쓰고 출력함
+		Text = SelectedRow->ItemName;
+
+		QuestionBoxTextWidget->SetText(Text);
+		PC->SetWidget(TEXT("QuestionBoxText"), true, EMessageTargetType::LocalClient);
+
+		FTimerHandle TimerHandle;
+		FTimerDelegate TimerDel;
+		TimerDel.BindLambda([this]()
+			{
+				PC->SetWidget(TEXT("QuestionBoxText"), false, EMessageTargetType::LocalClient);
+			});
+
+		if (GetWorld())
+		{
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, QuestionBoxWidgetDuration, false);
+		}
+	}
+	else if (SelectedRow->ItemType == EItemType::NoiseBomb
+		|| SelectedRow->ItemType == EItemType::EMP
+		|| SelectedRow->ItemType == EItemType::HealPack
+		|| SelectedRow->ItemType == EItemType::MentalPack
+		|| SelectedRow->ItemType == EItemType::Key
+		|| SelectedRow->ItemType == EItemType::Navigation)
+	{
+		// SelectedRow의 RowName 가져오기
+		FText ItemName = SelectedRow->ItemName;
+
+		// SelectedRow의 Generate Count 가져오기
+		int32 Cnt = SelectedRow->GenerateCount;
+
+
+		// ItemName과 Cnt를 합쳐 텍스트로 만들기
+		Text = FText::Format(
+			FText::FromString(TEXT("{0} {1}개 획득")),
+			ItemName,
+			FText::AsNumber(Cnt));
+
+
+		QuestionBoxTextWidget->SetText(Text);
+
+
+		// n초 후에 SetWidget을 false로 호출하는 타이머 설정
+		PC->SetWidget(TEXT("QuestionBoxText"), true, EMessageTargetType::LocalClient);
+
+
+		FTimerHandle TimerHandle;
+		FTimerDelegate TimerDel;
+		TimerDel.BindLambda([this]()
+			{
+				PC->SetWidget(TEXT("QuestionBoxText"), false, EMessageTargetType::LocalClient);
+			});
+
+		if (GetWorld())
+		{
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, QuestionBoxWidgetDuration, false);
 		}
 	}
 }
