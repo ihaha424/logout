@@ -32,8 +32,10 @@ enum class EItemType : uint8
     EnergyDrink,
     // 오라 탐지기
     AuraDetector,
-    // 룰렛
-	Roulette
+    // 물음표박스
+    QuestionBox,
+    // 네비게이션
+    Navigation
 };
 
 // Item DataTable 구조체
@@ -44,12 +46,14 @@ struct FItemDataTable : public FTableRowBase
 public:
     FItemDataTable()
         : ItemType(EItemType::None)
+        , Description(FText::GetEmpty())
         , ItemIcon(nullptr)
         , ItemMesh(nullptr)
         , GameplayTag()
         , GameAbility(nullptr)
         , GameEffect(nullptr)
-        , Description(FText::GetEmpty())
+        , MaxStack(3)
+        , RandomProbability(0)
     {}
 
 public:
@@ -73,4 +77,10 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TSubclassOf<UGameplayEffect> GameEffect;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 MaxStack;             // 인벤토리 최대 스택
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 RandomProbability;    // 랜덤박스 확률
 };
