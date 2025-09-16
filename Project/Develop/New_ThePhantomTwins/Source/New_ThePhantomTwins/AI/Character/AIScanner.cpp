@@ -18,7 +18,9 @@ bool AAIScanner::MatchingChaseActorType(AActor* OtherActor) const
     if (nullptr == ASC)
         return false;
 
-    return ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player) || ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI);
+    return (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player) 
+        && !ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
+        || ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI);
 }
 
 void AAIScanner::BeginPlay()

@@ -233,7 +233,7 @@ bool AAIBaseCharacter::MatchingChaseActorType(AActor* OtherActor) const
     if (nullptr == ASC)
         return false;
 
-    return ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
+    return ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player) && !ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 }
 
 void AAIBaseCharacter::CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -268,6 +268,8 @@ void AAIBaseCharacter::CheckCombatRangeInActor()
 {
     for (AActor* actor : CombatRangeInActor)
     {
+        if (!MatchingChaseActorType(actor))
+            continue;
         //SweepResult를 이용해서도 확인 가능, 만약 레이케스팅이 부적절하면 Sweep의 정보를 이용해서 사용
         FVector MyLoc = GetActorLocation();
         FVector TargetLoc = actor->GetActorLocation();
