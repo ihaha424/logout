@@ -14,4 +14,6 @@ void UGA_QuestionBox::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	TPT_LOG(GALog, Log, TEXT("UGA_QuestionBox::ActivateAbility"));
+
 }

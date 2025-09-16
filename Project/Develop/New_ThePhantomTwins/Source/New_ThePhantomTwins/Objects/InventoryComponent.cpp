@@ -201,7 +201,7 @@ void UInventoryComponent::AddItem_ServerAuth(EItemType eItemType)
     {
         if (InventorySlots[i].ItemType == eItemType)
         {
-            if (InventorySlots[i].ItemQuantity < MaxQuantity)
+            if (InventorySlots[i].ItemQuantity < GetMaxQuantity(eItemType))
             {
                 InventorySlots[i].ItemQuantity++;
                 return;
@@ -443,4 +443,19 @@ bool UInventoryComponent::CanUseKey()
 
     TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 가능"));
     return true;
+}
+
+int32 UInventoryComponent::GetMaxQuantity(EItemType ItemType)
+{
+    if (!ItemAbilityTable) return -1;
+
+    // 해당 아이템 타입의 데이터 가져오기
+    FItemDataTable* ItemData = GetItemAbilityData(ItemType);
+    if (!ItemData)
+    {
+        return -1; // 해당 타입의 데이터가 없으면 -1 반환
+    }
+
+    // 해당 아이템의 MaxStack 반환
+    return ItemData->MaxStack;
 }
