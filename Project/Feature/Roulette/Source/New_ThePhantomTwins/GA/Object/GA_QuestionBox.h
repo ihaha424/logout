@@ -8,7 +8,6 @@
 #include "UI/QuestionBoxTextWidget.h"
 #include "GA_QuestionBox.generated.h"
 
-
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UGA_QuestionBox : public UGameplayAbility
 {
@@ -17,41 +16,42 @@ class NEW_THEPHANTOMTWINS_API UGA_QuestionBox : public UGameplayAbility
 public:
 	UGA_QuestionBox();
 
-	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual void ActivateAbility(
+		const FGameplayAbilitySpecHandle Handle,
+		const FGameplayAbilityActorInfo* ActorInfo,
+		const FGameplayAbilityActivationInfo ActivationInfo,
+		const FGameplayEventData* TriggerEventData) override;
 
 protected:
-    // 에디터에서 데이터테이블 지정
-    UPROPERTY(EditDefaultsOnly, Category="QuestionBox")
-    UDataTable* ItemDataTable;
-
+	/** 에디터에서 지정할 아이템 데이터테이블 */
+	UPROPERTY(EditDefaultsOnly, Category="QuestionBox")
+	UDataTable* ItemDataTable = nullptr;
 
 private:
-    // 데이터테이블에서 물음표박스에서 뽑을 수 있는 행들 수집
-    void GatherPickableRows(TArray<FRandomDT*>& OutRows) const;
+	/** 데이터테이블에서 뽑을 수 있는 행 수집 */
+	void GatherPickableRows(TArray<FRandomDT*>& OutRows) const;
 
-    // 가중치(RandomProbability)를 사용해 하나 선택
-    FRandomDT* SelectWeightedRandomRow(const TArray<FRandomDT*>& Rows) const;
+	/** 가중치(RandomProbability) 기반으로 랜덤 선택 */
+	FRandomDT* SelectWeightedRandomRow(const TArray<FRandomDT*>& Rows) const;
 
-    // 선택된 행(아이템)을 처리: None(꽝)인지, 인벤토리에 넣을지 등
-    bool ProcessSelectedRow(AActor* AvatarActor, FRandomDT* SelectedRow);
+	/** 선택된 아이템 처리 */
+	bool ProcessSelectedRow(AActor* AvatarActor, FRandomDT* SelectedRow);
 
-    // 인벤토리에 아이템을 실제로 추가하는 함수
+	/** 인벤토리에 아이템 추가 */
 	void AddItemToInventory(EItemType ItemType, int32 Quantity);
 
-	// 위젯에 들어갈 텍스트 설정 및 visible 설정
+	/** 위젯에 표시할 텍스트 설정 */
 	void SetQuestionBoxWidget(FRandomDT* SelectedRow);
 
+	/** 일정 시간 후 위젯 숨기기 타이머 실행 */
+	void StartHideWidgetTimer() const;
 
 private:
 	TObjectPtr<class APlayerCharacter> Character = nullptr;
 	TObjectPtr<class APS_Player> PS = nullptr;
 	TObjectPtr<class APC_Player> PC = nullptr;
 
-	// 표시할 텍스트
-	//UPROPERTY(EditAnywhere, Category = "QuestionBox | UI")
-	FText QuestionBoxText;
-
-	// 위젯 표시 유지 시간
-	UPROPERTY(EditAnywhere, Category = "QuestionBox | UI")
-	float QuestionBoxWidgetDuration = 2;
+	/** 위젯 표시 유지 시간 */
+	UPROPERTY(EditAnywhere, Category="QuestionBox | UI")
+	float QuestionBoxWidgetDuration = 2.f;
 };
