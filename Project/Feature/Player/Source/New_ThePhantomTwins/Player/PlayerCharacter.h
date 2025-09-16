@@ -125,6 +125,8 @@ protected:
 	void ExecuteAbilityByTag(FGameplayTag InputTag);
 	UFUNCTION()
 	void BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet);
+	UFUNCTION()
+	void OnTagChanged(const FGameplayTag InputTag, int32 Count);
 
 	// 플레이어 상태변경
 	UFUNCTION()

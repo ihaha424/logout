@@ -20,7 +20,7 @@ UGA_AimItem::UGA_AimItem()
 void UGA_AimItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                   const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	TPT_LOG(GALog, Error, TEXT(""));
+	//TPT_LOG(GALog, Error, TEXT(""));
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	PlayHoldingItemMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("HoldingItemMontage"), HoldingItemMontage, 1.0f);
 	PlayHoldingItemMontageTask->ReadyForActivation();
