@@ -28,14 +28,14 @@ enum class EItemType : uint8
     MentalPack,
     // 열쇠
     Key,
-    // 에너지 드링크
-    EnergyDrink,
+    // 네비게이션
+    Navigation,
     // 오라 탐지기
     AuraDetector,
     // 물음표박스
     QuestionBox,
-    // 네비게이션
-    Navigation
+    // 꽝
+    Miss
 };
 
 // Item DataTable 구조체
@@ -54,6 +54,7 @@ public:
         , GameEffect(nullptr)
         , MaxStack(3)
         , RandomProbability(0)
+        , GenerateCount(0)
     {}
 
 public:
@@ -78,9 +79,15 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TSubclassOf<UGameplayEffect> GameEffect;
 
+    // 인벤토리 최대 스택
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    int32 MaxStack;             // 인벤토리 최대 스택
+    int32 MaxStack;             
 
+    // 랜덤박스 확률
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    int32 RandomProbability;    // 랜덤박스 확률
+    int32 RandomProbability;    
+
+    // 물음표 박스에서의 아이템 생성 갯수
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 GenerateCount = 0;    
 };
