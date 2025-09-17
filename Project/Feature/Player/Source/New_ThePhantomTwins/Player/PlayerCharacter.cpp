@@ -323,6 +323,7 @@ void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
 {
 	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
 	PlayerHUDWidget->UpdateStamina(value);
+	PlayerHUDWidget->VisibleStamina(true);
 }
 
 void APlayerCharacter::HidePlayerHUDStaminaSet(int32 value)
@@ -518,26 +519,6 @@ void APlayerCharacter::InputPressed(int32 InputID)
 	}
 }
 
-void APlayerCharacter::C2S_InputPressed_Implementation(const int32 InputID)
-{
-	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
-	if (!Spec) return;
-	Spec->InputPressed = true;
-
-	//EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
-	//FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
-	//ASC->AddLooseGameplayTag(InputTag);
-	//ASC->AddReplicatedLooseGameplayTag(InputTag);
-
-	if (Spec->IsActive())
-	{
-		ASC->AbilitySpecInputPressed(*Spec);
-	}
-	else
-	{
-		ASC->TryActivateAbility(Spec->Handle);
-	}
-}
 void APlayerCharacter::InputSKillPressed(int32 InputID, int32 SkillNumber)
 {
 	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_Skill_ActiveSkill;
@@ -552,7 +533,6 @@ void APlayerCharacter::InputSKillPressed(int32 InputID, int32 SkillNumber)
 void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
 {
 	SelectedSlotNumber = SlotNumber;
-	TPT_LOG(PlayerLog, Log, TEXT(" %d"), SlotNumber);
 
 	PlayerHUDWidget->VisibleInventory(true);
 
@@ -642,11 +622,15 @@ void APlayerCharacter::InputReleased(int32 InputID)
 	}
 	else if (Spec->IsActive())
 	{
-		//EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
-		//FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
-		//ASC->RemoveLooseGameplayTag(InputTag);
-		//ASC->RemoveReplicatedLooseGameplayTag(InputTag);
 		ASC->AbilitySpecInputReleased(*Spec);
+	}
+
+	const EFTPTGameplayTags* TagEnum = FTPTGameplayTags::Get().TagMap.Find(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run);
+	int32 InputNum = static_cast<int32>(*TagEnum);
+	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
+	if (InputID == InputNum && AttributeSet->GetMaxStamina() == AttributeSet->GetStamina())
+	{
+		HidePlayerHUDStaminaSet(0);
 	}
 }
 
@@ -659,10 +643,6 @@ void APlayerCharacter::C2S_InputReleased_Implementation(const int32 InputID)
 
 	if (Spec->IsActive())
 	{
-		//EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
-		//FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
-		//ASC->RemoveLooseGameplayTag(InputTag);
-		//ASC->RemoveReplicatedLooseGameplayTag(InputTag);
 		ASC->AbilitySpecInputReleased(*Spec);
 	}
 }

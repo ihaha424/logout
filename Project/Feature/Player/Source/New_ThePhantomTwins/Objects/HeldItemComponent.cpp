@@ -39,7 +39,7 @@ void UHeldItemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 void UHeldItemComponent::SpawnAndAttachHeldItem(EItemType ItemType)
 {
     // 투척 아이템이 아니면 기존 아이템 제거+
-    if (ItemType != EItemType::EMP && ItemType != EItemType::NoiseBomb && ItemType != EItemType::Key)
+    if (ItemType != EItemType::EMP && ItemType != EItemType::NoiseBomb)
     {
         DestroyHeldItem();
         return;

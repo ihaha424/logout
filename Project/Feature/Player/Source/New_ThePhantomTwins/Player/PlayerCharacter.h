@@ -142,10 +142,6 @@ protected:
 	void InputReleased(int32 InputID);
 
 	UFUNCTION(Server, Reliable)
-	void C2S_InputPressed(const int32 InputID);
-	void C2S_InputPressed_Implementation(const int32 InputID);
-
-	UFUNCTION(Server, Reliable)
 	void C2S_InputReleased(const int32 InputID);
 	void C2S_InputReleased_Implementation(const int32 InputID);
 

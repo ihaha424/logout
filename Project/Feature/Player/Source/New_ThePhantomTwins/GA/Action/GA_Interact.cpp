@@ -36,16 +36,23 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	// 회복 상호작용
 	PlayRecoveryMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("RecoveryMontage"), RecoveryMontage, 1.0f);
 
-	// 몽타주 골라서 재생
-	if (Cast<APlayerCharacter>(TargetActor))
+	if (TargetActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
 	{
-		CurrentPlayingMontage = RecoveryMontage;
-		PlayRecoveryMontageTask->ReadyForActivation();
+		// 몽타주 골라서 재생
+		if (Cast<APlayerCharacter>(TargetActor))
+		{
+			CurrentPlayingMontage = RecoveryMontage;
+			PlayRecoveryMontageTask->ReadyForActivation();
+		}
+		else
+		{
+			CurrentPlayingMontage = InteractMontage;
+			PlayInteractMontageTask->ReadyForActivation();
+		}
 	}
 	else
 	{
-		CurrentPlayingMontage = InteractMontage;
-		PlayInteractMontageTask->ReadyForActivation();
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	}
 
 	if (TargetActor->GetClass()->ImplementsInterface(UHolding::StaticClass())) // 플레이어 오브젝트
@@ -134,18 +141,16 @@ void UGA_Interact::InteractExecute()
 		TargetActor->GetWorld()->GetTimerManager().ClearTimer(UpdateHandle);
 	}
 
-	// 플레이어가 상호작용할 수 있는 오브젝트가 있는지 확인
-	if (TargetActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
+	if (Character->HasAuthority())
 	{
-		if (Character->HasAuthority())
-		{
-			C2S_Interact(TargetActor, Character);
-		}
-		IInteract::Execute_OnInteractClient(TargetActor, Character);
-		if (CurrentPlayingMontage == RecoveryMontage)
-		{
-			Character->GetMesh()->GetAnimInstance()->Montage_Stop(0.1f, RecoveryMontage);
-			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-		}
+		C2S_Interact(TargetActor, Character);
+	}
+
+	IInteract::Execute_OnInteractClient(TargetActor, Character);
+
+	if (CurrentPlayingMontage == RecoveryMontage)
+	{
+		Character->GetMesh()->GetAnimInstance()->Montage_Stop(0.1f, RecoveryMontage);
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	}
 }
