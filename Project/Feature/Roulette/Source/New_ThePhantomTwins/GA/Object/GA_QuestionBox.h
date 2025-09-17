@@ -37,16 +37,14 @@ private:
 	/** 인벤토리에 아이템 추가 */
 	void AddItemToInventory(EItemType ItemType, int32 Quantity);
 
-	UFUNCTION(Client, Reliable)
-	void S2C_ShowQuestionBoxWidget(const FRandomDT& SelectedRow);
-	void S2C_ShowQuestionBoxWidget_Implementation(const FRandomDT& SelectedRow);
+	/** 선택된 아이템 결과 위젯 띄우기 */
+	void ShowQuestionBoxWidget(const FRandomDT& SelectedRow);
 	
 	/** 위젯에 표시할 텍스트 설정 */
 	void SetQuestionBoxWidget(FRandomDT* SelectedRow);
 
 	/** 일정 시간 후 위젯 숨기기 타이머 실행 */
 	void StartHideWidgetTimer() const;
-
 
 
 private:

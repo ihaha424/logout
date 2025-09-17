@@ -6,6 +6,8 @@
 #include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
 
+#include "Kismet/KismetSystemLibrary.h"
+
 UGA_QuestionBox::UGA_QuestionBox()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -29,13 +31,6 @@ void UGA_QuestionBox::ActivateAbility(
 	PC = Cast<APC_Player>(ActorInfo->PlayerController.Get());
 
 
-	// 서버 전용 처리
-	//if (!HasAuthority(&ActivationInfo))
-	//{
-	//	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-	//	return;
-	//}
-
 	// 아바타 유효성 체크
 	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
 	if (!AvatarActor || !ItemDataTable)
@@ -58,8 +53,8 @@ void UGA_QuestionBox::ActivateAbility(
 		// 3) 인벤토리 추가
 		AddItemToInventory(Selected->ItemType, Selected->GenerateCount);
 
-		// 4) 선택된 아이템 UI 표시를 클라이언트로 보내기
-		S2C_ShowQuestionBoxWidget(*Selected);
+		// 4) 선택된 아이템 결과 위젯 띄우기
+		ShowQuestionBoxWidget(*Selected);
 	}
 
 
@@ -129,9 +124,12 @@ void UGA_QuestionBox::AddItemToInventory(EItemType ItemType, int32 Quantity)
 	}
 }
 
-void UGA_QuestionBox::S2C_ShowQuestionBoxWidget_Implementation(const FRandomDT& SelectedRow)
+void UGA_QuestionBox::ShowQuestionBoxWidget(const FRandomDT& SelectedRow)
 {
 	if (!PC) return;
+
+	//if(PC->IsLocalController())
+		UKismetSystemLibrary::PrintString(PC, FString("is Localler"));
 
 	if (PC)
 	{
