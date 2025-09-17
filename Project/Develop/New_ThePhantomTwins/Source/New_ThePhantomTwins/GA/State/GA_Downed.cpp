@@ -39,7 +39,6 @@ void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	PC->SetWidget(TEXT("WASD"), true, EMessageTargetType::LocalClient);
 
 	Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
-	//Character->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 
 	if (USpringArmComponent* SpringArm = Character->GetSpringArm())
 	{
@@ -98,7 +97,6 @@ void UGA_Downed::OnDownedTagChanged(const FGameplayTag Tag, int32 TagCount)
 		PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
 		Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 		Character->GetSpringArm()->SocketOffset += FVector(0.f, 0.f, 100.f);
-		
 
 		bool bReplicatedEndAbility = true;
 		bool bWasCancelled = false;
