@@ -394,7 +394,6 @@ void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 
 	ASC->AddLooseGameplayTag(InputTag);// 로컬에게 비네팅 적용 됨. 다운드 애니메이션 적용 안됨. 서버에선 엎어짐. 서버에만 태그가 붙음.(당연함)
 	ASC->AddReplicatedLooseGameplayTag(InputTag);// 리플리케이트로 붙이면 서버에서는 아무것도 적용안됨. 로컬에서는 다 됨. 태그도 로컬에만 존재함.
-
 	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
 
 	if(InputTag == FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed)

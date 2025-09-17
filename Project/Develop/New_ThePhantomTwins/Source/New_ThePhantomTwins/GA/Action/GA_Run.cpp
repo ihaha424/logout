@@ -78,15 +78,22 @@ void UGA_Run::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGame
 		return;
 	}
 	GAActorInfo = ActorInfo;
+
 	// 스태미너 감소 GE 제거
 	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
 	GAActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffectBySourceEffect(StaminaDrainEffect, MyASC);
 
 	// 스태미너 재생 GE 부여
-	FGameplayEffectSpecHandle StaminaRegenEffectSpecHandle = MakeOutgoingGameplayEffectSpec(StaminaRegenEffect, GetAbilityLevel());
+	FGameplayEffectSpecHandle StaminaRegenEffectSpecHandle = MakeOutgoingGameplayEffectSpec(StaminaRegenEffect, 1.0);
 	if (StaminaRegenEffectSpecHandle.IsValid())
 	{
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, StaminaRegenEffectSpecHandle);
+	}
+
+	if (MyASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
+	{
+		Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+		return;
 	}
 
 	// 스피드 재정의 GE 부여 & 재정의된 스피드 적용
@@ -95,10 +102,7 @@ void UGA_Run::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGame
 	float WalkSpeed = Character->WalkSpeed;
 	SetSpeed(WalkSpeed, GAActorInfo);
 
-	bool bReplicatedEndAbility = true;
-	bool bWasCancelled = true;
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
 }
 
 void UGA_Run::SetSpeed(float Speed, const FGameplayAbilityActorInfo* ActorInfo)
