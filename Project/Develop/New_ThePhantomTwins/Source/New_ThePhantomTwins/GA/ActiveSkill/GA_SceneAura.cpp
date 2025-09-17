@@ -10,6 +10,7 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
+#include "Components/MeshComponent.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
 #include "Components/PrimitiveComponent.h"
@@ -59,7 +60,6 @@ void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
         ScanInterval,
         true
     );
-
 }
 
 void UGA_SceneAura::ScanTargets()
@@ -70,7 +70,6 @@ void UGA_SceneAura::ScanTargets()
     FVector Origin = Owner->GetActorLocation();
     TSet<TWeakObjectPtr<AActor>> NewTargets;
     UWorld* World = GetWorld();
-
 
     // 1) 상대 플레이어 & 특정 오브젝트
     {
@@ -140,21 +139,42 @@ void UGA_SceneAura::ApplyAuraToTarget(AActor* Target)
 {
 	NULLCHECK_RETURN_LOG(Target, GALog, Warning, );
 
-	if (UMeshComponent* Mesh = Target->FindComponentByClass<UMeshComponent>())
+    TArray<UMeshComponent*> Meshes;
+    Target->GetComponents<UMeshComponent>(Meshes);
+
+    for (UMeshComponent* Mesh : Meshes)
+    {
+        if (!Mesh) continue;
+
+        Mesh->SetCustomDepthStencilValue(1);
+        Mesh->SetRenderCustomDepth(true);
+    }
+
+	/*if (UMeshComponent* Mesh = Target->FindComponentByClass<UMeshComponent>())
 	{
-		Mesh->SetRenderCustomDepth(true);
 		Mesh->SetCustomDepthStencilValue(1);
-	}
+		Mesh->SetRenderCustomDepth(true);
+	}*/
 }
 
 void UGA_SceneAura::RemoveAuraFromTarget(AActor* Target)
 {
     NULLCHECK_RETURN_LOG(Target, GALog, Warning, );
 
-	if (UMeshComponent* Mesh = Target->FindComponentByClass<UMeshComponent>())
-	{
-		Mesh->SetRenderCustomDepth(false);
-	}
+    TArray<UMeshComponent*> Meshes;
+    Target->GetComponents<UMeshComponent>(Meshes);
+
+    for (UMeshComponent* Mesh : Meshes)
+    {
+        if (!Mesh) continue;
+
+        Mesh->SetRenderCustomDepth(false);
+    }
+
+	//if (UMeshComponent* Mesh = Target->FindComponentByClass<UMeshComponent>())
+	//{
+	//	Mesh->SetRenderCustomDepth(false);
+	//}
 }
 
 void UGA_SceneAura::OnSceneAuraTagChanged(const FGameplayTag InputTag, int32 TagCount)

@@ -228,6 +228,10 @@ void AAIBaseController::FindCloseActor()
                     if (CurTargetActor != ClosestActor)
                     {
                         BB->SetValueAsObject(TEXT("TargetActor"), ClosestActor);
+
+                        AAIBaseCharacter* AIBaseCharacter = Cast<AAIBaseCharacter>(GetPawn());
+                        AIBaseCharacter->CancleChaseActorGA();
+                        AIBaseCharacter->ExcuteChaseActorGA(ClosestActor);
                     }
                 }
             }
@@ -242,12 +246,19 @@ void AAIBaseController::FindCloseActor()
             if (CurTargetActor != ClosestActor)
             {
                 BB->SetValueAsObject(TEXT("TargetActor"), ClosestActor);
+
+                AAIBaseCharacter* AIBaseCharacter = Cast<AAIBaseCharacter>(GetPawn());
+                AIBaseCharacter->CancleChaseActorGA();
+                AIBaseCharacter->ExcuteChaseActorGA(ClosestActor);
             }
         }
     }
     else
     {
         BB->SetValueAsObject(TEXT("TargetActor"), ClosestActor);
+
+        AAIBaseCharacter* AIBaseCharacter = Cast<AAIBaseCharacter>(GetPawn());
+        AIBaseCharacter->CancleChaseActorGA();
     }
 }
 

@@ -14,6 +14,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Objects/HeldItemComponent.h"
 
 UGA_Downed::UGA_Downed()
 {
@@ -32,6 +33,9 @@ void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 
 	APlayerCharacter* Character = Cast<APlayerCharacter>(GAActorInfo->AvatarActor.Get());
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
+	// 손에 뭐 들고있으면 취소시키기
+	UHeldItemComponent* HeldItemComp = Character->FindComponentByClass<UHeldItemComponent>();
+	HeldItemComp->DestroyHeldItem();
 	APS_Player* PS = Cast<APS_Player>(Character->GetPlayerState());
 	NULLCHECK_RETURN_LOG(PS, GALog, Warning, );
 	APC_Player* PC = Character->GetController<APC_Player>();
@@ -97,6 +101,7 @@ void UGA_Downed::OnDownedTagChanged(const FGameplayTag Tag, int32 TagCount)
 		PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
 		Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 		Character->GetSpringArm()->SocketOffset += FVector(0.f, 0.f, 100.f);
+		Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 		bool bReplicatedEndAbility = true;
 		bool bWasCancelled = false;

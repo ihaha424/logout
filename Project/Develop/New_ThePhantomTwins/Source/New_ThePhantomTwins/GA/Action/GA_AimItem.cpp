@@ -66,7 +66,7 @@ void UGA_AimItem::UpdateParabola()
     // 시작 위치 & 발사 방향
 	FVector StartLocation = OwnerMeshComp->GetSocketLocation(TEXT("RightHand")) + FVector{0, -10.f, 0};
     //TPT_LOG(GALog, Warning, TEXT("%d, %d, %d"), StartLocation.X, StartLocation.Y, StartLocation.Z);
-    FVector ForwardVector = OwnerActor->GetActorForwardVector() * 1000.f;
+    FVector ForwardVector = OwnerActor->GetActorForwardVector();
 
     // 포물선 설정
     FPredictProjectilePathParams Params;
