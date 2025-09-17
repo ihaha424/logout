@@ -9,7 +9,7 @@
 UGA_QuestionBox::UGA_QuestionBox()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 }
 
 void UGA_QuestionBox::ActivateAbility(
@@ -28,14 +28,13 @@ void UGA_QuestionBox::ActivateAbility(
 
 	PC = Cast<APC_Player>(ActorInfo->PlayerController.Get());
 
-	TPT_LOG(GALog, Log, TEXT("UGA_QuestionBox::ActivateAbility"));
 
 	// 서버 전용 처리
-	if (!HasAuthority(&ActivationInfo))
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-		return;
-	}
+	//if (!HasAuthority(&ActivationInfo))
+	//{
+	//	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	//	return;
+	//}
 
 	// 아바타 유효성 체크
 	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
@@ -53,11 +52,16 @@ void UGA_QuestionBox::ActivateAbility(
 	// 2) 가중치 기반 랜덤 선택
 	FRandomDT* Selected = SelectWeightedRandomRow(Rows);
 
-	// 3) 선택된 행 처리
-	if (!ProcessSelectedRow(AvatarActor, Selected))
+
+	if (PC && Selected)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UGA_QuestionBox::ActivateAbility - ProcessSelectedRow failed"));
+		// 3) 인벤토리 추가
+		AddItemToInventory(Selected->ItemType, Selected->GenerateCount);
+
+		// 4) 선택된 아이템 UI 표시를 클라이언트로 보내기
+		S2C_ShowQuestionBoxWidget(*Selected);
 	}
+
 
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
@@ -103,30 +107,6 @@ FRandomDT* UGA_QuestionBox::SelectWeightedRandomRow(const TArray<FRandomDT*>& Ro
 	return nullptr;
 }
 
-bool UGA_QuestionBox::ProcessSelectedRow(AActor* AvatarActor, FRandomDT* SelectedRow)
-{
-	if (!AvatarActor || !SelectedRow) return false;
-
-	const FString ItemTypeString = UEnum::GetValueAsString(SelectedRow->ItemType);
-	TPT_LOG(GALog, Log, TEXT("UGA_QuestionBox::ProcessSelectedRow - 선택된 아이템 : %s (Probability: %d)"),
-		*ItemTypeString, SelectedRow->RandomProbability);
-
-	// Miss 처리
-	if (SelectedRow->ItemType == EItemType::Miss)
-	{
-		TPT_LOG(GALog, Log, TEXT("UGA_QuestionBox::ProcessSelectedRow - Got 'Miss'"));
-		SetQuestionBoxWidget(SelectedRow);
-		return true;
-	}
-
-	// 인벤토리 추가
-	AddItemToInventory(SelectedRow->ItemType, SelectedRow->GenerateCount);
-
-	// 위젯 설정
-	SetQuestionBoxWidget(SelectedRow);
-	return true;
-}
-
 void UGA_QuestionBox::AddItemToInventory(EItemType ItemType, int32 Quantity)
 {
 	if (!PS || !PS->InventoryComp) return;
@@ -147,6 +127,30 @@ void UGA_QuestionBox::AddItemToInventory(EItemType ItemType, int32 Quantity)
 	default:
 		break;
 	}
+}
+
+void UGA_QuestionBox::S2C_ShowQuestionBoxWidget_Implementation(const FRandomDT& SelectedRow)
+{
+	if (!PC) return;
+
+	if (PC)
+	{
+		FString PCName = PC->GetName(); // 보통 "PC_0", "PC_1" 이런 식
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				5.f,
+				FColor::Cyan,
+				FString::Printf(TEXT(" S2C_ShowQuestionBoxWidget : %s (%s)"),
+					Character->HasAuthority() ? TEXT("Host(Server)") : TEXT("Guest(Client)"),
+					*PCName)
+			);
+		}
+	}
+
+	// 클라이언트에서 UI 위젯을 설정하는 함수 호출
+	SetQuestionBoxWidget(const_cast<FRandomDT*>(&SelectedRow));
 }
 
 void UGA_QuestionBox::SetQuestionBoxWidget(FRandomDT* SelectedRow)
@@ -172,7 +176,6 @@ void UGA_QuestionBox::SetQuestionBoxWidget(FRandomDT* SelectedRow)
 	}
 
 	QuestionBoxTextWidget->SetText(Text);
-	PC->SetWidget(TEXT("QuestionBoxText"), true, EMessageTargetType::LocalClient);
 
 	// 일정 시간 후 숨김
 	StartHideWidgetTimer();
@@ -181,6 +184,25 @@ void UGA_QuestionBox::SetQuestionBoxWidget(FRandomDT* SelectedRow)
 void UGA_QuestionBox::StartHideWidgetTimer() const
 {
 	if (!GetWorld() || !PC) return;
+
+	if (PC)
+	{
+		FString PCName = PC->GetName(); // 보통 "PC_0", "PC_1" 이런 식
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				5.f,
+				FColor::Cyan,
+				FString::Printf(TEXT("ActivateAbility 실행 주체: %s (%s)"),
+					Character->HasAuthority() ? TEXT("Host(Server)") : TEXT("Guest(Client)"),
+					*PCName)
+			);
+		}
+	}
+
+	
+	PC->SetWidget(TEXT("QuestionBoxText"), true, EMessageTargetType::LocalClient);
 
 	FTimerHandle TimerHandle;
 	FTimerDelegate TimerDel;
@@ -191,3 +213,5 @@ void UGA_QuestionBox::StartHideWidgetTimer() const
 
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, QuestionBoxWidgetDuration, false);
 }
+
+

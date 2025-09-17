@@ -34,17 +34,20 @@ private:
 	/** 가중치(RandomProbability) 기반으로 랜덤 선택 */
 	FRandomDT* SelectWeightedRandomRow(const TArray<FRandomDT*>& Rows) const;
 
-	/** 선택된 아이템 처리 */
-	bool ProcessSelectedRow(AActor* AvatarActor, FRandomDT* SelectedRow);
-
 	/** 인벤토리에 아이템 추가 */
 	void AddItemToInventory(EItemType ItemType, int32 Quantity);
 
+	UFUNCTION(Client, Reliable)
+	void S2C_ShowQuestionBoxWidget(const FRandomDT& SelectedRow);
+	void S2C_ShowQuestionBoxWidget_Implementation(const FRandomDT& SelectedRow);
+	
 	/** 위젯에 표시할 텍스트 설정 */
 	void SetQuestionBoxWidget(FRandomDT* SelectedRow);
 
 	/** 일정 시간 후 위젯 숨기기 타이머 실행 */
 	void StartHideWidgetTimer() const;
+
+
 
 private:
 	TObjectPtr<class APlayerCharacter> Character = nullptr;
