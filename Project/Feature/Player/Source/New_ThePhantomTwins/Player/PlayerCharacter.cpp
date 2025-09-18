@@ -14,6 +14,7 @@
 #include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
 #include "FocusTraceComponent.h"
+#include "GM_PhantomTwins.h"
 #include "PC_Player.h"
 #include "PlayerAnimInstance.h"
 #include "../GA/Action/GA_Interact.h"
@@ -475,6 +476,15 @@ void APlayerCharacter::OnRecoveryCompleted()
 
 	PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
 	PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
+
+	if (HasAuthority())
+	{
+		if (AGM_PhantomTwins* GM = GetWorld()->GetAuthGameMode<AGM_PhantomTwins>())
+		{
+			GM->NotifyPlayerDied(false);
+			PS->bIsDowned = false;
+		}
+	}
 
 	if (RecoveryGE)
 	{

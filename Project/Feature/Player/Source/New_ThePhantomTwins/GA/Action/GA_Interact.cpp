@@ -140,17 +140,19 @@ void UGA_Interact::InteractExecute()
 		TargetActor->GetWorld()->GetTimerManager().ClearTimer(CompleteHandle);
 		TargetActor->GetWorld()->GetTimerManager().ClearTimer(UpdateHandle);
 	}
-
-	if (Character->HasAuthority())
+	if (TargetActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
 	{
-		C2S_Interact(TargetActor, Character);
-	}
+		if (Character->HasAuthority())
+		{
+			C2S_Interact(TargetActor, Character);
+		}
 
-	IInteract::Execute_OnInteractClient(TargetActor, Character);
+		IInteract::Execute_OnInteractClient(TargetActor, Character);
 
-	if (CurrentPlayingMontage == RecoveryMontage)
-	{
-		Character->GetMesh()->GetAnimInstance()->Montage_Stop(0.1f, RecoveryMontage);
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		if (CurrentPlayingMontage == RecoveryMontage)
+		{
+			Character->GetMesh()->GetAnimInstance()->Montage_Stop(0.1f, RecoveryMontage);
+			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+		}
 	}
 }

@@ -27,10 +27,8 @@ void UGA_AIHitPlayer::ActivateAbility(const FGameplayAbilitySpecHandle Handle,co
 void UGA_AIHitPlayer::OnMontageComplete()
 {
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
-	//NULLCHECK_CODE_RETURN_LOG(ASC, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);, );
-	//FGameplayTagContainer RemoveTags;
-	//RemoveTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit);
-	//ASC->RemoveActiveEffectsWithTags(RemoveTags); 
+
 	ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit);
+	ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit);
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
