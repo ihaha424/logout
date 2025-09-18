@@ -233,6 +233,8 @@ void UGA_SceneAura::OnSceneAuraTagChanged(const FGameplayTag InputTag, int32 Tag
             }
         }
         CurrentAuraTargets.Empty();
+
+		RemoveAuraFromTarget(OwnerActor);
     }
 }
 
