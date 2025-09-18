@@ -4,6 +4,7 @@
 #include "GM_PhantomTwins.h"
 #include "GS_PhantomTwins.h"
 #include "AI/Utility/BossSpawner.h"
+#include "Blueprint/UserWidget.h"
 #include "SaveGame/TPTSaveGameHelperLibrary.h"
 
 
@@ -42,6 +43,56 @@ void AGM_PhantomTwins::BeginPlay()
     }
 }
 
+void AGM_PhantomTwins::PostLogin(APlayerController* NewPlayer)
+{
+    Super::PostLogin(NewPlayer);
+
+    TotalPlayerCount++;
+}
+
+void AGM_PhantomTwins::NotifyPlayerDied(bool isDead)
+{
+    if (isDead)
+        DeadPlayerCount++;
+    else
+        DeadPlayerCount--;
+
+    if (DeadPlayerCount >= TotalPlayerCount)
+    {
+        RestartLevelWithDelay(3.0f);
+    }
+}
+
+void AGM_PhantomTwins::S2A_ShowFadeUI_Implementation()
+{
+    for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+    {
+        if (APlayerController* PC = It->Get())
+        {
+            if (PC->IsLocalController())
+            {
+                if (FadeUI)
+                {
+                    FadeUI->AddToViewport();
+                }
+            }
+        }
+    }
+}
+
+void AGM_PhantomTwins::RestartLevelWithDelay(float Delay)
+{
+    //S2A_ShowFadeUI();
+
+    FTimerHandle TimerHandle;
+    GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+        {
+            FString MapName = GetWorld()->GetOutermost()->GetName();
+            FString LevelPathWithListen = MapName + TEXT("?listen");
+            GetWorld()->ServerTravel(LevelPathWithListen, false);
+        }, Delay, false);
+}
+
 void AGM_PhantomTwins::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     if (HasAuthority())
@@ -64,7 +115,7 @@ void AGM_PhantomTwins::SeverToLevel(const FName LevelName, bool bAbsolute)
 
     FString LevelPathWithListen = LevelName.ToString() + TEXT("?listen");
 
-    UE_LOG(LogTemp, Log, TEXT("LevelPathWithListen: %s"), *LevelPathWithListen);
+    TPT_LOG(GameRuleLog, Log, TEXT("LevelPathWithListen: %s"), *LevelPathWithListen);
     GetWorld()->ServerTravel(LevelPathWithListen, bAbsolute);
 }
 

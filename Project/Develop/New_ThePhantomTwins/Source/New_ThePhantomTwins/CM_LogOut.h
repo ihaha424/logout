@@ -20,8 +20,35 @@ public:
 	void SetHP(float hp);
 
 	UFUNCTION(exec)
-	void SetMaxHP();
+	void FullHP();
+
+	UFUNCTION(exec)
+	void SetMental(float mental);
+
+	UFUNCTION(exec)
+	void FullMental();
 
 	UFUNCTION(exec)
 	void SetRecovery(bool bFlag);
+
+	UFUNCTION(exec)
+	void GiveAllData();
+
+	UFUNCTION(exec)
+	void MoveToExit();
+
+	UFUNCTION(exec)
+	void StartST1();
+
+	UFUNCTION(exec)
+	void StartST2();
+
+	UFUNCTION(exec)
+	void ClearNow();
+
+	UFUNCTION(exec)
+	void GiveItems();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CheatCommand")
+	FVector ExitPosition = FVector(0.f, 0.f, 300.f);
 };

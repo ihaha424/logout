@@ -14,6 +14,7 @@
 #include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
 #include "FocusTraceComponent.h"
+#include "GM_PhantomTwins.h"
 #include "PC_Player.h"
 #include "PlayerAnimInstance.h"
 #include "../GA/Action/GA_Interact.h"
@@ -323,7 +324,9 @@ void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
 {
 	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
 	PlayerHUDWidget->UpdateStamina(value);
-	PlayerHUDWidget->VisibleStamina(true);
+	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
+	if (AttributeSet->GetMaxStamina() != value)
+		PlayerHUDWidget->VisibleStamina(true);
 }
 
 void APlayerCharacter::HidePlayerHUDStaminaSet(int32 value)
@@ -476,6 +479,15 @@ void APlayerCharacter::OnRecoveryCompleted()
 	PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
 	PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
 
+	if (HasAuthority())
+	{
+		if (AGM_PhantomTwins* GM = GetWorld()->GetAuthGameMode<AGM_PhantomTwins>())
+		{
+			GM->NotifyPlayerDied(false);
+			PS->bIsDowned = false;
+		}
+	}
+
 	if (RecoveryGE)
 	{
 		FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
@@ -624,7 +636,7 @@ void APlayerCharacter::InputReleased(int32 InputID)
 	const EFTPTGameplayTags* TagEnum = FTPTGameplayTags::Get().TagMap.Find(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run);
 	int32 InputNum = static_cast<int32>(*TagEnum);
 	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
-	if (InputID == InputNum && AttributeSet->GetMaxStamina() == AttributeSet->GetStamina())
+	if (InputID == InputNum && AttributeSet->GetStamina() >= AttributeSet->GetMaxStamina())
 	{
 		HidePlayerHUDStaminaSet(0);
 	}

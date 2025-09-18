@@ -31,7 +31,7 @@ void APS_Player::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	DOREPLIFETIME(APS_Player, PassiveSkillTags);
 	DOREPLIFETIME(APS_Player, TeamID);
 	DOREPLIFETIME(APS_Player, bIsRecovery);
-	DOREPLIFETIME(APS_Player, bIsGroggy);
+	DOREPLIFETIME(APS_Player, bIsDowned);
 }
 
 void APS_Player::SetIdentifyCharacterData()

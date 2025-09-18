@@ -2,6 +2,8 @@
 
 
 #include "GA_Downed.h"
+
+#include "GM_PhantomTwins.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Player/PlayerCharacter.h"
 #include "Attribute/PlayerAttributeSet.h"
@@ -38,6 +40,7 @@ void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	HeldItemComp->DestroyHeldItem();
 	APS_Player* PS = Cast<APS_Player>(Character->GetPlayerState());
 	NULLCHECK_RETURN_LOG(PS, GALog, Warning, );
+
 	APC_Player* PC = Character->GetController<APC_Player>();
 	NULLCHECK_RETURN_LOG(PC, GALog, Warning, );
 	PC->SetWidget(TEXT("WASD"), true, EMessageTargetType::LocalClient);
@@ -50,6 +53,15 @@ void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	}
 
 	SetSpeed(DownedSpeed, GAActorInfo);
+	// 재시작을 위한 부분
+	if (Character->HasAuthority())
+	{
+		if (AGM_PhantomTwins* GM = GetWorld()->GetAuthGameMode<AGM_PhantomTwins>())
+		{
+			GM->NotifyPlayerDied(true);
+			PS->bIsDowned = true;
+		}
+	}
 }
 void UGA_Downed::SetSpeed(float Speed, const FGameplayAbilityActorInfo* ActorInfo)
 {
