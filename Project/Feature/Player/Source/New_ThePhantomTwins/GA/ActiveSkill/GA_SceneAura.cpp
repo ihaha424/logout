@@ -49,6 +49,23 @@ void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
     }
     ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_UsingOutLine).AddUObject(this, &ThisClass::OnSceneAuraTagChanged);
 
+    OwnerActor = GetAvatarActorFromActorInfo();
+	NULLCHECK_RETURN_LOG(OwnerActor, GALog, Warning, )
+
+
+    // 나에게서는 투영 안되게..
+    // 문제는 이렇게 하면 나도 적용됨.. 벽 뒤에 가면 ㅠ
+    TArray<UMeshComponent*> Meshes;
+    OwnerActor->GetComponents<UMeshComponent>(Meshes);
+
+    for (UMeshComponent* Mesh : Meshes)
+    {
+        if (!Mesh) continue;
+
+        Mesh->SetCustomDepthStencilValue(0);
+        Mesh->SetRenderCustomDepth(true);
+    }
+
     // 첫 탐지 실행
     ScanTargets();
 
@@ -64,10 +81,9 @@ void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 
 void UGA_SceneAura::ScanTargets()
 {
-    AActor* Owner = GetAvatarActorFromActorInfo();
-    NULLCHECK_RETURN_LOG(Owner, GALog, Warning, )
+    NULLCHECK_RETURN_LOG(OwnerActor, GALog, Warning, )
 
-    FVector Origin = Owner->GetActorLocation();
+    FVector Origin = OwnerActor->GetActorLocation();
     TSet<TWeakObjectPtr<AActor>> NewTargets;
     UWorld* World = GetWorld();
 
@@ -76,11 +92,15 @@ void UGA_SceneAura::ScanTargets()
         TArray<AActor*> UnlimitedObjects;
         UGameplayStatics::GetAllActorsWithTag(World, FName("AuraObject"), UnlimitedObjects);
 
-        for (AActor* Target : UnlimitedObjects)
-        {
-            if (!Target || Target == Owner) continue;
-            ApplyAuraToTarget(Target);
-            NewTargets.Add(Target);
+		for (AActor* Target : UnlimitedObjects)
+		{
+			if (!Target || Target == OwnerActor) continue;
+
+            if (IsValidAuraTarget(Target))
+            {
+				ApplyAuraToTarget(Target);
+				NewTargets.Add(Target);
+            }
         }
     }
 
@@ -99,7 +119,7 @@ void UGA_SceneAura::ScanTargets()
         for (auto& Result : Overlaps)
         {
             AActor* Target = Result.GetActor();
-            if (!Target || Target == Owner) continue;
+            if (!Target || Target == OwnerActor) continue;
 
             if (Target->ActorHasTag("Enemy"))
             {
@@ -138,6 +158,9 @@ void UGA_SceneAura::ScanTargets()
 void UGA_SceneAura::ApplyAuraToTarget(AActor* Target)
 {
 	NULLCHECK_RETURN_LOG(Target, GALog, Warning, );
+	NULLCHECK_RETURN_LOG(OwnerActor, GALog, Warning, );
+
+	if (Target == OwnerActor) return;
 
     TArray<UMeshComponent*> Meshes;
     Target->GetComponents<UMeshComponent>(Meshes);
@@ -175,6 +198,26 @@ void UGA_SceneAura::RemoveAuraFromTarget(AActor* Target)
 	//{
 	//	Mesh->SetRenderCustomDepth(false);
 	//}
+}
+
+bool UGA_SceneAura::IsValidAuraTarget(AActor* Target) const
+{
+    FVector Start = OwnerActor->GetActorLocation();
+    FVector End = Target->GetActorLocation();
+
+	FHitResult Hit;
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(OwnerActor); // 자기자신은 무시
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(
+	Hit,
+	Start,
+	End,
+	ECollisionChannel::ECC_WorldStatic,
+	Params
+	);
+
+	return Target != Hit.GetActor() ? true : false;
 }
 
 void UGA_SceneAura::OnSceneAuraTagChanged(const FGameplayTag InputTag, int32 TagCount)

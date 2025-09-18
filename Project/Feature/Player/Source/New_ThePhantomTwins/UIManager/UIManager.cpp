@@ -17,7 +17,7 @@ bool UUIManager::RegisterUI(const FString& Key, UUserWidget* Widget, int32 Order
 {
 	if (nullptr == Widget)
 	{
-		UE_LOG(LogUIManager, Error, TEXT("RegisterUI: Widget is nullptr."));
+		UE_LOG(LogUIManager, Error, TEXT("RegisterUI: [ %s ] Widget is nullptr."), *Key);
 		return false;
 	}
 	if (Order < 0)
