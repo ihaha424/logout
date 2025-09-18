@@ -27,6 +27,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="QuestionBox")
 	UDataTable* ItemDataTable = nullptr;
 
+
+
+
 private:
 	/** 데이터테이블에서 뽑을 수 있는 행 수집 */
 	void GatherPickableRows(TArray<FRandomDT*>& OutRows) const;

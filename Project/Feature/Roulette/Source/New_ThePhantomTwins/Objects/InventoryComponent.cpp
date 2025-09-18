@@ -1,18 +1,22 @@
 ﻿#include "InventoryComponent.h"
 #include "Net/UnrealNetwork.h"
+
 #include "Player/PlayerCharacter.h"
+#include "Player/PS_Player.h"
+#include "Player/PC_Player.h"
+
+#include "Objects/Door.h"
 #include "UI/HUD/PlayerHUDWidget.h"
 #include "UI/HUD/InventoryWidget.h"
 #include "UI/HUD/ItemSlotWidget.h"
-#include "Player/PS_Player.h"
-#include "Player/PC_Player.h"
+#include "UI/QuestionBoxTextWidget.h"
+
 #include "GameplayCueNotify_Static.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Log/TPTLog.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/FocusTraceComponent.h"
-#include "Objects/Door.h"
 
 
 UInventoryComponent::UInventoryComponent()
@@ -25,12 +29,30 @@ void UInventoryComponent::BeginPlay()
 {
     Super::BeginPlay();
     InventorySlots.Init(FItemSlot(), MaxInventorySlots);
+
+    // QuestionBoxTextWidget 만들기
+    if (QuestionBoxTextWidgetclass)
+    {
+        // 보통 위젯은 플레이어 컨트롤러 월드에서 생성해야 함
+        APS_Player* PS = Cast<APS_Player>(GetOwner());
+        if (!PS) return;
+        APC_Player* PC = Cast<APC_Player>(PS->GetPlayerController());
+
+        if (PC && PC->IsLocalPlayerController())
+        {
+            QuestionBoxTextWidget = CreateWidget<UQuestionBoxTextWidget>(PC, QuestionBoxTextWidgetclass);
+            QuestionBoxTextWidget->AddToViewport();
+            QuestionBoxTextWidget->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
 }
 
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(UInventoryComponent, InventorySlots);
+    DOREPLIFETIME(UInventoryComponent, bQuestionBoxWidgetActived);
+    DOREPLIFETIME(UInventoryComponent, QuestionBoxText);
 }
 
 // ==============================
@@ -324,6 +346,28 @@ void UInventoryComponent::ExecuteItemEffects(EItemType ItemType)
     }
 }
 
+void UInventoryComponent::SetTextQuestionBoxWidget(const FText& Text)
+{
+	if (QuestionBoxTextWidget)
+	{
+        QuestionBoxTextWidget->SetText(Text);
+	}
+}
+
+void UInventoryComponent::ShowQuestionBoxWidget(bool bVisible)
+{
+    if (!QuestionBoxTextWidget) return;
+
+    if (bVisible)
+    {
+        QuestionBoxTextWidget->SetVisibility(ESlateVisibility::Visible);
+    }
+    else
+    {
+        QuestionBoxTextWidget->SetVisibility(ESlateVisibility::Hidden);
+    }
+}
+
 FItemDataTable* UInventoryComponent::GetItemAbilityData(EItemType ItemType)
 {
     if (!ItemAbilityTable) return nullptr;
@@ -458,4 +502,10 @@ int32 UInventoryComponent::GetMaxQuantity(EItemType ItemType)
 
     // 해당 아이템의 MaxStack 반환
     return ItemData->MaxStack;
+}
+
+void UInventoryComponent::OnRep_QuestionBoxWidgetActived()
+{
+    SetTextQuestionBoxWidget(QuestionBoxText);
+    ShowQuestionBoxWidget(bQuestionBoxWidgetActived);
 }

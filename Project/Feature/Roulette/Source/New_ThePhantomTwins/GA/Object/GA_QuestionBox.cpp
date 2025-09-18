@@ -153,10 +153,6 @@ void UGA_QuestionBox::ShowQuestionBoxWidget(const FRandomDT& SelectedRow)
 
 void UGA_QuestionBox::SetQuestionBoxWidget(FRandomDT* SelectedRow)
 {
-	UQuestionBoxTextWidget* QuestionBoxTextWidget = Cast<UQuestionBoxTextWidget>(
-		PC->GetWidget(TEXT("QuestionBoxText")));
-	if (!QuestionBoxTextWidget) return;
-
 	FText Text = FText::GetEmpty();
 
 	if (SelectedRow->ItemType == EItemType::Miss)
@@ -173,7 +169,8 @@ void UGA_QuestionBox::SetQuestionBoxWidget(FRandomDT* SelectedRow)
 			FText::AsNumber(SelectedRow->GenerateCount));
 	}
 
-	QuestionBoxTextWidget->SetText(Text);
+	PS->InventoryComp->SetTextQuestionBoxWidget(Text);
+	PS->InventoryComp->QuestionBoxText = Text;
 
 	// 일정 시간 후 숨김
 	StartHideWidgetTimer();
@@ -199,17 +196,16 @@ void UGA_QuestionBox::StartHideWidgetTimer() const
 		}
 	}
 
-	
-	PC->SetWidget(TEXT("QuestionBoxText"), true, EMessageTargetType::LocalClient);
+	PS->InventoryComp->bQuestionBoxWidgetActived = true;
+	PS->InventoryComp->ShowQuestionBoxWidget(true);
 
 	FTimerHandle TimerHandle;
 	FTimerDelegate TimerDel;
 	TimerDel.BindLambda([this]()
 		{
-			PC->SetWidget(TEXT("QuestionBoxText"), false, EMessageTargetType::LocalClient);
+			PS->InventoryComp->bQuestionBoxWidgetActived = false;
+			PS->InventoryComp->ShowQuestionBoxWidget(false);
 		});
 
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, QuestionBoxWidgetDuration, false);
 }
-
-

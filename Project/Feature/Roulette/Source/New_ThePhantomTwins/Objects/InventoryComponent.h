@@ -53,6 +53,14 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Inventory")
     void ExecuteItemEffects(EItemType ItemType);
 
+
+    UFUNCTION()
+    void SetTextQuestionBoxWidget(const FText& Text);
+
+    UFUNCTION()
+    void ShowQuestionBoxWidget(bool bVisible);
+
+
 private:
     // === 서버 RPC ===
     UFUNCTION(Server, Reliable)
@@ -96,6 +104,21 @@ private:
 
     int32 GetMaxQuantity(EItemType ItemType);
 
+    
+public:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+    int32 MaxInventorySlots = 5;    // InventorySlots의 원소 수.
+
+
+    UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_QuestionBoxWidgetActived)
+    bool bQuestionBoxWidgetActived = false;
+
+    UPROPERTY(EditDefaultsOnly, Replicated)
+    FText QuestionBoxText;
+
+    UFUNCTION()
+    void OnRep_QuestionBoxWidgetActived();
+
 protected:
     UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_InventorySlots)
     TArray<FItemSlot> InventorySlots;
@@ -103,15 +126,15 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     TObjectPtr<UDataTable> ItemAbilityTable;
 
-    //UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-    //int32 MaxQuantity = 3;  // 아이템 당 최대 스택 수
-
     UPROPERTY()
     TObjectPtr<class UPlayerHUDWidget> PlayerHUDWidget;
 
-public:
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
-    int32 MaxInventorySlots = 5;    // InventorySlots의 원소 수.
+    UPROPERTY(EditDefaultsOnly, Category = "Inventory | QuestionBox")
+    TSubclassOf<class UQuestionBoxTextWidget> QuestionBoxTextWidgetclass;
+
+	UPROPERTY()
+    TObjectPtr<class UQuestionBoxTextWidget> QuestionBoxTextWidget;
+
 
 private:
     UPROPERTY()
@@ -119,4 +142,6 @@ private:
 
     UPROPERTY()
     FTimerHandle VisibleInventoryTimerHandle;
+
+
 };
