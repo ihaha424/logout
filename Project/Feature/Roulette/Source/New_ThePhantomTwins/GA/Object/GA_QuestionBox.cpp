@@ -5,7 +5,6 @@
 #include "Objects/InventoryComponent.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
-
 #include "Kismet/KismetSystemLibrary.h"
 
 UGA_QuestionBox::UGA_QuestionBox()
@@ -21,17 +20,14 @@ void UGA_QuestionBox::ActivateAbility(
 	const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
+	
 	Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
-	NULLCHECK_CODE_RETURN_LOG(Character, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
+	NULLCHECK_CODE_RETURN_LOG(Character, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false); , );
 
 	PS = Character->GetPS();
-	NULLCHECK_CODE_RETURN_LOG(PS, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
-
+	NULLCHECK_CODE_RETURN_LOG(PS, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false); , );
 	PC = Cast<APC_Player>(ActorInfo->PlayerController.Get());
 
-
-	// 아바타 유효성 체크
 	AActor* AvatarActor = ActorInfo->AvatarActor.Get();
 	if (!AvatarActor || !ItemDataTable)
 	{
@@ -40,23 +36,16 @@ void UGA_QuestionBox::ActivateAbility(
 		return;
 	}
 
-	// 1) DataTable에서 뽑을 행 수집
 	TArray<FRandomDT*> Rows;
 	GatherPickableRows(Rows);
-
-	// 2) 가중치 기반 랜덤 선택
+	
 	FRandomDT* Selected = SelectWeightedRandomRow(Rows);
-
 
 	if (PC && Selected)
 	{
-		// 3) 인벤토리 추가
+		SetQuestionBoxWidget(Selected);
 		AddItemToInventory(Selected->ItemType, Selected->GenerateCount);
-
-		// 4) 선택된 아이템 결과 위젯 띄우기
-		ShowQuestionBoxWidget(*Selected);
 	}
-
 
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
@@ -65,12 +54,10 @@ void UGA_QuestionBox::GatherPickableRows(TArray<FRandomDT*>& OutRows) const
 {
 	OutRows.Reset();
 	if (!ItemDataTable) return;
-
 	for (const FName& RowName : ItemDataTable->GetRowNames())
 	{
 		if (FRandomDT* Row = ItemDataTable->FindRow<FRandomDT>(RowName, TEXT("UGA_QuestionBox")))
 		{
-			// 제외할 타입 필터링
 			if (Row->ItemType == EItemType::None ||
 				Row->ItemType == EItemType::AuraDetector ||
 				Row->ItemType == EItemType::QuestionBox)
@@ -85,6 +72,7 @@ void UGA_QuestionBox::GatherPickableRows(TArray<FRandomDT*>& OutRows) const
 FRandomDT* UGA_QuestionBox::SelectWeightedRandomRow(const TArray<FRandomDT*>& Rows) const
 {
 	int32 TotalWeight = 0;
+
 	for (const FRandomDT* R : Rows)
 	{
 		TotalWeight += FMath::Max(0, R->RandomProbability);
@@ -105,7 +93,6 @@ FRandomDT* UGA_QuestionBox::SelectWeightedRandomRow(const TArray<FRandomDT*>& Ro
 void UGA_QuestionBox::AddItemToInventory(EItemType ItemType, int32 Quantity)
 {
 	if (!PS || !PS->InventoryComp) return;
-
 	switch (ItemType)
 	{
 	case EItemType::NoiseBomb:
@@ -124,88 +111,22 @@ void UGA_QuestionBox::AddItemToInventory(EItemType ItemType, int32 Quantity)
 	}
 }
 
-void UGA_QuestionBox::ShowQuestionBoxWidget(const FRandomDT& SelectedRow)
+void UGA_QuestionBox::SetQuestionBoxWidget(FRandomDT* SelectedRow)
 {
 	if (!PC) return;
 
-	//if(PC->IsLocalController())
-		UKismetSystemLibrary::PrintString(PC, FString("is Localler"));
-
-	if (PC)
-	{
-		FString PCName = PC->GetName(); // 보통 "PC_0", "PC_1" 이런 식
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				5.f,
-				FColor::Cyan,
-				FString::Printf(TEXT(" S2C_ShowQuestionBoxWidget : %s (%s)"),
-					Character->HasAuthority() ? TEXT("Host(Server)") : TEXT("Guest(Client)"),
-					*PCName)
-			);
-		}
-	}
-
-	// 클라이언트에서 UI 위젯을 설정하는 함수 호출
-	SetQuestionBoxWidget(const_cast<FRandomDT*>(&SelectedRow));
-}
-
-void UGA_QuestionBox::SetQuestionBoxWidget(FRandomDT* SelectedRow)
-{
-	FText Text = FText::GetEmpty();
-
+	FText Text;
 	if (SelectedRow->ItemType == EItemType::Miss)
 	{
-		// 꽝 → 이름만 출력
 		Text = SelectedRow->ItemName;
 	}
 	else
 	{
-		// 아이템명 + 개수 출력
 		Text = FText::Format(
 			FText::FromString(TEXT("{0} {1}개 획득")),
 			SelectedRow->ItemName,
 			FText::AsNumber(SelectedRow->GenerateCount));
 	}
-
-	PS->InventoryComp->SetTextQuestionBoxWidget(Text);
-	PS->InventoryComp->QuestionBoxText = Text;
-
-	// 일정 시간 후 숨김
-	StartHideWidgetTimer();
-}
-
-void UGA_QuestionBox::StartHideWidgetTimer() const
-{
-	if (!GetWorld() || !PC) return;
-
-	if (PC)
-	{
-		FString PCName = PC->GetName(); // 보통 "PC_0", "PC_1" 이런 식
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				5.f,
-				FColor::Cyan,
-				FString::Printf(TEXT("ActivateAbility 실행 주체: %s (%s)"),
-					Character->HasAuthority() ? TEXT("Host(Server)") : TEXT("Guest(Client)"),
-					*PCName)
-			);
-		}
-	}
-
-	PS->InventoryComp->bQuestionBoxWidgetActived = true;
-	PS->InventoryComp->ShowQuestionBoxWidget(true);
-
-	FTimerHandle TimerHandle;
-	FTimerDelegate TimerDel;
-	TimerDel.BindLambda([this]()
-		{
-			PS->InventoryComp->bQuestionBoxWidgetActived = false;
-			PS->InventoryComp->ShowQuestionBoxWidget(false);
-		});
-
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, QuestionBoxWidgetDuration, false);
+	// UI 표시 요청을 InventoryComponent에서 통합 수행
+	PS->InventoryComp->ShowQuestionBoxResult(Text, QuestionBoxWidgetDuration);
 }
