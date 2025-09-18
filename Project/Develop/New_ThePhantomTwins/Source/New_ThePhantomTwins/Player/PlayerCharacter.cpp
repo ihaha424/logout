@@ -342,7 +342,7 @@ void APlayerCharacter::HidePlayerHUDStaminaSet(int32 value)
 				PlayerHUDWidget->VisibleStamina(false);
 			}
 		},
-		2.0f,
+		1.0f,
 		false
 	);
 }
@@ -596,6 +596,11 @@ void APlayerCharacter::InputMouseWheelUp(const FInputActionValue& Value)
 
 void APlayerCharacter::InputPressedUseItem(int32 InputID)
 {
+	if(ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
+	{
+		return;
+	}
+
 	UInventoryComponent* InventoryComponent = PS->InventoryComp;
 
 	if (InventoryComponent)

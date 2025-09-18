@@ -13,7 +13,6 @@ UCLASS()
 class NEW_THEPHANTOMTWINS_API AGS_Lobby : public AGameStateBase
 {
 	GENERATED_BODY()
-
 	
 public:
 	void SetIdentifyCharacterData(ECharacterType ChractorType, bool bIsHost);

@@ -42,11 +42,11 @@ public:
 
     // ~ Begin ReStart
     UFUNCTION(NetMulticast, Reliable)
-    void S2A_ShowFadeUI();
-    void S2A_ShowFadeUI_Implementation();
+    void S2A_ShowGameOverUI();
+    void S2A_ShowGameOverUI_Implementation();
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FadeUI")
-    TObjectPtr<UUserWidget> FadeUI;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameOverUI")
+    TObjectPtr<UUserWidget> GameOverUI;
 
     int32 TotalPlayerCount = 0;
     int32 DeadPlayerCount = 0;

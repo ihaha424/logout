@@ -63,7 +63,7 @@ void AGM_PhantomTwins::NotifyPlayerDied(bool isDead)
     }
 }
 
-void AGM_PhantomTwins::S2A_ShowFadeUI_Implementation()
+void AGM_PhantomTwins::S2A_ShowGameOverUI_Implementation()
 {
     for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
     {
@@ -71,9 +71,9 @@ void AGM_PhantomTwins::S2A_ShowFadeUI_Implementation()
         {
             if (PC->IsLocalController())
             {
-                if (FadeUI)
+                if (GameOverUI)
                 {
-                    FadeUI->AddToViewport();
+                    GameOverUI->AddToViewport();
                 }
             }
         }
@@ -82,7 +82,7 @@ void AGM_PhantomTwins::S2A_ShowFadeUI_Implementation()
 
 void AGM_PhantomTwins::RestartLevelWithDelay(float Delay)
 {
-    //S2A_ShowFadeUI();
+    S2A_ShowGameOverUI();
 
     FTimerHandle TimerHandle;
     GetWorldTimerManager().SetTimer(TimerHandle, [this]()

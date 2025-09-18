@@ -11,6 +11,8 @@ UGA_Sprint::UGA_Sprint()
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
     AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_Q);
+
+    ActivationBlockedTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 }
 
 void UGA_Sprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, 
