@@ -10,7 +10,6 @@ UGA_Sprint::UGA_Sprint()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
-    NetSecurityPolicy = EGameplayAbilityNetSecurityPolicy::ServerOnly;
     AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_Q);
 }
 

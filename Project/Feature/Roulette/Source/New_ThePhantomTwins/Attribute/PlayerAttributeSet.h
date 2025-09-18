@@ -69,6 +69,7 @@ public:
 	virtual bool PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data) override;
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 
+	mutable FAttTagDelegate OnPlayerDamaged;
 	mutable FAttTagDelegate OnPlayerLowHP;
 	mutable FAttTagDelegate OnPlayerDowned;
 	mutable FAttTagDelegate OnPlayerConfused1st;

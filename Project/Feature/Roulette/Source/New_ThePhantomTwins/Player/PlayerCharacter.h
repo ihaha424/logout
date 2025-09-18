@@ -128,6 +128,8 @@ protected:
 	void ExecuteAbilityByTag(FGameplayTag InputTag);
 	UFUNCTION()
 	void BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet);
+	UFUNCTION()
+	void OnTagChanged(const FGameplayTag InputTag, int32 Count);
 
 	// 플레이어 상태변경
 	UFUNCTION()
@@ -141,10 +143,6 @@ protected:
 	void InputMouseWheelDown(const FInputActionValue& Value);
 	void InputPressedUseItem(int32 InputID);
 	void InputReleased(int32 InputID);
-
-	UFUNCTION(Server, Reliable)
-	void C2S_InputPressed(const int32 InputID);
-	void C2S_InputPressed_Implementation(const int32 InputID);
 
 	UFUNCTION(Server, Reliable)
 	void C2S_InputReleased(const int32 InputID);

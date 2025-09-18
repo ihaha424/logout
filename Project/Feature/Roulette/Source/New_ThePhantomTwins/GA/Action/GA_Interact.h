@@ -29,8 +29,9 @@ public:
 	UFUNCTION()
 	void OnMontageComplete();
 	void InteractExecute();
-
+	UPROPERTY()
 	APlayerCharacter* Character = nullptr;
+	UPROPERTY()
 	AActor* TargetActor = nullptr;
 
 	// Interact 중에 재생할 애니메이션 몽타주

@@ -2,6 +2,8 @@
 
 
 #include "GA_Downed.h"
+
+#include "GM_PhantomTwins.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Player/PlayerCharacter.h"
 #include "Attribute/PlayerAttributeSet.h"
@@ -10,7 +12,11 @@
 #include "Player/PS_Player.h"
 #include "Player/PC_Player.h"
 #include "Blueprint/UserWidget.h"
+#include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Objects/HeldItemComponent.h"
 
 UGA_Downed::UGA_Downed()
 {
@@ -29,15 +35,33 @@ void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 
 	APlayerCharacter* Character = Cast<APlayerCharacter>(GAActorInfo->AvatarActor.Get());
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
+	// 손에 뭐 들고있으면 취소시키기
+	UHeldItemComponent* HeldItemComp = Character->FindComponentByClass<UHeldItemComponent>();
+	HeldItemComp->DestroyHeldItem();
 	APS_Player* PS = Cast<APS_Player>(Character->GetPlayerState());
 	NULLCHECK_RETURN_LOG(PS, GALog, Warning, );
 
 	APC_Player* PC = Character->GetController<APC_Player>();
 	NULLCHECK_RETURN_LOG(PC, GALog, Warning, );
 	PC->SetWidget(TEXT("WASD"), true, EMessageTargetType::LocalClient);
+
 	Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
 
+	if (USpringArmComponent* SpringArm = Character->GetSpringArm())
+	{
+		SpringArm->SocketOffset += FVector(0.f, 0.f, -100.f);
+	}
+
 	SetSpeed(DownedSpeed, GAActorInfo);
+	// 재시작을 위한 부분
+	if (Character->HasAuthority())
+	{
+		if (AGM_PhantomTwins* GM = GetWorld()->GetAuthGameMode<AGM_PhantomTwins>())
+		{
+			GM->NotifyPlayerDied(true);
+			PS->bIsDowned = true;
+		}
+	}
 }
 void UGA_Downed::SetSpeed(float Speed, const FGameplayAbilityActorInfo* ActorInfo)
 {
@@ -88,6 +112,8 @@ void UGA_Downed::OnDownedTagChanged(const FGameplayTag Tag, int32 TagCount)
 	{
 		PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
 		Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+		Character->GetSpringArm()->SocketOffset += FVector(0.f, 0.f, 100.f);
+		Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 		bool bReplicatedEndAbility = true;
 		bool bWasCancelled = false;

@@ -20,6 +20,8 @@ public:
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility) override;
 
+	void StaminaDrain();
+	void StaminaRegen();
 	void SetSpeed(float Speed, const FGameplayAbilityActorInfo* ActorInfo);
 	void OnSprintTagChanged(const FGameplayTag Tag, int32 TotalCount);
 
@@ -35,6 +37,7 @@ protected:
 	TSubclassOf<UGameplayEffect> SetSpeedEffect;
 
 	FTimerHandle StaminaCheckHandle;
+	FTimerHandle MovementCheckHandle;
 
 	FGameplayTagContainer CancelTags;
 	UPROPERTY(EditAnywhere, Category = "GAS")
@@ -46,4 +49,6 @@ protected:
 	bool bHasSprintTag = false;
 
 	const FGameplayAbilityActorInfo* GAActorInfo;
+
+	bool bIsStaminaRegen = false;
 };

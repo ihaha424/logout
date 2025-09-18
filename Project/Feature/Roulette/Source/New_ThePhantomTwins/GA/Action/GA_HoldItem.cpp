@@ -21,12 +21,6 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-    APawn* Pawn = Cast<APawn>(ActorInfo->AvatarActor.Get());
-    if (Pawn && !Pawn->IsLocallyControlled())
-    {
-        EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-    }
-
     float SlotNumber = TriggerEventData ? TriggerEventData->EventMagnitude : -1.f;
 
     APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
@@ -60,30 +54,16 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
     {
         // 투척 아이템인 경우 스폰 및 부착
         HeldItemComp->SpawnAndAttachHeldItem(ChoiceItemType);
-        PlayStartHoldMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("StartHoldMontage"), StartHoldMontage, 1.0f);
-        PlayStartHoldMontageTask->OnCompleted.AddDynamic(this, &UGA_HoldItem::OnMontageComplete);
-        PlayStartHoldMontageTask->ReadyForActivation();
 
+        FGameplayTag InputTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_AimItem;
+        ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
+        ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
         TPT_LOG(GALog, Log, TEXT("투척 아이템 (%d) 손에 부착 완료"), static_cast<int32>(ChoiceItemType));
-        // 여기서 포물선 인디케이터 출력 로직 추가 가능
     }
     else
     {
-        // 투척 아이템이 아닌 경우 기존 아이템 제거
-        //PlayEndHoldMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("EndHoldMontage"), EndHoldMontage, 1.0f);
-        //PlayEndHoldMontageTask->OnCompleted.AddDynamic(this, &UGA_HoldItem::OnMontageComplete);
-        //PlayEndHoldMontageTask->ReadyForActivation();
         HeldItemComp->DestroyHeldItem();
         TPT_LOG(GALog, Log, TEXT("투척 아이템이 아니므로 손에 있는 아이템 제거"));
-        EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
     }
-
-}
-
-void UGA_HoldItem::OnMontageComplete()
-{
-	FGameplayTag InputTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_AimItem;
-    ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
-    ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }

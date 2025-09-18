@@ -28,19 +28,45 @@ void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
 	GAActorInfo = ActorInfo;
 	GAActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffectBySourceEffect(StaminaRegenEffect, MyASC);
+	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
+	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
 
 	MyASC->CancelAbilities(&CancelTags);
 	// 스프린트로 인한 달리기 속도 변경을 태그바인딩을 통해 실행.
 	MyASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_Sprinting).AddUObject(this, &UGA_Run::OnSprintTagChanged);
 
-	// 스태미너 감소 GE 부여
-	FGameplayEffectSpecHandle StaminaDrainEffectSpecHandle = MakeOutgoingGameplayEffectSpec(StaminaDrainEffect, GetAbilityLevel());
-	if (StaminaDrainEffectSpecHandle.IsValid())
+	SetSpeed(OutPutRunSpeed, GAActorInfo);
+	bool bIsMoving = Character->GetCharacterMovement()->Velocity.Size() > 3.0f;
+
+	if (!bIsMoving)
 	{
-		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, StaminaDrainEffectSpecHandle);
+		bIsStaminaRegen = true;
+		StaminaRegen();
+	}
+	else
+	{
+		bIsStaminaRegen = false;
+		StaminaDrain();
 	}
 
-	SetSpeed(OutPutRunSpeed, GAActorInfo);
+	// 캐릭터가 실제로 이동을 할 때에만 스태미나가 닳도록 체크하기.
+	GetWorld()->GetTimerManager().SetTimer(MovementCheckHandle, [this]()
+		{
+			APlayerCharacter* Character = Cast<APlayerCharacter>(GetAvatarActorFromActorInfo());
+			NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
+			bool bIsMoving = Character->GetCharacterMovement()->Velocity.Size() > 3.0f;
+			// 움직임이 없게된다면 스태미나 다시 증가.
+			if (!bIsMoving && !bIsStaminaRegen)
+			{
+				bIsStaminaRegen = true;
+				StaminaRegen();
+			}
+			else if (bIsMoving && bIsStaminaRegen)
+			{
+				bIsStaminaRegen = false;
+				StaminaDrain();
+			}
+		}, 0.1f, true);
 
 	// 스태미너가 0이되면 강제 중지
 	GetWorld()->GetTimerManager().SetTimer(StaminaCheckHandle, [this]()
@@ -78,15 +104,18 @@ void UGA_Run::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGame
 		return;
 	}
 	GAActorInfo = ActorInfo;
-	// 스태미너 감소 GE 제거
-	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
-	GAActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffectBySourceEffect(StaminaDrainEffect, MyASC);
 
-	// 스태미너 재생 GE 부여
-	FGameplayEffectSpecHandle StaminaRegenEffectSpecHandle = MakeOutgoingGameplayEffectSpec(StaminaRegenEffect, GetAbilityLevel());
-	if (StaminaRegenEffectSpecHandle.IsValid())
+	GetWorld()->GetTimerManager().ClearTimer(MovementCheckHandle);
+	GetWorld()->GetTimerManager().ClearTimer(StaminaCheckHandle);
+
+	StaminaRegen();
+
+	// 다운드 되면 SetSpeed를 하지않아도 됨.
+	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
+	if (MyASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed)|| MyASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd))
 	{
-		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, StaminaRegenEffectSpecHandle);
+		Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+		return;
 	}
 
 	// 스피드 재정의 GE 부여 & 재정의된 스피드 적용
@@ -95,11 +124,35 @@ void UGA_Run::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGame
 	float WalkSpeed = Character->WalkSpeed;
 	SetSpeed(WalkSpeed, GAActorInfo);
 
-	bool bReplicatedEndAbility = true;
-	bool bWasCancelled = true;
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
 }
+
+void UGA_Run::StaminaDrain()
+{
+	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
+	GAActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffectBySourceEffect(StaminaRegenEffect, MyASC);
+	// 스태미너 감소 GE 부여
+	FGameplayEffectSpecHandle StaminaDrainEffectSpecHandle = MakeOutgoingGameplayEffectSpec(StaminaDrainEffect, GetAbilityLevel());
+	if (StaminaDrainEffectSpecHandle.IsValid())
+	{
+		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, StaminaDrainEffectSpecHandle);
+	}
+}
+
+void UGA_Run::StaminaRegen()
+{
+	// 스태미너 감소 GE 제거
+	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
+	GAActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffectBySourceEffect(StaminaDrainEffect, MyASC);
+
+	// 스태미너 재생 GE 부여
+	FGameplayEffectSpecHandle StaminaRegenEffectSpecHandle = MakeOutgoingGameplayEffectSpec(StaminaRegenEffect, 1.0);
+	if (StaminaRegenEffectSpecHandle.IsValid())
+	{
+		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, StaminaRegenEffectSpecHandle);
+	}
+}
+
 
 void UGA_Run::SetSpeed(float Speed, const FGameplayAbilityActorInfo* ActorInfo)
 {
