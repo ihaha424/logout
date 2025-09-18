@@ -324,7 +324,9 @@ void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
 {
 	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
 	PlayerHUDWidget->UpdateStamina(value);
-	PlayerHUDWidget->VisibleStamina(true);
+	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
+	if (AttributeSet->GetMaxStamina() != value)
+		PlayerHUDWidget->VisibleStamina(true);
 }
 
 void APlayerCharacter::HidePlayerHUDStaminaSet(int32 value)
@@ -634,7 +636,7 @@ void APlayerCharacter::InputReleased(int32 InputID)
 	const EFTPTGameplayTags* TagEnum = FTPTGameplayTags::Get().TagMap.Find(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run);
 	int32 InputNum = static_cast<int32>(*TagEnum);
 	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
-	if (InputID == InputNum && AttributeSet->GetMaxStamina() == AttributeSet->GetStamina())
+	if (InputID == InputNum && AttributeSet->GetStamina() >= AttributeSet->GetMaxStamina())
 	{
 		HidePlayerHUDStaminaSet(0);
 	}

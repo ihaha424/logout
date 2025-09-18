@@ -82,7 +82,7 @@ void AGM_PhantomTwins::S2A_ShowFadeUI_Implementation()
 
 void AGM_PhantomTwins::RestartLevelWithDelay(float Delay)
 {
-    S2A_ShowFadeUI();
+    //S2A_ShowFadeUI();
 
     FTimerHandle TimerHandle;
     GetWorldTimerManager().SetTimer(TimerHandle, [this]()

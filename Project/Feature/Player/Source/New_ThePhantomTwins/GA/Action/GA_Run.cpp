@@ -106,6 +106,7 @@ void UGA_Run::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGame
 	GAActorInfo = ActorInfo;
 
 	GetWorld()->GetTimerManager().ClearTimer(MovementCheckHandle);
+	GetWorld()->GetTimerManager().ClearTimer(StaminaCheckHandle);
 
 	StaminaRegen();
 
