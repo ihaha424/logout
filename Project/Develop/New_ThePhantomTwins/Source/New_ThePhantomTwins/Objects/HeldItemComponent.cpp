@@ -51,7 +51,7 @@ void UHeldItemComponent::SpawnAndAttachHeldItem(EItemType ItemType)
     // 서버에 복제된 액터 스폰 요청
     if (ItemType != EItemType::None)
     {
-        C2S_SpawnAndAttachHeldItem(ItemType);
+        //C2S_SpawnAndAttachHeldItem(ItemType);
     }
 }
 
@@ -129,6 +129,7 @@ void UHeldItemComponent::CreateLocalHeldItemMesh(EItemType ItemType)
         LocalMeshComp->SetRelativeLocation(FVector::ZeroVector);
         LocalMeshComp->SetRelativeRotation(FRotator::ZeroRotator);
         LocalMeshComp->SetRelativeScale3D(FVector(1.0f));
+        LocalMeshComp->SetIsReplicated(true);
 
         LocalHeldItemComponent = LocalMeshComp;
 
