@@ -7,7 +7,7 @@
 #include "Player/PC_Player.h"
 #include "Gameframework/PlayerController.h"
 #include "Gameframework/PlayerState.h"
-
+#include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
 
 

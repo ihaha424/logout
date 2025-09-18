@@ -22,6 +22,7 @@ TPT_TAG_GEN(Character, State, UseItem, "Character Use Item ")
 TPT_TAG_GEN(Character, State, DrinkPotion, "Character Drink Potion ")
 TPT_TAG_GEN(Character, State, HealBandage, "Character Heal Bandage ")
 TPT_TAG_GEN(Character, State, AIHit, "Ai is Hit player ")
+TPT_TAG_GEN(Character, State, Hide, "Character Hide ")
 
 // Skilling State
 TPT_TAG_GEN(Character, State, SkillCoolDown, "Character's skill is CoolDowning")

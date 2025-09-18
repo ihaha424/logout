@@ -9,8 +9,10 @@
 #include "Player/PS_Player.h"
 #include "GS_PhantomTwins.h"
 #include "Engine/World.h"
+#include "Kismet/KismetStringLibrary.h"
 #include "Log/TPTLog.h"
 #include "Objects/InventoryComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 void UCM_LogOut::SetHP(float hp)
 {

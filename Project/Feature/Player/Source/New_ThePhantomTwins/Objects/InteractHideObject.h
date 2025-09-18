@@ -5,9 +5,8 @@
 #include "SzInterface/Destroyable.h"
 #include "InteractHideObject.generated.h"
 
-/**
- * 
- */
+class UGameplayEffect;
+
 UCLASS()
 class NEW_THEPHANTOMTWINS_API AInteractHideObject : public AInteractableObject, public IDestroyable
 {
@@ -74,4 +73,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HideObject", Replicated)
 	TObjectPtr <APawn> HidePlayer = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Effects")
+	TSubclassOf<UGameplayEffect> HideTagGE;
 };

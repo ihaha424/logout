@@ -16,6 +16,8 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISense_Hearing.h"
 #include "Perception/AISenseConfig_Hearing.h"
+#include "AbilitySystemComponent.h"
+#include "GameplayEffect.h"
 
 
 AInteractHideObject::AInteractHideObject() : AInteractableObject()
@@ -107,6 +109,10 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 {
 	// 플레이어 컨트롤러 가져오기
 	APlayerController* InteractorPC = CastChecked<APlayerController>(Interactor->GetController());
+	const APlayerCharacter* Character = Cast<APlayerCharacter>(Interactor);
+	NULLCHECK_RETURN_LOG(Character, ObjectLog, Warning, );
+	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+	NULLCHECK_RETURN_LOG(ASC, ObjectLog, Warning, );
 
 	if (!bIsActived)	// 플레이어가 밖에 있는 경우(아직 활성화X)
 	{
@@ -119,6 +125,18 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 		SetViewTarget(InteractorPC, this);
 
 		EnableVignetteEffect(true);
+
+		if (HideTagGE)
+		{
+			FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+			EffectContext.AddSourceObject(this);
+
+			FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(HideTagGE, 1.f, EffectContext);
+			if (SpecHandle.IsValid())
+			{
+				ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
+		}
 	}
 	else	// 플레이어가 안에 있는 경우(활성화O)
 	{
@@ -133,6 +151,14 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 		SetViewTarget(InteractorPC, PlayerActor);
 
 		EnableVignetteEffect(false);
+
+		if (HideTagGE)
+		{
+			FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+			EffectContext.AddSourceObject(this);
+
+			ASC->RemoveActiveGameplayEffectBySourceEffect(HideTagGE, ASC, 1);
+		}
 	}
 }
 
@@ -140,6 +166,10 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 {
 	// 플레이어 컨트롤러 가져오기
 	APlayerController* InteractorPC = CastChecked<APlayerController>(Interactor->GetController());
+	const APlayerCharacter* Character = Cast<APlayerCharacter>(Interactor);
+	NULLCHECK_RETURN_LOG(Character, ObjectLog, Warning, );
+	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+	NULLCHECK_RETURN_LOG(ASC, ObjectLog, Warning, );
 
 	if (!bIsActived)
 	{
@@ -150,6 +180,18 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 		SetViewTarget(InteractorPC, this);
 
 		EnableVignetteEffect(true);
+
+		if (HideTagGE)
+		{
+			FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+			EffectContext.AddSourceObject(this);
+
+			FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(HideTagGE, 1.f, EffectContext);
+			if (SpecHandle.IsValid())
+			{
+				ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
+		}
 	}
 	else
 	{
@@ -160,6 +202,14 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 		SetViewTarget(InteractorPC, HidePlayer);
 
 		EnableVignetteEffect(false);
+
+		if (HideTagGE)
+		{
+			FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+			EffectContext.AddSourceObject(this);
+
+			ASC->RemoveActiveGameplayEffectBySourceEffect(HideTagGE, ASC, 1);
+		}
 	}
 }
 
