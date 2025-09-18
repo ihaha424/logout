@@ -24,6 +24,7 @@ void UGA_AimItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	PlayHoldingItemMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("HoldingItemMontage"), HoldingItemMontage, 1.0f);
 	PlayHoldingItemMontageTask->ReadyForActivation();
+    // 중간에 방해를 받으면 다시 재생되도록 하기. 커스텀할수있다고는 하다...
 
     OwnerActor = ActorInfo->AvatarActor.Get();
     NULLCHECK_CODE_RETURN_LOG(OwnerActor, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, false, false);, )
