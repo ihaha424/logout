@@ -29,7 +29,7 @@ public:
 	UFUNCTION()
 	void OnMontageComplete();
 	void InteractExecute();
-
+	UPROPERTY()
 	UPROPERTY()
 	APlayerCharacter* Character = nullptr;
 	UPROPERTY()
