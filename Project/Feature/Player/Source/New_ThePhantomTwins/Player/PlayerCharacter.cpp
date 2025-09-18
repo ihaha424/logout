@@ -342,7 +342,7 @@ void APlayerCharacter::HidePlayerHUDStaminaSet(int32 value)
 				PlayerHUDWidget->VisibleStamina(false);
 			}
 		},
-		2.0f,
+		1.0f,
 		false
 	);
 }
