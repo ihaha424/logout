@@ -13,7 +13,14 @@ struct FThrowItemDT : public FTableRowBase
     GENERATED_BODY()
 
 public:
-    FThrowItemDT(){}
+    FThrowItemDT() :
+        ItemType(EItemType::None),
+        StartOffset({0,0,0}),
+        ThrowDistance(1000.0f),
+        LaunchVelocity({0,0,0}),
+        OverrideGravityZ(0.0f),
+        ProjectileRadius(1000.0f)
+    {}
 
 
 public:
@@ -33,11 +40,11 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FVector    LaunchVelocity;      
 
-    // 충돌 체크할 때 투사체 반경
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    float       ProjectileRadius;      
-
     // 중력 가속도
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float       OverrideGravityZ;      
+
+    // 충돌 체크할 때 투사체 반경
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float       ProjectileRadius;    
 };

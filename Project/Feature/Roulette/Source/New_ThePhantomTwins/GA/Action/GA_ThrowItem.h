@@ -26,15 +26,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ThrowItem")
     TObjectPtr<UDataTable> ThrowItemDT;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ThrowItem")
-	float ThrowDistance = 1000.0f;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ThrowItem")
 	float Arc = 0.5f;
 
 private:
 	void SpawnThrowableItem(EItemType ItemType);
-	FVector CalculateTargetLocation(const FVector& StartLocation) const;
+	FVector CalculateTargetLocation(const FThrowItemDT* ThrowItemData, const FVector& StartLocation) const;
 	FVector GetRightHandSocketLocation() const;
 	FRotator GetThrowRotation(const FVector& StartLocation, const FVector& TargetLocation) const;
 

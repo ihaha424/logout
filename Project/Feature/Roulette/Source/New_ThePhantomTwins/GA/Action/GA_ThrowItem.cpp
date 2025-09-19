@@ -59,7 +59,7 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 	}
 
 	// 아이템을 던질 목표 지점을 계산
-	FVector TargetLocation = CalculateTargetLocation(SpawnLocation);
+	FVector TargetLocation = CalculateTargetLocation(ThrowItemData, SpawnLocation);
 
 	// 플레이어가 바라보고 있는 방향
 	FRotator SpawnRotation = GetThrowRotation(SpawnLocation, TargetLocation);
@@ -103,7 +103,19 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 
 			if (ProjectileMovementComponent)
 			{
-				InitializeProjectileMovement(ProjectileMovementComponent, bHaveVelocity ? LaunchVelocity : SpawnRotation.Vector() * ProjectileMovementComponent->InitialSpeed, SpawnRotation);
+				FVector InitialVelocity;
+				if (bHaveVelocity)
+				{
+					InitialVelocity = LaunchVelocity;  // 궤적 계산된 실제 속도
+				}
+				else
+				{
+					InitialVelocity = SpawnRotation.Vector() * ProjectileMovementComponent->InitialSpeed;
+					// SpawnRotation 방향 벡터에 기본 속도를 곱한 값
+				}
+
+				InitializeProjectileMovement(ProjectileMovementComponent, InitialVelocity, SpawnRotation);
+
 				return true;
 			}
 
@@ -135,11 +147,13 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 	}
 }
 
-FVector UGA_ThrowItem::CalculateTargetLocation(const FVector& StartLocation) const
+FVector UGA_ThrowItem::CalculateTargetLocation(const FThrowItemDT* ThrowItemData, const FVector& StartLocation) const
 {
 	AActor* OwnerActor = GetOwningActorFromActorInfo();
 	if (!OwnerActor)
-		return StartLocation + FVector::ForwardVector * ThrowDistance;
+	{
+		return StartLocation + FVector::ForwardVector * ThrowItemData->ThrowDistance;
+	}
 
 	FVector ViewDir = FVector::ZeroVector;
 
@@ -185,7 +199,7 @@ FVector UGA_ThrowItem::CalculateTargetLocation(const FVector& StartLocation) con
 		ViewDir = OwnerActor->GetActorForwardVector();
 	}
 
-	return StartLocation + ViewDir.GetSafeNormal() * ThrowDistance;
+	return StartLocation + ViewDir.GetSafeNormal() * ThrowItemData->ThrowDistance;
 }
 
 FVector UGA_ThrowItem::GetRightHandSocketLocation() const
