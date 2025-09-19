@@ -19,6 +19,8 @@ void AOverlapObject::BeginPlay()
 {
 	Super::BeginPlay();
 
+	BoxComp->SetVisibility(false);
+
 	if (BoxTrigger)
 	{
 		BoxTrigger->OnComponentBeginOverlap.AddDynamic(this, &AOverlapObject::OnTriggerBeginOverlap);
