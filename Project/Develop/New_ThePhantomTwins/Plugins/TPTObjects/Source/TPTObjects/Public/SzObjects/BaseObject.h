@@ -21,6 +21,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | Components")
 	TObjectPtr<class USceneComponent> RootSceneComp;
 
+	// Interact위한 collision
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | Components")
 	TObjectPtr<class UBoxComponent> BoxComp;
 
