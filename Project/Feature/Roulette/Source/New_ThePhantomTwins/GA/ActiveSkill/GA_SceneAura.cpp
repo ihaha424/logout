@@ -20,7 +20,11 @@ UGA_SceneAura::UGA_SceneAura()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
     Sphere = FCollisionShape::MakeSphere(SenseRadius);
-    AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_E);
+
+    FGameplayTagContainer DefaultTags;
+    DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_E);
+    SetAssetTags(DefaultTags);
+    ActivationBlockedTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 }
 
 void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

@@ -21,6 +21,10 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     EItemType ItemType;             
 
+    // 시작위치에서의 offset
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FVector    StartOffset; 
+
     // 발사 방향과 속도
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FVector    LaunchVelocity;      
