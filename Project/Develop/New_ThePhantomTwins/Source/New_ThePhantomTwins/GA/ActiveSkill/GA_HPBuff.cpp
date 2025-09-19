@@ -9,7 +9,10 @@ UGA_HPBuff::UGA_HPBuff()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
-	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_HPBuff);
+
+    FGameplayTagContainer DefaultTags;
+    DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_HPBuff);
+    SetAssetTags(DefaultTags);
 }
 
 void UGA_HPBuff::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

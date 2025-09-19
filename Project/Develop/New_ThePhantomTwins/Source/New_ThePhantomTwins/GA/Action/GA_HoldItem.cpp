@@ -14,7 +14,10 @@ UGA_HoldItem::UGA_HoldItem()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
-    AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_HoldItem);
+    FGameplayTagContainer DefaultTags;
+    DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_HoldItem);
+    SetAssetTags(DefaultTags);
+   
 }
 
 void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -53,7 +56,7 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
     if (ChoiceItemType == EItemType::EMP || ChoiceItemType == EItemType::NoiseBomb || ChoiceItemType == EItemType::Key)
     {
         // 투척 아이템인 경우 스폰 및 부착
-        HeldItemComp->SpawnAndAttachHeldItem(ChoiceItemType);
+       HeldItemComp->SpawnAndAttachHeldItem(ChoiceItemType);
 
         FGameplayTag InputTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_AimItem;
         ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));

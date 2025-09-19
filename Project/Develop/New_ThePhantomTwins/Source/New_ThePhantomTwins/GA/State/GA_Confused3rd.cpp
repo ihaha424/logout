@@ -12,7 +12,10 @@
 UGA_Confused3rd::UGA_Confused3rd()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
+
+	FGameplayTagContainer DefaultTags;
+	DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
+	SetAssetTags(DefaultTags);
 }
 
 void UGA_Confused3rd::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

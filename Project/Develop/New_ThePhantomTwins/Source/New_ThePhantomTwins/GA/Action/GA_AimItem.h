@@ -21,7 +21,8 @@ public:
 	void UpdateParabola();
 	void EndAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-
+	UFUNCTION()
+	void OnMontageInterrupted();
 	// ≈∏¿Ã∏”
 	FTimerHandle UpdateTimerHandle;
 

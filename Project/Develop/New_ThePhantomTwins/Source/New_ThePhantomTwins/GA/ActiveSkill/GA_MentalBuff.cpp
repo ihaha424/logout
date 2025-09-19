@@ -9,7 +9,10 @@ UGA_MentalBuff::UGA_MentalBuff()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor; 
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
-	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalBuff);
+
+    FGameplayTagContainer DefaultTags;
+    DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalBuff);
+    SetAssetTags(DefaultTags);
 }
 
 void UGA_MentalBuff::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

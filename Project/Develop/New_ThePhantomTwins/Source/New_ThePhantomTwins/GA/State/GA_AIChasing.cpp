@@ -13,7 +13,10 @@ UGA_AIChasing::UGA_AIChasing()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
-	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIChasing);
+
+	FGameplayTagContainer DefaultTags;
+	DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIChasing);
+	SetAssetTags(DefaultTags);
 }
 
 void UGA_AIChasing::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
