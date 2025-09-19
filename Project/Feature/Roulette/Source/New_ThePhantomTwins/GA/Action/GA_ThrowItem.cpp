@@ -5,7 +5,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Player/PlayerCharacter.h"
+#include "Player/PS_Player.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Camera/CameraComponent.h"
 #include "Log/TPTLog.h"
 
 UGA_ThrowItem::UGA_ThrowItem()
@@ -36,24 +38,30 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 {
 	if (!NoiseBombClass || !EMPClass)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Required classes (NoiseBombClass or EMPClass) are not set!"));
+		TPT_LOG(GALog, Warning, TEXT("Required classes (NoiseBombClass or EMPClass) are not set!"));
 		return;
 	}
 
 	AActor* OwnerActor = GetOwningActorFromActorInfo();
 	if (!OwnerActor)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UGA_ThrowItem: No owning actor."));
+		TPT_LOG(GALog, Warning, TEXT("UGA_ThrowItem: No owning actor."));
 		return;
 	}
 
-	FVector SpawnLocation = GetRightHandSocketLocation();
+	// FThrowItemDT 통해 던질 아이템 정보 가져오기
+	FThrowItemDT* ThrowItemData = GetThrowItemData(ItemType);
+
+	FVector SpawnLocation = GetRightHandSocketLocation() + ThrowItemData->StartOffset;
 	if (SpawnLocation.IsZero())
 	{
 		SpawnLocation = OwnerActor->GetActorLocation();
 	}
 
+	// 아이템을 던질 목표 지점을 계산
 	FVector TargetLocation = CalculateTargetLocation(SpawnLocation);
+
+	// 플레이어가 바라보고 있는 방향
 	FRotator SpawnRotation = GetThrowRotation(SpawnLocation, TargetLocation);
 
 	FActorSpawnParameters SpawnParams;
@@ -109,7 +117,7 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 		AThrowNoiseBomb* ThrowActor = World->SpawnActor<AThrowNoiseBomb>(NoiseBombClass, SpawnLocation, SpawnRotation, SpawnParams);
 		if (!SetupProjectile(ThrowActor))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Failed to spawn or setup NoiseBomb actor."));
+			TPT_LOG(GALog, Warning, TEXT("Failed to spawn or setup NoiseBomb actor."));
 		}
 		break;
 	}
@@ -118,7 +126,7 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 		AThrowEMP* ThrowActor = World->SpawnActor<AThrowEMP>(EMPClass, SpawnLocation, SpawnRotation, SpawnParams);
 		if (!SetupProjectile(ThrowActor))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Failed to spawn or setup EMP actor."));
+			TPT_LOG(GALog, Warning, TEXT("Failed to spawn or setup EMP actor."));
 		}
 		break;
 	}
@@ -134,13 +142,44 @@ FVector UGA_ThrowItem::CalculateTargetLocation(const FVector& StartLocation) con
 		return StartLocation + FVector::ForwardVector * ThrowDistance;
 
 	FVector ViewDir = FVector::ZeroVector;
-	APawn* Pawn = Cast<APawn>(OwnerActor);
-	if (Pawn && Pawn->GetController())
+
+	// OwnerActor가 PlayerState인 경우 Pawn 가져오기
+	APS_Player* PlayerState = Cast<APS_Player>(OwnerActor);
+	if (PlayerState)
 	{
-		FRotator ControlRot = Pawn->GetController()->GetControlRotation();
-		ViewDir = ControlRot.Vector();
+		APawn* Pawn = PlayerState->GetPawn();
+		if (Pawn)
+		{
+			// PlayerCharacter로 캐스트해서 카메라 찾기
+			const APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(Pawn);
+			if (PlayerChar)
+			{
+				// 카메라 컴포넌트 찾기
+				UCameraComponent* CameraComp = PlayerChar->FindComponentByClass<UCameraComponent>();
+				if (CameraComp)
+				{
+					// 카메라가 바라보는 방향 벡터 가져오기
+					ViewDir = CameraComp->GetForwardVector();
+				}
+			}
+		}
 	}
 
+	// 카메라를 못 찾았으면 컨트롤러 회전 사용 (기존 방식)
+	if (ViewDir.IsNearlyZero())
+	{
+		if (PlayerState)
+		{
+			APawn* Pawn = PlayerState->GetPawn();
+			if (Pawn && Pawn->GetController())
+			{
+				FRotator ControlRot = Pawn->GetController()->GetControlRotation();
+				ViewDir = ControlRot.Vector();
+			}
+		}
+	}
+
+	// 그것도 안 되면 액터 Forward 방향
 	if (ViewDir.IsNearlyZero())
 	{
 		ViewDir = OwnerActor->GetActorForwardVector();
@@ -171,7 +210,39 @@ FVector UGA_ThrowItem::GetRightHandSocketLocation() const
 
 FRotator UGA_ThrowItem::GetThrowRotation(const FVector& StartLocation, const FVector& TargetLocation) const
 {
-	return UKismetMathLibrary::FindLookAtRotation(StartLocation, TargetLocation);
+	AActor* OwnerActor = GetOwningActorFromActorInfo();
+	if (!OwnerActor)
+		return FRotator::ZeroRotator;
+
+	// OwnerActor가 PlayerState인 경우 Pawn 가져오기
+	APS_Player* PlayerState = Cast<APS_Player>(OwnerActor);
+
+	if (PlayerState)
+	{
+		APawn* Pawn = PlayerState->GetPawn();
+		if (Pawn)
+		{
+			const APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(Pawn);
+			if (PlayerChar)
+			{
+				UCameraComponent* CameraComp = PlayerChar->FindComponentByClass<UCameraComponent>();
+				if (CameraComp)
+				{
+					// 카메라의 회전값 반환
+					return CameraComp->GetComponentRotation();
+				}
+			}
+
+			// 카메라를 못 찾았으면 컨트롤러 회전 사용
+			if (Pawn->GetController())
+			{
+				return Pawn->GetController()->GetControlRotation();
+			}
+		}
+	}
+
+	// 컨트롤러가 없으면 액터가 바라보는 방향으로 기본 반환
+	return OwnerActor->GetActorRotation();
 }
 
 void UGA_ThrowItem::InitializeProjectileMovement(UProjectileMovementComponent* ProjectileMovementComponent, const FVector& LaunchVelocity, const FRotator& SpawnRotation) const
@@ -182,4 +253,28 @@ void UGA_ThrowItem::InitializeProjectileMovement(UProjectileMovementComponent* P
 	ProjectileMovementComponent->SetActive(true);
 	ProjectileMovementComponent->Activate(true);
 	ProjectileMovementComponent->UpdateComponentVelocity();
+}
+
+FThrowItemDT* UGA_ThrowItem::GetThrowItemData(EItemType ItemType) const
+{
+	if (!ThrowItemDT) return nullptr;
+
+	// Enum 값 → FName으로 변환 (DataTable RowName과 맞춰야 함)
+	FName RowName = NAME_None;
+
+	switch (ItemType)
+	{
+	case EItemType::NoiseBomb:
+		RowName = FName(TEXT("NoiseBomb"));
+		break;
+	case EItemType::EMP:
+		RowName = FName(TEXT("EMP"));
+		break;
+	default:
+		return nullptr;
+	}
+
+	// DataTable에서 row 찾기
+	static const FString ContextString(TEXT("UGA_ThrowItem::GetThrowItemData"));
+	return ThrowItemDT->FindRow<FThrowItemDT>(RowName, ContextString, true);
 }

@@ -25,6 +25,10 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FVector    StartOffset; 
 
+    // 직선 거리
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float   ThrowDistance;
+
     // 발사 방향과 속도
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FVector    LaunchVelocity;      
