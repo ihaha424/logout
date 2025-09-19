@@ -10,11 +10,13 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"
+#include "Camera/CameraComponent.h"
 #include "Components/MeshComponent.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
 #include "Components/PrimitiveComponent.h"
 #include "Engine/OverlapResult.h"
+#include "Player/PlayerCharacter.h"
 
 UGA_SceneAura::UGA_SceneAura()
 {
@@ -54,21 +56,10 @@ void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
     ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_UsingOutLine).AddUObject(this, &ThisClass::OnSceneAuraTagChanged);
 
     OwnerActor = GetAvatarActorFromActorInfo();
-	NULLCHECK_RETURN_LOG(OwnerActor, GALog, Warning, )
+	NULLCHECK_RETURN_LOG(OwnerActor, GALog, Warning, );
 
-
-    // 나에게서는 투영 안되게..
-    // 문제는 이렇게 하면 나도 적용됨.. 벽 뒤에 가면 ㅠ
-    TArray<UMeshComponent*> Meshes;
-    OwnerActor->GetComponents<UMeshComponent>(Meshes);
-
-    for (UMeshComponent* Mesh : Meshes)
-    {
-        if (!Mesh) continue;
-
-        Mesh->SetCustomDepthStencilValue(0);
-        Mesh->SetRenderCustomDepth(true);
-    }
+	// 아우라 효과를 자기 자신에게도 적용 (초기설정)
+	ApplyAuraToTarget(OwnerActor);
 
     // 첫 탐지 실행
     ScanTargets();
@@ -86,6 +77,17 @@ void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 void UGA_SceneAura::ScanTargets()
 {
     NULLCHECK_RETURN_LOG(OwnerActor, GALog, Warning, )
+
+    if (IsCameraBlocked())
+    {
+        RemoveAuraFromTarget(OwnerActor);
+        TPT_LOG(GALog, Log, TEXT("IsCameraBlocked"));
+    }
+    else
+    {
+        ApplyAuraToTarget(OwnerActor);
+        TPT_LOG(GALog, Log, TEXT("IsCameraNonBlocked"));
+    }
 
     FVector Origin = OwnerActor->GetActorLocation();
     TSet<TWeakObjectPtr<AActor>> NewTargets;
@@ -164,8 +166,6 @@ void UGA_SceneAura::ApplyAuraToTarget(AActor* Target)
 	NULLCHECK_RETURN_LOG(Target, GALog, Warning, );
 	NULLCHECK_RETURN_LOG(OwnerActor, GALog, Warning, );
 
-	if (Target == OwnerActor) return;
-
     TArray<UMeshComponent*> Meshes;
     Target->GetComponents<UMeshComponent>(Meshes);
 
@@ -173,15 +173,9 @@ void UGA_SceneAura::ApplyAuraToTarget(AActor* Target)
     {
         if (!Mesh) continue;
 
-        Mesh->SetCustomDepthStencilValue(1);
         Mesh->SetRenderCustomDepth(true);
+        Mesh->SetCustomDepthStencilValue(1);
     }
-
-	/*if (UMeshComponent* Mesh = Target->FindComponentByClass<UMeshComponent>())
-	{
-		Mesh->SetCustomDepthStencilValue(1);
-		Mesh->SetRenderCustomDepth(true);
-	}*/
 }
 
 void UGA_SceneAura::RemoveAuraFromTarget(AActor* Target)
@@ -197,11 +191,6 @@ void UGA_SceneAura::RemoveAuraFromTarget(AActor* Target)
 
         Mesh->SetRenderCustomDepth(false);
     }
-
-	//if (UMeshComponent* Mesh = Target->FindComponentByClass<UMeshComponent>())
-	//{
-	//	Mesh->SetRenderCustomDepth(false);
-	//}
 }
 
 bool UGA_SceneAura::IsValidAuraTarget(AActor* Target) const
@@ -222,6 +211,39 @@ bool UGA_SceneAura::IsValidAuraTarget(AActor* Target) const
 	);
 
 	return Target != Hit.GetActor() ? true : false;
+}
+
+bool UGA_SceneAura::IsCameraBlocked()
+{
+    APlayerCharacter* Character = Cast<APlayerCharacter>(OwnerActor);
+    NULLCHECK_RETURN_LOG(Character, GALog, Warning, true);
+
+    FVector Start = Character->GetCamera()->GetComponentLocation();
+    FVector End = OwnerActor->GetActorLocation();
+
+    FHitResult Hit;
+    FCollisionQueryParams Params;
+
+    float SphereRadius = 40.0f;
+    FCollisionShape TempSphere = FCollisionShape::MakeSphere(SphereRadius);
+
+    bool bHit = GetWorld()->SweepSingleByChannel(
+        Hit,
+        Start,
+        End,
+        FQuat::Identity,
+		ECC_Visibility,
+		TempSphere,
+        Params
+    );
+
+	// 맞았는데 자신인 경우에만 false 반환
+    if (bHit && Hit.GetActor() == Character)
+    {
+        return false;
+    }
+
+    return true;
 }
 
 void UGA_SceneAura::OnSceneAuraTagChanged(const FGameplayTag InputTag, int32 TagCount)
