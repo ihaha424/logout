@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/RepLayout.h"
 #include "Player/PlayerCharacter.h"
+#include "Objects/FThrowItemDT.h"
 
 UGA_AimItem::UGA_AimItem()
 {
@@ -28,6 +29,29 @@ void UGA_AimItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
 	PlayHoldingItemMontageTask->ReadyForActivation();
     PlayHoldingItemMontageTask->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageInterrupted);
     // 중간에 방해를 받으면 다시 재생되도록 하기. 커스텀할수있다고는 하다...
+
+    EItemType ItemType = EItemType::None;
+    if (TriggerEventData)
+    {
+        ItemType = static_cast<EItemType>((int32)TriggerEventData->EventMagnitude);
+    }
+
+    NULLCHECK_CODE_RETURN_LOG(ThrowItemDataTable, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, false, false); , )
+
+	if(ItemType == EItemType::NoiseBomb)
+    {
+        if (ThrowItemDataTable)
+        {
+            Row = ThrowItemDataTable->FindRow<FThrowItemDT>(TEXT("Noise Bomb"), TEXT("Load DT"));
+        }
+    }
+    else if (ItemType == EItemType::EMP)
+    {
+        if (ThrowItemDataTable)
+        {
+            Row = ThrowItemDataTable->FindRow<FThrowItemDT>(TEXT("EMP"), TEXT("Load DT"));
+        }
+    }
 
     OwnerActor = ActorInfo->AvatarActor.Get();
     NULLCHECK_CODE_RETURN_LOG(OwnerActor, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, false, false);, )
@@ -58,6 +82,7 @@ void UGA_AimItem::UpdateParabola()
     NULLCHECK_CODE_RETURN_LOG(OwnerMeshComp, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);, );
     NULLCHECK_CODE_RETURN_LOG(SplineStaticMesh, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);, );
     NULLCHECK_CODE_RETURN_LOG(SplineMaterial, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);, );
+    NULLCHECK_CODE_RETURN_LOG(Row, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);, );
 
 	APlayerCharacter* Character = Cast<APlayerCharacter>(OwnerActor);
     NULLCHECK_CODE_RETURN_LOG(Character, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false); , );
@@ -79,10 +104,10 @@ void UGA_AimItem::UpdateParabola()
 
 		// 포물선 설정
 		FPredictProjectilePathParams Params;
-		Params.StartLocation = StartLocation + FVector{ 0, -20.f, 0 };                           // 시작 위치
+		Params.StartLocation = StartLocation + Row->LaunchVelocity;                           // 시작 위치
 		Params.LaunchVelocity = ForwardVector * 1000.f;                 // 발사 방향과 속도
 		Params.bTraceWithCollision = true;                              // 충돌 체크
-		Params.ProjectileRadius = 5.f;                                  // 충돌 체크할 때 투사체 반경
+		Params.ProjectileRadius = Row->ProjectileRadius;                                  // 충돌 체크할 때 투사체 반경
 		Params.SimFrequency = 1000.f;		                                // 최대 시뮬레이션 시간
 		Params.MaxSimTime = 1.f;        	                            // 시뮬레이션 빈도 (몇 초 동안 궤적을 계산할지)
 		Params.TraceChannel = ECollisionChannel::ECC_WorldStatic;       // 충돌 검사용 채널

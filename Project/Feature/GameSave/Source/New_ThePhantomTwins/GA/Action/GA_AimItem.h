@@ -9,6 +9,7 @@
 class UAbilityTask_PlayMontageAndWait;
 class USplineComponent;
 class USplineMeshComponent;
+struct FThrowItemDT;
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UGA_AimItem : public UGameplayAbility
@@ -30,6 +31,11 @@ public:
 	TObjectPtr<UAnimMontage> HoldingItemMontage;
 	UPROPERTY()
 	UAbilityTask_PlayMontageAndWait* PlayHoldingItemMontageTask = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Data")
+	UDataTable* ThrowItemDataTable;
+
+	FThrowItemDT* Row = nullptr;
 
 	UPROPERTY()
 	USplineComponent* SplineComp = nullptr;
