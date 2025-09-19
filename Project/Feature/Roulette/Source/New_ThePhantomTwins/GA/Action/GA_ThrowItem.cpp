@@ -20,6 +20,7 @@ void UGA_ThrowItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
 	if (HasAuthority(&ActivationInfo))
 	{
 		EItemType ItemType = EItemType::None;
@@ -27,7 +28,6 @@ void UGA_ThrowItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 		{
 			ItemType = static_cast<EItemType>((int32)TriggerEventData->EventMagnitude);
 		}
-
 		SpawnThrowableItem(ItemType);
 	}
 
@@ -51,19 +51,59 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 
 	// FThrowItemDT 통해 던질 아이템 정보 가져오기
 	FThrowItemDT* ThrowItemData = GetThrowItemData(ItemType);
+	if (!ThrowItemData)
+	{
+		TPT_LOG(GALog, Warning, TEXT("ThrowItemData not found for ItemType"));
+		return;
+	}
 
 	FVector SpawnLocation = GetRightHandSocketLocation() + ThrowItemData->StartOffset;
 	if (SpawnLocation.IsZero())
 	{
-		SpawnLocation = OwnerActor->GetActorLocation();
+		SpawnLocation = OwnerActor->GetActorLocation() + ThrowItemData->StartOffset;
 	}
 
-	// 아이템을 던질 목표 지점을 계산
-	FVector TargetLocation = CalculateTargetLocation(ThrowItemData, SpawnLocation);
+	// 데이터 테이블에 LaunchVelocity가 설정되어 있는지 확인
+	bool bUseDataTableVelocity = !ThrowItemData->LaunchVelocity.IsZero();
+	FVector TargetLocation;
+	FVector LaunchVelocity;
+	bool bHaveVelocity = false;
 
-	// 플레이어가 바라보고 있는 방향
+	if (bUseDataTableVelocity)
+	{
+		// 데이터 테이블의 LaunchVelocity 사용
+		LaunchVelocity = ThrowItemData->LaunchVelocity;
+		bHaveVelocity = true;
+		TPT_LOG(GALog, Log, TEXT("Using DataTable LaunchVelocity: %s"), *LaunchVelocity.ToString());
+	}
+	else
+	{
+		// 목표 지점 계산 후 궤적 계산
+		TargetLocation = CalculateTargetLocation(ThrowItemData, SpawnLocation);
+
+		UWorld* World = GetWorld();
+		if (World)
+		{
+			bHaveVelocity = UGameplayStatics::SuggestProjectileVelocity_CustomArc(
+				World,
+				LaunchVelocity,
+				SpawnLocation,
+				TargetLocation,
+				ThrowItemData->OverrideGravityZ, // 커스텀 중력 적용
+				Arc
+			);
+
+			if (bHaveVelocity)
+			{
+				TPT_LOG(GALog, Log, TEXT("Calculated LaunchVelocity: %s"), *LaunchVelocity.ToString());
+			}
+		}
+	}
+
+	// 회전값 계산
 	FRotator SpawnRotation = GetThrowRotation(SpawnLocation, TargetLocation);
 
+	// 스폰 파라미터 설정
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = OwnerActor;
 	SpawnParams.Instigator = Cast<APawn>(OwnerActor);
@@ -72,24 +112,11 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 	UWorld* World = GetWorld();
 	if (!World) return;
 
-	FVector LaunchVelocity;
-	bool bHaveVelocity = UGameplayStatics::SuggestProjectileVelocity_CustomArc(
-		World,
-		LaunchVelocity,
-		SpawnLocation,
-		TargetLocation,
-		0.0f,
-		Arc
-	);
-
-	auto SetupProjectile = [&](AActor* ThrowActor)
+	auto SetupProjectile = [&](AActor* ThrowActor) -> bool
 		{
 			if (!ThrowActor) return false;
 
-			//TPT_LOG(GALog, Warning, TEXT("UGA_ThrowItem :: %s 생성"), *ThrowActor->GetName());
-
 			UProjectileMovementComponent* ProjectileMovementComponent = nullptr;
-
 			if (ItemType == EItemType::NoiseBomb)
 			{
 				AThrowNoiseBomb* NoiseBomb = Cast<AThrowNoiseBomb>(ThrowActor);
@@ -103,25 +130,26 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 
 			if (ProjectileMovementComponent)
 			{
+				// 데이터 테이블의 설정 적용
+				ApplyThrowItemDataSettings(ProjectileMovementComponent, ThrowItemData);
+
 				FVector InitialVelocity;
 				if (bHaveVelocity)
 				{
-					InitialVelocity = LaunchVelocity;  // 궤적 계산된 실제 속도
+					InitialVelocity = LaunchVelocity;
 				}
 				else
 				{
 					InitialVelocity = SpawnRotation.Vector() * ProjectileMovementComponent->InitialSpeed;
-					// SpawnRotation 방향 벡터에 기본 속도를 곱한 값
 				}
 
 				InitializeProjectileMovement(ProjectileMovementComponent, InitialVelocity, SpawnRotation);
-
 				return true;
 			}
-
 			return false;
 		};
 
+	// 투사체 스폰
 	switch (ItemType)
 	{
 	case EItemType::NoiseBomb:
@@ -218,7 +246,6 @@ FVector UGA_ThrowItem::GetRightHandSocketLocation() const
 			}
 		}
 	}
-
 	return FVector::ZeroVector;
 }
 
@@ -230,7 +257,6 @@ FRotator UGA_ThrowItem::GetThrowRotation(const FVector& StartLocation, const FVe
 
 	// OwnerActor가 PlayerState인 경우 Pawn 가져오기
 	APS_Player* PlayerState = Cast<APS_Player>(OwnerActor);
-
 	if (PlayerState)
 	{
 		APawn* Pawn = PlayerState->GetPawn();
@@ -269,13 +295,30 @@ void UGA_ThrowItem::InitializeProjectileMovement(UProjectileMovementComponent* P
 	ProjectileMovementComponent->UpdateComponentVelocity();
 }
 
+void UGA_ThrowItem::ApplyThrowItemDataSettings(UProjectileMovementComponent* ProjectileComp, const FThrowItemDT* ThrowItemData) const
+{
+	if (!ProjectileComp || !ThrowItemData) return;
+
+	// 커스텀 중력 적용
+	if (ThrowItemData->OverrideGravityZ != 0.0f)
+	{
+		// 기본 중력 대비 비율로 설정 (기본 중력이 -980이므로)
+		float GravityScale = FMath::Abs(ThrowItemData->OverrideGravityZ) / 980.0f;
+		ProjectileComp->ProjectileGravityScale = GravityScale;
+
+		TPT_LOG(GALog, Log, TEXT("Applied custom gravity: %f (scale: %f)"), ThrowItemData->OverrideGravityZ, GravityScale);
+	}
+
+	// 추가적인 ProjectileMovementComponent 설정들을 여기서 할 수 있습니다
+	// 예: 바운스 설정, 마찰력 등 (데이터 테이블에 추가 필드가 있다면)
+}
+
 FThrowItemDT* UGA_ThrowItem::GetThrowItemData(EItemType ItemType) const
 {
 	if (!ThrowItemDT) return nullptr;
 
 	// Enum 값 → FName으로 변환 (DataTable RowName과 맞춰야 함)
 	FName RowName = NAME_None;
-
 	switch (ItemType)
 	{
 	case EItemType::NoiseBomb:
