@@ -38,6 +38,9 @@ public:
 	UPROPERTY()
 	AActor* OwnerActor = nullptr;
 
+	FVector StartLocation;
+	FVector ForwardVector;
+
 	UPROPERTY()
 	TArray<USplineMeshComponent*> SplineMeshes;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spline")
