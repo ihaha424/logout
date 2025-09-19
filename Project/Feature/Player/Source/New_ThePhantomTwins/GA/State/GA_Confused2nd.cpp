@@ -12,7 +12,10 @@
 UGA_Confused2nd::UGA_Confused2nd()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
+
+	FGameplayTagContainer DefaultTags;
+	DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
+	SetAssetTags(DefaultTags);
 }
 
 void UGA_Confused2nd::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

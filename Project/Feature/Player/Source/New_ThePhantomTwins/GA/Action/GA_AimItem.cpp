@@ -14,16 +14,18 @@ UGA_AimItem::UGA_AimItem()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
-	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AimItem);
+	FGameplayTagContainer DefaultTags;
+    DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AimItem);
+    SetAssetTags(DefaultTags);
 }
 
 void UGA_AimItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                   const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	//TPT_LOG(GALog, Error, TEXT(""));
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	PlayHoldingItemMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("HoldingItemMontage"), HoldingItemMontage, 1.0f);
 	PlayHoldingItemMontageTask->ReadyForActivation();
+    PlayHoldingItemMontageTask->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageInterrupted);
     // 중간에 방해를 받으면 다시 재생되도록 하기. 커스텀할수있다고는 하다...
 
     OwnerActor = ActorInfo->AvatarActor.Get();
@@ -140,7 +142,7 @@ void UGA_AimItem::EndAbility(const FGameplayAbilitySpecHandle Handle,
 {
 	GetWorld()->GetTimerManager().ClearTimer(UpdateTimerHandle);
 
-    NULLCHECK_CODE_RETURN_LOG(SplineComp, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false); , );
+    NULLCHECK_RETURN_LOG(SplineComp, GALog, Warning, );
 
 	SplineComp->ClearSplinePoints(true);
 
@@ -164,4 +166,9 @@ void UGA_AimItem::EndAbility(const FGameplayAbilitySpecHandle Handle,
 	}
 
     Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UGA_AimItem::OnMontageInterrupted()
+{
+    PlayHoldingItemMontageTask->ReadyForActivation();
 }

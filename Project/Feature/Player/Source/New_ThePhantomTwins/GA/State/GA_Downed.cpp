@@ -22,7 +22,10 @@ UGA_Downed::UGA_Downed()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
-	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
+
+	FGameplayTagContainer DefaultTags;
+	DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
+	SetAssetTags(DefaultTags);
 }
 
 void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

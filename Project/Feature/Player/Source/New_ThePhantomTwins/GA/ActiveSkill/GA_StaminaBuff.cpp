@@ -9,7 +9,10 @@ UGA_StaminaBuff::UGA_StaminaBuff()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor; 
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
-	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_StaminaBuff);
+
+    FGameplayTagContainer DefaultTags;
+    DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_StaminaBuff);
+    SetAssetTags(DefaultTags);
 }
 
 void UGA_StaminaBuff::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

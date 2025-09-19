@@ -10,7 +10,10 @@ UGA_DrinkPotion::UGA_DrinkPotion()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
-	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_DrinkPotion);
+
+	FGameplayTagContainer DefaultTags;
+	DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_DrinkPotion);
+	SetAssetTags(DefaultTags);
 }
 
 void UGA_DrinkPotion::ActivateAbility(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,const FGameplayEventData* TriggerEventData)

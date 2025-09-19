@@ -12,7 +12,10 @@ UGA_AIHitPlayer::UGA_AIHitPlayer()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
-	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit);
+
+	FGameplayTagContainer DefaultTags;
+	DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit);
+	SetAssetTags(DefaultTags);
 }
 
 void UGA_AIHitPlayer::ActivateAbility(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,const FGameplayEventData* TriggerEventData)
