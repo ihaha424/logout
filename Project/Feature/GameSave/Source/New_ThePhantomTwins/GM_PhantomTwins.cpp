@@ -9,6 +9,7 @@
 
 
 #include "Log/TPTLog.h"
+#include "Player/PC_Player.h"
 
 void AGM_PhantomTwins::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
 {
@@ -59,38 +60,26 @@ void AGM_PhantomTwins::NotifyPlayerDied(bool isDead)
 
     if (DeadPlayerCount >= TotalPlayerCount)
     {
-        RestartLevelWithDelay(3.0f);
+        ShowGameOverUI();
     }
 }
 
-void AGM_PhantomTwins::S2A_ShowGameOverUI_Implementation()
+void AGM_PhantomTwins::ShowGameOverUI()
 {
-    for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-    {
-        if (APlayerController* PC = It->Get())
-        {
-            if (PC->IsLocalController())
-            {
-                if (GameOverUI)
-                {
-                    GameOverUI->AddToViewport();
-                }
-            }
-        }
-    }
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    APC_Player* PlayerPC = Cast< APC_Player>(PC);
+
+    PlayerPC->SetWidget(TEXT("GameOverUI"), true, EMessageTargetType::Multicast);
+    PlayerPC->bShowMouseCursor = true;
 }
 
-void AGM_PhantomTwins::RestartLevelWithDelay(float Delay)
+void AGM_PhantomTwins::GoToHubMapWithDelay(float Delay)
 {
-    S2A_ShowGameOverUI();
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    APC_Player* PlayerPC = Cast< APC_Player>(PC);
 
-    FTimerHandle TimerHandle;
-    GetWorldTimerManager().SetTimer(TimerHandle, [this]()
-        {
-            FString MapName = GetWorld()->GetOutermost()->GetName();
-            FString LevelPathWithListen = MapName + TEXT("?listen");
-            GetWorld()->ServerTravel(LevelPathWithListen, false);
-        }, Delay, false);
+    PlayerPC->SetWidget(TEXT("LoadingUI"), true, EMessageTargetType::Multicast);
+    PlayerPC->bShowMouseCursor = false;
 }
 
 void AGM_PhantomTwins::EndPlay(const EEndPlayReason::Type EndPlayReason)

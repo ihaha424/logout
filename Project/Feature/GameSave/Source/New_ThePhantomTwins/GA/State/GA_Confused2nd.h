@@ -21,7 +21,12 @@ public:
 	void OffSound(FGameplayTag InputTag, int32 Count);
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SFX")
-	USoundBase* SoundCue;
+	USoundBase* SoundCue1st;
 	UPROPERTY()
-	UAudioComponent* ActiveAudioComponent = nullptr;
+	UAudioComponent* ActiveAudioComponent1st = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SFX")
+	USoundBase* SoundCue2nd;
+	UPROPERTY()
+	UAudioComponent* ActiveAudioComponent2nd = nullptr;
 };

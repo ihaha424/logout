@@ -64,4 +64,3 @@ void APC_Player::C2S_SetOwnerActor_Implementation(APlayerController* thisPC, AAc
 	if (HasAuthority())
 		Actor->SetOwner(thisPC);
 }
-

@@ -20,13 +20,16 @@ public:
     virtual void BeginPlay() override;
     virtual void PostLogin(APlayerController* NewPlayer) override;
 	void NotifyPlayerDied(bool isDead);
-	void RestartLevelWithDelay(float Delay);
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     //~ End AGameModeBase
 
 
     //~ Begin LevelTravel
+    UFUNCTION(BlueprintCallable)
 	void SeverToLevel(const FName LevelName, bool bAbsolute);
+    UFUNCTION(BlueprintCallable)
+    void GoToHubMapWithDelay(float Delay);
+
     //~ End LevelTravel
 
     //~ Begin BossSpawn
@@ -41,12 +44,8 @@ public:
     //~ End BossSpawn
 
     // ~ Begin ReStart
-    UFUNCTION(NetMulticast, Reliable)
-    void S2A_ShowGameOverUI();
-    void S2A_ShowGameOverUI_Implementation();
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameOverUI")
-    TObjectPtr<UUserWidget> GameOverUI;
+    UFUNCTION()
+    void ShowGameOverUI();
 
     int32 TotalPlayerCount = 0;
     int32 DeadPlayerCount = 0;
@@ -60,6 +59,4 @@ protected:
     void OnTimeLimitReached();
     void RequestBossSpawn();
     //~ End BossSpawn
-
-
 };

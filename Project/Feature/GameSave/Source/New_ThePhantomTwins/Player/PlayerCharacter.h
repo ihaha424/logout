@@ -103,6 +103,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
 	TObjectPtr<class UHeldItemComponent> HeldItemComponent;
 
+	// 재시작용 위젯
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameOverUI")
+	TSubclassOf<UUserWidget> GameOverUIClass;
+	// 로딩용 위젯
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LoadingUI")
+	TSubclassOf<UUserWidget> LoadingUIClass;
+
 public:
 	// 위젯 설정
 	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);
