@@ -5,21 +5,40 @@
 #include "Net/UnrealNetwork.h"
 #include "SaveGame/TPTSaveGameHelperLibrary.h"
 
-void AGS_HubMap::SetIdentifyCharacterData(ECharacterType ChractorType, bool bIsHost)
+void AGS_HubMap::SetIdentifyCharacterTypeData(ECharacterType CharacterType, bool bIsHost)
 {
     if (bIsHost)
     {
-        if (IdentifyCharacterData.Host == ChractorType)
+        if (IdentifyCharacterData.Host == CharacterType)
             IdentifyCharacterData.Host = ECharacterType::None;
-        else if (ChractorType == ECharacterType::None || IdentifyCharacterData.Client != ChractorType)
-            IdentifyCharacterData.Host = ChractorType;
+        else if (CharacterType == ECharacterType::None || IdentifyCharacterData.Client != CharacterType)
+            IdentifyCharacterData.Host = CharacterType;
     }
     else
     {
-        if (IdentifyCharacterData.Client == ChractorType)
+        if (IdentifyCharacterData.Client == CharacterType)
             IdentifyCharacterData.Client = ECharacterType::None;
-        else if (ChractorType == ECharacterType::None || IdentifyCharacterData.Host != ChractorType)
-            IdentifyCharacterData.Client = ChractorType;
+        else if (CharacterType == ECharacterType::None || IdentifyCharacterData.Host != CharacterType)
+            IdentifyCharacterData.Client = CharacterType;
+    }
+    OnRep_IdentifyCharacterData();
+}
+
+void AGS_HubMap::SetIdentifyCharacterSkillData(ESkillType CharacterSkill, bool bIsHost)
+{
+    if (bIsHost)
+    {
+        if (IdentifyCharacterData.HostSkill == CharacterSkill)
+            IdentifyCharacterData.HostSkill = ESkillType::NoneSkill;
+        else
+			IdentifyCharacterData.HostSkill = CharacterSkill;
+    }
+    else
+    {
+        if (IdentifyCharacterData.ClientSkill == CharacterSkill)
+            IdentifyCharacterData.ClientSkill = ESkillType::NoneSkill;
+        else
+			IdentifyCharacterData.ClientSkill = CharacterSkill;
     }
     OnRep_IdentifyCharacterData();
 }

@@ -6,6 +6,7 @@
 #include "GameFramework/GameStateBase.h"
 #include "Data/CharacterType.h"
 #include "Data/MapType.h"
+#include "Data/DT_Skill.h"
 #include "GS_HubMap.generated.h"
 
 
@@ -45,7 +46,8 @@ public:
 	// ~End HubMap
 
 	// ~Begin Lobby(Character Seletect)
-	void SetIdentifyCharacterData(ECharacterType ChractorType, bool bIsHost);
+	void SetIdentifyCharacterTypeData(ECharacterType CharacterType, bool bIsHost);
+	void SetIdentifyCharacterSkillData(ESkillType CharacterSkill, bool bIsHost);
 	UPROPERTY(BlueprintAssignable, Category = "HubMap | Character Seletect")
 	FSetIdentifyCharacterData OnSetIdentifyCharacterData;
 	// ~End Lobby(Character Seletect)
