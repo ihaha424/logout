@@ -102,40 +102,59 @@ EItemType UInventoryComponent::ChoiceItem(int32 SlotIndex)
         return EItemType::None;
     }
 
-    if (PlayerHUDWidget)
-    {
-        if (IsSlotEmpty(InventorySlots[SlotIndex])) return EItemType::None;
-
-        if (selectedNum == -1 || selectedNum != SlotIndex)
+    auto ClearSelection = [this](int32 Index)
         {
-            if (selectedNum != -1)
+            if (Index != -1 && PlayerHUDWidget)
             {
-                PlayerHUDWidget->SetOutline(selectedNum, false);
-                PlayerHUDWidget->SetToolTips(false, InventorySlots[selectedNum].ItemType);
+                PlayerHUDWidget->SetOutline(Index, false);
+                PlayerHUDWidget->SetToolTips(false, InventorySlots[Index].ItemType);
             }
+        };
 
-            VisibleInventory();
+    auto HighlightSlot = [this](int32 Index, bool ShowToolTip)
+        {
+            if (!PlayerHUDWidget) return;
 
-            selectedNum = SlotIndex;
-            PlayerHUDWidget->SetOutline(SlotIndex, true);
-            PlayerHUDWidget->SetToolTips(true, InventorySlots[SlotIndex].ItemType);
+            PlayerHUDWidget->SetOutline(Index, true);
+            if (ShowToolTip)
+            {
+                PlayerHUDWidget->SetToolTips(true, InventorySlots[Index].ItemType);
+            }
 
             FTimerHandle TimerHandle;
             GetWorld()->GetTimerManager().SetTimer(
                 TimerHandle,
-                FTimerDelegate::CreateWeakLambda(this, [this, SlotIndex]()
+                FTimerDelegate::CreateWeakLambda(this, [this, Index]()
                     {
                         if (PlayerHUDWidget)
                         {
-                            PlayerHUDWidget->SetOutline(SlotIndex, false);
-                            PlayerHUDWidget->SetToolTips(false, InventorySlots[SlotIndex].ItemType);
+                            PlayerHUDWidget->SetOutline(Index, false);
+                            PlayerHUDWidget->SetToolTips(false, InventorySlots[Index].ItemType);
                         }
                     }),
                 3.0f,
                 false
             );
-        }
+        };
+
+    // 빈 슬롯 눌렀을 때
+    if (IsSlotEmpty(InventorySlots[SlotIndex]))
+    {
+        ClearSelection(selectedNum);
+        selectedNum = SlotIndex;
+        HighlightSlot(SlotIndex, false);
+        return EItemType::None;
     }
+
+    // 아이템 있는 슬롯 눌렀을 때
+    if (selectedNum == -1 || selectedNum != SlotIndex)
+    {
+        ClearSelection(selectedNum);
+        VisibleInventory();
+        selectedNum = SlotIndex;
+        HighlightSlot(SlotIndex, true);
+    }
+
     return InventorySlots[SlotIndex].ItemType;
 }
 
