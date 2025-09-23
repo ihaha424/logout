@@ -27,17 +27,27 @@ struct FSkillDataTableRow : public FTableRowBase
 
 public:
     FSkillDataTableRow()
-	    : SkillName()
+	    : SkillType(ESkillType::NoneSkill)
+		, SkillIcon(nullptr)
+		, SkillName()
 		, SkillDescription()
     {}
 
+    // 스킬 타입 (Enum)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    ESkillType SkillType;
+
     // 스킬이름
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FString SkillName;
+    FText SkillName;
+
+    // 스킬 아이콘
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    UTexture2D* SkillIcon;
 
     // 스킬설명
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    FString SkillDescription;
+    FText SkillDescription;
 };
 
 UCLASS()
