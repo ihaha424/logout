@@ -3,9 +3,13 @@
 
 #include "PhantomTwinsInstance.h"
 #include "Tags/TPTGameplayTags.h"
+#include "DialogManager/DialogManager.h"
 
 void UPhantomTwinsInstance::Init()
 {
 	Super::Init();
 	FTPTGameplayTags::Get();
+	DialogManager = NewObject<UDialogManager>(this);
+
+	DialogManager->Initialize(Initialize);
 }
