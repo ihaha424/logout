@@ -381,12 +381,29 @@ bool UInventoryComponent::CanAddToInventory(EItemType eItemType)
 {
     for (const FItemSlot& Slot : InventorySlots)
     {
+        // 슬롯이 비어있는가? 비어있으면 return true;
         if (IsSlotEmpty(Slot))
         {
-            return false;
+            return true;
         }
+
+        // 비어있지 않다면 eItemType과 같은 타입인가?
+        if (Slot.ItemType != eItemType)
+        {
+            // 다른 타입이라면 넘김
+            continue;
+        }
+
+        // 같은 타입이라면 eItemType의 최대 수량과 비교
+        if (Slot.ItemQuantity < GetMaxQuantity(eItemType))
+        {
+            return true;
+        }
+        // Slot.ItemQuantity >= GetMaxQuantity(eItemType)인 경우 continue로 다음 슬롯 체크
     }
-    return true;
+
+    // InventorySlots을 다 돌았는데도 들어갈 곳이 없다면 return false
+    return false;
 }
 
 // Helper Functions

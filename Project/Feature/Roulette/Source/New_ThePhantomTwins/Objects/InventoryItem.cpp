@@ -59,7 +59,7 @@ void AInventoryItem::SetWidgetVisible(const APawn* Interactor, bool bVisible, EI
 
     if (PS && PS->InventoryComp)
     {
-        bInventoryFull = PS->InventoryComp->CanAddToInventory(eItemType);
+        bInventoryFull = !(PS->InventoryComp->CanAddToInventory(eItemType));
     }
 
 
