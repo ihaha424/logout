@@ -6,6 +6,8 @@
 #include "Log/TPTLog.h"
 
 
+#include "Kismet/KismetSystemLibrary.h"
+
 bool UDialogDatabaseAsset::FindDialogData(TSubclassOf<UUserWidget> WidgetClass, int32 ID, FDialogDataTableBase& OutData) const
 {
     const FDialogDataById* PerWidget = Database.Find(WidgetClass);

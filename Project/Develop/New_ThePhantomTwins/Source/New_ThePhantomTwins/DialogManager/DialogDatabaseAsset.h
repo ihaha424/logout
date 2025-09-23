@@ -7,51 +7,6 @@
 #include "StructUtils/InstancedStruct.h"
 #include "DialogDatabaseAsset.generated.h"
 
-///**
-// * @brief : 커스텀 데이터용 베이스 UObject (위젯별로 자식 클래스를 파생해서 씀)
-// */
-//UCLASS(BlueprintType)
-//class UDialogPayloadBase : public UPrimaryDataAsset
-//{
-//    GENERATED_BODY()
-//public:
-//    // 공통 필드
-//};
-//
-//UCLASS(BlueprintType)
-//class UDialogPayloadBaseText : public UDialogPayloadBase
-//{
-//    GENERATED_BODY()
-//public:
-//    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-//    FText Text;
-//};
-//
-/////**
-//// * @brief : 개별 데이터(한 항목)
-//// */
-////USTRUCT(BlueprintType)
-////struct FDialogData
-////{
-////    GENERATED_BODY()
-////
-////    /**
-////     * @brief   : 위젯이 해석할 커스텀 데이터 (위젯별 파생 UObject 권장)
-////                : EditInlineNew + Instanced로 에디터에서 인라인 생성 가능
-////     */
-////    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialog")
-////    TSoftObjectPtr<UDialogPayloadBase> Data;
-////
-////    /**
-////     * @brief : 트리/DB 공통으로 쓸 정수형 ID
-////     */
-////    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialog")
-////    int32 ID = 0;
-////
-////    // Add SoundData
-////};
-
-
 USTRUCT(BlueprintType)
 struct FDialogDataTableBase :public FTableRowBase
 {
@@ -74,28 +29,6 @@ struct FDialogDataTableBase :public FTableRowBase
      */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialog")
     TArray<int32> Level;
-};
-
-
-USTRUCT(BlueprintType)
-struct FDialogDataTableTextTwo :public FDialogDataTableBase
-{
-    GENERATED_BODY()
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialog")
-    FText First;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialog")
-    FText Second;
-};
-
-USTRUCT(BlueprintType)
-struct FDialogDataTableText :public FDialogDataTableBase
-{
-    GENERATED_BODY()
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialog")
-    FText First;
 };
 
 // 애는 이제 데베안의 데이터
@@ -121,14 +54,6 @@ struct FDialogDataById
 };
 
 UCLASS(BlueprintType)
-class UDialogDataWrapper : public UObject
-{
-    GENERATED_BODY()
-public:
-    FDialogDataTableBase* Data;
-};
-
-UCLASS(BlueprintType)
 class UDialogDatabaseAsset : public UObject
 {
     GENERATED_BODY()
@@ -150,3 +75,6 @@ public:
 };
 
 //Helper에서 Widget타입에 따른 UI->UIMnaager에 등록하고 가져와서 1개만 쓰기
+
+// BlueprintPure -> const함수는 BlueprintPure=false 로 하지 않으면 자동으로 pure함수가 된다.
+// pure함수는 데이터가 참조 될때 마다 실행이 된다.
