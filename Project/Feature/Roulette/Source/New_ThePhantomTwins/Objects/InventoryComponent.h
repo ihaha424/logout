@@ -97,6 +97,7 @@ protected:
 private:
     int32 selectedNum = -1;
 
+    FTimerHandle ChoiceItemTimerHandle;
     FTimerHandle VisibleInventoryTimerHandle;
 
     // Server RPCs
@@ -130,4 +131,5 @@ private:
 
     bool CanUseKey();
     int32 GetMaxQuantity(EItemType ItemType);
+
 };

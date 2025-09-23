@@ -121,9 +121,8 @@ EItemType UInventoryComponent::ChoiceItem(int32 SlotIndex)
                 PlayerHUDWidget->SetToolTips(true, InventorySlots[Index].ItemType);
             }
 
-            FTimerHandle TimerHandle;
             GetWorld()->GetTimerManager().SetTimer(
-                TimerHandle,
+                ChoiceItemTimerHandle,
                 FTimerDelegate::CreateWeakLambda(this, [this, Index]()
                     {
                         if (PlayerHUDWidget)
