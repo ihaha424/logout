@@ -106,6 +106,5 @@ bool UUIManager::IsRegisterUI(const FString& Key) const
 {
 	if (!UIMap.Contains(Key))
 		return false;
-
 	return true;
 }
