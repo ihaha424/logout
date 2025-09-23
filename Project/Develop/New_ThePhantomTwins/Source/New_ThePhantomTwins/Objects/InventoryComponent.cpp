@@ -102,40 +102,58 @@ EItemType UInventoryComponent::ChoiceItem(int32 SlotIndex)
         return EItemType::None;
     }
 
-    if (PlayerHUDWidget)
-    {
-        if (IsSlotEmpty(InventorySlots[SlotIndex])) return EItemType::None;
-
-        if (selectedNum == -1 || selectedNum != SlotIndex)
+    auto ClearSelection = [this](int32 Index)
         {
-            if (selectedNum != -1)
+            if (Index != -1 && PlayerHUDWidget)
             {
-                PlayerHUDWidget->SetOutline(selectedNum, false);
-                PlayerHUDWidget->SetToolTips(false, InventorySlots[selectedNum].ItemType);
+                PlayerHUDWidget->SetOutline(Index, false);
+                PlayerHUDWidget->SetToolTips(false, InventorySlots[Index].ItemType);
+            }
+        };
+
+    auto HighlightSlot = [this](int32 Index, bool ShowToolTip)
+        {
+            if (!PlayerHUDWidget) return;
+
+            PlayerHUDWidget->SetOutline(Index, true);
+            if (ShowToolTip)
+            {
+                PlayerHUDWidget->SetToolTips(true, InventorySlots[Index].ItemType);
             }
 
-            VisibleInventory();
-
-            selectedNum = SlotIndex;
-            PlayerHUDWidget->SetOutline(SlotIndex, true);
-            PlayerHUDWidget->SetToolTips(true, InventorySlots[SlotIndex].ItemType);
-
-            FTimerHandle TimerHandle;
             GetWorld()->GetTimerManager().SetTimer(
-                TimerHandle,
-                FTimerDelegate::CreateWeakLambda(this, [this, SlotIndex]()
+                ChoiceItemTimerHandle,
+                FTimerDelegate::CreateWeakLambda(this, [this, Index]()
                     {
                         if (PlayerHUDWidget)
                         {
-                            PlayerHUDWidget->SetOutline(SlotIndex, false);
-                            PlayerHUDWidget->SetToolTips(false, InventorySlots[SlotIndex].ItemType);
+                            PlayerHUDWidget->SetOutline(Index, false);
+                            PlayerHUDWidget->SetToolTips(false, InventorySlots[Index].ItemType);
                         }
                     }),
                 3.0f,
                 false
             );
-        }
+        };
+
+    // 빈 슬롯 눌렀을 때
+    if (IsSlotEmpty(InventorySlots[SlotIndex]))
+    {
+        ClearSelection(selectedNum);
+        selectedNum = SlotIndex;
+        HighlightSlot(SlotIndex, false);
+        return EItemType::None;
     }
+
+    // 아이템 있는 슬롯 눌렀을 때
+    if (selectedNum == -1 || selectedNum != SlotIndex)
+    {
+        ClearSelection(selectedNum);
+        VisibleInventory();
+        selectedNum = SlotIndex;
+        HighlightSlot(SlotIndex, true);
+    }
+
     return InventorySlots[SlotIndex].ItemType;
 }
 
@@ -358,8 +376,36 @@ void UInventoryComponent::OnRep_QuestionBoxWidgetActived()
     ShowQuestionBoxWidget(bQuestionBoxWidgetActived);
 }
 
-// Helper Functions
+bool UInventoryComponent::CanAddToInventory(EItemType eItemType)
+{
+    for (const FItemSlot& Slot : InventorySlots)
+    {
+        // 슬롯이 비어있는가? 비어있으면 return true;
+        if (IsSlotEmpty(Slot))
+        {
+            return true;
+        }
 
+        // 비어있지 않다면 eItemType과 같은 타입인가?
+        if (Slot.ItemType != eItemType)
+        {
+            // 다른 타입이라면 넘김
+            continue;
+        }
+
+        // 같은 타입이라면 eItemType의 최대 수량과 비교
+        if (Slot.ItemQuantity < GetMaxQuantity(eItemType))
+        {
+            return true;
+        }
+        // Slot.ItemQuantity >= GetMaxQuantity(eItemType)인 경우 continue로 다음 슬롯 체크
+    }
+
+    // InventorySlots을 다 돌았는데도 들어갈 곳이 없다면 return false
+    return false;
+}
+
+// Helper Functions
 FItemDataTable* UInventoryComponent::GetItemAbilityData(EItemType ItemType)
 {
     if (!ItemAbilityTable) return nullptr;
