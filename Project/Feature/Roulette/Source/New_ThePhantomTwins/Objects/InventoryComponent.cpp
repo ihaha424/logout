@@ -377,8 +377,19 @@ void UInventoryComponent::OnRep_QuestionBoxWidgetActived()
     ShowQuestionBoxWidget(bQuestionBoxWidgetActived);
 }
 
-// Helper Functions
+bool UInventoryComponent::IsInventoryFull()
+{
+    for (const FItemSlot& Slot : InventorySlots)
+    {
+        if (IsSlotEmpty(Slot))
+        {
+            return false;
+        }
+    }
+    return true;
+}
 
+// Helper Functions
 FItemDataTable* UInventoryComponent::GetItemAbilityData(EItemType ItemType)
 {
     if (!ItemAbilityTable) return nullptr;

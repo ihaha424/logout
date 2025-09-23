@@ -63,6 +63,12 @@ public:
     UFUNCTION()
     void OnRep_QuestionBoxWidgetActived();
 
+    // 인벤토리가 꽉 찼는지 확인
+    UFUNCTION()
+    bool IsInventoryFull();
+
+
+public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     int32 MaxInventorySlots = 5;
 
