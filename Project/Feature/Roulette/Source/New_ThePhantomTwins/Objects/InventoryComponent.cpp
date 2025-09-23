@@ -377,7 +377,7 @@ void UInventoryComponent::OnRep_QuestionBoxWidgetActived()
     ShowQuestionBoxWidget(bQuestionBoxWidgetActived);
 }
 
-bool UInventoryComponent::IsInventoryFull()
+bool UInventoryComponent::CanAddToInventory(EItemType eItemType)
 {
     for (const FItemSlot& Slot : InventorySlots)
     {

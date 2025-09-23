@@ -22,7 +22,7 @@ protected:
 
 public:
 	virtual bool CanInteract_Implementation(const APawn* Interactor, bool bIsDetected) override;
-	void SetWidgetVisible(const APawn* Interactor, bool bVisible);
+	void SetWidgetVisible(const APawn* Interactor, bool bVisible, EItemType eItemType);
 	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
 
 	EItemType GetEItemType(){return ItemType;}
@@ -42,4 +42,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InventoryItem")
 	TSubclassOf<class UUserWidget> FullWidgetClass;
+
+	bool bInventoryFull = false;
 };

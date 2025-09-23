@@ -63,9 +63,9 @@ public:
     UFUNCTION()
     void OnRep_QuestionBoxWidgetActived();
 
-    // 인벤토리가 꽉 찼는지 확인
+    // 인벤토리에 넣을 수 있는지 확인
     UFUNCTION()
-    bool IsInventoryFull();
+    bool CanAddToInventory(EItemType eItemType);
 
 
 public:
