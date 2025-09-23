@@ -15,6 +15,8 @@ class NEW_THEPHANTOMTWINS_API APC_Player : public AUIManagerPlayerController
 	GENERATED_BODY()
 
 public:
+	APC_Player();
+
 	static APC_Player* GetLocalPlayerController(AActor* Actor);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")

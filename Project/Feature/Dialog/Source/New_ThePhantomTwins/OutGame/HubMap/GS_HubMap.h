@@ -72,9 +72,5 @@ private:
 	void OnRep_IdentifyCharacterData();
 	// ~End Lobby(Character Seletect)
 
-
-
-
-
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

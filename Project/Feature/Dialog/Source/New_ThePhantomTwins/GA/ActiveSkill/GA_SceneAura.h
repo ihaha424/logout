@@ -26,6 +26,7 @@ protected:
     // Aura 
     void ApplyAuraToTarget(AActor* Target);
     void RemoveAuraFromTarget(AActor* Target);
+	bool IsValidAuraTarget(AActor* Target) const;
 
     UFUNCTION()
     void OnSceneAuraTagChanged(const FGameplayTag InputTag, int32 TagCount);
@@ -37,6 +38,8 @@ protected:
 
     // 현재 Aura가 적용된 대상들
     TSet<TWeakObjectPtr<AActor>> CurrentAuraTargets;
+
+	AActor* OwnerActor = nullptr;
 
     // === Configurable Variables ===
 

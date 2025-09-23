@@ -64,6 +64,7 @@ bool UPlayerAttributeSet::PreGameplayEffectExecute(struct FGameplayEffectModCall
 	}
 	return true;
 }
+
 void UPlayerAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -189,6 +190,10 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 
 	if (Data.EvaluatedData.Attribute == GetHPAttribute())
 	{
+		if (Data.EvaluatedData.Magnitude < 0)
+		{
+			OnPlayerDamaged.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit);
+		}
 		SetHP(FMath::Clamp(GetHP(), MinimumPoint, GetMaxHP()));
 		OnChangedHP.Broadcast(GetHP());
 	}

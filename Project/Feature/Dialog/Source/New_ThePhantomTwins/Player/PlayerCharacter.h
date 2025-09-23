@@ -116,6 +116,9 @@ public:
 	void HidePlayerHUDStaminaSet(int32 value);
 	UFUNCTION()
 	void PlayerHUDCoreEnergySet(int32 value);
+
+	FORCEINLINE APS_Player* GetPS() const { return PS.Get(); }
+
 protected:
 	// 플레이어 인풋 바인딩
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -125,6 +128,8 @@ protected:
 	void ExecuteAbilityByTag(FGameplayTag InputTag);
 	UFUNCTION()
 	void BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet);
+	UFUNCTION()
+	void OnTagChanged(const FGameplayTag InputTag, int32 Count);
 
 	// 플레이어 상태변경
 	UFUNCTION()
@@ -138,10 +143,6 @@ protected:
 	void InputMouseWheelDown(const FInputActionValue& Value);
 	void InputPressedUseItem(int32 InputID);
 	void InputReleased(int32 InputID);
-
-	UFUNCTION(Server, Reliable)
-	void C2S_InputPressed(const int32 InputID);
-	void C2S_InputPressed_Implementation(const int32 InputID);
 
 	UFUNCTION(Server, Reliable)
 	void C2S_InputReleased(const int32 InputID);
@@ -192,8 +193,8 @@ private:
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_OnDownedWidget(bool Visible);
 	void S2A_OnDownedWidget_Implementation(bool Visible);
-protected:
 
+protected:
 	UPROPERTY()
 	TObjectPtr<APS_Player> PS;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GAS")
@@ -243,7 +244,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> CannotUseItemWidgetClass;
-
+	
 	// 상호작용 위젯
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TObjectPtr<UWidgetComponent> InteractWidget;

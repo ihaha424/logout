@@ -14,6 +14,7 @@
 #include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
 #include "FocusTraceComponent.h"
+#include "GM_PhantomTwins.h"
 #include "PC_Player.h"
 #include "PlayerAnimInstance.h"
 #include "../GA/Action/GA_Interact.h"
@@ -245,7 +246,7 @@ void APlayerCharacter::OnInteractServer_Implementation(const APawn* Interactor)
 
 void APlayerCharacter::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	
+
 }
 
 float APlayerCharacter::GetTime_Implementation()
@@ -323,6 +324,9 @@ void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
 {
 	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
 	PlayerHUDWidget->UpdateStamina(value);
+	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
+	if (AttributeSet->GetMaxStamina() != value)
+		PlayerHUDWidget->VisibleStamina(true);
 }
 
 void APlayerCharacter::HidePlayerHUDStaminaSet(int32 value)
@@ -338,7 +342,7 @@ void APlayerCharacter::HidePlayerHUDStaminaSet(int32 value)
 				PlayerHUDWidget->VisibleStamina(false);
 			}
 		},
-		2.0f,
+		1.0f,
 		false
 	);
 }
@@ -389,12 +393,8 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 
 void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 {
-	FGameplayAbilitySpec* TagID = ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
-	NULLCHECK_RETURN_LOG(TagID, PlayerLog, Warning, );
-
 	ASC->AddLooseGameplayTag(InputTag);// 로컬에게 비네팅 적용 됨. 다운드 애니메이션 적용 안됨. 서버에선 엎어짐. 서버에만 태그가 붙음.(당연함)
 	ASC->AddReplicatedLooseGameplayTag(InputTag);// 리플리케이트로 붙이면 서버에서는 아무것도 적용안됨. 로컬에서는 다 됨. 태그도 로컬에만 존재함.
-
 	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
 
 	if(InputTag == FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed)
@@ -407,6 +407,7 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 {
 	if (HasAuthority())
 	{
+		AttributeSet->OnPlayerDamaged.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 		AttributeSet->OnPlayerLowHP.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 		AttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 		AttributeSet->OnPlayerConfused1st.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
@@ -422,8 +423,9 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 		WallMaria->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnBeginOverlapWall);
 		WallMaria->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::OnEndOverlapWall);
 	}
-		//AttributeSet->OnChangedSpeed.AddDynamic(this, &ThisClass::SpeedSetting);  //GA에서 직접하는것보다 동기화가 늦는다. 이유는 모름.
-		
+	//AttributeSet->OnChangedSpeed.AddDynamic(this, &ThisClass::SpeedSetting);  //GA에서 직접하는것보다 동기화가 늦는다. 이유는 모름.
+	ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIChasing).AddUObject(this, &ThisClass::OnTagChanged);
+
 	if (IsLocallyControlled())
 	{	
 		AttributeSet->OnChangedHP.AddDynamic(this, &ThisClass::PlayerHUDHPSet);
@@ -431,6 +433,14 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 		AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
 		AttributeSet->OnFullStamina.AddDynamic(this, &ThisClass::HidePlayerHUDStaminaSet);
 		AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
+	}
+}
+
+void APlayerCharacter::OnTagChanged(const FGameplayTag InputTag, int32 Count)
+{
+	if (Count)
+	{
+		ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
 	}
 }
 
@@ -469,6 +479,15 @@ void APlayerCharacter::OnRecoveryCompleted()
 	PC->SetWidget(TEXT("RecoveryGauge"), false, EMessageTargetType::Multicast);
 	PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
 
+	if (HasAuthority())
+	{
+		if (AGM_PhantomTwins* GM = GetWorld()->GetAuthGameMode<AGM_PhantomTwins>())
+		{
+			GM->NotifyPlayerDied(false);
+			PS->bIsDowned = false;
+		}
+	}
+
 	if (RecoveryGE)
 	{
 		FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
@@ -479,6 +498,8 @@ void APlayerCharacter::OnRecoveryCompleted()
 			ASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
 		}
 	}
+
+	//SpringArm->SocketOffset += FVector(0.f, 0.f, 100.f);
 }
 
 void APlayerCharacter::InputPressed(int32 InputID)
@@ -494,30 +515,18 @@ void APlayerCharacter::InputPressed(int32 InputID)
 	{
 		ASC->TryActivateAbility(Spec->Handle);
 	}
+	// 스태미나 위젯 조정.
+	const EFTPTGameplayTags* TagEnum = FTPTGameplayTags::Get().TagMap.Find(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run);
+	int32 InputNum = static_cast<int32>(*TagEnum);
 
-	PlayerHUDWidget->VisibleStamina(true);
-}
-
-void APlayerCharacter::C2S_InputPressed_Implementation(const int32 InputID)
-{
-	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
-	if (!Spec) return;
-	Spec->InputPressed = true;
-
-	//EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
-	//FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
-	//ASC->AddLooseGameplayTag(InputTag);
-	//ASC->AddReplicatedLooseGameplayTag(InputTag);
-
-	if (Spec->IsActive())
+	FGameplayTag DownedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed;
+	FGameplayTag ConfusedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd;
+	if (!ASC->HasMatchingGameplayTag(DownedTag) && !ASC->HasMatchingGameplayTag(ConfusedTag) && InputID == InputNum)
 	{
-		ASC->AbilitySpecInputPressed(*Spec);
-	}
-	else
-	{
-		ASC->TryActivateAbility(Spec->Handle);
+		PlayerHUDWidget->VisibleStamina(true);
 	}
 }
+
 void APlayerCharacter::InputSKillPressed(int32 InputID, int32 SkillNumber)
 {
 	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_Skill_ActiveSkill;
@@ -532,7 +541,6 @@ void APlayerCharacter::InputSKillPressed(int32 InputID, int32 SkillNumber)
 void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
 {
 	SelectedSlotNumber = SlotNumber;
-	TPT_LOG(PlayerLog, Warning, TEXT(" %d"), SlotNumber);
 
 	PlayerHUDWidget->VisibleInventory(true);
 
@@ -588,6 +596,11 @@ void APlayerCharacter::InputMouseWheelUp(const FInputActionValue& Value)
 
 void APlayerCharacter::InputPressedUseItem(int32 InputID)
 {
+	if(ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
+	{
+		return;
+	}
+
 	UInventoryComponent* InventoryComponent = PS->InventoryComp;
 
 	if (InventoryComponent)
@@ -622,11 +635,15 @@ void APlayerCharacter::InputReleased(int32 InputID)
 	}
 	else if (Spec->IsActive())
 	{
-		//EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
-		//FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
-		//ASC->RemoveLooseGameplayTag(InputTag);
-		//ASC->RemoveReplicatedLooseGameplayTag(InputTag);
 		ASC->AbilitySpecInputReleased(*Spec);
+	}
+
+	const EFTPTGameplayTags* TagEnum = FTPTGameplayTags::Get().TagMap.Find(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run);
+	int32 InputNum = static_cast<int32>(*TagEnum);
+	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
+	if (InputID == InputNum && AttributeSet->GetStamina() >= AttributeSet->GetMaxStamina())
+	{
+		HidePlayerHUDStaminaSet(0);
 	}
 }
 
@@ -639,10 +656,6 @@ void APlayerCharacter::C2S_InputReleased_Implementation(const int32 InputID)
 
 	if (Spec->IsActive())
 	{
-		//EFTPTGameplayTags TagID = static_cast<EFTPTGameplayTags>(InputID);
-		//FGameplayTag InputTag = *FTPTGameplayTags::Get().EnumMap.Find(TagID);
-		//ASC->RemoveLooseGameplayTag(InputTag);
-		//ASC->RemoveReplicatedLooseGameplayTag(InputTag);
 		ASC->AbilitySpecInputReleased(*Spec);
 	}
 }
@@ -680,8 +693,8 @@ void APlayerCharacter::Move(const FInputActionValue& Value)
 void APlayerCharacter::Look(const FInputActionValue& Value)
 {
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
-	FVector2D LookAxisVector = Value.Get<FVector2D>();
-
+	float MouseSensitivity = 0.3f;
+	FVector2D LookAxisVector = Value.Get<FVector2D>() * MouseSensitivity;
 	AddControllerYawInput(LookAxisVector.X);
 	AddControllerPitchInput(LookAxisVector.Y);
 }
@@ -759,25 +772,25 @@ void APlayerCharacter::OnEndOverlapWall(UPrimitiveComponent* Comp, AActor* Other
 void APlayerCharacter::OnBeginOverlap(EEnemyRange Range, AActor* OtherActor)
 {
 	UAbilitySystemComponent* AIASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
-
-	NULLCHECK_RETURN_LOG(AIASC, PlayerLog, Log, );
-	bool AIHasTag = AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI);
-	if (AIHasTag)
+	if (AIASC)
 	{
-		EEnemyRange* Found = EnemyRangeMap.Find(OtherActor);
-		if (!Found || Range < *Found)
+		bool AIHasTag = AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI);
+		if (AIHasTag)
 		{
-			EnemyRangeMap.Add(OtherActor, Range);
+			EEnemyRange* Found = EnemyRangeMap.Find(OtherActor);
+			if (!Found || Range < *Found)
+			{
+				EnemyRangeMap.Add(OtherActor, Range);
+			}
 		}
+		SetNearestEnemyRange();
 	}
-	SetNearestEnemyRange();
 }
 
 void APlayerCharacter::OnEndOverlap(EEnemyRange Range, AActor* OtherActor)
 {
 	UAbilitySystemComponent* AIASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
-	NULLCHECK_RETURN_LOG(AIASC, PlayerLog, Log, );
-	if (AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI))
+	if (AIASC && AIASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI))
 	{
 		EEnemyRange* Found = EnemyRangeMap.Find(OtherActor);
 		if (Found && *Found == Range)

@@ -7,7 +7,7 @@
 #include "GA_Confused3rd.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UGA_Confused3rd : public UGameplayAbility
@@ -22,7 +22,12 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SFX")
-	USoundBase* SoundCue;
+	USoundBase* SoundCue1st;
 	UPROPERTY()
-	UAudioComponent* ActiveAudioComponent = nullptr;
+	UAudioComponent* ActiveAudioComponent1st = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SFX")
+	USoundBase* SoundCue2nd;
+	UPROPERTY()
+	UAudioComponent* ActiveAudioComponent2nd = nullptr;
 };

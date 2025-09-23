@@ -18,7 +18,7 @@ UHeldItemComponent::UHeldItemComponent()
     PrimaryComponentTick.bCanEverTick = false;
 
     // 네트워킹 설정
-        SetIsReplicatedByDefault(true);
+    SetIsReplicatedByDefault(true);
 
     LocalHeldItemComponent = nullptr;
     ReplicatedHeldActor = nullptr;
@@ -39,7 +39,7 @@ void UHeldItemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 void UHeldItemComponent::SpawnAndAttachHeldItem(EItemType ItemType)
 {
     // 투척 아이템이 아니면 기존 아이템 제거+
-    if (ItemType != EItemType::EMP && ItemType != EItemType::NoiseBomb && ItemType != EItemType::Key)
+    if (ItemType != EItemType::EMP && ItemType != EItemType::NoiseBomb)
     {
         DestroyHeldItem();
         return;
@@ -47,12 +47,6 @@ void UHeldItemComponent::SpawnAndAttachHeldItem(EItemType ItemType)
 
     // 로컬 즉시 표시용 메쉬 생성 (로컬에서 즉시 보이게)
     CreateLocalHeldItemMesh(ItemType);
-
-    // 서버에 복제된 액터 스폰 요청
-    if (ItemType != EItemType::None)
-    {
-        C2S_SpawnAndAttachHeldItem(ItemType);
-    }
 }
 
 void UHeldItemComponent::DestroyHeldItem()
@@ -129,6 +123,7 @@ void UHeldItemComponent::CreateLocalHeldItemMesh(EItemType ItemType)
         LocalMeshComp->SetRelativeLocation(FVector::ZeroVector);
         LocalMeshComp->SetRelativeRotation(FRotator::ZeroRotator);
         LocalMeshComp->SetRelativeScale3D(FVector(1.0f));
+        LocalMeshComp->SetIsReplicated(true);
 
         LocalHeldItemComponent = LocalMeshComp;
 
@@ -191,227 +186,6 @@ void UHeldItemComponent::DestroyLocalHeldItemMesh()
             else
             {
                 ComponentToRemove->DestroyComponent();
-            }
-        }
-    }
-}
-
-void UHeldItemComponent::C2S_SpawnAndAttachHeldItem_Implementation(EItemType ItemType)
-{
-    APlayerCharacter* Character = Cast<APlayerCharacter>(GetOwner());
-    if (!Character || !Character->HasAuthority()) return;
-
-    UStaticMesh* MeshToUse = GetItemStaticMesh(ItemType);
-    if (!MeshToUse) return;
-
-    UWorld* World = Character->GetWorld();
-    USkeletalMeshComponent* CharMesh = Character->GetMesh();
-	if (!World || !CharMesh) return;
-
-
-    const FName HandSocketName = TEXT("RightHandSocket");
-    FVector SpawnLocation = Character->GetActorLocation();
-    FRotator SpawnRotation = Character->GetActorRotation();
-
-    // 소켓 위치 가져오기
-    if (CharMesh->DoesSocketExist(HandSocketName))
-    {
-        const FTransform SocketWorldTransform = CharMesh->GetSocketTransform(HandSocketName, RTS_World);
-        SpawnLocation = SocketWorldTransform.GetLocation();
-        SpawnRotation = SocketWorldTransform.Rotator();
-    }
-
-    // 액터 스폰
-    FActorSpawnParameters SpawnParams;
-    SpawnParams.Owner = Character;
-    SpawnParams.Instigator = Character->GetInstigator();
-    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-    AActor* SpawnedActor = World->SpawnActor<AActor>(AActor::StaticClass(), SpawnLocation, SpawnRotation, SpawnParams);
-    if (!SpawnedActor) return;
-
-
-    // 복제 설정
-    SpawnedActor->SetReplicates(true);
-    SpawnedActor->SetReplicateMovement(true);
-
-    // StaticMeshComponent 생성 및 설정
-    UStaticMeshComponent* MeshComp = NewObject<UStaticMeshComponent>(SpawnedActor);
-    if (!MeshComp)
-    {
-        SpawnedActor->Destroy();
-        return;
-    }
-
-    MeshComp->SetStaticMesh(MeshToUse);
-    MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    MeshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
-    MeshComp->SetSimulatePhysics(false);
-    MeshComp->SetIsReplicated(true);
-
-    SpawnedActor->SetRootComponent(MeshComp);
-    MeshComp->RegisterComponent();
-
-    // 캐릭터 손에 부착
-    if (CharMesh->DoesSocketExist(HandSocketName))
-    {
-        MeshComp->AttachToComponent(CharMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, HandSocketName);
-    }
-    else
-    {
-        MeshComp->AttachToComponent(CharMesh, FAttachmentTransformRules::KeepWorldTransform);
-    }
-
-    MeshComp->SetRelativeLocation(FVector::ZeroVector);
-    MeshComp->SetRelativeRotation(FRotator::ZeroRotator);
-    MeshComp->SetRelativeScale3D(FVector(1.0f));
-
-    // 캐시 저장
-    ReplicatedHeldActor = SpawnedActor;
-
-    // 소유자 PlayerState 찾기
-    APlayerState* OwnerPS = Character->GetPlayerState<APlayerState>();
-
-    // 멀티캐스트로 모든 클라이언트에 부착 지시
-    S2A_AttachReplicatedActor(SpawnedActor, OwnerPS, HandSocketName, ItemType);
-
-    // 서버 측 로컬 즉시 비주얼 제거 (서버 인스턴스에 남아있을 수 있으므로)
-    if (LocalHeldItemComponent)
-    {
-        LocalHeldItemComponent->DestroyComponent();
-        LocalHeldItemComponent = nullptr;
-    }
-
-    //TPT_LOG(GALog, Log, TEXT("Server_SpawnAndAttachHeldItem: 복제 액터 스폰 및 부착 완료"));
-}
-
-void UHeldItemComponent::S2A_AttachReplicatedActor_Implementation(AActor* SpawnedActor, APlayerState* OwnerPlayerState, FName SocketName, EItemType ItemType)
-{
-    if (!SpawnedActor)
-    {
-        return;
-    }
-
-    // 루트 StaticMeshComponent 찾기
-    UStaticMeshComponent* RootMeshComp = Cast<UStaticMeshComponent>(SpawnedActor->GetRootComponent());
-    if (!RootMeshComp)
-    {
-        TArray<UStaticMeshComponent*> Comps;
-        SpawnedActor->GetComponents<UStaticMeshComponent>(Comps);
-        if (Comps.Num() > 0)
-        {
-            RootMeshComp = Comps[0];
-        }
-    }
-
-    // 클라이언트에서 메쉬가 없는 경우 DataTable에서 설정
-    if (RootMeshComp && !RootMeshComp->GetStaticMesh())
-    {
-        UStaticMesh* MeshToUse = GetItemStaticMesh(ItemType);
-        if (MeshToUse)
-        {
-            RootMeshComp->SetStaticMesh(MeshToUse);
-            RootMeshComp->SetIsReplicated(true);
-
-            if (!RootMeshComp->IsRegistered())
-            {
-                RootMeshComp->RegisterComponent();
-            }
-        }
-    }
-
-    // 해당 PlayerState의 Pawn 찾기
-    UWorld* World = SpawnedActor->GetWorld();
-    if (!World)
-    {
-        return;
-    }
-
-    APawn* TargetPawn = nullptr;
-    for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
-    {
-        APlayerController* PC = It->Get();
-        if (!PC) continue;
-
-        APawn* P = PC->GetPawn();
-        if (!P) continue;
-
-        if (P->GetPlayerState() == OwnerPlayerState)
-        {
-            TargetPawn = P;
-            break;
-        }
-    }
-
-    if (!TargetPawn)
-    {
-        TPT_LOG(GALog, Warning, TEXT("Multicast_AttachReplicatedActor: OwnerPlayerState에 해당하는 Pawn을 찾을 수 없습니다"));
-        return;
-    }
-
-    APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(TargetPawn);
-    if (!PlayerChar) return;
-
-
-    USkeletalMeshComponent* CharMesh = PlayerChar->GetMesh();
-    if (!CharMesh) return;
-
-
-    // 스폰된 액터를 캐릭터 소켓에 부착
-    if (CharMesh->DoesSocketExist(SocketName) && RootMeshComp)
-    {
-        RootMeshComp->AttachToComponent(CharMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
-        RootMeshComp->SetRelativeLocation(FVector::ZeroVector);
-        RootMeshComp->SetRelativeRotation(FRotator::ZeroRotator);
-    }
-    else if (RootMeshComp)
-    {
-        RootMeshComp->AttachToComponent(CharMesh, FAttachmentTransformRules::KeepWorldTransform);
-    }
-
-    SpawnedActor->SetReplicateMovement(true);
-
-    // --- 중복 로컬 메쉬 제거: 같은 소켓에 붙어있는 다른 StaticMeshComponent(로컬 즉시 표시용 등)를 제거 ---
-    {
-        TArray<USceneComponent*> ToRemove;
-        for (USceneComponent* ChildComp : CharMesh->GetAttachChildren())
-        {
-            if (!ChildComp) continue;
-
-            UStaticMeshComponent* StaticComp = Cast<UStaticMeshComponent>(ChildComp);
-            if (!StaticComp) continue;
-
-            // 소켓이 일치하면 고려
-            if (StaticComp->GetAttachSocketName() == SocketName)
-            {
-                // 이 컴포넌트가 이미 스폰된 복제 액터의 루트 컴포넌트인지 확인
-                if (StaticComp == RootMeshComp) continue; // 복제 액터의 루트는 건너뜀
-
-
-                // 복제 액터의 컴포넌트가 아니면 제거 대상으로 추가
-                ToRemove.Add(StaticComp);
-            }
-        }
-
-        for (USceneComponent* CompRem : ToRemove)
-        {
-            if (!CompRem) continue;
-
-            // 만약 그 컴포넌트가 Pawn의 직접 소유(로컬 즉시 메쉬)라면 컴포넌트만 제거
-            AActor* CompOwner = CompRem->GetOwner();
-            if (CompOwner && CompOwner != PlayerChar)
-            {
-                CompOwner->Destroy();
-            }
-            else
-            {
-                CompRem->DestroyComponent();
-            }
-
-            // 만약 이 UHeldItemComponent 인스턴스의 LocalHeldItemComponent 라면 null 처리
-            if (LocalHeldItemComponent && CompRem == LocalHeldItemComponent)
-            {
-                LocalHeldItemComponent = nullptr;
             }
         }
     }

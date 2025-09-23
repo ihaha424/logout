@@ -28,7 +28,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "CharacterType")
 	FIdentifyCharacterData IdentifyCharacterData;
-protected:
 
 	UPROPERTY(Replicated, EditAnywhere, Category = GAS)
 	TObjectPtr<UAbilitySystemComponent> ASC;
@@ -43,10 +42,12 @@ protected:
 	bool bIsRecovery = false;
 
 	UPROPERTY(Replicated, EditAnywhere, Category = "Recovery")
-	bool bIsGroggy = false;
+	bool bIsDowned = false;
+
 private:
 	UPROPERTY(Replicated)
 	FGenericTeamId TeamID;
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 	TObjectPtr<class UInventoryComponent> InventoryComp;

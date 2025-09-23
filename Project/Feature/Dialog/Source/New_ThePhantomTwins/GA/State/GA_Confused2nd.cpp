@@ -12,7 +12,10 @@
 UGA_Confused2nd::UGA_Confused2nd()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
+
+	FGameplayTagContainer DefaultTags;
+	DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
+	SetAssetTags(DefaultTags);
 }
 
 void UGA_Confused2nd::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -25,9 +28,13 @@ void UGA_Confused2nd::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 
 	if (ActorInfo && ActorInfo->IsLocallyControlled())
 	{
-		if (USoundBase* Sound = SoundCue) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함
+		if (USoundBase* Sound = SoundCue1st) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함
 		{
-			ActiveAudioComponent = UGameplayStatics::SpawnSoundAttached(Sound, ActorInfo->AvatarActor->GetRootComponent());
+			ActiveAudioComponent1st = UGameplayStatics::SpawnSoundAttached(Sound, ActorInfo->AvatarActor->GetRootComponent());
+		}
+		if (USoundBase* Sound = SoundCue2nd) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함
+		{
+			ActiveAudioComponent2nd = UGameplayStatics::SpawnSoundAttached(Sound, ActorInfo->AvatarActor->GetRootComponent());
 		}
 	}
 }
@@ -36,10 +43,15 @@ void UGA_Confused2nd::EndAbility(const FGameplayAbilitySpecHandle Handle, const 
 {
 	if (ActorInfo && ActorInfo->IsLocallyControlled())
 	{
-		if (ActiveAudioComponent)
+		if (ActiveAudioComponent1st)
 		{
-			ActiveAudioComponent->Stop();
-			ActiveAudioComponent = nullptr;
+			ActiveAudioComponent1st->Stop();
+			ActiveAudioComponent1st = nullptr;
+		}
+		if (ActiveAudioComponent2nd)
+		{
+			ActiveAudioComponent2nd->Stop();
+			ActiveAudioComponent2nd = nullptr;
 		}
 	}
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
