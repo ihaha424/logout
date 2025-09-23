@@ -13,6 +13,8 @@ void AGS_PhantomTwins::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
     DOREPLIFETIME(AGS_PhantomTwins, CoreCount);
     DOREPLIFETIME(AGS_PhantomTwins, bBossSpawned);
     DOREPLIFETIME(AGS_PhantomTwins, BossActor);
+    DOREPLIFETIME(AGS_PhantomTwins, bIsHostClickedRestart);
+    DOREPLIFETIME(AGS_PhantomTwins, bIsClientClickedRestart);
 }
 
 void AGS_PhantomTwins::AddCollectedItem(AActor* DataFragment, int32 Delta)
@@ -33,6 +35,21 @@ void AGS_PhantomTwins::MarkBossSpawned(AActor* InBoss)
     BossActor = InBoss;
 
     GameTime = GetServerWorldTimeSeconds();
+}
+
+void AGS_PhantomTwins::SetCharacterClickedRestart(bool bIsHostClicked, bool bIsClientClicked)
+{
+    if (!HasAuthority()) return;
+
+	bIsHostClickedRestart = bIsHostClicked;
+	bIsClientClickedRestart = bIsClientClicked;
+
+    OnRep_SetCharacterClickedRestart();
+}
+
+void AGS_PhantomTwins::OnRep_SetCharacterClickedRestart()
+{
+    OnClickedRestartChanged.Broadcast(bIsHostClickedRestart, bIsClientClickedRestart);
 }
 
 void AGS_PhantomTwins::OnRep_BossSpawned()

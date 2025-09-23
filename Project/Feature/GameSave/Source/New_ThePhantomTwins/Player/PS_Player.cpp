@@ -3,6 +3,7 @@
 
 #include "PS_Player.h"
 #include "AbilitySystemComponent.h"
+#include "GM_PhantomTwins.h"
 #include "Net/UnrealNetwork.h"
 #include "New_ThePhantomTwins/Attribute/PlayerAttributeSet.h"
 #include "../Objects/InventoryComponent.h"
@@ -38,6 +39,12 @@ void APS_Player::SetIdentifyCharacterData()
 {
 	UTPTSaveGame* TPTLocalPlayerSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
 	IdentifyCharacterData = TPTLocalPlayerSaveGame->IdentifyCharacterData;
+}
+
+void APS_Player::SetCharacterClickedRestart(bool bIsClicked)
+{
+	bIsClickedRestart = bIsClicked;
+
 }
 
 class UAbilitySystemComponent* APS_Player::GetAbilitySystemComponent() const

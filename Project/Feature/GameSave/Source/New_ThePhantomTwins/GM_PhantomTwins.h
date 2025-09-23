@@ -20,6 +20,8 @@ public:
     virtual void BeginPlay() override;
     virtual void PostLogin(APlayerController* NewPlayer) override;
 	void NotifyPlayerDied(bool isDead);
+    UFUNCTION(BlueprintCallable)
+	void NotifyPlayerClickRestart(bool bIsClicked);
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     //~ End AGameModeBase
 
@@ -29,8 +31,9 @@ public:
 	void SeverToLevel(const FName LevelName, bool bAbsolute);
     UFUNCTION(BlueprintCallable)
     void GoToHubMapWithDelay(float Delay);
+	void RestartWithDelay(float Delay);
 
-    //~ End LevelTravel
+	//~ End LevelTravel
 
     //~ Begin BossSpawn
     UPROPERTY(EditAnywhere, Category = "BossSpawn", meta = (ClampMin = "0.0"))
@@ -49,6 +52,7 @@ public:
 
     int32 TotalPlayerCount = 0;
     int32 DeadPlayerCount = 0;
+    int32 ClickCount = 0;
     // ~ End ReStart
 
 protected:

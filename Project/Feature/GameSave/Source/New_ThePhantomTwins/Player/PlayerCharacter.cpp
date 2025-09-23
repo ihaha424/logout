@@ -116,7 +116,7 @@ void APlayerCharacter::BeginPlay()
 		PlayerController->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
 		PlayerController->RegisterWidget(TEXT("CannotUseItem"), CreateWidget<UUserWidget>(GetWorld(), CannotUseItemWidgetClass));
 		PlayerController->RegisterWidget(TEXT("GameOverUI"), CreateWidget(GetWorld(), GameOverUIClass));
-		PlayerController->RegisterWidget(TEXT("LoadingUI"), CreateWidget(GetWorld(), GameOverUIClass));
+		PlayerController->RegisterWidget(TEXT("LoadingUI"), CreateWidget(GetWorld(), LoadingUIClass));
 	}
 
 	// RecoveryGauge Time
@@ -865,7 +865,7 @@ void APlayerCharacter::UpdateWallSound()
 	default: break;
 	}
 
-	if (ToPlay)
+	if (ToPlay && !ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd))
 	{
 		WallAudioComponent = UGameplayStatics::SpawnSoundAttached(ToPlay, GetRootComponent());
 	}

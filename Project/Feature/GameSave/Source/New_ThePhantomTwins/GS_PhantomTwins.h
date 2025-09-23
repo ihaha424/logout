@@ -11,6 +11,7 @@
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCollectedItemCountChanged, int32);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBossSpawnedDynamic, AActor*, BossActor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCollectedItem, AActor*, DataFragment);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedRestart, bool, bIsHostClicked, bool, bIsClientClicked);
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API AGS_PhantomTwins : public AGameStateBase
@@ -40,6 +41,20 @@ public:
 	void SetMapData(EMapType mapType) { MapData = mapType; }
 	//~ End MapData
 
+	//~ Begin Restart
+	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterClickedRestart)
+	bool bIsHostClickedRestart = false;
+	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterClickedRestart)
+	bool bIsClientClickedRestart = false;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnClickedRestart OnClickedRestartChanged;
+
+	void SetCharacterClickedRestart(bool bIsClicked, bool bIsHost);
+	UFUNCTION()
+	void OnRep_SetCharacterClickedRestart();
+	//~ End Restart
+
 protected:
 	//~ Begin DataFragment
 	UPROPERTY(BlueprintAssignable, Category = "DataFragment")
@@ -57,7 +72,6 @@ protected:
 	//~ Begin MapData
 	EMapType MapData;
 	//~ End MapData
-
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out) const override;
 };

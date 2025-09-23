@@ -64,6 +64,19 @@ void AGM_PhantomTwins::NotifyPlayerDied(bool isDead)
     }
 }
 
+void AGM_PhantomTwins::NotifyPlayerClickRestart(bool bIsClicked)
+{
+    if (bIsClicked)
+        ClickCount++;
+    else
+        ClickCount--;
+
+    if (ClickCount >= TotalPlayerCount)
+    {
+        RestartWithDelay(3.f);
+    }
+}
+
 void AGM_PhantomTwins::ShowGameOverUI()
 {
     APlayerController* PC = GetWorld()->GetFirstPlayerController();
@@ -80,6 +93,17 @@ void AGM_PhantomTwins::GoToHubMapWithDelay(float Delay)
 
     PlayerPC->SetWidget(TEXT("LoadingUI"), true, EMessageTargetType::Multicast);
     PlayerPC->bShowMouseCursor = false;
+}
+
+void AGM_PhantomTwins::RestartWithDelay(float Delay)
+{
+    FTimerHandle TimerHandle;
+    GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+        {
+            FString MapName = GetWorld()->GetOutermost()->GetName();
+            FString LevelPathWithListen = MapName + TEXT("?listen");
+            GetWorld()->ServerTravel(LevelPathWithListen, false);
+        }, Delay, false);
 }
 
 void AGM_PhantomTwins::EndPlay(const EEndPlayReason::Type EndPlayReason)

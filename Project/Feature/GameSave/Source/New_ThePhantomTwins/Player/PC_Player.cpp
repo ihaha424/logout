@@ -9,6 +9,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Player/PS_Player.h"
 #include "CM_LogOut.h"
+#include "GS_PhantomTwins.h"
+#include "OutGame/HubMap/GS_HubMap.h"
 
 APC_Player::APC_Player()
 {
@@ -63,4 +65,18 @@ void APC_Player::C2S_SetOwnerActor_Implementation(APlayerController* thisPC, AAc
 {
 	if (HasAuthority())
 		Actor->SetOwner(thisPC);
+}
+
+void APC_Player::C2S_ClickedRestart_Implementation(bool bIsHostClicked, bool bIsClientClicked)
+{
+	if (!HasAuthority())
+		return;
+
+	AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>();
+	if (!GS)
+	{
+		TPT_LOG(OutGameLog, Error, TEXT("Cast to 'AGS_PhantomTwins' Fail"));
+		return;
+	}
+	GS->SetCharacterClickedRestart(bIsHostClicked, bIsClientClicked);
 }

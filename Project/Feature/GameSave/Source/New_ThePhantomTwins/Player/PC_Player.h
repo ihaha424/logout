@@ -37,4 +37,10 @@ public:
 	UFUNCTION(Server, Reliable)
 	void C2S_SetOwnerActor(APlayerController* thisPC, AActor* Actor);
 	void C2S_SetOwnerActor_Implementation(APlayerController* thisPC, AActor* Actor);
+
+
+	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "HubMap | Character Seletect")
+	void C2S_ClickedRestart(const bool bIsHostClicked, const bool bIsClientClicked);
+	void C2S_ClickedRestart_Implementation(const bool bIsHostClicked, const bool bIsClientClicked);
+
 };
