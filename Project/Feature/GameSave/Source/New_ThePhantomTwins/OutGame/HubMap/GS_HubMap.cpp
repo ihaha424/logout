@@ -43,6 +43,20 @@ void AGS_HubMap::SetIdentifyCharacterSkillData(ESkillType CharacterSkill, bool b
     OnRep_IdentifyCharacterData();
 }
 
+void AGS_HubMap::SetCharacterReady(bool bIsReady, bool bIsHost)
+{
+    if (bIsHost)
+    {
+        bIsServerReady = bIsReady;
+    }
+    else
+    {
+        bIsClientReady = bIsReady;
+    }
+
+    OnRep_ReadyCharacterData();
+}
+
 void AGS_HubMap::OnRep_MapData()
 {
     UTPTSaveGame* TPTLocalPlayerSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
@@ -59,6 +73,16 @@ void AGS_HubMap::OnRep_IdentifyCharacterData()
     OnSetIdentifyCharacterData.Broadcast(IdentifyCharacterData);
 }
 
+void AGS_HubMap::OnRep_ReadyCharacterData()
+{
+	if (bIsServerReady && bIsClientReady)
+		bIsAllReady = true;
+    else
+		bIsAllReady = false;
+
+    OnSetAllReadyData.Broadcast(bIsAllReady);
+}
+
 void AGS_HubMap::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -66,4 +90,5 @@ void AGS_HubMap::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
     DOREPLIFETIME(AGS_HubMap, IdentifyCharacterData);
     DOREPLIFETIME(AGS_HubMap, NextLevel);
     DOREPLIFETIME(AGS_HubMap, MapData);
+    DOREPLIFETIME(AGS_HubMap, bIsAllReady);
 }

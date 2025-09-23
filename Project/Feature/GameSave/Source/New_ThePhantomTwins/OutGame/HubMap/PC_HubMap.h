@@ -27,6 +27,10 @@ public:
 	void C2S_SelectSkill(const ESkillType type);
 	void C2S_SelectSkill_Implementation(const ESkillType type);
 
+	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "HubMap | Is Ready")
+	void C2S_CallReady(bool bIsReady);
+	void C2S_CallReady_Implementation(bool bIsReady);
+
 	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "HubMap | State Seletect")
 	void C2S_SelectState(const EHubMapState type);
 	void C2S_SelectState_Implementation(const EHubMapState type);

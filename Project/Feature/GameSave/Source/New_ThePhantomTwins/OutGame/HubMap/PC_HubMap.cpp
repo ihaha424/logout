@@ -39,6 +39,23 @@ void APC_HubMap::C2S_SelectSkill_Implementation(const ESkillType type)
 	GS->SetIdentifyCharacterSkillData(type, bIsHost);
 }
 
+void APC_HubMap::C2S_CallReady_Implementation(bool bIsReady)
+{
+	if (!HasAuthority())
+		return;
+
+	const bool bIsHost = IsLocalController();
+
+	AGS_HubMap* GS = GetWorld()->GetGameState<AGS_HubMap>();
+	if (!GS)
+	{
+		TPT_LOG(OutGameLog, Error, TEXT("Cast to 'AGS_HubMap' Fail"));
+		return;
+	}
+
+	GS->SetCharacterReady(bIsReady, bIsHost);
+}
+
 void APC_HubMap::C2S_SelectState_Implementation(const EHubMapState type)
 {
 	if (!HasAuthority())
