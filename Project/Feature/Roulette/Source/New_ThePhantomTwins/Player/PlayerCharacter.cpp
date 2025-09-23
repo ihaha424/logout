@@ -863,7 +863,7 @@ void APlayerCharacter::UpdateWallSound()
 	default: break;
 	}
 
-	if (ToPlay)
+	if (ToPlay && !ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd))
 	{
 		WallAudioComponent = UGameplayStatics::SpawnSoundAttached(ToPlay, GetRootComponent());
 	}
