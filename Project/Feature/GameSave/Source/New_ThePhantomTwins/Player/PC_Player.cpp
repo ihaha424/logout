@@ -67,16 +67,17 @@ void APC_Player::C2S_SetOwnerActor_Implementation(APlayerController* thisPC, AAc
 		Actor->SetOwner(thisPC);
 }
 
-void APC_Player::C2S_ClickedRestart_Implementation(bool bIsHostClicked, bool bIsClientClicked)
+void APC_Player::C2S_ClickedRestart_Implementation(const bool bIsClicked)
 {
 	if (!HasAuthority())
 		return;
 
+	const bool bIsHost = IsLocalController();
 	AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>();
 	if (!GS)
 	{
 		TPT_LOG(OutGameLog, Error, TEXT("Cast to 'AGS_PhantomTwins' Fail"));
 		return;
 	}
-	GS->SetCharacterClickedRestart(bIsHostClicked, bIsClientClicked);
+	GS->SetCharacterClickedRestart(bIsClicked, bIsHost);
 }

@@ -2,8 +2,11 @@
 
 
 #include "GS_PhantomTwins.h"
+
+#include "GM_PhantomTwins.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
+#include "Log/TPTLog.h"
 
 void AGS_PhantomTwins::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -37,12 +40,18 @@ void AGS_PhantomTwins::MarkBossSpawned(AActor* InBoss)
     GameTime = GetServerWorldTimeSeconds();
 }
 
-void AGS_PhantomTwins::SetCharacterClickedRestart(bool bIsHostClicked, bool bIsClientClicked)
+void AGS_PhantomTwins::SetCharacterClickedRestart(bool bIsClicked, bool bIsHost)
 {
     if (!HasAuthority()) return;
 
-	bIsHostClickedRestart = bIsHostClicked;
-	bIsClientClickedRestart = bIsClientClicked;
+    if (bIsHost)
+    {
+	    bIsHostClickedRestart = bIsClicked;
+    }
+    else
+    {
+	    bIsClientClickedRestart = bIsClicked;
+    }
 
     OnRep_SetCharacterClickedRestart();
 }

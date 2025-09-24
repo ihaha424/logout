@@ -21,7 +21,7 @@ public:
     virtual void PostLogin(APlayerController* NewPlayer) override;
 	void NotifyPlayerDied(bool isDead);
     UFUNCTION(BlueprintCallable)
-	void NotifyPlayerClickRestart(bool bIsClicked);
+	void NotifyPlayerClickRestart(bool bIsHostClicked, bool bIsClientClicked);
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     //~ End AGameModeBase
 
@@ -30,7 +30,7 @@ public:
     UFUNCTION(BlueprintCallable)
 	void SeverToLevel(const FName LevelName, bool bAbsolute);
     UFUNCTION(BlueprintCallable)
-    void GoToHubMapWithDelay(float Delay);
+    void ShowLoadingScene(float Delay);
 	void RestartWithDelay(float Delay);
 
 	//~ End LevelTravel
@@ -52,7 +52,8 @@ public:
 
     int32 TotalPlayerCount = 0;
     int32 DeadPlayerCount = 0;
-    int32 ClickCount = 0;
+    int32 HostClick = 0;
+    int32 ClientClick = 0;
     // ~ End ReStart
 
 protected:

@@ -41,6 +41,7 @@ void AGM_PhantomTwins::BeginPlay()
         {
             RequestBossSpawn();
         }
+        GS->OnClickedRestartChanged.AddDynamic(this, &ThisClass::NotifyPlayerClickRestart);
     }
 }
 
@@ -64,16 +65,21 @@ void AGM_PhantomTwins::NotifyPlayerDied(bool isDead)
     }
 }
 
-void AGM_PhantomTwins::NotifyPlayerClickRestart(bool bIsClicked)
+void AGM_PhantomTwins::NotifyPlayerClickRestart(bool bIsHostClicked, bool bIsClientClicked)
 {
-    if (bIsClicked)
-        ClickCount++;
+    if (bIsHostClicked)
+        HostClick = 1;
     else
-        ClickCount--;
+        HostClick = 0;
 
-    if (ClickCount >= TotalPlayerCount)
+    if (bIsClientClicked)
+        ClientClick = 1;
+    else
+        ClientClick = 0;
+
+    if (HostClick + ClientClick >= TotalPlayerCount)
     {
-        RestartWithDelay(3.f);
+        RestartWithDelay(2.f);
     }
 }
 
@@ -86,7 +92,7 @@ void AGM_PhantomTwins::ShowGameOverUI()
     PlayerPC->bShowMouseCursor = true;
 }
 
-void AGM_PhantomTwins::GoToHubMapWithDelay(float Delay)
+void AGM_PhantomTwins::ShowLoadingScene(float Delay)
 {
     APlayerController* PC = GetWorld()->GetFirstPlayerController();
     APC_Player* PlayerPC = Cast< APC_Player>(PC);
@@ -97,6 +103,7 @@ void AGM_PhantomTwins::GoToHubMapWithDelay(float Delay)
 
 void AGM_PhantomTwins::RestartWithDelay(float Delay)
 {
+    ShowLoadingScene(2.f);
     FTimerHandle TimerHandle;
     GetWorldTimerManager().SetTimer(TimerHandle, [this]()
         {

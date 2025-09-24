@@ -25,14 +25,8 @@ public:
 	TArray<FGameplayTag> GetPassiveSkillTag() const { return PassiveSkillTags;}
 
 	void SetIdentifyCharacterData();
-	UFUNCTION(BlueprintCallable)
-	void SetCharacterClickedRestart(bool bIsClicked);
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "CharacterType")
 	FIdentifyCharacterData IdentifyCharacterData;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	bool bIsClickedRestart = false;
 
 	UPROPERTY(Replicated, EditAnywhere, Category = GAS)
 	TObjectPtr<UAbilitySystemComponent> ASC;

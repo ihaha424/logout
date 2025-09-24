@@ -40,7 +40,7 @@ public:
 
 
 	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "HubMap | Character Seletect")
-	void C2S_ClickedRestart(const bool bIsHostClicked, const bool bIsClientClicked);
-	void C2S_ClickedRestart_Implementation(const bool bIsHostClicked, const bool bIsClientClicked);
+	void C2S_ClickedRestart(const bool bIsClicked);
+	void C2S_ClickedRestart_Implementation(const bool bIsClicked);
 
 };
