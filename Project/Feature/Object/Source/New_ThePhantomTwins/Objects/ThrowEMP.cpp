@@ -66,8 +66,6 @@ void AThrowEMP::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPr
     {
         //TPT_LOG(GALog, Log, TEXT("AThrowEMP OnHit!!!!!!!!!!!!!!!"));
 
-        ExplodeAndMakeNoise();
-
         // ProjectileMovementComponent 비활성화
         if (ProjectileMovementComponent)
         {
@@ -102,6 +100,8 @@ void AThrowEMP::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPr
                 CollisionComponent->SetSimulatePhysics(false);
                 CollisionComponent->SetPhysicsLinearVelocity(FVector::ZeroVector);
                 CollisionComponent->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
+
+                ExplodeAndMakeNoise();
             }
         }
     }
@@ -128,13 +128,6 @@ void AThrowEMP::InvokeGameplayCue()
 
 void AThrowEMP::ExplodeAndMakeNoise()
 {
-    // 투사체 이동 정지
-    //if (ProjectileMovementComponent)
-    //{
-    //    ProjectileMovementComponent->StopMovementImmediately();
-    //    ProjectileMovementComponent->Deactivate();
-    //}
-
     InvokeGameplayCue();
 
     // 1. 적에게 닿으면 5초간 스턴
