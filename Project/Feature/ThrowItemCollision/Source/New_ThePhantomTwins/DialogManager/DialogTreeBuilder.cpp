@@ -23,9 +23,22 @@ FDialogNode* UDialogTreeBuilder::AddLeafByPath(FDialogNode* Root, const TArray<i
         return nullptr;
     }
 
-    if (bUnique) Target->LeafList.AddUnique(LeafID);
-    else         Target->LeafList.Add(LeafID);
+    if (LeafID < 0)
+    {
+        TPT_LOG(DialogLog, Warning, TEXT("AddLeafByPath: negative LeafID=%d"), LeafID);
+        return nullptr;
+    }
 
+    const int32 OldNum = Target->LeafList.Num();
+    if (OldNum <= LeafID)
+    {
+        Target->LeafList.SetNum(LeafID + 1);
+        for (int32 i = OldNum; i < Target->LeafList.Num(); ++i) 
+            Target->LeafList[i] = -1;
+    }
+    Target->LeafList[LeafID] = LeafID;
+
+    // 선택 인덱스 보정(필요 시)
     EnsureSequenceValid(*Target);
 
     return Target;
@@ -44,8 +57,20 @@ FDialogNode* UDialogTreeBuilder::AddTriggerEventByPath(FDialogNode* Root, const 
     if (!Target) return nullptr;
 
     // Trigger는 리프/비-리프 모두 가능 (제약 없음)
-    if (bUnique) Target->TriggerList.AddUnique(TriggerKey);
-    else         Target->TriggerList.Add(TriggerKey);
+    if (TriggerKey < 0)
+    {
+        TPT_LOG(DialogLog, Warning, TEXT("AddLeafByPath: negative TriggerKey=%d"), TriggerKey);
+        return nullptr;
+    }
+
+    const int32 OldNum = Target->LeafList.Num();
+    if (OldNum <= TriggerKey)
+    {
+        Target->LeafList.SetNum(TriggerKey + 1);
+        for (int32 i = OldNum; i < Target->LeafList.Num(); ++i)
+            Target->LeafList[i] = -1;
+    }
+    Target->LeafList[TriggerKey] = TriggerKey;
 
     // 선택 인덱스 보정(필요 시)
     EnsureSequenceValid(*Target);
