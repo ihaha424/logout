@@ -60,6 +60,13 @@ void AThrowNoiseBomb::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActo
     // 자기 자신이나 소유자와의 충돌은 무시
     if (OtherActor && OtherActor != this && OtherActor != GetOwner())
     {
+        // 투사체 이동 정지
+        if (ProjectileMovementComponent)
+        {
+            ProjectileMovementComponent->StopMovementImmediately();
+            ProjectileMovementComponent->Deactivate();
+        }
+
         ExplodeAndMakeNoise();
     }
 }
@@ -85,13 +92,6 @@ void AThrowNoiseBomb::InvokeGameplayCue()
 
 void AThrowNoiseBomb::ExplodeAndMakeNoise()
 {
-    // 투사체 이동 정지
-    if (ProjectileMovementComponent)
-    {
-        ProjectileMovementComponent->StopMovementImmediately();
-        ProjectileMovementComponent->Deactivate();
-    }
-
     InvokeGameplayCue();
 
     // 소음 시작
