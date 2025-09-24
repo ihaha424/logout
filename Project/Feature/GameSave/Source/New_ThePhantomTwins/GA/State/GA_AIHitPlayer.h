@@ -19,6 +19,8 @@ public:
 	UGA_AIHitPlayer();
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	void OffSound(const FGameplayTag InputTag, int32 Count);
 	UFUNCTION()
 	void OnMontageComplete();
 
@@ -26,4 +28,13 @@ public:
 	TObjectPtr<UAnimMontage> HitMontage;
 	UPROPERTY()
 	UAbilityTask_PlayMontageAndWait* HitMontageTask = nullptr;
+
+
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SFX")
+	USoundBase* SoundCue;
+
+	UPROPERTY()
+	UAudioComponent* ActiveAudioComponent = nullptr;
 };

@@ -115,8 +115,9 @@ void APlayerCharacter::BeginPlay()
 		PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
 		PlayerController->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
 		PlayerController->RegisterWidget(TEXT("CannotUseItem"), CreateWidget<UUserWidget>(GetWorld(), CannotUseItemWidgetClass));
-		PlayerController->RegisterWidget(TEXT("GameOverUI"), CreateWidget(GetWorld(), GameOverUIClass));
-		PlayerController->RegisterWidget(TEXT("LoadingUI"), CreateWidget(GetWorld(), LoadingUIClass));
+		PlayerController->RegisterWidget(TEXT("GameOverUI"), CreateWidget(GetWorld(), GameOverWidgetClass));
+		PlayerController->RegisterWidget(TEXT("LoadingUI"), CreateWidget(GetWorld(), LoadingWidgetClass));
+		PlayerController->RegisterWidget(TEXT("ESC"), CreateWidget(GetWorld(), ESCWidgetClass));
 	}
 
 	// RecoveryGauge Time
@@ -265,22 +266,20 @@ void APlayerCharacter::CalculateGaugePercent_Implementation(float Elapsed)
 void APlayerCharacter::SetHoldingGaugeUI_Implementation(const APawn* Interactor, bool bVisible)
 {
 	APC_Player* PC = APC_Player::GetLocalPlayerController(Interactor->GetController());
-	// UI 
+
 	PC->SetWidget(TEXT("RecoveryGauge"), bVisible, EMessageTargetType::Multicast);
 }
 
 void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
-{// AttributeSet이 없으면 바로 반환
+{
 	if (!AttributeSet) return;
 
 	if (!IsLocallyControlled())
 	{
-		// 로그로 어느 객체에서 호출됐는지 안내
 		TPT_LOG(HUDLog, Warning, TEXT("InitHUDWidget: Not locally controlled, skipping widget creation (Actor: %s)"), *GetName());
 		return;
 	}
 
-	// PlayerHUDWidget이 아직 생성되지 않았다면 생성
 	if (!PlayerHUDWidget)
 	{
 		APlayerController* PC = Cast<APlayerController>(GetController());
@@ -306,7 +305,6 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 
 	PlayerHUDWidget->InitializeWidgets(HP, Mental, Stamina, CoreEnergy);
 
-	//PS에 있는 Inventory의 SetPlayerHUDWidget 호출
 	PS->InventoryComp->SetPlayerHUDWidget(PlayerHUDWidget);
 }
 
@@ -365,6 +363,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	TPTInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
 	TPTInput->BindAction(MouseWheelUpAction, ETriggerEvent::Triggered, this, &ThisClass::InputMouseWheelUp);
 	TPTInput->BindAction(MouseWheelDownAction, ETriggerEvent::Triggered, this, &ThisClass::InputMouseWheelDown);
+	TPTInput->BindAction(ESC, ETriggerEvent::Triggered, this, &ThisClass::InputESC);
 
 
 	SetupPlayerInputByTag(TPTInput);
@@ -581,6 +580,12 @@ void APlayerCharacter::InputMouseWheelDown(const FInputActionValue& Value)
 	}
 
 	InputPressedWithNum(0, SelectedSlotNumber);
+}
+
+void APlayerCharacter::InputESC(const FInputActionValue& Value)
+{
+	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
+	PC->SetWidget(TEXT("ESC"), false, EMessageTargetType::LocalClient);
 }
 
 void APlayerCharacter::InputMouseWheelUp(const FInputActionValue& Value)

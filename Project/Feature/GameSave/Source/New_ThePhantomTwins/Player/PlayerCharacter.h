@@ -104,11 +104,14 @@ public:
 	TObjectPtr<class UHeldItemComponent> HeldItemComponent;
 
 	// Àç½ÃÀÛ¿ë À§Á¬
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameOverUI")
-	TSubclassOf<UUserWidget> GameOverUIClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UUserWidget> GameOverWidgetClass;
 	// ·Îµù¿ë À§Á¬
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LoadingUI")
-	TSubclassOf<UUserWidget> LoadingUIClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UUserWidget> LoadingWidgetClass;
+	// ESC¿ë À§Á¬
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UUserWidget> ESCWidgetClass;
 
 public:
 	// À§Á¬ ¼³Á¤
@@ -148,6 +151,7 @@ protected:
 	void InputPressedWithNum(int32 InputID, int32 Number);
 	void InputMouseWheelUp(const FInputActionValue& Value);
 	void InputMouseWheelDown(const FInputActionValue& Value);
+	void InputESC(const FInputActionValue& Value);
 	void InputPressedUseItem(int32 InputID);
 	void InputReleased(int32 InputID);
 
@@ -230,6 +234,8 @@ protected:
 	TObjectPtr<UInputAction> MouseWheelUpAction;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> MouseWheelDownAction;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> ESC;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 	int32 SelectedSlotNumber = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
