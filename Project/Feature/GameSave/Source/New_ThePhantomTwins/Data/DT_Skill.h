@@ -28,8 +28,8 @@ struct FSkillDataTableRow : public FTableRowBase
 public:
     FSkillDataTableRow()
 	    : SkillType(ESkillType::NoneSkill)
-		, SkillIcon(nullptr)
 		, SkillName()
+		, SkillIcon(nullptr)
 		, SkillDescription()
     {}
 

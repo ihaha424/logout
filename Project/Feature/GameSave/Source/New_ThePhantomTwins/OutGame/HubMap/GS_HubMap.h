@@ -23,7 +23,7 @@ enum class EHubMapState : uint8
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSetIdentifyCharacterData, FIdentifyCharacterData, IdentifyCharacterData);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSetAllReadyData, bool, IsAllReady);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSetReadyData, bool, ServerReady, bool, ClientReady);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FHubMapChanged, EHubMapState, CurState, EHubMapState, NextState);
 
 UCLASS()
@@ -54,8 +54,8 @@ public:
 	void SetCharacterReady(bool bIsReady, bool bIsHost);
 	UPROPERTY(BlueprintAssignable, Category = "HubMap | Character Seletect")
 	FSetIdentifyCharacterData OnSetIdentifyCharacterData;
-	UPROPERTY(BlueprintAssignable, Category = "HubMap | All Ready")
-	FSetAllReadyData OnSetAllReadyData;
+	UPROPERTY(BlueprintAssignable, Category = "HubMap | Character Ready")
+	FSetReadyData OnSetReadyData;
 	// ~End Lobby(Character Seletect)
 
 private:
@@ -71,8 +71,6 @@ private:
 	bool bIsServerReady = false;
 	UPROPERTY(ReplicatedUsing = OnRep_ReadyCharacterData)
 	bool bIsClientReady = false;
-	UPROPERTY(Replicated)
-	bool bIsAllReady = false;
 	UFUNCTION()
 
 	void OnRep_MapData();

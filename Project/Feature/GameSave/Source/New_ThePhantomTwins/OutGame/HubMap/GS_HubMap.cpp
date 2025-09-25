@@ -75,12 +75,7 @@ void AGS_HubMap::OnRep_IdentifyCharacterData()
 
 void AGS_HubMap::OnRep_ReadyCharacterData()
 {
-	if (bIsServerReady && bIsClientReady)
-		bIsAllReady = true;
-    else
-		bIsAllReady = false;
-
-    OnSetAllReadyData.Broadcast(bIsAllReady);
+    OnSetReadyData.Broadcast(bIsServerReady, bIsClientReady);
 }
 
 void AGS_HubMap::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -90,5 +85,6 @@ void AGS_HubMap::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
     DOREPLIFETIME(AGS_HubMap, IdentifyCharacterData);
     DOREPLIFETIME(AGS_HubMap, NextLevel);
     DOREPLIFETIME(AGS_HubMap, MapData);
-    DOREPLIFETIME(AGS_HubMap, bIsAllReady);
+    DOREPLIFETIME(AGS_HubMap, bIsServerReady);
+    DOREPLIFETIME(AGS_HubMap, bIsClientReady);
 }
