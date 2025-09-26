@@ -32,6 +32,15 @@ public:
 private:
     void ExplodeAndMakeNoise();
 
+    // 특정 액터에 붙을 수 있는지 확인
+    bool CanStickToActor(AActor* Actor);
+
+    // 표면에 붙는 처리
+    void StickToSurface(AActor* SurfaceActor, const FHitResult& HitResult);
+
+    // 바닥으로 떨어뜨리는 처리
+    void FallToGround();
+
 public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components") 
     TObjectPtr<class USphereComponent> CollisionComponent;
@@ -50,4 +59,8 @@ public:
 
     UPROPERTY(EditAnywhere, Category = "Noise", Meta=(Categories=GameplayCue))
 	FGameplayTag GameplayCueTag;
+
+private:
+    UPROPERTY()
+    FTimerHandle GroundCheckTimer;
 };
