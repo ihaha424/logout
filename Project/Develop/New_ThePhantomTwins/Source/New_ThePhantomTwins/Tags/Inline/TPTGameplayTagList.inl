@@ -8,6 +8,7 @@
 #include "Tag_Data.inl"
 #include "Tag_Event.inl"
 #include "Tag_InputTag.inl"
+#include "Tag_Objects.inl"
 #elif defined(CUETAG)
 #include "CueTag_Effect.inl"
 #include "CueTag_Sound.inl"
