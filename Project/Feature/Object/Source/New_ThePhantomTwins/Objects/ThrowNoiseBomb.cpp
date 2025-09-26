@@ -134,13 +134,12 @@ bool AThrowNoiseBomb::CanStickToActor(AActor* Actor)
     if (!Actor)
         return false;
 
-    // 붙을 수 있는 태그들만 화이트리스트로 지정[41][46]
+    // 붙을 수 있는 태그들만 화이트리스트로 지정
     TArray<FName> StickableTags = {
         TEXT("Wall"),
         TEXT("Ground"),
-        TEXT("Object"),
-        TEXT("Obstacle"),
-        TEXT("Surface")  // 추가 태그 옵션
+        TEXT("AttachableObject"),
+        TEXT("Ceiling")
     };
 
     // 붙을 수 있는 태그가 있는지 확인
