@@ -103,16 +103,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
 	TObjectPtr<class UHeldItemComponent> HeldItemComponent;
 
-	// 재시작용 위젯
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
-	TSubclassOf<UUserWidget> GameOverWidgetClass;
-	// 로딩용 위젯
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
-	TSubclassOf<UUserWidget> LoadingWidgetClass;
-	// ESC용 위젯
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
-	TSubclassOf<UUserWidget> ESCWidgetClass;
-
 public:
 	// 위젯 설정
 	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);
@@ -151,6 +141,7 @@ protected:
 	void InputPressedWithNum(int32 InputID, int32 Number);
 	void InputMouseWheelUp(const FInputActionValue& Value);
 	void InputMouseWheelDown(const FInputActionValue& Value);
+	UFUNCTION(BlueprintCallable)
 	void InputESC(const FInputActionValue& Value);
 	void InputPressedUseItem(int32 InputID);
 	void InputReleased(int32 InputID);
@@ -270,6 +261,22 @@ protected:
 	TSubclassOf<UUserWidget> InteractWidgetClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TSubclassOf<UUserWidget> DownWidgetClass;
+
+	// 재시작용 위젯
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UUserWidget> GameOverWidgetClass;
+	// 로딩용 위젯
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UUserWidget> LoadingWidgetClass;
+	// ESC용 위젯
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UUserWidget> ESCWidgetClass;
+	bool bIsShowingESC = false;
+	// 게임 중지용 위젯
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UUserWidget> GameStopWidgetClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UUserWidget> ResumeCountWidgetClass;
 
 	// 반경
 	UPROPERTY(VisibleAnywhere)

@@ -5,6 +5,7 @@
 #include "GS_PhantomTwins.h"
 #include "AI/Utility/BossSpawner.h"
 #include "Blueprint/UserWidget.h"
+#include "GameFramework/PlayerState.h"
 #include "SaveGame/TPTSaveGameHelperLibrary.h"
 
 
@@ -42,6 +43,8 @@ void AGM_PhantomTwins::BeginPlay()
             RequestBossSpawn();
         }
         GS->OnClickedRestartChanged.AddDynamic(this, &ThisClass::NotifyPlayerClickRestart);
+        GS->OnClickedGameStopChanged.AddDynamic(this, &ThisClass::NotifyPlayerClickedGameStop);
+    	GS->OnClickedAgreeWithGameStopChanged.AddDynamic(this, &ThisClass::NotifyPlayerAgreeWithGameStop);
     }
 }
 
@@ -85,20 +88,63 @@ void AGM_PhantomTwins::NotifyPlayerClickRestart(bool bIsHostClicked, bool bIsCli
 
 void AGM_PhantomTwins::ShowGameOverUI()
 {
-    APlayerController* PC = GetWorld()->GetFirstPlayerController();
-    APC_Player* PlayerPC = Cast< APC_Player>(PC);
+    SetAllPlayerUIMode(true);
 
-    PlayerPC->SetWidget(TEXT("GameOverUI"), true, EMessageTargetType::Multicast);
-    PlayerPC->bShowMouseCursor = true;
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    APC_Player*ServerPC = Cast< APC_Player>(PC);
+    ServerPC->SetWidget(TEXT("GameOver"), true, EMessageTargetType::Multicast);
 }
+
+void AGM_PhantomTwins::NotifyPlayerClickedGameStop(FName LevelName)
+{
+    TPT_LOG(OutGameLog, Error, TEXT("4"));
+    DestinationLevelName = LevelName;
+    ShowGameStopUI();
+}
+
+void AGM_PhantomTwins::ShowGameStopUI()
+{
+    SetAllPlayerUIMode(true);
+
+    UGameplayStatics::SetGamePaused(GetWorld(), true);
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    APC_Player* ServerPC = Cast< APC_Player>(PC);
+
+    ServerPC->SetWidget(TEXT("ESC"), false, EMessageTargetType::Multicast);
+    ServerPC->SetWidget(TEXT("GameStop"), true, EMessageTargetType::Multicast);
+}
+
+void AGM_PhantomTwins::NotifyPlayerAgreeWithGameStop(bool bIsHostClicked, bool bIsClientClicked)
+{
+    if (bIsHostClicked&& bIsClientClicked)
+    {
+        ShowLoadingScene(2.0f);
+        SeverToLevel(DestinationLevelName, false);
+    }
+    else
+    {
+        ShowResumeCountUI();
+    }
+}
+
+void AGM_PhantomTwins::ShowResumeCountUI()
+{
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    APC_Player* ServerPC = Cast< APC_Player>(PC);
+
+    ServerPC->SetWidget(TEXT("GameStop"), false, EMessageTargetType::Multicast);
+    ServerPC->SetWidget(TEXT("ResumeCount"), true, EMessageTargetType::Multicast);
+}
+
 
 void AGM_PhantomTwins::ShowLoadingScene(float Delay)
 {
     APlayerController* PC = GetWorld()->GetFirstPlayerController();
-    APC_Player* PlayerPC = Cast< APC_Player>(PC);
+    APC_Player* ServerPC = Cast< APC_Player>(PC);
+    ServerPC->SetWidget(TEXT("Loading"), true, EMessageTargetType::Multicast);
 
-    PlayerPC->SetWidget(TEXT("LoadingUI"), true, EMessageTargetType::Multicast);
-    PlayerPC->bShowMouseCursor = false;
+    SetAllPlayerUIMode(false);
 }
 
 void AGM_PhantomTwins::RestartWithDelay(float Delay)
@@ -165,5 +211,33 @@ void AGM_PhantomTwins::RequestBossSpawn()
     else
     {
         TPT_LOG(GameRuleLog, Error, TEXT("PreferredSpawnActor is Invalid."));
+    }
+}
+
+void AGM_PhantomTwins::SetAllPlayerUIMode(bool bIsUIMode)
+{
+    AGameStateBase* GS = GetWorld()->GetGameState<AGameStateBase>();
+    NULLCHECK_RETURN_LOG(GS, OutGameLog, Error, );
+
+    for (APlayerState* PS : GS->PlayerArray)
+    {
+        NULLCHECK_RETURN_LOG(PS, OutGameLog, Error, );
+        APlayerController* PC = Cast<APlayerController>(PS->GetOwner());
+        NULLCHECK_RETURN_LOG(PC, OutGameLog, Error, );
+        APC_Player* PLayerPC = Cast<APC_Player>(PC);
+        NULLCHECK_RETURN_LOG(PLayerPC, OutGameLog, Error, );
+
+        if (bIsUIMode)
+        {
+	        FInputModeUIOnly InputModeData;
+            PLayerPC->SetInputMode(InputModeData);
+            PLayerPC->bShowMouseCursor = true;
+        }
+        else
+        {
+            FInputModeGameOnly GameInputMode;
+            PLayerPC->SetInputMode(GameInputMode);
+            PLayerPC->bShowMouseCursor = false;
+        }
     }
 }

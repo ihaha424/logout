@@ -61,6 +61,14 @@ void APC_Player::OnPossess(APawn* InPawn)
 	Super::OnPossess(InPawn);
 }
 
+void APC_Player::C2S_TurnOffESC_Implementation()
+{
+	SetWidget(TEXT("ESC"), false, EMessageTargetType::LocalClient);
+	bShowMouseCursor = false;
+	FInputModeGameOnly GameInputData;
+	SetInputMode(GameInputData);
+}
+
 void APC_Player::C2S_SetOwnerActor_Implementation(APlayerController* thisPC, AActor* Actor)
 {
 	if (HasAuthority())
@@ -80,4 +88,31 @@ void APC_Player::C2S_ClickedRestart_Implementation(const bool bIsClicked)
 		return;
 	}
 	GS->SetCharacterClickedRestart(bIsClicked, bIsHost);
+}
+
+void APC_Player::C2S_ClickedGameStop_Implementation(const FName LevelName)
+{
+	AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>();
+	if (!GS)
+	{
+		TPT_LOG(OutGameLog, Error, TEXT("Cast to 'AGS_PhantomTwins' Fail"));
+		return;
+	}
+	TPT_LOG(OutGameLog, Error, TEXT("1"));
+	GS->SetCharacterClickedGameStop(LevelName);
+}
+
+void APC_Player::C2S_ClickedAgreeWithGameStop_Implementation(const bool bIsClicked)
+{
+	if (!HasAuthority())
+		return;
+
+	const bool bIsHost = IsLocalController();
+	AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>();
+	if (!GS)
+	{
+		TPT_LOG(OutGameLog, Error, TEXT("Cast to 'AGS_PhantomTwins' Fail"));
+		return;
+	}
+	GS->SetCharacterAgreeWithGameStop(bIsClicked, bIsHost);
 }

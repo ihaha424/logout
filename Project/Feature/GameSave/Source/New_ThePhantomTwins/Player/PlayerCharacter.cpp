@@ -115,9 +115,12 @@ void APlayerCharacter::BeginPlay()
 		PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
 		PlayerController->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
 		PlayerController->RegisterWidget(TEXT("CannotUseItem"), CreateWidget<UUserWidget>(GetWorld(), CannotUseItemWidgetClass));
-		PlayerController->RegisterWidget(TEXT("GameOverUI"), CreateWidget(GetWorld(), GameOverWidgetClass));
-		PlayerController->RegisterWidget(TEXT("LoadingUI"), CreateWidget(GetWorld(), LoadingWidgetClass));
+		PlayerController->RegisterWidget(TEXT("GameOver"), CreateWidget(GetWorld(), GameOverWidgetClass));
+		PlayerController->RegisterWidget(TEXT("Loading"), CreateWidget(GetWorld(), LoadingWidgetClass));
+
 		PlayerController->RegisterWidget(TEXT("ESC"), CreateWidget(GetWorld(), ESCWidgetClass));
+		PlayerController->RegisterWidget(TEXT("GameStop"), CreateWidget(GetWorld(), GameStopWidgetClass));
+		PlayerController->RegisterWidget(TEXT("ResumeCount"), CreateWidget(GetWorld(), ResumeCountWidgetClass));
 	}
 
 	// RecoveryGauge Time
@@ -363,7 +366,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	TPTInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
 	TPTInput->BindAction(MouseWheelUpAction, ETriggerEvent::Triggered, this, &ThisClass::InputMouseWheelUp);
 	TPTInput->BindAction(MouseWheelDownAction, ETriggerEvent::Triggered, this, &ThisClass::InputMouseWheelDown);
-	TPTInput->BindAction(ESC, ETriggerEvent::Triggered, this, &ThisClass::InputESC);
+	TPTInput->BindAction(ESC, ETriggerEvent::Started, this, &ThisClass::InputESC);
 
 
 	SetupPlayerInputByTag(TPTInput);
@@ -585,7 +588,18 @@ void APlayerCharacter::InputMouseWheelDown(const FInputActionValue& Value)
 void APlayerCharacter::InputESC(const FInputActionValue& Value)
 {
 	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
-	PC->SetWidget(TEXT("ESC"), false, EMessageTargetType::LocalClient);
+	//if (!bIsShowingESC)
+	//{
+		PC->SetWidget(TEXT("ESC"),	true, EMessageTargetType::LocalClient);
+		bIsShowingESC = true;
+		FInputModeUIOnly InputData;
+		PC->SetInputMode(InputData);
+		PC->bShowMouseCursor = true;
+	//}
+	//else
+	//{
+	//	PC->TurnOffESC();
+	//}
 }
 
 void APlayerCharacter::InputMouseWheelUp(const FInputActionValue& Value)

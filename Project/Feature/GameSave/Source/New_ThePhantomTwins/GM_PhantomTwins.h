@@ -20,8 +20,6 @@ public:
     virtual void BeginPlay() override;
     virtual void PostLogin(APlayerController* NewPlayer) override;
 	void NotifyPlayerDied(bool isDead);
-    UFUNCTION(BlueprintCallable)
-	void NotifyPlayerClickRestart(bool bIsHostClicked, bool bIsClientClicked);
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     //~ End AGameModeBase
 
@@ -48,14 +46,25 @@ public:
 
     // ~ Begin ReStart
     UFUNCTION()
+    void NotifyPlayerClickRestart(bool bIsHostClicked, bool bIsClientClicked);
     void ShowGameOverUI();
 
-    int32 TotalPlayerCount = 0;
+	int32 TotalPlayerCount = 0;
     int32 DeadPlayerCount = 0;
     int32 HostClick = 0;
     int32 ClientClick = 0;
     // ~ End ReStart
 
+	// ~ Begin Stop game
+    UFUNCTION()
+    void NotifyPlayerClickedGameStop(FName LevelName);
+    void ShowGameStopUI();
+    UFUNCTION()
+    void NotifyPlayerAgreeWithGameStop(bool bIsHostClicked, bool bIsClientClicked);
+    void ShowResumeCountUI();
+    FName DestinationLevelName;
+
+    // ~ End  Stop game
 protected:
     //~ Begin BossSpawn
     FTimerHandle TimerHandle_SpawnByTime;
@@ -64,4 +73,6 @@ protected:
     void OnTimeLimitReached();
     void RequestBossSpawn();
     //~ End BossSpawn
+
+    void SetAllPlayerUIMode(bool bIsUIMode);
 };

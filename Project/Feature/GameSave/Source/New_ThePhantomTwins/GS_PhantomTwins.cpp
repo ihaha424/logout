@@ -61,6 +61,40 @@ void AGS_PhantomTwins::OnRep_SetCharacterClickedRestart()
     OnClickedRestartChanged.Broadcast(bIsHostClickedRestart, bIsClientClickedRestart);
 }
 
+void AGS_PhantomTwins::SetCharacterClickedGameStop(FName LevelName)
+{
+    TPT_LOG(OutGameLog, Error, TEXT("2"));
+    DestinationLevelName = LevelName;
+    OnRep_SetCharacterClickedGameStop();
+}
+
+void AGS_PhantomTwins::SetCharacterAgreeWithGameStop(bool bIsClicked, bool bIsHost)
+{
+    if (!HasAuthority()) return;
+
+    if (bIsHost)
+    {
+        bIsHostAgreeWithGameStop = bIsClicked;
+    }
+    else
+    {
+        bIsClientAgreeWithGameStop = bIsClicked;
+    }
+
+    OnRep_SetCharacterAgreeWithGameStop();
+}
+
+void AGS_PhantomTwins::OnRep_SetCharacterClickedGameStop()
+{
+    TPT_LOG(OutGameLog, Error, TEXT("3"));
+    OnClickedGameStopChanged.Broadcast(DestinationLevelName);
+}
+
+void AGS_PhantomTwins::OnRep_SetCharacterAgreeWithGameStop()
+{
+    OnClickedAgreeWithGameStopChanged.Broadcast(bIsHostAgreeWithGameStop, bIsClientAgreeWithGameStop);
+}
+
 void AGS_PhantomTwins::OnRep_BossSpawned()
 {
     if (bBossSpawned)
