@@ -17,6 +17,9 @@ void UAnimNotify_WalkSound::Notify(USkeletalMeshComponent* MeshComp, UAnimSequen
 	if (!MeshComp || StepSoundByMap.Num() == 0) return;
 
 	AActor* Actor = MeshComp->GetOwner();
+	if (!Actor)
+		return;
+
 	UWorld* World = Actor->GetWorld();
 	if (!World)
 		return;
