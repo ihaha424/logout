@@ -51,7 +51,7 @@ public:
 	void C2S_ClickedGameStop_Implementation(const FName LevelName);
 
 	UFUNCTION(BlueprintCallable, Server, Reliable)
-	void C2S_ClickedAgreeWithGameStop(const bool bIsClicked);
-	void C2S_ClickedAgreeWithGameStop_Implementation(const bool bIsClicked);
+	void C2S_ClickedAgreeWithGameStop(int32 SelectBtn);
+	void C2S_ClickedAgreeWithGameStop_Implementation(int32 SelectBtn);
 
 };

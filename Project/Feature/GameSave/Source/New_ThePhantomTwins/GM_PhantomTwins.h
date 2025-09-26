@@ -60,7 +60,7 @@ public:
     void NotifyPlayerClickedGameStop(FName LevelName);
     void ShowGameStopUI();
     UFUNCTION()
-    void NotifyPlayerAgreeWithGameStop(bool bIsHostClicked, bool bIsClientClicked);
+    void NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 ClientSelect);
     void ShowResumeCountUI();
     FName DestinationLevelName;
 

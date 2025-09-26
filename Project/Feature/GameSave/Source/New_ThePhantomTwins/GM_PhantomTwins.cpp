@@ -97,8 +97,8 @@ void AGM_PhantomTwins::ShowGameOverUI()
 
 void AGM_PhantomTwins::NotifyPlayerClickedGameStop(FName LevelName)
 {
-    TPT_LOG(OutGameLog, Error, TEXT("4"));
     DestinationLevelName = LevelName;
+    TPT_LOG(OutGameLog, Error, TEXT("%s"), *DestinationLevelName.ToString());
     ShowGameStopUI();
 }
 
@@ -114,14 +114,21 @@ void AGM_PhantomTwins::ShowGameStopUI()
     ServerPC->SetWidget(TEXT("GameStop"), true, EMessageTargetType::Multicast);
 }
 
-void AGM_PhantomTwins::NotifyPlayerAgreeWithGameStop(bool bIsHostClicked, bool bIsClientClicked)
-{
-    if (bIsHostClicked&& bIsClientClicked)
+void AGM_PhantomTwins::NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 ClientSelect)
+{// TODO: ENUM으로 바꾸기..
+    if (HostSelect == 1 && ClientSelect == 1)
     {
-        ShowLoadingScene(2.0f);
+        FTimerHandle TimerHandle;
+        GetWorldTimerManager().SetTimer(TimerHandle,[this]()
+            {
+                ShowLoadingScene(2.0f);
+            },
+            1.0f,
+            false    
+        );
         SeverToLevel(DestinationLevelName, false);
     }
-    else
+    else if ((HostSelect != 0 && ClientSelect != 0) && (HostSelect == 2 || ClientSelect == 2))
     {
         ShowResumeCountUI();
     }

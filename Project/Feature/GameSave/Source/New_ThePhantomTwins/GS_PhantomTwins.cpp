@@ -63,12 +63,11 @@ void AGS_PhantomTwins::OnRep_SetCharacterClickedRestart()
 
 void AGS_PhantomTwins::SetCharacterClickedGameStop(FName LevelName)
 {
-    TPT_LOG(OutGameLog, Error, TEXT("2"));
     DestinationLevelName = LevelName;
     OnRep_SetCharacterClickedGameStop();
 }
 
-void AGS_PhantomTwins::SetCharacterAgreeWithGameStop(bool bIsClicked, bool bIsHost)
+void AGS_PhantomTwins::SetCharacterAgreeWithGameStop(int32 bIsClicked, bool bIsHost)
 {
     if (!HasAuthority()) return;
 
@@ -86,7 +85,6 @@ void AGS_PhantomTwins::SetCharacterAgreeWithGameStop(bool bIsClicked, bool bIsHo
 
 void AGS_PhantomTwins::OnRep_SetCharacterClickedGameStop()
 {
-    TPT_LOG(OutGameLog, Error, TEXT("3"));
     OnClickedGameStopChanged.Broadcast(DestinationLevelName);
 }
 

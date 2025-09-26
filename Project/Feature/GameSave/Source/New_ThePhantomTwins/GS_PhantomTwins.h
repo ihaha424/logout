@@ -13,7 +13,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBossSpawnedDynamic, AActor*, Boss
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCollectedItem, AActor*, DataFragment);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedGameStop, FName , LevelName);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedRestart, bool, bIsHostClicked, bool, bIsClientClicked);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedAgreeWithGameStop, bool, bIsHostClicked, bool, bIsClientClicked);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedAgreeWithGameStop, int32, HostSelect, int32, ClientSelect);
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API AGS_PhantomTwins : public AGameStateBase
@@ -64,7 +64,7 @@ public:
 	FOnClickedAgreeWithGameStop OnClickedAgreeWithGameStopChanged;
 
 	void SetCharacterClickedGameStop(FName LevelName);
-	void SetCharacterAgreeWithGameStop(bool bIsClicked, bool bIsHost);
+	void SetCharacterAgreeWithGameStop(int32 bIsClicked, bool bIsHost);
 	UFUNCTION()
 	void OnRep_SetCharacterClickedGameStop();
 	UFUNCTION()
@@ -73,9 +73,9 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterClickedGameStop)
 	FName DestinationLevelName;
 	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterAgreeWithGameStop)
-	bool bIsHostAgreeWithGameStop = false;
+	int32 bIsHostAgreeWithGameStop = 0;
 	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterAgreeWithGameStop)
-	bool bIsClientAgreeWithGameStop = false;
+	int32 bIsClientAgreeWithGameStop = 0;
 
 	//~ End Stop game
 protected:

@@ -98,11 +98,10 @@ void APC_Player::C2S_ClickedGameStop_Implementation(const FName LevelName)
 		TPT_LOG(OutGameLog, Error, TEXT("Cast to 'AGS_PhantomTwins' Fail"));
 		return;
 	}
-	TPT_LOG(OutGameLog, Error, TEXT("1"));
 	GS->SetCharacterClickedGameStop(LevelName);
 }
 
-void APC_Player::C2S_ClickedAgreeWithGameStop_Implementation(const bool bIsClicked)
+void APC_Player::C2S_ClickedAgreeWithGameStop_Implementation(int32 SelectBtn)
 {
 	if (!HasAuthority())
 		return;
@@ -114,5 +113,5 @@ void APC_Player::C2S_ClickedAgreeWithGameStop_Implementation(const bool bIsClick
 		TPT_LOG(OutGameLog, Error, TEXT("Cast to 'AGS_PhantomTwins' Fail"));
 		return;
 	}
-	GS->SetCharacterAgreeWithGameStop(bIsClicked, bIsHost);
+	GS->SetCharacterAgreeWithGameStop(SelectBtn, bIsHost);
 }
