@@ -87,10 +87,16 @@ void ADataFragment::OnRep_bIsActived()
 
 void ADataFragment::HideFragmentMesh()
 {
-	if (UStaticMeshComponent* Mesh = FindComponentByClass<UStaticMeshComponent>())
+	TArray<UStaticMeshComponent*> Meshes;
+	GetComponents<UStaticMeshComponent>(Meshes);
+
+	for (UStaticMeshComponent* Mesh : Meshes)
 	{
-		Mesh->SetHiddenInGame(true);
-		Mesh->SetVisibility(false);
-		Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		if (Mesh)
+		{
+			Mesh->SetHiddenInGame(true);
+			Mesh->SetVisibility(false);
+			Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
 	}
 }
