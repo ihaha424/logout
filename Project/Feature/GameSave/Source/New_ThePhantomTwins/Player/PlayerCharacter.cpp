@@ -31,6 +31,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Components/PostProcessComponent.h"
 #include "Components/BoxComponent.h"
+#include "Data/DT_Skill.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -183,6 +184,9 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 		StartSpec.InputID = InputID;
 		ASC->GiveAbility(StartSpec);
 	}
+
+	SetSelectSkill(PS);
+
 	ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
 	PlayerController = GetController<APC_Player>();
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
@@ -211,11 +215,13 @@ void APlayerCharacter::OnRep_PlayerState()
 	SetMeshByCharacterType(PS);
 
 	ASC = PS->GetAbilitySystemComponent();
-	ASC->InitAbilityActorInfo(PS, this);
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
+	ASC->InitAbilityActorInfo(PS, this);
 	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
 	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
 	BindAttributeDelegates(AttributeSet);
+
+	//SetSelectSkill(PS);
 
 	InitHUDWidget(AttributeSet);
 	UPlayerAnimInstance* AnimInstance = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
@@ -946,5 +952,61 @@ void APlayerCharacter::S2A_OnDownedWidget_Implementation(bool Visible)
 	else
 	{
 		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+void APlayerCharacter::GivePassiveSkillBySkillType(ESkillType Type)
+{
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
+
+	FGameplayEventData Payload;
+	Payload.EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_Skill_StarterKit;
+	Payload.Instigator = this;
+
+	switch (Type)
+	{
+	case ESkillType::NoneSkill:
+		TPT_LOG(PlayerLog, Log, TEXT("Player NoneSkill"));
+		break;
+	case ESkillType::GiveEMP:
+		Payload.EventMagnitude = static_cast<float>(EItemType::EMP);
+		ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+		TPT_LOG(PlayerLog, Log, TEXT("Player Give EMP"));
+		break;
+	case ESkillType::GiveNoiseBomb:
+		Payload.EventMagnitude = static_cast<float>(EItemType::NoiseBomb);
+		ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+		TPT_LOG(PlayerLog, Log, TEXT("Player Give NoiseBomb"));
+		break;
+	case ESkillType::GiveHealPack:
+		Payload.EventMagnitude = static_cast<float>(EItemType::HealPack);
+		ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+		TPT_LOG(PlayerLog, Log, TEXT("Player Give HealPack"));
+		break;
+	case ESkillType::GiveMentalPack:
+		Payload.EventMagnitude = static_cast<float>(EItemType::MentalPack);
+		ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+		TPT_LOG(PlayerLog, Log, TEXT("Player Give MentalPack"));
+		break;
+	case ESkillType::GiveKey:
+		Payload.EventMagnitude = static_cast<float>(EItemType::Key);
+		ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+		TPT_LOG(PlayerLog, Log, TEXT("Player Give Key"));
+		break;
+	case ESkillType::MaxHealthUp:
+		ExecuteAbilityByTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_HPBuff);
+		TPT_LOG(PlayerLog, Log, TEXT("Player HP Buff"));
+		break;
+	case ESkillType::MaxMentalUp:
+		ExecuteAbilityByTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalBuff);
+		TPT_LOG(PlayerLog, Log, TEXT("Player Mental Buff"));
+		break;
+	case ESkillType::MaxStaminaUp:
+		ExecuteAbilityByTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_StaminaBuff);
+		TPT_LOG(PlayerLog, Log, TEXT("Player Stamina Buff"));
+		break;
+	default:
+		break;
 	}
 }

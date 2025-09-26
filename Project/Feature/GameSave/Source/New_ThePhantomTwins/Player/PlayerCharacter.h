@@ -119,13 +119,16 @@ public:
 
 	FORCEINLINE APS_Player* GetPS() const { return PS.Get(); }
 
+	UFUNCTION(BlueprintCallable)
+	void ExecuteAbilityByTag(FGameplayTag InputTag);
+	UFUNCTION(BlueprintCallable)
+	void GivePassiveSkillBySkillType(ESkillType Type);
+
 protected:
 	// 플레이어 인풋 바인딩
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	UFUNCTION()
 	void SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInputComponent);
-	UFUNCTION()
-	void ExecuteAbilityByTag(FGameplayTag InputTag);
 	UFUNCTION()
 	void BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet);
 	UFUNCTION()
@@ -166,6 +169,8 @@ protected:
 	void OverlapRangeSetting();
 	UFUNCTION(BlueprintImplementableEvent)
 	void SetMeshByCharacterType(APS_Player* MyPS);
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetSelectSkill(APS_Player* MyPS);
 
 	// 플레이어 반경 오버랩 처리
 	UFUNCTION()
