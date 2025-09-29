@@ -24,23 +24,23 @@ protected:
 public:
 	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
 
-	// 아이템을 먹었을 때 먹은 대상에게 게임플레이 이펙트를 적용시켜주는 함수 (GE)
-	void ApplyEffectToTarget(const APawn* Interactor);	
-
-	// 아이템에 대한 자체 이펙트(상자 오픈 이펙트)를 재생하기 위한 함수 (GC)
-	void InvokeGameplayCue(const APawn* Interactor);		
-
-	// GA 실행
+	void ApplyEffectToTarget(const APawn* Interactor);
+	void InvokeGameplayCue(const APawn* Interactor);
 	void ExecuteTrapBoxGA(const APawn* Interactor);
-
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "BoxObject | GAS")
 	TSubclassOf<class UGameplayEffect> GameplayEffectClass;
 
-	UPROPERTY(EditAnywhere, Category = "BoxObject | GAS", Meta=(Categories=GameplayCue))
+	UPROPERTY(EditAnywhere, Category = "BoxObject | GAS", Meta = (Categories = GameplayCue))
 	FGameplayTag GameplayCueTag;
 
 	UPROPERTY(EditAnywhere, Category = "BoxObject")
 	bool bisTrapBox;
+
+	UPROPERTY(EditAnywhere, Category = "BoxObject | UI")
+	TSubclassOf<AActor> WarningClass;
+
+	// Child Actor Component에서 Warning Actor를 찾기 위한 함수
+	AActor* FindWarningActor();
 };

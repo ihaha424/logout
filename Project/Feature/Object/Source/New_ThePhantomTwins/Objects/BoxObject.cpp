@@ -1,39 +1,80 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "BoxObject.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GA/Object/GA_TrapBox.h"
-
+#include "TimerManager.h"
+#include "Components/ChildActorComponent.h"
 
 ABoxObject::ABoxObject() : AInteractableObject()
 {
-
 }
 
 void ABoxObject::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Child Actor Component의 Warning Actor를 찾아서 숨김
+	AActor* WarningActor = FindWarningActor();
+	if (WarningActor)
+	{
+		WarningActor->SetActorHiddenInGame(true);
+		WarningActor->SetActorEnableCollision(false);
+	}
+}
+
+AActor* ABoxObject::FindWarningActor()
+{
+	// Child Actor Component들을 검색해서 WarningClass와 일치하는 액터 찾기
+	TArray<UChildActorComponent*> ChildActorComponents;
+	GetComponents<UChildActorComponent>(ChildActorComponents);
+
+	for (UChildActorComponent* ChildActorComp : ChildActorComponents)
+	{
+		if (ChildActorComp && ChildActorComp->GetChildActor())
+		{
+			AActor* ChildActor = ChildActorComp->GetChildActor();
+			if (WarningClass && ChildActor->GetClass() == WarningClass)
+			{
+				return ChildActor;
+			}
+		}
+	}
+	return nullptr;
 }
 
 void ABoxObject::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	if (bIsActived) return;
 
-	InvokeGameplayCue(Interactor);			// 자기 자신 이펙트 재생
-	ApplyEffectToTarget(Interactor);		// 상대방한테 게임플레이 이펙트 발동 시킴
+	InvokeGameplayCue(Interactor);
+	ApplyEffectToTarget(Interactor);
 
-	
-	// TrapBox면 GA_TrapBox(애니메이션) 과 UI 실행
 	if (bisTrapBox)
 	{
 		ExecuteTrapBoxGA(Interactor);
 
-		// TODO :: 경고창 위젯 실행해야 함
+		AActor* WarningActor = FindWarningActor();
+		if (WarningActor && !WarningActor->IsActorBeingDestroyed())
+		{
+			WarningActor->SetActorHiddenInGame(false);
+			WarningActor->SetActorEnableCollision(true);
+
+			FTimerHandle TimerHandle;
+			FTimerDelegate TimerDel;
+			TimerDel.BindLambda([WarningActor]()
+				{
+					if (WarningActor && !WarningActor->IsActorBeingDestroyed())
+					{
+						WarningActor->SetActorHiddenInGame(true);
+						WarningActor->SetActorEnableCollision(false);
+					}
+				});
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 5.f, false);
+		}
 	}
 }
 
+// 나머지 함수들은 동일...
 void ABoxObject::ApplyEffectToTarget(const APawn* Interactor)
 {
 	AActor* TargetActor = const_cast<APawn*>(Interactor);
@@ -83,14 +124,11 @@ void ABoxObject::ExecuteTrapBoxGA(const APawn* Interactor)
 
 	if (!TargetASC) return;
 
-	// GA_TrapBox를 직접 실행
 	FGameplayEventData EventData;
 	EventData.Instigator = Interactor;
 	EventData.Target = Interactor;
 
-	// 반드시 UGA_TrapBox 클래스 타입을 전달
 	FGameplayAbilitySpec AbilitySpec(UGA_TrapBox::StaticClass(), 1);
 
 	TargetASC->GiveAbilityAndActivateOnce(AbilitySpec, &EventData);
 }
-
