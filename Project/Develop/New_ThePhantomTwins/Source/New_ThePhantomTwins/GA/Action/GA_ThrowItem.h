@@ -78,4 +78,8 @@ private:
 
 	/** Get FThrowItemDT row for given item type (returns nullptr if not found) */
 	FThrowItemDT* GetThrowItemData(EItemType ItemType) const;
+
+	/** Cancel AimItem ability if it's currently active */
+	UFUNCTION()
+	void CancelAimItemAbility();
 };

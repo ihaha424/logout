@@ -1,5 +1,5 @@
-﻿// InventoryComponent.h
-#pragma once
+﻿#pragma once
+
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "GameplayTagContainer.h"
@@ -24,7 +24,7 @@ class NEW_THEPHANTOMTWINS_API UInventoryComponent : public UActorComponent
 {
     GENERATED_BODY()
 
-public:	
+public:
     UInventoryComponent();
 
 protected:
@@ -66,7 +66,6 @@ public:
     // 인벤토리에 넣을 수 있는지 확인
     UFUNCTION()
     bool CanAddToInventory(EItemType eItemType);
-
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
@@ -131,5 +130,4 @@ private:
 
     bool CanUseKey();
     int32 GetMaxQuantity(EItemType ItemType);
-
 };

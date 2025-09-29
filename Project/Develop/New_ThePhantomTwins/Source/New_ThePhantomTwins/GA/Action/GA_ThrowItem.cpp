@@ -4,11 +4,14 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Abilities/GameplayAbility.h"
 #include "Player/PlayerCharacter.h"
 #include "Player/PS_Player.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
+#include "AbilitySystemComponent.h"
 
 UGA_ThrowItem::UGA_ThrowItem()
 {
@@ -21,6 +24,15 @@ void UGA_ThrowItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (ASC)
+	{
+		FGameplayTagContainer CancelTags;
+		CancelTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AimItem);
+		ASC->CancelAbilities(&CancelTags);
+	}
+
 	if (HasAuthority(&ActivationInfo))
 	{
 		EItemType ItemType = EItemType::None;
@@ -28,6 +40,7 @@ void UGA_ThrowItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 		{
 			ItemType = static_cast<EItemType>((int32)TriggerEventData->EventMagnitude);
 		}
+
 		SpawnThrowableItem(ItemType);
 	}
 
@@ -360,4 +373,20 @@ FThrowItemDT* UGA_ThrowItem::GetThrowItemData(EItemType ItemType) const
 
 	static const FString ContextString(TEXT("UGA_ThrowItem::GetThrowItemData"));
 	return ThrowItemDT->FindRow<FThrowItemDT>(RowName, ContextString, true);
+}
+
+void UGA_ThrowItem::CancelAimItemAbility()
+{
+	// AbilitySystemComponent 가져오기
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
+	if (!ASC)
+	{
+		TPT_LOG(GALog, Warning, TEXT("UGA_ThrowItem: AbilitySystemComponent not found"));
+		return;
+	}
+
+	// 방법 1: 태그로 어빌리티 취소 (권장)
+	FGameplayTagContainer TagsToCancel;
+	TagsToCancel.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AimItem);
+	ASC->CancelAbilities(&TagsToCancel);
 }
