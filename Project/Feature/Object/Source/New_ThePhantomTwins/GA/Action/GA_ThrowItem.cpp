@@ -40,6 +40,7 @@ void UGA_ThrowItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 		{
 			ItemType = static_cast<EItemType>((int32)TriggerEventData->EventMagnitude);
 		}
+
 		SpawnThrowableItem(ItemType);
 	}
 

@@ -1,5 +1,4 @@
-﻿// InventoryComponent.cpp
-#include "InventoryComponent.h"
+﻿#include "InventoryComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/PlayerCharacter.h"
 #include "Player/PS_Player.h"
@@ -81,6 +80,16 @@ EItemType UInventoryComponent::UseItem(int32 SlotIndex)
 
     VisibleInventory();
 
+    // --- HUD에서 outline/tooltips 를 즉시 제거 (클라이언트 쪽 UI)
+    // SlotIndex는 1-based 이므로 0-based 인덱스로 변환
+    int32 HUDIndex = FMath::Clamp(SlotIndex - 1, 0, InventorySlots.Num() - 1);
+    if (PlayerHUDWidget)
+    {
+        PlayerHUDWidget->SetOutline(HUDIndex, false);
+        PlayerHUDWidget->SetToolTips(false, ItemType);
+    }
+    // --------------------------------------------------------
+
     if (GetOwnerRole() != ROLE_Authority)
     {
         EItemType Predicted = (LocalSlot.ItemQuantity > 0) ? LocalSlot.ItemType : EItemType::None;
@@ -90,7 +99,17 @@ EItemType UInventoryComponent::UseItem(int32 SlotIndex)
     }
 
     EItemType Used = UseItem_ServerAuth(SlotIndex);
+
+    // 서버(또는 호스트)인 경우에도 로컬 HUD를 확실히 갱신
     RefreshUIFromInventory();
+
+    // (다시 안전하게 한 번 더 제거 — 위에서 이미 했지만 호스트의 경우 갱신 이후 상태가 바뀔 수 있으므로)
+    if (PlayerHUDWidget)
+    {
+        PlayerHUDWidget->SetOutline(HUDIndex, false);
+        PlayerHUDWidget->SetToolTips(false, ItemType);
+    }
+
     selectedNum = -1;
     return Used;
 }
@@ -406,6 +425,7 @@ bool UInventoryComponent::CanAddToInventory(EItemType eItemType)
 }
 
 // Helper Functions
+
 FItemDataTable* UInventoryComponent::GetItemAbilityData(EItemType ItemType)
 {
     if (!ItemAbilityTable) return nullptr;
@@ -488,7 +508,7 @@ bool UInventoryComponent::CanUseKey()
     APC_Player* PC = Cast<APC_Player>(PS->GetPlayerController());
     if (!PC) return false;
 
-    APlayerCharacter* OwnerPlayer = Cast<APlayerCharacter>(PC->GetCharacter());
+    APlayerCharacter* OwnerPlayer = Cast<APlayerCharacter>(PC ? PC->GetCharacter() : nullptr);
     if (!OwnerPlayer) return false;
 
     AActor* TargetActor = Cast<AActor>(OwnerPlayer->GetFocusTrace()->GetFocusedActor());
