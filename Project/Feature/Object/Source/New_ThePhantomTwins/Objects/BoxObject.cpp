@@ -4,6 +4,8 @@
 #include "BoxObject.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "GA/Object/GA_TrapBox.h"
+
 
 ABoxObject::ABoxObject() : AInteractableObject()
 {
@@ -21,6 +23,15 @@ void ABoxObject::OnInteractServer_Implementation(const APawn* Interactor)
 
 	InvokeGameplayCue(Interactor);			// 자기 자신 이펙트 재생
 	ApplyEffectToTarget(Interactor);		// 상대방한테 게임플레이 이펙트 발동 시킴
+
+	
+	// TrapBox면 GA_TrapBox(애니메이션) 과 UI 실행
+	if (bisTrapBox)
+	{
+		ExecuteTrapBoxGA(Interactor);
+
+		// TODO :: 경고창 위젯 실행해야 함
+	}
 }
 
 void ABoxObject::ApplyEffectToTarget(const APawn* Interactor)
@@ -59,5 +70,27 @@ void ABoxObject::InvokeGameplayCue(const APawn* Interactor)
 		Param.Location = GetActorLocation();
 		TargetASC->ExecuteGameplayCue(GameplayCueTag, Param);
 	}
+}
+
+void ABoxObject::ExecuteTrapBoxGA(const APawn* Interactor)
+{
+	if (!Interactor)
+		return;
+
+	AActor* TargetActor = const_cast<APawn*>(Interactor);
+
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+
+	if (!TargetASC) return;
+
+	// GA_TrapBox를 직접 실행
+	FGameplayEventData EventData;
+	EventData.Instigator = Interactor;
+	EventData.Target = Interactor;
+
+	// 반드시 UGA_TrapBox 클래스 타입을 전달
+	FGameplayAbilitySpec AbilitySpec(UGA_TrapBox::StaticClass(), 1);
+
+	TargetASC->GiveAbilityAndActivateOnce(AbilitySpec, &EventData);
 }
 
