@@ -2,6 +2,8 @@
 
 
 #include "GA_StarterKit.h"
+
+#include "Kismet/KismetSystemLibrary.h"
 #include "Player/PlayerCharacter.h"
 #include "Player/PS_Player.h"
 #include "Log/TPTLog.h"
@@ -17,15 +19,14 @@ void UGA_StarterKit::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	TPT_LOG(GALog, Log, TEXT(""));
-
 	// 인벤토리 확인
 	const APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor);
-	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
+	NULLCHECK_CODE_RETURN_LOG(Character, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);,);
+
 	const APS_Player* PS = Cast<APS_Player>(Character->GetPlayerState());
-	NULLCHECK_RETURN_LOG(PS, GALog, Warning, );
+	NULLCHECK_CODE_RETURN_LOG(PS, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false); , );
 	UInventoryComponent* Inventory = PS->InventoryComp;
-	NULLCHECK_RETURN_LOG(Inventory, GALog, Warning, );
+	NULLCHECK_CODE_RETURN_LOG(Inventory, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false); , );
 
 	EItemType ItemType = EItemType::None;
 	if (TriggerEventData)
@@ -33,7 +34,7 @@ void UGA_StarterKit::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 		ItemType = static_cast<EItemType>((int32)TriggerEventData->EventMagnitude);
 	}
 
-	TPT_LOG(GALog, Log, TEXT("%d"), static_cast<int32>(ItemType));
+	TPT_LOG(GALog, Log, TEXT("Item Number : %d"), static_cast<int32>(ItemType));
 
 	switch (ItemType)
 	{

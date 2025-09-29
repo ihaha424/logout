@@ -91,6 +91,15 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& O
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (HasAuthority())
+	{
+		if (IsLocallyControlled())
+		{
+			SetSelectSkill(PS);
+		}
+	}
+
 	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
 
 	UUserWidget* Interact = CreateWidget(GetWorld(), InteractWidgetClass);
@@ -162,6 +171,7 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	PS = GetPlayerState<APS_Player>();
 	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
 	PS->SetIdentifyCharacterData();
+	TPT_LOG(PlayerLog, Log, TEXT("Server Skill : %d, Client Skill : %d"), (int32)PS->IdentifyCharacterData.HostSkill, (int32)PS->IdentifyCharacterData.ClientSkill);
 	SetMeshByCharacterType(PS);
 
 	ASC = PS->GetAbilitySystemComponent();
@@ -185,8 +195,6 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 		ASC->GiveAbility(StartSpec);
 	}
 
-	SetSelectSkill(PS);
-
 	ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
 	PlayerController = GetController<APC_Player>();
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
@@ -194,6 +202,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	InitHUDWidget(AttributeSet);
 	UPlayerAnimInstance* AnimInstance = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	AnimInstance->InitializeWithAbilitySystem(ASC);
+
+	SetSelectSkill(PS);
 }
 
 void APlayerCharacter::OnRep_Controller()
@@ -213,6 +223,7 @@ void APlayerCharacter::OnRep_PlayerState()
 	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
 	PS->SetIdentifyCharacterData();
 	SetMeshByCharacterType(PS);
+	TPT_LOG(PlayerLog, Log, TEXT("Server Skill : %d, Client Skill : %d"), (int32)PS->IdentifyCharacterData.HostSkill, (int32)PS->IdentifyCharacterData.ClientSkill);
 
 	ASC = PS->GetAbilitySystemComponent();
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
@@ -220,8 +231,6 @@ void APlayerCharacter::OnRep_PlayerState()
 	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
 	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
 	BindAttributeDelegates(AttributeSet);
-
-	//SetSelectSkill(PS);
 
 	InitHUDWidget(AttributeSet);
 	UPlayerAnimInstance* AnimInstance = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
@@ -291,13 +300,13 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 
 	if (!PlayerHUDWidget)
 	{
-		APlayerController* PC = Cast<APlayerController>(GetController());
+		AUIManagerPlayerController* PC = Cast<AUIManagerPlayerController>(GetController());
 
 		if (PC && PlayerHUDWidgetClass)
 		{
-			PlayerController->RegisterWidget(TEXT("PlayerHUDWidget"), CreateWidget<UPlayerHUDWidget>(GetWorld(), PlayerHUDWidgetClass));
-			PlayerController->SetWidget(TEXT("PlayerHUDWidget"), true, EMessageTargetType::LocalClient);
-			PlayerHUDWidget = Cast<UPlayerHUDWidget>(PlayerController->GetWidget(TEXT("PlayerHUDWidget")));
+			PC->RegisterWidget(TEXT("PlayerHUDWidget"), CreateWidget<UPlayerHUDWidget>(GetWorld(), PlayerHUDWidgetClass));
+			PC->SetWidget(TEXT("PlayerHUDWidget"), true, EMessageTargetType::LocalClient);
+			PlayerHUDWidget = Cast<UPlayerHUDWidget>(PC->GetWidget(TEXT("PlayerHUDWidget")));
 		}
 		else
 		{
@@ -959,6 +968,8 @@ void APlayerCharacter::GivePassiveSkillBySkillType(ESkillType Type)
 {
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
+
+	TPT_LOG(PlayerLog, Log, TEXT("Give Skill"));
 
 	FGameplayEventData Payload;
 	Payload.EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_Skill_StarterKit;
