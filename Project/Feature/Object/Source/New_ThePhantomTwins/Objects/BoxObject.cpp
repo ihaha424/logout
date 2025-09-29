@@ -4,9 +4,12 @@
 #include "GA/Object/GA_TrapBox.h"
 #include "TimerManager.h"
 #include "Components/ChildActorComponent.h"
+#include "Net/UnrealNetwork.h"
 
 ABoxObject::ABoxObject() : AInteractableObject()
 {
+	// 복제 설정 확인
+	bReplicates = true;
 }
 
 void ABoxObject::BeginPlay()
@@ -24,7 +27,6 @@ void ABoxObject::BeginPlay()
 
 AActor* ABoxObject::FindWarningActor()
 {
-	// Child Actor Component들을 검색해서 WarningClass와 일치하는 액터 찾기
 	TArray<UChildActorComponent*> ChildActorComponents;
 	GetComponents<UChildActorComponent>(ChildActorComponents);
 
@@ -46,39 +48,61 @@ void ABoxObject::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	if (bIsActived) return;
 
-	InvokeGameplayCue(Interactor);
-	ApplyEffectToTarget(Interactor);
+	// 서버에서 멀티캐스트 함수들 호출
+	MulticastInvokeGameplayCue(Interactor);
+	MulticastApplyEffect(Interactor);
 
 	if (bisTrapBox)
 	{
-		ExecuteTrapBoxGA(Interactor);
-
-		AActor* WarningActor = FindWarningActor();
-		if (WarningActor && !WarningActor->IsActorBeingDestroyed())
-		{
-			WarningActor->SetActorHiddenInGame(false);
-			WarningActor->SetActorEnableCollision(true);
-
-			FTimerHandle TimerHandle;
-			FTimerDelegate TimerDel;
-			TimerDel.BindLambda([WarningActor]()
-				{
-					if (WarningActor && !WarningActor->IsActorBeingDestroyed())
-					{
-						WarningActor->SetActorHiddenInGame(true);
-						WarningActor->SetActorEnableCollision(false);
-					}
-				});
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 5.f, false);
-		}
+		MulticastExecuteTrapBox(Interactor);
+		MulticastShowWarning();
 	}
 }
 
-// 나머지 함수들은 동일...
+// 멀티캐스트 함수들 구현
+void ABoxObject::MulticastApplyEffect_Implementation(const APawn* Interactor)
+{
+	ApplyEffectToTarget(Interactor);
+}
+
+void ABoxObject::MulticastInvokeGameplayCue_Implementation(const APawn* Interactor)
+{
+	InvokeGameplayCue(Interactor);
+}
+
+void ABoxObject::MulticastExecuteTrapBox_Implementation(const APawn* Interactor)
+{
+	ExecuteTrapBoxGA(Interactor);
+}
+
+void ABoxObject::MulticastShowWarning_Implementation()
+{
+	if (!bisTrapBox) return;
+
+	AActor* WarningActor = FindWarningActor();
+	if (WarningActor && !WarningActor->IsActorBeingDestroyed())
+	{
+		WarningActor->SetActorHiddenInGame(false);
+		WarningActor->SetActorEnableCollision(true);
+
+		FTimerHandle TimerHandle;
+		FTimerDelegate TimerDel;
+		TimerDel.BindLambda([WarningActor]()
+			{
+				if (WarningActor && !WarningActor->IsActorBeingDestroyed())
+				{
+					WarningActor->SetActorHiddenInGame(true);
+					WarningActor->SetActorEnableCollision(false);
+				}
+			});
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 5.f, false);
+	}
+}
+
+// 기존 함수들은 그대로 유지
 void ABoxObject::ApplyEffectToTarget(const APawn* Interactor)
 {
 	AActor* TargetActor = const_cast<APawn*>(Interactor);
-
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
 
 	if (TargetASC)
@@ -96,11 +120,9 @@ void ABoxObject::ApplyEffectToTarget(const APawn* Interactor)
 
 void ABoxObject::InvokeGameplayCue(const APawn* Interactor)
 {
-	if (!Interactor)
-		return;
+	if (!Interactor) return;
 
 	AActor* TargetActor = const_cast<APawn*>(Interactor);
-
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
 
 	if (TargetASC)
@@ -115,11 +137,9 @@ void ABoxObject::InvokeGameplayCue(const APawn* Interactor)
 
 void ABoxObject::ExecuteTrapBoxGA(const APawn* Interactor)
 {
-	if (!Interactor)
-		return;
+	if (!Interactor) return;
 
 	AActor* TargetActor = const_cast<APawn*>(Interactor);
-
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
 
 	if (!TargetASC) return;
@@ -129,6 +149,5 @@ void ABoxObject::ExecuteTrapBoxGA(const APawn* Interactor)
 	EventData.Target = Interactor;
 
 	FGameplayAbilitySpec AbilitySpec(UGA_TrapBox::StaticClass(), 1);
-
 	TargetASC->GiveAbilityAndActivateOnce(AbilitySpec, &EventData);
 }
