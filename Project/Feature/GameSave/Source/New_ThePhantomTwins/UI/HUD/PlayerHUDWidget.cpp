@@ -5,7 +5,6 @@
 #include "Blueprint/UserWidget.h"
 #include "GS_PhantomTwins.h"
 
-#include "PlayerStatusWidget.h"
 #include "ClearItemCounterWidget.h"
 #include "PlayerStaminaWidget.h"
 #include "PlayerSkillWidget.h"
@@ -40,9 +39,6 @@ void UPlayerHUDWidget::NativeDestruct()
 void UPlayerHUDWidget::InitializeWidgets(int32 HP/*=200*/, int32 Mental/*=100*/, int32 Stamina/*=100*/, int32 CoreEnergyNum/*=5*/, int32 MaxInventorySlots/*=5*/, UTexture2D* PortraitTexture/*=nullptr*/, UTexture2D* ActiveSkillIcon /*= nullptr*/, UTexture2D* PassiveSkillIcon /*= nullptr*/)
 {
 /* PlayerStatus */
-    UpdateHP(HP);
-    UpdateMental(Mental);
-    SetCharPortrait(PortraitTexture);
     UpdateStamina(Stamina);
     VisibleStamina(false);
 
@@ -56,34 +52,7 @@ void UPlayerHUDWidget::InitializeWidgets(int32 HP/*=200*/, int32 Mental/*=100*/,
     VisibleInventory(false);
 
 // Max Setting
-    PlayerStatusWidget->MaxHP = HP;
-    PlayerStatusWidget->MaxMental = Mental;
     PlayerStaminaWidget->MaxStamina = Stamina;
-}
-
-/* PlayerStatus */
-void UPlayerHUDWidget::UpdateHP(const int32 HP)
-{
-    if (PlayerStatusWidget)
-    {
-        PlayerStatusWidget->SetHP(HP);
-    }
-}
-
-void UPlayerHUDWidget::UpdateMental(const int32 Mental)
-{
-    if (PlayerStatusWidget)
-    {
-        PlayerStatusWidget->SetMental(Mental);
-    }
-}
-
-void UPlayerHUDWidget::SetCharPortrait(UTexture2D* PortraitTexture)
-{
-    if (PlayerStatusWidget)
-    {
-        PlayerStatusWidget->SetCharPortrait(PortraitTexture);
-    }
 }
 
 void UPlayerHUDWidget::UpdateStamina(const int32 Stamina)

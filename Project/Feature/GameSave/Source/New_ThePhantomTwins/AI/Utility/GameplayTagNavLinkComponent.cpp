@@ -27,7 +27,7 @@ void UGameplayTagNavLinkComponent::BeginPlay()
     Super::BeginPlay();
 
     TargetActor = GetOwner();
-    SetLinkData(FVector{ -100.0f, 0.0f, 0.0f }, FVector{ 100.0f, 0.0f, 0.0f }, ENavLinkDirection::BothWays);
+    SetLinkData(FVector{ 0.0f, -100.0f, 0.0f }, FVector{ 0.0f, 100.0f, 0.0f }, ENavLinkDirection::BothWays);
     SetMoveReachedLink(this, &UGameplayTagNavLinkComponent::HandleSmartLinkReached);
 }
 
@@ -69,12 +69,12 @@ void UGameplayTagNavLinkComponent::NavProxyEnabled(bool Setbool)
         NavModifier->SetAreaClass(UNavArea_Default::StaticClass()); // NavMesh가 뚫리도록 설정
 
         // NavMesh 즉시 리빌드(필요시)
-        UNavigationSystemV1::GetCurrent(GetWorld())->Build();
+        //UNavigationSystemV1::GetCurrent(GetWorld())->Build();
     }
     else
     {
         SetEnabled(true); // Proxy 연결
-        NavModifier->SetAreaClass(UNavArea_Null::StaticClass()); // NavMesh 차단(블로킹)
-        UNavigationSystemV1::GetCurrent(GetWorld())->Build();
+        NavModifier->SetAreaClass(UNavArea_Obstacle::StaticClass()); // NavMesh 차단(블로킹)
+        //UNavigationSystemV1::GetCurrent(GetWorld())->Build();
     }
 }

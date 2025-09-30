@@ -110,10 +110,7 @@ public:
 public:
 	// À§Á¬ ¼³Á¤
 	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);
-	UFUNCTION()
-	void PlayerHUDHPSet(int32 value);
-	UFUNCTION()
-	void PlayerHUDMentalSet(int32 value);
+
 	UFUNCTION()
 	void PlayerHUDStaminaSet(int32 value);
 	UFUNCTION()

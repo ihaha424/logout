@@ -19,7 +19,7 @@ public:
 
     virtual void BeginPlay() override;
 
-    UPROPERTY(VisibleAnywhere)
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
     TObjectPtr<UNavModifierComponent> NavModifier;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")

@@ -23,18 +23,6 @@ public:
     void InitializeWidgets(int32 HP=200, int32 Mental=100, int32 Stamina=100, int32 CoreEnergyNum=5, int32 MaxInventorySlots = 5,
                             UTexture2D* PortraitTexture=nullptr, UTexture2D* ActiveSkillIcon = nullptr, UTexture2D* PassiveSkillIcon = nullptr);
 
-    /* PlayerStatus */
-    // Player HP 변경
-	UFUNCTION(BlueprintCallable, Category = "UI | PlayerStatus")
-    void UpdateHP(const int32 HP);
-
-    // Player Mental 변경
-    UFUNCTION(BlueprintCallable, Category = "UI | PlayerStatus")
-    void UpdateMental(const int32 Mental);
-
-    // Player 초상화 세팅
-    UFUNCTION(BlueprintCallable, Category = "UI | PlayerStatus")
-    void SetCharPortrait(UTexture2D* PortraitTexture);    
 
     // Player Stamina 변경
     UFUNCTION(BlueprintCallable, Category = "UI | PlayerStatus")
@@ -93,10 +81,6 @@ protected:
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<class UUserWidget> AimDotWidget;
 
-// PlayerStatus
-    UPROPERTY(meta = (BindWidget))
-    TObjectPtr<class UPlayerStatusWidget> PlayerStatusWidget;
-
 // Stamina
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<class UPlayerStaminaWidget> PlayerStaminaWidget;
@@ -114,6 +98,6 @@ protected:
     TObjectPtr<class UInventoryWidget> InventoryWidget;
 
 public:
-    int32 ClearItemCount = 0;       // 임시!!!!!!!!!!!! GameState에서 해줘야함!!!!!!!!!!!!!!!
+    int32 ClearItemCount = 0;
 
 };
