@@ -327,18 +327,6 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 	PS->InventoryComp->SetPlayerHUDWidget(PlayerHUDWidget);
 }
 
-void APlayerCharacter::PlayerHUDHPSet(int32 value)
-{
-	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
-	PlayerHUDWidget->UpdateHP(value);
-}
-
-void APlayerCharacter::PlayerHUDMentalSet(int32 value)
-{
-	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
-	PlayerHUDWidget->UpdateMental(value);
-}
-
 void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
 {
 	NULLCHECK_RETURN_LOG(PlayerHUDWidget, HUDLog, Error, );
@@ -448,8 +436,6 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 
 	if (IsLocallyControlled())
 	{	
-		AttributeSet->OnChangedHP.AddDynamic(this, &ThisClass::PlayerHUDHPSet);
-		AttributeSet->OnChangedMentalPoint.AddDynamic(this, &ThisClass::PlayerHUDMentalSet);
 		AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
 		AttributeSet->OnFullStamina.AddDynamic(this, &ThisClass::HidePlayerHUDStaminaSet);
 		AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);

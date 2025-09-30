@@ -9,12 +9,6 @@
 void UPlayerSkillWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-	//if (SkillPointsStackBox && SkillPointWidgetClass)
-	//{
-	//	UUserWidget* NewWidget = CreateWidget<UUserWidget>(this, SkillPointWidgetClass);
-	//	SkillPointsStackBox->AddChildToStackBox(NewWidget);
-	//}
 }
 
 void UPlayerSkillWidget::SetActiveSkillIcon(UTexture2D* ActiveSkillIcon)

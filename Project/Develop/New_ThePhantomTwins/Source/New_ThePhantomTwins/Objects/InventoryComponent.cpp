@@ -36,6 +36,11 @@ void UInventoryComponent::BeginPlay()
             QuestionBoxTextWidget->SetVisibility(ESlateVisibility::Hidden);
         }
     }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("QuestionBoxTextWidgetclass is null! Cannot create widget."));
+        return;
+    }
 }
 
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

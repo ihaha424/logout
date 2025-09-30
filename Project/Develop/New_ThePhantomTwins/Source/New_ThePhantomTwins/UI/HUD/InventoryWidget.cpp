@@ -19,29 +19,64 @@ void UInventoryWidget::NativeConstruct()
 
 void UInventoryWidget::LoadInventory(class UInventoryComponent* Inventory)
 {
-	if (!WrapBox || !Inventory || !ItemSlotWidgetClass) return;
+    if (!WrapBox)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UInventoryWidget::LoadInventory - WrapBox is null"));
+        return;
+    }
+    if (!Inventory)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UInventoryWidget::LoadInventory - Inventory is null"));
+        return;
+    }
+    if (!ItemSlotWidgetClass)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UInventoryWidget::LoadInventory - ItemSlotWidgetClass is null"));
+        return;
+    }
 
     APlayerController* PC = GetOwningPlayer();
+    if (!PC)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UInventoryWidget::LoadInventory - Owning PlayerController is null"));
+        return;
+    }
 
     WrapBox->ClearChildren();
 
     for (int32 Index = 0; Index < Inventory->MaxInventorySlots; ++Index)
     {
         UItemSlotWidget* SlotWidget = CreateWidget<UItemSlotWidget>(PC, ItemSlotWidgetClass);
-
-        if (SlotWidget)
+        if (!SlotWidget)
         {
-            SlotWidget->ResetItemSlot();
-            WrapBox->AddChildToWrapBox(SlotWidget);
+            UE_LOG(LogTemp, Warning, TEXT("UInventoryWidget::LoadInventory - Failed to create ItemSlotWidget at index %d"), Index);
+            continue;
         }
+
+        SlotWidget->ResetItemSlot();
+        WrapBox->AddChildToWrapBox(SlotWidget);
     }
 }
 
 void UInventoryWidget::LoadInventory(const int32 InventorySlotsNum)
 {
-    if (!WrapBox || !ItemSlotWidgetClass) return;
+    if (!WrapBox)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("LoadInventory - WrapBox is null"));
+        return;
+    }
+    if (!ItemSlotWidgetClass)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("LoadInventory - ItemSlotWidgetClass is null"));
+        return;
+    }
 
     APlayerController* PC = GetOwningPlayer();
+    if (!PC)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("LoadInventory - Owning PlayerController is null"));
+        return;
+    }
 
     WrapBox->ClearChildren();
 
@@ -49,11 +84,14 @@ void UInventoryWidget::LoadInventory(const int32 InventorySlotsNum)
     {
         UItemSlotWidget* SlotWidget = CreateWidget<UItemSlotWidget>(PC, ItemSlotWidgetClass);
 
-        if (SlotWidget)
+        if (!SlotWidget)
         {
-            SlotWidget->ResetItemSlot();
-            WrapBox->AddChildToWrapBox(SlotWidget);
+            UE_LOG(LogTemp, Warning, TEXT("LoadInventory - Failed to create ItemSlotWidget at index %d"), Index);
+            continue;
         }
+
+        SlotWidget->ResetItemSlot();
+        WrapBox->AddChildToWrapBox(SlotWidget);
     }
 }
 

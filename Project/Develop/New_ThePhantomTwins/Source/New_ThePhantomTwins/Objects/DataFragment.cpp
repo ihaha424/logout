@@ -18,6 +18,13 @@ void ADataFragment::BeginPlay()
 
 	if (APC_Player* PC_Player = Cast<APC_Player>(GetWorld()->GetFirstPlayerController()))
 	{
+
+		if (!DataFragmentPickupWidgetClass)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("DataFragmentPickupWidgetClass is null! Cannot create widget."));
+			return;
+		}
+
 		// 위젯 등록 및 캐싱
 		PC_Player->RegisterWidget(TEXT("DataFragmentPickupWidget"),
 			CreateWidget<UDataFragmentPickupWidget>(PC_Player, DataFragmentPickupWidgetClass));
