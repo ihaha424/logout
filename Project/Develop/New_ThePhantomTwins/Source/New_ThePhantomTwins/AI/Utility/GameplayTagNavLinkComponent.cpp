@@ -27,7 +27,7 @@ void UGameplayTagNavLinkComponent::BeginPlay()
     Super::BeginPlay();
 
     TargetActor = GetOwner();
-    SetLinkData(FVector{ -100.0f, 0.0f, 0.0f }, FVector{ 100.0f, 0.0f, 0.0f }, ENavLinkDirection::BothWays);
+    SetLinkData(FVector{ 0.0f, -100.0f, 0.0f }, FVector{ 0.0f, 100.0f, 0.0f }, ENavLinkDirection::BothWays);
     SetMoveReachedLink(this, &UGameplayTagNavLinkComponent::HandleSmartLinkReached);
 }
 
