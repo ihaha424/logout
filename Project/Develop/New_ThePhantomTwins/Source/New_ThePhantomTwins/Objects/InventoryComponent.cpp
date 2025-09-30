@@ -380,14 +380,19 @@ void UInventoryComponent::ShowQuestionBoxResult(const FText& Text, float Duratio
     SetTextQuestionBoxWidget(Text);
     ShowQuestionBoxWidget(true);
 
-    GetWorld()->GetTimerManager().ClearTimer(VisibleInventoryTimerHandle);
+    TPT_LOG(ObjectLog, Log, TEXT("ShowQuestionBoxWidget : 룰렛 위젯 활성화"));
 
+    // 인벤토리용 핸들과 혼용 금지
+    GetWorld()->GetTimerManager().ClearTimer(QuestionBoxTimerHandle);
+
+    // 전용 타이머로 비활성화 처리
     GetWorld()->GetTimerManager().SetTimer(
-        VisibleInventoryTimerHandle,
+        QuestionBoxTimerHandle,
         FTimerDelegate::CreateWeakLambda(this, [this]()
             {
                 bQuestionBoxWidgetActived = false;
                 ShowQuestionBoxWidget(false);
+                TPT_LOG(ObjectLog, Log, TEXT("ShowQuestionBoxWidget : 룰렛 위젯 비활성화"));
             }),
         Duration,
         false

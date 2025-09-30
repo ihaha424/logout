@@ -98,6 +98,7 @@ private:
 
     FTimerHandle ChoiceItemTimerHandle;
     FTimerHandle VisibleInventoryTimerHandle;
+    FTimerHandle QuestionBoxTimerHandle;
 
     // Server RPCs
     UFUNCTION(Server, Reliable)
