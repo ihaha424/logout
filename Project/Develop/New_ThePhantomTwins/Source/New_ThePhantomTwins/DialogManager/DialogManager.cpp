@@ -65,6 +65,43 @@ int32 UDialogManager::EventTrriger(int32 Level, int32 index) const
     return DialogNode.EventTrriger(Level, index);
 }
 
+bool UDialogManager::AddByDialogEvent(int32 Index, UObject* Target, FName FunctionName)
+{
+    if (!Target || FunctionName.IsNone()) return false;
+
+    FScriptDelegate Delegate;
+    Delegate.BindUFunction(Target, FunctionName);
+
+    auto& Ev = ExcuteByDialogEventMap.FindOrAdd(Index);
+    Ev.Add(Delegate);
+    return true;
+}
+
+bool UDialogManager::RemoveyDialogEvent(int32 Index, UObject* Target, FName FunctionName)
+{
+    if (!Target || FunctionName.IsNone()) return false;
+
+    if (FExcuteByDialogEvent* Ev = ExcuteByDialogEventMap.Find(Index))
+    {
+        FScriptDelegate Delegate;
+        Delegate.BindUFunction(Target, FunctionName);
+
+        Ev->Remove(Delegate);
+        return true;
+    }
+    return false;
+}
+
+bool UDialogManager::ExcuteByDialogEvent(int32 Index)
+{
+    FExcuteByDialogEvent* Event = ExcuteByDialogEventMap.Find(Index);
+    if (!Event)
+        return false;
+
+    Event->Broadcast(Index);
+    return true;
+}
+
 TArray<int32> UDialogManager::GetSequence() const
 {
 	return  DialogNode.GetSequence();
