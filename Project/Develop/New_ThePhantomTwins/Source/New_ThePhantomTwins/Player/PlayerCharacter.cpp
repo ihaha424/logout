@@ -13,6 +13,7 @@
 #include "Input/TPTEnhancedInputComponent.h"
 #include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
+#include "GameplayEffect.h"
 #include "FocusTraceComponent.h"
 #include "GM_PhantomTwins.h"
 #include "PC_Player.h"
@@ -31,6 +32,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Components/PostProcessComponent.h"
 #include "Components/BoxComponent.h"
+#include "Data/DT_Skill.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -90,6 +92,15 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& O
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (HasAuthority())
+	{
+		if (IsLocallyControlled())
+		{
+			SetSelectSkill(PS);
+		}
+	}
+
 	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
 
 	UUserWidget* Interact = CreateWidget(GetWorld(), InteractWidgetClass);
@@ -115,6 +126,12 @@ void APlayerCharacter::BeginPlay()
 		PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
 		PlayerController->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
 		PlayerController->RegisterWidget(TEXT("CannotUseItem"), CreateWidget<UUserWidget>(GetWorld(), CannotUseItemWidgetClass));
+		PlayerController->RegisterWidget(TEXT("GameOver"), CreateWidget(GetWorld(), GameOverWidgetClass));
+		PlayerController->RegisterWidget(TEXT("Loading"), CreateWidget(GetWorld(), LoadingWidgetClass));
+
+		PlayerController->RegisterWidget(TEXT("ESC"), CreateWidget(GetWorld(), ESCWidgetClass));
+		PlayerController->RegisterWidget(TEXT("GameStop"), CreateWidget(GetWorld(), GameStopWidgetClass));
+		PlayerController->RegisterWidget(TEXT("ResumeCount"), CreateWidget(GetWorld(), ResumeCountWidgetClass));
 	}
 
 	// RecoveryGauge Time
@@ -155,6 +172,7 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	PS = GetPlayerState<APS_Player>();
 	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
 	PS->SetIdentifyCharacterData();
+	TPT_LOG(PlayerLog, Log, TEXT("Server Skill : %d, Client Skill : %d"), (int32)PS->IdentifyCharacterData.HostSkill, (int32)PS->IdentifyCharacterData.ClientSkill);
 	SetMeshByCharacterType(PS);
 
 	ASC = PS->GetAbilitySystemComponent();
@@ -177,6 +195,7 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 		StartSpec.InputID = InputID;
 		ASC->GiveAbility(StartSpec);
 	}
+
 	ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player);
 	PlayerController = GetController<APC_Player>();
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
@@ -184,6 +203,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	InitHUDWidget(AttributeSet);
 	UPlayerAnimInstance* AnimInstance = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	AnimInstance->InitializeWithAbilitySystem(ASC);
+
+	SetSelectSkill(PS);
 }
 
 void APlayerCharacter::OnRep_Controller()
@@ -203,10 +224,11 @@ void APlayerCharacter::OnRep_PlayerState()
 	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
 	PS->SetIdentifyCharacterData();
 	SetMeshByCharacterType(PS);
+	TPT_LOG(PlayerLog, Log, TEXT("Server Skill : %d, Client Skill : %d"), (int32)PS->IdentifyCharacterData.HostSkill, (int32)PS->IdentifyCharacterData.ClientSkill);
 
 	ASC = PS->GetAbilitySystemComponent();
-	ASC->InitAbilityActorInfo(PS, this);
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
+	ASC->InitAbilityActorInfo(PS, this);
 	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
 	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
 	BindAttributeDelegates(AttributeSet);
@@ -263,31 +285,29 @@ void APlayerCharacter::CalculateGaugePercent_Implementation(float Elapsed)
 void APlayerCharacter::SetHoldingGaugeUI_Implementation(const APawn* Interactor, bool bVisible)
 {
 	APC_Player* PC = APC_Player::GetLocalPlayerController(Interactor->GetController());
-	// UI 
+
 	PC->SetWidget(TEXT("RecoveryGauge"), bVisible, EMessageTargetType::Multicast);
 }
 
 void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
-{// AttributeSet이 없으면 바로 반환
+{
 	if (!AttributeSet) return;
 
 	if (!IsLocallyControlled())
 	{
-		// 로그로 어느 객체에서 호출됐는지 안내
 		TPT_LOG(HUDLog, Warning, TEXT("InitHUDWidget: Not locally controlled, skipping widget creation (Actor: %s)"), *GetName());
 		return;
 	}
 
-	// PlayerHUDWidget이 아직 생성되지 않았다면 생성
 	if (!PlayerHUDWidget)
 	{
-		APlayerController* PC = Cast<APlayerController>(GetController());
+		AUIManagerPlayerController* PC = Cast<AUIManagerPlayerController>(GetController());
 
 		if (PC && PlayerHUDWidgetClass)
 		{
-			PlayerController->RegisterWidget(TEXT("PlayerHUDWidget"), CreateWidget<UPlayerHUDWidget>(GetWorld(), PlayerHUDWidgetClass));
-			PlayerController->SetWidget(TEXT("PlayerHUDWidget"), true, EMessageTargetType::LocalClient);
-			PlayerHUDWidget = Cast<UPlayerHUDWidget>(PlayerController->GetWidget(TEXT("PlayerHUDWidget")));
+			PC->RegisterWidget(TEXT("PlayerHUDWidget"), CreateWidget<UPlayerHUDWidget>(GetWorld(), PlayerHUDWidgetClass));
+			PC->SetWidget(TEXT("PlayerHUDWidget"), true, EMessageTargetType::LocalClient);
+			PlayerHUDWidget = Cast<UPlayerHUDWidget>(PC->GetWidget(TEXT("PlayerHUDWidget")));
 		}
 		else
 		{
@@ -304,7 +324,6 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 
 	PlayerHUDWidget->InitializeWidgets(HP, Mental, Stamina, CoreEnergy);
 
-	//PS에 있는 Inventory의 SetPlayerHUDWidget 호출
 	PS->InventoryComp->SetPlayerHUDWidget(PlayerHUDWidget);
 }
 
@@ -363,6 +382,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	TPTInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
 	TPTInput->BindAction(MouseWheelUpAction, ETriggerEvent::Triggered, this, &ThisClass::InputMouseWheelUp);
 	TPTInput->BindAction(MouseWheelDownAction, ETriggerEvent::Triggered, this, &ThisClass::InputMouseWheelDown);
+	TPTInput->BindAction(ESC, ETriggerEvent::Started, this, &ThisClass::InputESC);
 
 
 	SetupPlayerInputByTag(TPTInput);
@@ -579,6 +599,23 @@ void APlayerCharacter::InputMouseWheelDown(const FInputActionValue& Value)
 	}
 
 	InputPressedWithNum(0, SelectedSlotNumber);
+}
+
+void APlayerCharacter::InputESC(const FInputActionValue& Value)
+{
+	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
+	//if (!bIsShowingESC)
+	//{
+		PC->SetWidget(TEXT("ESC"),	true, EMessageTargetType::LocalClient);
+		bIsShowingESC = true;
+		FInputModeUIOnly InputData;
+		PC->SetInputMode(InputData);
+		PC->bShowMouseCursor = true;
+	//}
+	//else
+	//{
+	//	PC->TurnOffESC();
+	//}
 }
 
 void APlayerCharacter::InputMouseWheelUp(const FInputActionValue& Value)
@@ -926,4 +963,168 @@ void APlayerCharacter::S2A_OnDownedWidget_Implementation(bool Visible)
 	{
 		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 	}
+}
+
+void APlayerCharacter::GivePassiveSkillBySkillType(ESkillType Type)
+{
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
+
+	TPT_LOG(PlayerLog, Log, TEXT("Give Skill"));
+
+	FGameplayEventData Payload;
+	Payload.EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_Skill_StarterKit;
+	Payload.Instigator = this;
+
+	switch (Type)
+	{
+	case ESkillType::NoneSkill:
+		TPT_LOG(PlayerLog, Log, TEXT("Player NoneSkill"));
+		break;
+	case ESkillType::GiveEMP:
+		Payload.EventMagnitude = static_cast<float>(EItemType::EMP);
+		ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+		TPT_LOG(PlayerLog, Log, TEXT("Player Give EMP"));
+		break;
+	case ESkillType::GiveNoiseBomb:
+		Payload.EventMagnitude = static_cast<float>(EItemType::NoiseBomb);
+		ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+		TPT_LOG(PlayerLog, Log, TEXT("Player Give NoiseBomb"));
+		break;
+	case ESkillType::GiveHealPack:
+		Payload.EventMagnitude = static_cast<float>(EItemType::HealPack);
+		ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+		TPT_LOG(PlayerLog, Log, TEXT("Player Give HealPack"));
+		break;
+	case ESkillType::GiveMentalPack:
+		Payload.EventMagnitude = static_cast<float>(EItemType::MentalPack);
+		ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+		TPT_LOG(PlayerLog, Log, TEXT("Player Give MentalPack"));
+		break;
+	case ESkillType::GiveKey:
+		Payload.EventMagnitude = static_cast<float>(EItemType::Key);
+		ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+		TPT_LOG(PlayerLog, Log, TEXT("Player Give Key"));
+		break;
+	case ESkillType::MaxHealthUp:
+		ExecuteAbilityByTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_HPBuff);
+		TPT_LOG(PlayerLog, Log, TEXT("Player HP Buff"));
+		break;
+	case ESkillType::MaxMentalUp:
+		ExecuteAbilityByTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalBuff);
+		TPT_LOG(PlayerLog, Log, TEXT("Player Mental Buff"));
+		break;
+	case ESkillType::MaxStaminaUp:
+		ExecuteAbilityByTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_StaminaBuff);
+		TPT_LOG(PlayerLog, Log, TEXT("Player Stamina Buff"));
+		break;
+	default:
+		break;
+	}
+}
+
+void APlayerCharacter::UpdateSprintCooldownCount()
+{
+	float SprintTotal = 0.f, CooldownTotal = 0.f;
+	float SprintRemain = 0.f, CooldownRemain = 0.f;
+
+	if (ASC)
+	{
+		const FActiveGameplayEffectsContainer& Effects = ASC->GetActiveGameplayEffects();
+
+		// Sprint GE 확인
+		FGameplayTag SprintTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Sprinting;
+
+		for (auto It = Effects.CreateConstIterator(); It; ++It)
+		{
+			const FActiveGameplayEffect& Effect = *It;
+
+			if (Effect.Spec.Def && Effect.Spec.Def->GetGrantedTags().HasTag(SprintTag))
+			{
+				//TPT_LOG(PlayerLog, Log, TEXT("Find Sprint GE"));
+				SprintTotal = Effect.Spec.GetDuration();		// 5초
+				float StartTime = Effect.StartWorldTime;		// 흐른시간
+				SprintRemain = SprintTotal - (GetWorld()->GetTimeSeconds() - StartTime);	// 5초 빼기 흐른시간
+			}
+		}
+
+		// Cooldown GE 확인
+		FGameplayTag CooldownTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_SprintCoolDown;
+
+		for (auto It = Effects.CreateConstIterator(); It; ++It)
+		{
+			const FActiveGameplayEffect& Effect = *It;
+
+			if (Effect.Spec.Def && Effect.Spec.Def->GetGrantedTags().HasTag(CooldownTag))
+			{
+				//TPT_LOG(PlayerLog, Log, TEXT("Find Sprint Cooldown GE"));
+				CooldownTotal = Effect.Spec.GetDuration();		// 20초
+				float StartTime = Effect.StartWorldTime;		// 흐른시간
+				CooldownRemain = CooldownTotal - (GetWorld()->GetTimeSeconds() - StartTime) - SprintTotal;	// 20초 빼기 흐른시간
+			}
+		}
+	}
+
+	// 실행시간이 0보다 크다면 (남은 시간 / 5) 아니면 0
+	float SprintPercent = (SprintTotal > 0.f) ? SprintRemain / SprintTotal : 0.f;
+	//TPT_LOG(PlayerLog, Warning, TEXT("Sprint T %f, R %f, P %f"), SprintTotal, SprintRemain, SprintPercent);
+
+	// 실행시간이 0보다 크다면 (남은 시간 / 20) 아니면 0
+	float CooldownPercent = (CooldownTotal > 0.f) ? CooldownRemain / CooldownTotal : 0.f;
+	//TPT_LOG(PlayerLog, Warning, TEXT("SprintCooldown T %f, R %f, P %f"), CooldownTotal, CooldownRemain, CooldownPercent);
+
+	// TODO: 여기서 Widget에 값 전달하면 됨
+	OnSprintSkillUI.Broadcast(SprintPercent, CooldownPercent);
+}
+
+void APlayerCharacter::UpdateAuraCooldownCount()
+{
+	float AuraTotal = 0.f, CooldownTotal = 0.f;
+	float AuraRemain = 0.f, CooldownRemain = 0.f;
+
+	if (ASC)
+	{
+		const FActiveGameplayEffectsContainer& Effects = ASC->GetActiveGameplayEffects();
+
+		// Sprint GE 확인
+		FGameplayTag SprintTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_UsingOutLine;
+
+		for (auto It = Effects.CreateConstIterator(); It; ++It)
+		{
+			const FActiveGameplayEffect& Effect = *It;
+
+			if (Effect.Spec.Def && Effect.Spec.Def->GetGrantedTags().HasTag(SprintTag))
+			{
+				//TPT_LOG(PlayerLog, Log, TEXT("Find Aura GE"));
+				AuraTotal = Effect.Spec.GetDuration();			// 5초
+				float StartTime = Effect.StartWorldTime;		// 흐른시간
+				AuraRemain = AuraTotal - (GetWorld()->GetTimeSeconds() - StartTime);	// 5초 빼기 흐른시간
+			}
+		}
+
+		// Cooldown GE 확인
+		FGameplayTag CooldownTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_OutLineCoolDown;
+
+		for (auto It = Effects.CreateConstIterator(); It; ++It)
+		{
+			const FActiveGameplayEffect& Effect = *It;
+
+			if (Effect.Spec.Def && Effect.Spec.Def->GetGrantedTags().HasTag(CooldownTag))
+			{
+				//TPT_LOG(PlayerLog, Log, TEXT("Find Aura Cooldown GE"));
+				CooldownTotal = Effect.Spec.GetDuration();		// 20초
+				float StartTime = Effect.StartWorldTime;		// 흐른시간
+				CooldownRemain = CooldownTotal - (GetWorld()->GetTimeSeconds() - StartTime) - AuraTotal;	// 20초 빼기 흐른시간
+			}
+		}
+	}
+
+	float AuraPercent = (AuraTotal > 0.f) ? AuraRemain / AuraTotal : 0.f;
+	//TPT_LOG(PlayerLog, Warning, TEXT("Aura T %f, R %f, P %f"), AuraTotal, AuraRemain, AuraPercent);
+
+	float CooldownPercent = (CooldownTotal > 0.f) ? CooldownRemain / CooldownTotal : 0.f;
+	//TPT_LOG(PlayerLog, Warning, TEXT("AuraCooldown T %f, R %f, P %f"), CooldownTotal, CooldownRemain, CooldownPercent);
+
+	// TODO: 여기서 Widget에 값 전달하면 됨
+	OnAuraSkillUI.Broadcast(AuraPercent, CooldownPercent);
 }

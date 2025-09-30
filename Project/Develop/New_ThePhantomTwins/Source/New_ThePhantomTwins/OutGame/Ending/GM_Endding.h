@@ -13,5 +13,8 @@ UCLASS()
 class NEW_THEPHANTOMTWINS_API AGM_Endding : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+public:
+
+	UFUNCTION(BlueprintCallable)
+	void TravelToLevel(const FName LevelName, bool bAbsolute);
 };

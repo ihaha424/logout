@@ -56,12 +56,15 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
     if (ChoiceItemType == EItemType::EMP || ChoiceItemType == EItemType::NoiseBomb || ChoiceItemType == EItemType::Key)
     {
         // 투척 아이템인 경우 스폰 및 부착
-       HeldItemComp->SpawnAndAttachHeldItem(ChoiceItemType);
-
-        FGameplayTag InputTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_AimItem;
-        ASC->FindAbilitySpecFromInputID(static_cast<int32>(FTPTGameplayTags::Get().TagMap[InputTag]));
-        ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
+        HeldItemComp->SpawnAndAttachHeldItem(ChoiceItemType);
         TPT_LOG(GALog, Log, TEXT("투척 아이템 (%d) 손에 부착 완료"), static_cast<int32>(ChoiceItemType));
+
+    	FGameplayEventData EventData;
+        EventData.EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_AimItem;
+        EventData.Instigator = ActorInfo->OwnerActor.Get();
+        EventData.EventMagnitude = static_cast<float>(ChoiceItemType); // 전달할 아이템 정보
+
+    	ASC->HandleGameplayEvent(EventData.EventTag, &EventData);
     }
     else
     {

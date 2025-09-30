@@ -9,6 +9,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Player/PS_Player.h"
 #include "CM_LogOut.h"
+#include "GS_PhantomTwins.h"
+#include "OutGame/HubMap/GS_HubMap.h"
 
 APC_Player::APC_Player()
 {
@@ -59,9 +61,57 @@ void APC_Player::OnPossess(APawn* InPawn)
 	Super::OnPossess(InPawn);
 }
 
+void APC_Player::TurnOffESC()
+{
+	SetWidget(TEXT("ESC"), false, EMessageTargetType::LocalClient);
+	bShowMouseCursor = false;
+	FInputModeGameOnly GameInputData;
+	SetInputMode(GameInputData);
+}
+
 void APC_Player::C2S_SetOwnerActor_Implementation(APlayerController* thisPC, AActor* Actor)
 {
 	if (HasAuthority())
 		Actor->SetOwner(thisPC);
 }
 
+void APC_Player::C2S_ClickedRestart_Implementation(const bool bIsClicked)
+{
+	if (!HasAuthority())
+		return;
+
+	const bool bIsHost = IsLocalController();
+	AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>();
+	if (!GS)
+	{
+		TPT_LOG(OutGameLog, Error, TEXT("Cast to 'AGS_PhantomTwins' Fail"));
+		return;
+	}
+	GS->SetCharacterClickedRestart(bIsClicked, bIsHost);
+}
+
+void APC_Player::C2S_ClickedGameStop_Implementation(const FName LevelName)
+{
+	AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>();
+	if (!GS)
+	{
+		TPT_LOG(OutGameLog, Error, TEXT("Cast to 'AGS_PhantomTwins' Fail"));
+		return;
+	}
+	GS->SetCharacterClickedGameStop(LevelName);
+}
+
+void APC_Player::C2S_ClickedAgreeWithGameStop_Implementation(const int32 SelectBtn)
+{
+	if (!HasAuthority())
+		return;
+
+	const bool bIsHost = IsLocalController();
+	AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>();
+	if (!GS)
+	{
+		TPT_LOG(OutGameLog, Error, TEXT("Cast to 'AGS_PhantomTwins' Fail"));
+		return;
+	}
+	GS->SetCharacterAgreeWithGameStop(SelectBtn, bIsHost);
+}

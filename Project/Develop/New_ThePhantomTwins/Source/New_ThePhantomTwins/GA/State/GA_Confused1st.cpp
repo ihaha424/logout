@@ -22,6 +22,7 @@ UGA_Confused1st::UGA_Confused1st()
 void UGA_Confused1st::ActivateAbility(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	TPT_LOG(GALog, Error, TEXT(""));
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	NULLCHECK_RETURN_LOG(ASC, GALog, Error, );
 	ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st).AddUObject(this, &ThisClass::OffSound);
@@ -30,6 +31,7 @@ void UGA_Confused1st::ActivateAbility(const FGameplayAbilitySpecHandle Handle,co
 	{
 		if (USoundBase* Sound = SoundCue) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함
 		{
+			TPT_LOG(GALog, Error, TEXT("SoundCue"));
 			ActiveAudioComponent = UGameplayStatics::SpawnSoundAttached(Sound ,ActorInfo->AvatarActor->GetRootComponent());
 		}
 	}
@@ -54,6 +56,7 @@ void UGA_Confused1st::OffSound(const FGameplayTag InputTag, int32 Count)
 	bool bHasSoundTag = Count > 0;
 	if (!bHasSoundTag)
 	{
+		TPT_LOG(GALog, Error, TEXT("EndAbility"));
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	}
 }

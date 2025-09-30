@@ -6,6 +6,7 @@
 #include "GameFramework/GameStateBase.h"
 #include "Data/CharacterType.h"
 #include "Data/MapType.h"
+#include "Data/DT_Skill.h"
 #include "GS_HubMap.generated.h"
 
 
@@ -22,6 +23,7 @@ enum class EHubMapState : uint8
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSetIdentifyCharacterData, FIdentifyCharacterData, IdentifyCharacterData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSetReadyData, bool, ServerReady, bool, ClientReady);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FHubMapChanged, EHubMapState, CurState, EHubMapState, NextState);
 
 UCLASS()
@@ -42,12 +44,18 @@ public:
 	void SetMapType(EMapType State) { MapData = State; OnRep_MapData(); }
 	UFUNCTION(BlueprintCallable, Category = "HubMap")
 	EMapType GetMapType() const { return MapData; }
+	UFUNCTION(BlueprintCallable, Category = "HubMap")
+	ESkillType GetSkillType(bool bIsHost) const { return bIsHost ? IdentifyCharacterData.HostSkill : IdentifyCharacterData.ClientSkill; }
 	// ~End HubMap
 
 	// ~Begin Lobby(Character Seletect)
-	void SetIdentifyCharacterData(ECharacterType ChractorType, bool bIsHost);
+	void SetIdentifyCharacterTypeData(ECharacterType CharacterType, bool bIsHost);
+	void SetIdentifyCharacterSkillData(ESkillType CharacterSkill, bool bIsHost);
+	void SetCharacterReady(bool bIsReady, bool bIsHost);
 	UPROPERTY(BlueprintAssignable, Category = "HubMap | Character Seletect")
 	FSetIdentifyCharacterData OnSetIdentifyCharacterData;
+	UPROPERTY(BlueprintAssignable, Category = "HubMap | Character Ready")
+	FSetReadyData OnSetReadyData;
 	// ~End Lobby(Character Seletect)
 
 private:
@@ -59,6 +67,10 @@ private:
 	FName NextLevel;
 	UPROPERTY(ReplicatedUsing = OnRep_MapData)
 	EMapType MapData;
+	UPROPERTY(ReplicatedUsing = OnRep_ReadyCharacterData)
+	bool bIsServerReady = false;
+	UPROPERTY(ReplicatedUsing = OnRep_ReadyCharacterData)
+	bool bIsClientReady = false;
 	UFUNCTION()
 
 	void OnRep_MapData();
@@ -70,6 +82,8 @@ private:
 	FIdentifyCharacterData IdentifyCharacterData;
 	UFUNCTION()
 	void OnRep_IdentifyCharacterData();
+	UFUNCTION()
+	void OnRep_ReadyCharacterData();
 	// ~End Lobby(Character Seletect)
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

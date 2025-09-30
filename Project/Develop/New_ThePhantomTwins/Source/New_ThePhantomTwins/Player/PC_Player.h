@@ -34,7 +34,26 @@ public:
 	 * @param Actor 
 			: Ownership Target
 	 */
+	//UFUNCTION(BlueprintCallable, Server, Reliable)
+	//void C2S_TurnOffESC();
+	//void C2S_TurnOffESC_Implementation();
+	UFUNCTION(BlueprintCallable)
+	void TurnOffESC();
+
 	UFUNCTION(Server, Reliable)
 	void C2S_SetOwnerActor(APlayerController* thisPC, AActor* Actor);
 	void C2S_SetOwnerActor_Implementation(APlayerController* thisPC, AActor* Actor);
+
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	void C2S_ClickedRestart(const bool bIsClicked);
+	void C2S_ClickedRestart_Implementation(const bool bIsClicked);
+
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	void C2S_ClickedGameStop(const FName LevelName);
+	void C2S_ClickedGameStop_Implementation(const FName LevelName);
+
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	void C2S_ClickedAgreeWithGameStop(const int32 SelectBtn);
+	void C2S_ClickedAgreeWithGameStop_Implementation(const int32 SelectBtn);
+
 };

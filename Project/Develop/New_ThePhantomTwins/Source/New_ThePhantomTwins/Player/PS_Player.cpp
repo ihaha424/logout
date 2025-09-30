@@ -7,6 +7,7 @@
 #include "New_ThePhantomTwins/Attribute/PlayerAttributeSet.h"
 #include "../Objects/InventoryComponent.h"
 #include "SaveGame/TPTSaveGameHelperLibrary.h"
+#include "Tags/TPTGameplayTags.h"
 #include "Player/PlayerCharacter.h"
 
 APS_Player::APS_Player()
@@ -28,7 +29,6 @@ void APS_Player::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 
 	DOREPLIFETIME(APS_Player, ASC);
 	//DOREPLIFETIME(APS_Player, AttributeSet);
-	DOREPLIFETIME(APS_Player, PassiveSkillTags);
 	DOREPLIFETIME(APS_Player, TeamID);
 	DOREPLIFETIME(APS_Player, bIsRecovery);
 	DOREPLIFETIME(APS_Player, bIsDowned);

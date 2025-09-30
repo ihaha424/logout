@@ -20,9 +20,4 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayEffect> StaminaBuffEffect;
-
-	UPROPERTY(EditAnywhere, Category = "GAS")
-	TSubclassOf<UGameplayEffect> CoolDownEffect;
-	UPROPERTY(EditAnywhere, Category = "GAS")
-	float CoolDownValue = 15.0f;
 };

@@ -12,7 +12,7 @@ class NEW_THEPHANTOMTWINS_API UW_Title : public UUserWidget
 	GENERATED_BODY()
 	
 public:
-	virtual void NativeConstruct();
+	virtual void NativeConstruct() override;
 
 	UFUNCTION(BlueprintCallable)
 	void StartLobby(const FName LevelName);

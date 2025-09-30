@@ -7,6 +7,7 @@
 #include "UIManagerPlayerController.h"
 #include "OutGame/HubMap/GS_HubMap.h"
 #include "Data/MapType.h"
+#include "Data/DT_Skill.h"
 #include "PC_HubMap.generated.h"
 
 /**
@@ -19,8 +20,16 @@ class NEW_THEPHANTOMTWINS_API APC_HubMap : public AUIManagerPlayerController
 
 public:
 	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "HubMap | Character Seletect")
-	void C2S_SelectChractor(const ECharacterType type);
-	void C2S_SelectChractor_Implementation(const ECharacterType type);
+	void C2S_SelectCharacter(const ECharacterType type);
+	void C2S_SelectCharacter_Implementation(const ECharacterType type);
+
+	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "HubMap | Skill Seletect")
+	void C2S_SelectSkill(const ESkillType type);
+	void C2S_SelectSkill_Implementation(const ESkillType type);
+
+	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "HubMap | Is Ready")
+	void C2S_CallReady(bool bIsReady);
+	void C2S_CallReady_Implementation(bool bIsReady);
 
 	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "HubMap | State Seletect")
 	void C2S_SelectState(const EHubMapState type);

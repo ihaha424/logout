@@ -10,6 +10,7 @@
 #include "SzInterface/Interact.h"
 #include "SzInterface/Holding.h"
 #include "GenericTeamAgentInterface.h"
+#include "OutGame/HubMap/GS_HubMap.h"
 #include "PlayerCharacter.generated.h"
 
 class UPlayerHUDWidget;
@@ -39,6 +40,9 @@ enum class EEnemyRange : uint8
 	WallRose UMETA(DisplayName = "WallRose"),
 	WallMaria UMETA(DisplayName = "WallMaria")
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSprintSkillUI, float, SprintPercent, float, CooldownPercent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FAuraSkillUI, float, AuraPercent, float, CooldownPercent);
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API APlayerCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IInteract, public IHolding
@@ -119,13 +123,27 @@ public:
 
 	FORCEINLINE APS_Player* GetPS() const { return PS.Get(); }
 
+	UFUNCTION(BlueprintCallable)
+	void ExecuteAbilityByTag(FGameplayTag InputTag);
+	UFUNCTION(BlueprintCallable)
+	void GivePassiveSkillBySkillType(ESkillType Type);
+
+	// Player Skill Cool Gauge Func
+	UFUNCTION(BlueprintCallable)
+	void UpdateSprintCooldownCount();
+	UFUNCTION(BlueprintCallable)
+	void UpdateAuraCooldownCount();
+
+	UPROPERTY(BlueprintAssignable, Category = "Character Skill")
+	FSprintSkillUI OnSprintSkillUI;
+	UPROPERTY(BlueprintAssignable, Category = "Character Skill")
+	FAuraSkillUI OnAuraSkillUI;
+
 protected:
 	// 플레이어 인풋 바인딩
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	UFUNCTION()
 	void SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInputComponent);
-	UFUNCTION()
-	void ExecuteAbilityByTag(FGameplayTag InputTag);
 	UFUNCTION()
 	void BindAttributeDelegates(const UPlayerAttributeSet* AttributeSet);
 	UFUNCTION()
@@ -141,6 +159,8 @@ protected:
 	void InputPressedWithNum(int32 InputID, int32 Number);
 	void InputMouseWheelUp(const FInputActionValue& Value);
 	void InputMouseWheelDown(const FInputActionValue& Value);
+	UFUNCTION(BlueprintCallable)
+	void InputESC(const FInputActionValue& Value);
 	void InputPressedUseItem(int32 InputID);
 	void InputReleased(int32 InputID);
 
@@ -164,6 +184,8 @@ protected:
 	void OverlapRangeSetting();
 	UFUNCTION(BlueprintImplementableEvent)
 	void SetMeshByCharacterType(APS_Player* MyPS);
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetSelectSkill(APS_Player* MyPS);
 
 	// 플레이어 반경 오버랩 처리
 	UFUNCTION()
@@ -223,6 +245,8 @@ protected:
 	TObjectPtr<UInputAction> MouseWheelUpAction;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> MouseWheelDownAction;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> ESC;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 	int32 SelectedSlotNumber = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
@@ -257,6 +281,22 @@ protected:
 	TSubclassOf<UUserWidget> InteractWidgetClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TSubclassOf<UUserWidget> DownWidgetClass;
+
+	// 재시작용 위젯
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UUserWidget> GameOverWidgetClass;
+	// 로딩용 위젯
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UUserWidget> LoadingWidgetClass;
+	// ESC용 위젯
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UUserWidget> ESCWidgetClass;
+	bool bIsShowingESC = false;
+	// 게임 중지용 위젯
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UUserWidget> GameStopWidgetClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	TSubclassOf<UUserWidget> ResumeCountWidgetClass;
 
 	// 반경
 	UPROPERTY(VisibleAnywhere)

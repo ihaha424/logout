@@ -5,10 +5,12 @@
 #include "GS_PhantomTwins.h"
 #include "AI/Utility/BossSpawner.h"
 #include "Blueprint/UserWidget.h"
+#include "GameFramework/PlayerState.h"
 #include "SaveGame/TPTSaveGameHelperLibrary.h"
 
 
 #include "Log/TPTLog.h"
+#include "Player/PC_Player.h"
 
 void AGM_PhantomTwins::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
 {
@@ -40,6 +42,9 @@ void AGM_PhantomTwins::BeginPlay()
         {
             RequestBossSpawn();
         }
+        GS->OnClickedRestartChanged.AddDynamic(this, &ThisClass::NotifyPlayerClickRestart);
+        GS->OnClickedGameStopChanged.AddDynamic(this, &ThisClass::NotifyPlayerClickedGameStop);
+    	GS->OnClickedAgreeWithGameStopChanged.AddDynamic(this, &ThisClass::NotifyPlayerAgreeWithGameStop);
     }
 }
 
@@ -59,31 +64,95 @@ void AGM_PhantomTwins::NotifyPlayerDied(bool isDead)
 
     if (DeadPlayerCount >= TotalPlayerCount)
     {
-        RestartLevelWithDelay(3.0f);
+        ShowGameOverUI();
     }
 }
 
-void AGM_PhantomTwins::S2A_ShowGameOverUI_Implementation()
+void AGM_PhantomTwins::NotifyPlayerClickRestart(bool bIsHostClicked, bool bIsClientClicked)
 {
-    for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+    if (bIsHostClicked)
+        HostClick = 1;
+    else
+        HostClick = 0;
+
+    if (bIsClientClicked)
+        ClientClick = 1;
+    else
+        ClientClick = 0;
+
+    if (HostClick + ClientClick >= TotalPlayerCount)
     {
-        if (APlayerController* PC = It->Get())
-        {
-            if (PC->IsLocalController())
-            {
-                if (GameOverUI)
-                {
-                    GameOverUI->AddToViewport();
-                }
-            }
-        }
+        RestartWithDelay(2.f);
     }
 }
 
-void AGM_PhantomTwins::RestartLevelWithDelay(float Delay)
+void AGM_PhantomTwins::ShowGameOverUI()
 {
-    S2A_ShowGameOverUI();
+    SetAllPlayerUIMode(true);
 
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    APC_Player*ServerPC = Cast< APC_Player>(PC);
+    ServerPC->SetWidget(TEXT("GameOver"), true, EMessageTargetType::Multicast);
+}
+
+void AGM_PhantomTwins::NotifyPlayerClickedGameStop(FName LevelName)
+{
+    DestinationLevelName = LevelName;
+    TPT_LOG(OutGameLog, Error, TEXT("%s"), *DestinationLevelName.ToString());
+    ShowGameStopUI();
+}
+
+void AGM_PhantomTwins::ShowGameStopUI()
+{
+    SetAllPlayerUIMode(true);
+
+    UGameplayStatics::SetGamePaused(GetWorld(), true);
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    APC_Player* ServerPC = Cast< APC_Player>(PC);
+
+    ServerPC->SetWidget(TEXT("ESC"), false, EMessageTargetType::Multicast);
+    ServerPC->SetWidget(TEXT("GameStop"), true, EMessageTargetType::Multicast);
+}
+
+void AGM_PhantomTwins::NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 ClientSelect)
+{// TODO: ENUM으로 바꾸기..
+    if (HostSelect == 1 && ClientSelect == 1)
+    {
+		Delay(1.f);
+        ShowLoadingScene(2.f);
+        SeverToLevel(DestinationLevelName, false);
+    }
+    else if ((HostSelect != 0 && ClientSelect != 0) && (HostSelect == 2 || ClientSelect == 2))
+    {
+        Delay(1.f);
+        ShowResumeCountUI();
+    }
+}
+
+void AGM_PhantomTwins::ShowResumeCountUI()
+{
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    APC_Player* ServerPC = Cast< APC_Player>(PC);
+
+    ServerPC->SetWidget(TEXT("GameStop"), false, EMessageTargetType::Multicast);
+    ServerPC->SetWidget(TEXT("ResumeCount"), true, EMessageTargetType::Multicast);
+}
+
+
+void AGM_PhantomTwins::ShowLoadingScene(float Delay)
+{
+    NULLCHECK_RETURN_LOG(GetWorld(), OutGameLog, Error, );
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    APC_Player* ServerPC = Cast< APC_Player>(PC);
+    ServerPC->SetWidget(TEXT("Loading"), true, EMessageTargetType::Multicast);
+
+    SetAllPlayerUIMode(false);
+}
+
+void AGM_PhantomTwins::RestartWithDelay(float Delay)
+{
+    ShowLoadingScene(2.f);
     FTimerHandle TimerHandle;
     GetWorldTimerManager().SetTimer(TimerHandle, [this]()
         {
@@ -106,6 +175,15 @@ void AGM_PhantomTwins::EndPlay(const EEndPlayReason::Type EndPlayReason)
         GetWorldTimerManager().ClearTimer(TimerHandle_SpawnByTime);
     }
     Super::EndPlay(EndPlayReason);
+}
+
+void AGM_PhantomTwins::Delay(float Time)
+{
+    FTimerHandle TimerHandle;
+    GetWorldTimerManager().SetTimer(TimerHandle, [this]() {},
+        Time,
+        false
+    );
 }
 
 void AGM_PhantomTwins::SeverToLevel(const FName LevelName, bool bAbsolute)
@@ -145,5 +223,33 @@ void AGM_PhantomTwins::RequestBossSpawn()
     else
     {
         TPT_LOG(GameRuleLog, Error, TEXT("PreferredSpawnActor is Invalid."));
+    }
+}
+
+void AGM_PhantomTwins::SetAllPlayerUIMode(bool bIsUIMode)
+{
+    AGameStateBase* GS = GetWorld()->GetGameState<AGameStateBase>();
+    NULLCHECK_RETURN_LOG(GS, OutGameLog, Error, );
+
+    for (APlayerState* PS : GS->PlayerArray)
+    {
+        NULLCHECK_RETURN_LOG(PS, OutGameLog, Error, );
+        APlayerController* PC = Cast<APlayerController>(PS->GetOwner());
+        NULLCHECK_RETURN_LOG(PC, OutGameLog, Error, );
+        APC_Player* PLayerPC = Cast<APC_Player>(PC);
+        NULLCHECK_RETURN_LOG(PLayerPC, OutGameLog, Error, );
+
+        if (bIsUIMode)
+        {
+	        FInputModeUIOnly InputModeData;
+            PLayerPC->SetInputMode(InputModeData);
+            PLayerPC->bShowMouseCursor = true;
+        }
+        else
+        {
+            FInputModeGameOnly GameInputMode;
+            PLayerPC->SetInputMode(GameInputMode);
+            PLayerPC->bShowMouseCursor = false;
+        }
     }
 }

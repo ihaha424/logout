@@ -9,6 +9,8 @@
 #include "Components/SplineMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/RepLayout.h"
+#include "Player/PlayerCharacter.h"
+#include "Objects/FThrowItemDT.h"
 
 UGA_AimItem::UGA_AimItem()
 {
@@ -28,6 +30,29 @@ void UGA_AimItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
     PlayHoldingItemMontageTask->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageInterrupted);
     // 중간에 방해를 받으면 다시 재생되도록 하기. 커스텀할수있다고는 하다...
 
+    EItemType ItemType = EItemType::None;
+    if (TriggerEventData)
+    {
+        ItemType = static_cast<EItemType>((int32)TriggerEventData->EventMagnitude);
+    }
+
+    NULLCHECK_CODE_RETURN_LOG(ThrowItemDataTable, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, false, false); , )
+
+	if(ItemType == EItemType::NoiseBomb)
+    {
+        if (ThrowItemDataTable)
+        {
+            Row = ThrowItemDataTable->FindRow<FThrowItemDT>(TEXT("Noise Bomb"), TEXT("Load DT"));
+        }
+    }
+    else if (ItemType == EItemType::EMP)
+    {
+        if (ThrowItemDataTable)
+        {
+            Row = ThrowItemDataTable->FindRow<FThrowItemDT>(TEXT("EMP"), TEXT("Load DT"));
+        }
+    }
+
     OwnerActor = ActorInfo->AvatarActor.Get();
     NULLCHECK_CODE_RETURN_LOG(OwnerActor, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, false, false);, )
 
@@ -46,93 +71,100 @@ void UGA_AimItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
 		UpdateTimerHandle,
 		this,
 		&UGA_AimItem::UpdateParabola,
-		0.5f,
+		0.1f,
 		true
 	);
 }
 
 void UGA_AimItem::UpdateParabola()
 {
-    NULLCHECK_CODE_RETURN_LOG(OwnerActor, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false); , )
-    NULLCHECK_CODE_RETURN_LOG(OwnerMeshComp, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);, )
-    NULLCHECK_CODE_RETURN_LOG(SplineStaticMesh, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);, )
-    NULLCHECK_CODE_RETURN_LOG(SplineMaterial, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);, )
+    NULLCHECK_CODE_RETURN_LOG(OwnerActor, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false); , );
+    NULLCHECK_CODE_RETURN_LOG(OwnerMeshComp, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);, );
+    NULLCHECK_CODE_RETURN_LOG(SplineStaticMesh, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);, );
+    NULLCHECK_CODE_RETURN_LOG(SplineMaterial, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);, );
+    NULLCHECK_CODE_RETURN_LOG(Row, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);, );
 
-    // 기존 스플라인 & 메쉬 초기화
-    SplineComp->ClearSplinePoints(false);
-    for (auto* Mesh : SplineMeshes)
-    {
-        if (Mesh) Mesh->DestroyComponent();
-    }
-    SplineMeshes.Empty();
+	APlayerCharacter* Character = Cast<APlayerCharacter>(OwnerActor);
+    NULLCHECK_CODE_RETURN_LOG(Character, GALog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false); , );
 
-    // 시작 위치 & 발사 방향
-	FVector StartLocation = OwnerMeshComp->GetSocketLocation(TEXT("RightHand")) + FVector{0, -10.f, 0};
-    //TPT_LOG(GALog, Warning, TEXT("%d, %d, %d"), StartLocation.X, StartLocation.Y, StartLocation.Z);
-    FVector ForwardVector = OwnerActor->GetActorForwardVector();
+	if (Character->IsLocallyControlled())
+	{
+		// 기존 스플라인 & 메쉬 초기화
+		SplineComp->ClearSplinePoints(false);
+		for (auto* Mesh : SplineMeshes)
+		{
+			if (Mesh) Mesh->DestroyComponent();
+		}
+		SplineMeshes.Empty();
 
-    // 포물선 설정
-    FPredictProjectilePathParams Params;
-	Params.StartLocation = StartLocation;                           // 시작 위치
-	Params.LaunchVelocity = ForwardVector * 1000.f;                 // 발사 방향과 속도
-	Params.bTraceWithCollision = true;                              // 충돌 체크
-    Params.ProjectileRadius = 5.f;                                  // 충돌 체크할 때 투사체 반경
-	Params.MaxSimTime = 2.f;				                        // 최대 시뮬레이션 시간
-	Params.SimFrequency = 15.f;			                            // 시뮬레이션 빈도 (몇 초 동안 궤적을 계산할지)
-    Params.TraceChannel = ECollisionChannel::ECC_WorldStatic;       // 충돌 검사용 채널
-    Params.ActorsToIgnore.Add(OwnerActor);                        // 충돌 무시할 액터 리스트
-	//Params.OverrideGravityZ = -980.f;                             // 중력 가속도 (기본값 -980)
-	//Params.bTraceComplex = true;                                  // 복잡한 충돌 검사
-	//Params.DrawDebugType = EDrawDebugTrace::ForOneFrame;          // 디버그 드로잉 옵션
-	//Params.DrawDebugTime = 5.f;                                   // 디버그 드로잉 시간
+		// 시작 위치 & 발사 방향
+		StartLocation = OwnerMeshComp->GetSocketLocation(TEXT("RightHand"));
+		//TPT_LOG(GALog, Warning, TEXT("%d, %d, %d"), StartLocation.X, StartLocation.Y, StartLocation.Z);
+		ForwardVector = OwnerActor->GetActorForwardVector();
 
-    FPredictProjectilePathResult Result;
-    bool bHit = UGameplayStatics::PredictProjectilePath(OwnerActor, Params, Result);
+		// 포물선 설정
+		FPredictProjectilePathParams Params;
+		Params.StartLocation = StartLocation + Row->LaunchVelocity;                           // 시작 위치
+		Params.LaunchVelocity = ForwardVector * 1000.f;                 // 발사 방향과 속도
+		Params.bTraceWithCollision = true;                              // 충돌 체크
+		Params.ProjectileRadius = Row->ProjectileRadius;                                  // 충돌 체크할 때 투사체 반경
+		Params.SimFrequency = 1000.f;		                                // 최대 시뮬레이션 시간
+		Params.MaxSimTime = 1.f;        	                            // 시뮬레이션 빈도 (몇 초 동안 궤적을 계산할지)
+		Params.TraceChannel = ECollisionChannel::ECC_WorldStatic;       // 충돌 검사용 채널
+		Params.ActorsToIgnore.Add(OwnerActor);                        // 충돌 무시할 액터 리스트
+		//Params.OverrideGravityZ = -980.f;                             // 중력 가속도 (기본값 -980)
+		//Params.bTraceComplex = true;                                  // 복잡한 충돌 검사
+		//Params.DrawDebugType = EDrawDebugTrace::ForOneFrame;          // 디버그 드로잉 옵션
+		//Params.DrawDebugTime = 5.f;                                   // 디버그 드로잉 시간
 
-    // 스플라인 포인트 추가
-    for (const FPredictProjectilePathPointData& PointData : Result.PathData)
-    {
-        SplineComp->AddSplinePoint(PointData.Location, ESplineCoordinateSpace::World, false);
-    }
-    SplineComp->UpdateSpline();
+		FPredictProjectilePathResult Result;
+		bool bHit = UGameplayStatics::PredictProjectilePath(OwnerActor, Params, Result);
 
-    // 스플라인 메쉬 생성
-    int32 NumSegments = SplineComp->GetNumberOfSplinePoints() - 1;
+		// 스플라인 포인트 추가
+		for (const FPredictProjectilePathPointData& PointData : Result.PathData)
+		{
+			SplineComp->AddSplinePoint(PointData.Location, ESplineCoordinateSpace::World, false);
+		}
+		SplineComp->UpdateSpline();
 
-    for (int32 i = 0; i < NumSegments; i++)
-    {
-        FVector StartPos = SplineComp->GetLocationAtSplinePoint(i, ESplineCoordinateSpace::World);
-        FVector StartTan = SplineComp->GetTangentAtSplinePoint(i, ESplineCoordinateSpace::World);
-        FVector EndPos = SplineComp->GetLocationAtSplinePoint(i + 1, ESplineCoordinateSpace::World);
-        FVector EndTan = SplineComp->GetTangentAtSplinePoint(i + 1, ESplineCoordinateSpace::World);
+        // 스플라인 메쉬 생성
+        int32 NumSegments = SplineComp->GetNumberOfSplinePoints() - 1;
 
-        USplineMeshComponent* NewMesh = NewObject<USplineMeshComponent>(OwnerActor);
-        if (!NewMesh) continue;
+        for (int32 i = 0; i < NumSegments; i++)
+        {
+            FVector StartPos = SplineComp->GetLocationAtSplinePoint(i, ESplineCoordinateSpace::World);
+            FVector StartTan = SplineComp->GetTangentAtSplinePoint(i, ESplineCoordinateSpace::World);
+            FVector EndPos = SplineComp->GetLocationAtSplinePoint(i + 1, ESplineCoordinateSpace::World);
+            FVector EndTan = SplineComp->GetTangentAtSplinePoint(i + 1, ESplineCoordinateSpace::World);
 
-        // 기본 세팅
-        NewMesh->SetMobility(EComponentMobility::Movable);
-        NewMesh->SetForwardAxis(ESplineMeshAxis::Z);
-        NewMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-        NewMesh->SetStartScale(FVector2D(0.03f, 0.03f));
-        NewMesh->SetEndScale(FVector2D(0.03f, 0.03f));
-        NewMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-        NewMesh->SetCastShadow(false);
-        NewMesh->bCastDynamicShadow = false;
-        NewMesh->bCastStaticShadow = false;
-    	NewMesh->SetStaticMesh(SplineStaticMesh);
+            USplineMeshComponent* NewMesh = NewObject<USplineMeshComponent>(OwnerActor);
+            if (!NewMesh) continue;
 
-        // 스플라인에 붙이기
-        NewMesh->AttachToComponent(SplineComp, FAttachmentTransformRules::KeepWorldTransform);
-        NewMesh->RegisterComponent();
+            // 기본 세팅
+            NewMesh->SetMobility(EComponentMobility::Movable);
+            NewMesh->SetForwardAxis(ESplineMeshAxis::Z);
+            NewMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+            NewMesh->SetStartScale(FVector2D(0.03f, 0.03f));
+            NewMesh->SetEndScale(FVector2D(0.03f, 0.03f));
+            NewMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+            NewMesh->SetCastShadow(false);
+            NewMesh->bCastDynamicShadow = false;
+            NewMesh->bCastStaticShadow = false;
+            NewMesh->SetStaticMesh(SplineStaticMesh);
 
-        // Start-End 적용
-        NewMesh->SetStartAndEnd(StartPos, StartTan, EndPos, EndTan, true);
+            // 스플라인에 붙이기
+            NewMesh->AttachToComponent(SplineComp, FAttachmentTransformRules::KeepWorldTransform);
+            NewMesh->RegisterComponent();
 
-        // 머테리얼은 반드시 마지막에
-    	NewMesh->SetMaterial(0, SplineMaterial);
+            // Start-End 적용
+            NewMesh->SetStartAndEnd(StartPos, StartTan, EndPos, EndTan, true);
 
-        SplineMeshes.Add(NewMesh);
-    }
+            // 머테리얼은 반드시 마지막에
+            NewMesh->SetMaterial(0, SplineMaterial);
+
+            SplineMeshes.Add(NewMesh);
+        }
+	}
 }
 
 void UGA_AimItem::EndAbility(const FGameplayAbilitySpecHandle Handle,
