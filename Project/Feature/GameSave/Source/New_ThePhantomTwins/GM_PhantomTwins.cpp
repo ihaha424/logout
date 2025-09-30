@@ -105,7 +105,8 @@ void AGM_PhantomTwins::NotifyPlayerClickedGameStop(FName LevelName)
 void AGM_PhantomTwins::ShowGameStopUI()
 {
     SetAllPlayerUIMode(true);
-
+    // TODO 게임시간을 멈출 다른 방법 찾기
+	// 게임 틱 마저 멈추게 되어, UI 동기화가 되지않음.
     UGameplayStatics::SetGamePaused(GetWorld(), true);
     APlayerController* PC = GetWorld()->GetFirstPlayerController();
     APC_Player* ServerPC = Cast< APC_Player>(PC);
@@ -115,16 +116,16 @@ void AGM_PhantomTwins::ShowGameStopUI()
 }
 
 void AGM_PhantomTwins::NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 ClientSelect)
-{// TODO: ENUM으로 바꾸기..
+{
     if (HostSelect == 1 && ClientSelect == 1)
     {
-		Delay(1.f);
-        ShowLoadingScene(2.f);
+        // 그냥  타이머를 넣으니까 멀티캐스트가 안됨.
+        ShowLoadingScene();
         SeverToLevel(DestinationLevelName, false);
     }
     else if ((HostSelect != 0 && ClientSelect != 0) && (HostSelect == 2 || ClientSelect == 2))
     {
-        Delay(1.f);
+        
         ShowResumeCountUI();
     }
 }
@@ -140,8 +141,9 @@ void AGM_PhantomTwins::ShowResumeCountUI()
 }
 
 
-void AGM_PhantomTwins::ShowLoadingScene(float Delay)
+void AGM_PhantomTwins::ShowLoadingScene()
 {
+    SetAllPlayerUIMode(true);
     NULLCHECK_RETURN_LOG(GetWorld(), OutGameLog, Error, );
     APlayerController* PC = GetWorld()->GetFirstPlayerController();
     APC_Player* ServerPC = Cast< APC_Player>(PC);
@@ -152,7 +154,7 @@ void AGM_PhantomTwins::ShowLoadingScene(float Delay)
 
 void AGM_PhantomTwins::RestartWithDelay(float Delay)
 {
-    ShowLoadingScene(2.f);
+    ShowLoadingScene();
     FTimerHandle TimerHandle;
     GetWorldTimerManager().SetTimer(TimerHandle, [this]()
         {
@@ -160,6 +162,16 @@ void AGM_PhantomTwins::RestartWithDelay(float Delay)
             FString LevelPathWithListen = MapName + TEXT("?listen");
             GetWorld()->ServerTravel(LevelPathWithListen, false);
         }, Delay, false);
+}
+
+void AGM_PhantomTwins::ResumePlay()
+{
+    UGameplayStatics::SetGamePaused(GetWorld(), false);
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    APC_Player* ServerPC = Cast< APC_Player>(PC);
+
+    ServerPC->SetWidget(TEXT("ResumeCount"), false, EMessageTargetType::Multicast);
+    SetAllPlayerUIMode(false);
 }
 
 void AGM_PhantomTwins::EndPlay(const EEndPlayReason::Type EndPlayReason)
