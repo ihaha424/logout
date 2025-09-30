@@ -1,15 +1,10 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "SzObjects/InteractableObject.h"
 #include "GameplayTagContainer.h"
 #include "BoxObject.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class NEW_THEPHANTOMTWINS_API ABoxObject : public AInteractableObject
 {
@@ -24,16 +19,36 @@ protected:
 public:
 	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
 
-	// 아이템을 먹었을 때 먹은 대상에게 게임플레이 이펙트를 적용시켜주는 함수
-	void ApplyEffectToTarget(const APawn* Interactor);	
+	// 모든 클라이언트에게 복제되는 함수들 추가
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastApplyEffect(const APawn* Interactor);
 
-	// 아이템에 대한 자체 이펙트(상자 오픈 이펙트)를 재생하기 위한 함수
-	void InvokeGameplayCue(const APawn* Interactor);		
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastInvokeGameplayCue(const APawn* Interactor);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastExecuteTrapBox(const APawn* Interactor);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastShowWarning();
+
+	// 기존 함수들 (서버에서만 실행)
+	void ApplyEffectToTarget(const APawn* Interactor);
+	void InvokeGameplayCue(const APawn* Interactor);
+	void ExecuteTrapBoxGA(const APawn* Interactor);
 
 protected:
-	UPROPERTY(EditAnywhere, Category = GAS)
+	UPROPERTY(EditAnywhere, Category = "BoxObject | GAS")
 	TSubclassOf<class UGameplayEffect> GameplayEffectClass;
 
-	UPROPERTY(EditAnywhere, Category = GAS, Meta=(Categories=GameplayCue))
+	UPROPERTY(EditAnywhere, Category = "BoxObject | GAS", Meta = (Categories = GameplayCue))
 	FGameplayTag GameplayCueTag;
+
+	UPROPERTY(EditAnywhere, Category = "BoxObject")
+	bool bisTrapBox;
+
+	UPROPERTY(EditAnywhere, Category = "BoxObject | UI")
+	TSubclassOf<AActor> WarningClass;
+
+	AActor* FindWarningActor();
 };

@@ -12,4 +12,5 @@
 #include "CueTag_Effect.inl"
 #include "CueTag_Sound.inl"
 #include "CueTag_Notify.inl"
+#include "CueTag_Objects.inl"
 #endif

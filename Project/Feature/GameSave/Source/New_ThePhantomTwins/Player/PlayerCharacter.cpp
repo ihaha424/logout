@@ -13,6 +13,7 @@
 #include "Input/TPTEnhancedInputComponent.h"
 #include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
+#include "GameplayEffect.h"
 #include "FocusTraceComponent.h"
 #include "GM_PhantomTwins.h"
 #include "PC_Player.h"
@@ -1020,4 +1021,110 @@ void APlayerCharacter::GivePassiveSkillBySkillType(ESkillType Type)
 	default:
 		break;
 	}
+}
+
+void APlayerCharacter::UpdateSprintCooldownCount()
+{
+	float SprintTotal = 0.f, CooldownTotal = 0.f;
+	float SprintRemain = 0.f, CooldownRemain = 0.f;
+
+	if (ASC)
+	{
+		const FActiveGameplayEffectsContainer& Effects = ASC->GetActiveGameplayEffects();
+
+		// Sprint GE 확인
+		FGameplayTag SprintTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Sprinting;
+
+		for (auto It = Effects.CreateConstIterator(); It; ++It)
+		{
+			const FActiveGameplayEffect& Effect = *It;
+
+			if (Effect.Spec.Def && Effect.Spec.Def->GetGrantedTags().HasTag(SprintTag))
+			{
+				//TPT_LOG(PlayerLog, Log, TEXT("Find Sprint GE"));
+				SprintTotal = Effect.Spec.GetDuration();		// 5초
+				float StartTime = Effect.StartWorldTime;		// 흐른시간
+				SprintRemain = SprintTotal - (GetWorld()->GetTimeSeconds() - StartTime);	// 5초 빼기 흐른시간
+			}
+		}
+
+		// Cooldown GE 확인
+		FGameplayTag CooldownTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_SprintCoolDown;
+
+		for (auto It = Effects.CreateConstIterator(); It; ++It)
+		{
+			const FActiveGameplayEffect& Effect = *It;
+
+			if (Effect.Spec.Def && Effect.Spec.Def->GetGrantedTags().HasTag(CooldownTag))
+			{
+				//TPT_LOG(PlayerLog, Log, TEXT("Find Sprint Cooldown GE"));
+				CooldownTotal = Effect.Spec.GetDuration();		// 20초
+				float StartTime = Effect.StartWorldTime;		// 흐른시간
+				CooldownRemain = CooldownTotal - (GetWorld()->GetTimeSeconds() - StartTime) - SprintTotal;	// 20초 빼기 흐른시간
+			}
+		}
+	}
+
+	// 실행시간이 0보다 크다면 (남은 시간 / 5) 아니면 0
+	float SprintPercent = (SprintTotal > 0.f) ? SprintRemain / SprintTotal : 0.f;
+	//TPT_LOG(PlayerLog, Warning, TEXT("Sprint T %f, R %f, P %f"), SprintTotal, SprintRemain, SprintPercent);
+
+	// 실행시간이 0보다 크다면 (남은 시간 / 20) 아니면 0
+	float CooldownPercent = (CooldownTotal > 0.f) ? CooldownRemain / CooldownTotal : 0.f;
+	//TPT_LOG(PlayerLog, Warning, TEXT("SprintCooldown T %f, R %f, P %f"), CooldownTotal, CooldownRemain, CooldownPercent);
+
+	// TODO: 여기서 Widget에 값 전달하면 됨
+	OnSprintSkillUI.Broadcast(SprintPercent, CooldownPercent);
+}
+
+void APlayerCharacter::UpdateAuraCooldownCount()
+{
+	float AuraTotal = 0.f, CooldownTotal = 0.f;
+	float AuraRemain = 0.f, CooldownRemain = 0.f;
+
+	if (ASC)
+	{
+		const FActiveGameplayEffectsContainer& Effects = ASC->GetActiveGameplayEffects();
+
+		// Sprint GE 확인
+		FGameplayTag SprintTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_UsingOutLine;
+
+		for (auto It = Effects.CreateConstIterator(); It; ++It)
+		{
+			const FActiveGameplayEffect& Effect = *It;
+
+			if (Effect.Spec.Def && Effect.Spec.Def->GetGrantedTags().HasTag(SprintTag))
+			{
+				//TPT_LOG(PlayerLog, Log, TEXT("Find Aura GE"));
+				AuraTotal = Effect.Spec.GetDuration();			// 5초
+				float StartTime = Effect.StartWorldTime;		// 흐른시간
+				AuraRemain = AuraTotal - (GetWorld()->GetTimeSeconds() - StartTime);	// 5초 빼기 흐른시간
+			}
+		}
+
+		// Cooldown GE 확인
+		FGameplayTag CooldownTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_OutLineCoolDown;
+
+		for (auto It = Effects.CreateConstIterator(); It; ++It)
+		{
+			const FActiveGameplayEffect& Effect = *It;
+
+			if (Effect.Spec.Def && Effect.Spec.Def->GetGrantedTags().HasTag(CooldownTag))
+			{
+				//TPT_LOG(PlayerLog, Log, TEXT("Find Aura Cooldown GE"));
+				CooldownTotal = Effect.Spec.GetDuration();		// 20초
+				float StartTime = Effect.StartWorldTime;		// 흐른시간
+				CooldownRemain = CooldownTotal - (GetWorld()->GetTimeSeconds() - StartTime) - AuraTotal;	// 20초 빼기 흐른시간
+			}
+		}
+	}
+
+	float AuraPercent = (AuraTotal > 0.f) ? AuraRemain / AuraTotal : 0.f;
+	//TPT_LOG(PlayerLog, Warning, TEXT("Aura T %f, R %f, P %f"), AuraTotal, AuraRemain, AuraPercent);
+
+	float CooldownPercent = (CooldownTotal > 0.f) ? CooldownRemain / CooldownTotal : 0.f;
+	//TPT_LOG(PlayerLog, Warning, TEXT("AuraCooldown T %f, R %f, P %f"), CooldownTotal, CooldownRemain, CooldownPercent);
+
+	// TODO: 여기서 Widget에 값 전달하면 됨
+	OnAuraSkillUI.Broadcast(AuraPercent, CooldownPercent);
 }

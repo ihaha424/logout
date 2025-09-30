@@ -8,7 +8,7 @@
 
 class UAbilityTask_PlayMontageAndWait;
 /**
- * 
+ *
  */
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UGA_AIHitPlayer : public UGameplayAbility

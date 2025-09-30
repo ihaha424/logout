@@ -7,7 +7,7 @@
 #include "GA_Confused2nd.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UGA_Confused2nd : public UGameplayAbility
@@ -17,7 +17,7 @@ public:
 	UGA_Confused2nd();
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-	virtual void EndAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	virtual void EndAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	void OffSound(FGameplayTag InputTag, int32 Count);
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SFX")

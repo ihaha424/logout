@@ -66,7 +66,44 @@ void AThrowEMP::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPr
     {
         //TPT_LOG(GALog, Log, TEXT("AThrowEMP OnHit!!!!!!!!!!!!!!!"));
 
-        ExplodeAndMakeNoise();
+        // ProjectileMovementComponent 비활성화
+        if (ProjectileMovementComponent)
+        {
+            ProjectileMovementComponent->StopMovementImmediately();
+            ProjectileMovementComponent->Deactivate();
+        }
+
+        // 메시의 물리 시뮬레이션 활성화, 중력 적용
+		if (MeshComponent)
+		{
+			MeshComponent->SetSimulatePhysics(true);
+			MeshComponent->SetEnableGravity(true);
+
+            // 바닥 판정 (예: 태그 "Ground")
+            if (OtherActor->ActorHasTag(FName("Ground")))
+            {
+                MeshComponent->SetSimulatePhysics(false);
+                MeshComponent->SetPhysicsLinearVelocity(FVector::ZeroVector);
+                MeshComponent->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
+            }
+		}
+
+        if (CollisionComponent)
+        {
+            CollisionComponent->SetSimulatePhysics(true);
+            CollisionComponent->SetEnableGravity(true);
+
+
+            // 바닥 판정 (예: 태그 "Ground")
+            if (OtherActor->ActorHasTag(FName("Ground")))
+            {
+                CollisionComponent->SetSimulatePhysics(false);
+                CollisionComponent->SetPhysicsLinearVelocity(FVector::ZeroVector);
+                CollisionComponent->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
+
+                ExplodeAndMakeNoise();
+            }
+        }
     }
 }
 
@@ -91,13 +128,6 @@ void AThrowEMP::InvokeGameplayCue()
 
 void AThrowEMP::ExplodeAndMakeNoise()
 {
-    // 투사체 이동 정지
-    if (ProjectileMovementComponent)
-    {
-        ProjectileMovementComponent->StopMovementImmediately();
-        ProjectileMovementComponent->Deactivate();
-    }
-
     InvokeGameplayCue();
 
     // 1. 적에게 닿으면 5초간 스턴

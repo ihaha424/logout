@@ -7,7 +7,7 @@
 #include "GA_Confused3rd.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UGA_Confused3rd : public UGameplayAbility

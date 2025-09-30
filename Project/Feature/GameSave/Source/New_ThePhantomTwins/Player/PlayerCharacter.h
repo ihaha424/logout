@@ -10,6 +10,7 @@
 #include "SzInterface/Interact.h"
 #include "SzInterface/Holding.h"
 #include "GenericTeamAgentInterface.h"
+#include "OutGame/HubMap/GS_HubMap.h"
 #include "PlayerCharacter.generated.h"
 
 class UPlayerHUDWidget;
@@ -39,6 +40,9 @@ enum class EEnemyRange : uint8
 	WallRose UMETA(DisplayName = "WallRose"),
 	WallMaria UMETA(DisplayName = "WallMaria")
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSprintSkillUI, float, SprintPercent, float, CooldownPercent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FAuraSkillUI, float, AuraPercent, float, CooldownPercent);
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API APlayerCharacter : public ACharacter, public IAbilitySystemInterface, public IGenericTeamAgentInterface, public IInteract, public IHolding
@@ -123,6 +127,17 @@ public:
 	void ExecuteAbilityByTag(FGameplayTag InputTag);
 	UFUNCTION(BlueprintCallable)
 	void GivePassiveSkillBySkillType(ESkillType Type);
+
+	// Player Skill Cool Gauge Func
+	UFUNCTION(BlueprintCallable)
+	void UpdateSprintCooldownCount();
+	UFUNCTION(BlueprintCallable)
+	void UpdateAuraCooldownCount();
+
+	UPROPERTY(BlueprintAssignable, Category = "Character Skill")
+	FSprintSkillUI OnSprintSkillUI;
+	UPROPERTY(BlueprintAssignable, Category = "Character Skill")
+	FAuraSkillUI OnAuraSkillUI;
 
 protected:
 	// 플레이어 인풋 바인딩
