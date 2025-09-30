@@ -209,16 +209,16 @@ void AThrowNoiseBomb::FallToGround()
         CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
         // 아래쪽으로만 떨어지도록 속도 조정
-        FVector DownwardVelocity = FVector(0.0f, 0.0f, -800.0f);
-        CollisionComponent->SetPhysicsLinearVelocity(DownwardVelocity);
+        //FVector DownwardVelocity = FVector(0.0f, 0.0f, -800.0f);
+        //CollisionComponent->SetPhysicsLinearVelocity(DownwardVelocity);
 
-        // 수평 속도는 제거
-        FVector CurrentVelocity = CollisionComponent->GetPhysicsLinearVelocity();
-        CurrentVelocity.X = 0.0f;
-        CurrentVelocity.Y = 0.0f;
-        CollisionComponent->SetPhysicsLinearVelocity(CurrentVelocity);
+        //// 수평 속도는 제거
+        //FVector CurrentVelocity = CollisionComponent->GetPhysicsLinearVelocity();
+        //CurrentVelocity.X = 0.0f;
+        //CurrentVelocity.Y = 0.0f;
+        //CollisionComponent->SetPhysicsLinearVelocity(CurrentVelocity);
 
-        UE_LOG(LogTemp, Warning, TEXT("NoiseBomb falling straight down"));
+        //UE_LOG(LogTemp, Warning, TEXT("NoiseBomb falling straight down"));
     }
 
     // TWeakObjectPtr을 사용한 안전한 람다 캡처
