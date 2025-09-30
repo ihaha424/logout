@@ -23,6 +23,7 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     //~ End AGameModeBase
 
+    void Delay(float Time);
 
     //~ Begin LevelTravel
     UFUNCTION(BlueprintCallable)
@@ -30,7 +31,6 @@ public:
     UFUNCTION(BlueprintCallable)
     void ShowLoadingScene(float Delay);
 	void RestartWithDelay(float Delay);
-
 	//~ End LevelTravel
 
     //~ Begin BossSpawn

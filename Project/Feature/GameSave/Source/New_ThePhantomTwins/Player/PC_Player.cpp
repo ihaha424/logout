@@ -61,7 +61,7 @@ void APC_Player::OnPossess(APawn* InPawn)
 	Super::OnPossess(InPawn);
 }
 
-void APC_Player::C2S_TurnOffESC_Implementation()
+void APC_Player::TurnOffESC()
 {
 	SetWidget(TEXT("ESC"), false, EMessageTargetType::LocalClient);
 	bShowMouseCursor = false;
@@ -101,7 +101,7 @@ void APC_Player::C2S_ClickedGameStop_Implementation(const FName LevelName)
 	GS->SetCharacterClickedGameStop(LevelName);
 }
 
-void APC_Player::C2S_ClickedAgreeWithGameStop_Implementation(int32 SelectBtn)
+void APC_Player::C2S_ClickedAgreeWithGameStop_Implementation(const int32 SelectBtn)
 {
 	if (!HasAuthority())
 		return;

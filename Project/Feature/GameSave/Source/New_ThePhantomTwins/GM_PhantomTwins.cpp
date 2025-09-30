@@ -118,19 +118,13 @@ void AGM_PhantomTwins::NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 Cli
 {// TODO: ENUM으로 바꾸기..
     if (HostSelect == 1 && ClientSelect == 1)
     {
-        FTimerHandle TimerHandle;
-        GetWorldTimerManager().SetTimer(TimerHandle,[this]()
-            {
-               
-            },
-            1.0f,
-            false    
-        );
+		Delay(1.f);
         ShowLoadingScene(2.f);
         SeverToLevel(DestinationLevelName, false);
     }
     else if ((HostSelect != 0 && ClientSelect != 0) && (HostSelect == 2 || ClientSelect == 2))
     {
+        Delay(1.f);
         ShowResumeCountUI();
     }
 }
@@ -181,6 +175,15 @@ void AGM_PhantomTwins::EndPlay(const EEndPlayReason::Type EndPlayReason)
         GetWorldTimerManager().ClearTimer(TimerHandle_SpawnByTime);
     }
     Super::EndPlay(EndPlayReason);
+}
+
+void AGM_PhantomTwins::Delay(float Time)
+{
+    FTimerHandle TimerHandle;
+    GetWorldTimerManager().SetTimer(TimerHandle, [this]() {},
+        Time,
+        false
+    );
 }
 
 void AGM_PhantomTwins::SeverToLevel(const FName LevelName, bool bAbsolute)

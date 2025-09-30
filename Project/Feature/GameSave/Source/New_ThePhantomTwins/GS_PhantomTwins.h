@@ -73,9 +73,9 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterClickedGameStop)
 	FName DestinationLevelName;
 	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterAgreeWithGameStop)
-	int32 bIsHostAgreeWithGameStop = 0;
+	int32 HostSelect = 0;
 	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterAgreeWithGameStop)
-	int32 bIsClientAgreeWithGameStop = 0;
+	int32 ClientSelect = 0;
 
 	//~ End Stop game
 protected:
