@@ -121,11 +121,12 @@ void AGM_PhantomTwins::NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 Cli
         FTimerHandle TimerHandle;
         GetWorldTimerManager().SetTimer(TimerHandle,[this]()
             {
-                ShowLoadingScene(2.0f);
+               
             },
             1.0f,
             false    
         );
+        ShowLoadingScene(2.f);
         SeverToLevel(DestinationLevelName, false);
     }
     else if ((HostSelect != 0 && ClientSelect != 0) && (HostSelect == 2 || ClientSelect == 2))
@@ -147,6 +148,7 @@ void AGM_PhantomTwins::ShowResumeCountUI()
 
 void AGM_PhantomTwins::ShowLoadingScene(float Delay)
 {
+    NULLCHECK_RETURN_LOG(GetWorld(), OutGameLog, Error, );
     APlayerController* PC = GetWorld()->GetFirstPlayerController();
     APC_Player* ServerPC = Cast< APC_Player>(PC);
     ServerPC->SetWidget(TEXT("Loading"), true, EMessageTargetType::Multicast);
