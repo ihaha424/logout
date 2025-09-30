@@ -20,6 +20,7 @@ public:
 
     virtual EBTNodeResult::Type Execute_Task(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
     virtual void Execute_TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
+    virtual void OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult) override;
     virtual FString GetStaticDescription() const override;
 
 protected:
@@ -31,6 +32,12 @@ protected:
 
     UPROPERTY(EditAnywhere, Category = "Ability")
     bool bWaitAbility;
+
+    /**
+     * @brief : If the task ends, attempt Abillity termination.
+     */
+    UPROPERTY(EditAnywhere, Category = "Ability")
+    bool bAbortAbility;
 
     UPROPERTY(EditAnywhere, Category = "Ability")
     FName StringData;
