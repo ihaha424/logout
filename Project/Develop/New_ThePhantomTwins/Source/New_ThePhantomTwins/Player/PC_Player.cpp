@@ -9,6 +9,7 @@
 #include "Player/PS_Player.h"
 #include "CM_LogOut.h"
 #include "GS_PhantomTwins.h"
+#include "Player/PlayerCharacter.h"
 #include "OutGame/HubMap/GS_HubMap.h"
 
 APC_Player::APC_Player()
@@ -48,6 +49,14 @@ void APC_Player::BeginPlay()
 			{
 				Subsystem->AddMappingContext(IMC, 0); // 우선순위는 필요에 따라 조정
 			}
+		}
+	}
+
+	if (APawn* MyPawn = GetPawn())
+	{
+		if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(MyPawn))
+		{
+			PlayerCharacter->EnsureSetting(APlayerCharacter::EnsureCreateElement::EnsureGameState);
 		}
 	}
 

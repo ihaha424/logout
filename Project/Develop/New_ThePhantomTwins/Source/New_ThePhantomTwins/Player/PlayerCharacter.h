@@ -137,6 +137,18 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Character Skill")
 	FAuraSkillUI OnAuraSkillUI;
 
+	/**
+	 * @brief : GameStart(GS, PS, PC ensuring the create.)
+	 */
+	enum EnsureCreateElement
+	{
+		EnsurePlayerState,
+		EnsurePlayerController,
+		EnsureGameState,
+		End
+	};
+	void EnsureSetting(EnsureCreateElement Element);
+
 protected:
 	// 플레이어 인풋 바인딩
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -196,6 +208,11 @@ protected:
 	void UpdateWallSound();
 	UFUNCTION()
 	void OnRep_CurrentWallRange();
+
+	/**
+	 * @brief : GameStart(GS, PS, PC ensuring the create.)
+	 */
+	void EnsureGameStart();
 
 
 private:
@@ -317,6 +334,9 @@ protected:
 	TMap<AActor*, EEnemyRange> EnemyRangeMap;
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentWallRange)
 	EEnemyRange CurrentWallRange = EEnemyRange::None;
+
+	// 세팅 보장
+	bool bEnsureSet[EnsureCreateElement::End];
 
 	
 private:

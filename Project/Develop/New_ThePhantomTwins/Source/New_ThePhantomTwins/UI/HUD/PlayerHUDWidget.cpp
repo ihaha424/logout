@@ -16,7 +16,7 @@
 
 void UPlayerHUDWidget::NativeConstruct()
 {
-	Super::NativeConstruct();
+    Super::NativeConstruct();
 
     if (AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>())
     {

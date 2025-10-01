@@ -4,6 +4,8 @@
 #include "OutGame/HubMap/GS_HubMap.h"
 #include "Net/UnrealNetwork.h"
 #include "SaveGame/TPTSaveGameHelperLibrary.h"
+#include "Player/PC_Player.h"
+#include "Player/PlayerCharacter.h"
 #include "Log/TPTLog.h"
 
 void AGS_HubMap::SetCurState(EHubMapState State)

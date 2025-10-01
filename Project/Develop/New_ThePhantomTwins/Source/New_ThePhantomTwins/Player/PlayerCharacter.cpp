@@ -211,6 +211,9 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	AnimInstance->InitializeWithAbilitySystem(ASC);
 
 	SetSelectSkill(PS);
+
+	EnsureSetting(EnsureCreateElement::EnsurePlayerController);
+	EnsureSetting(EnsureCreateElement::EnsurePlayerState);
 }
 
 void APlayerCharacter::OnRep_Controller()
@@ -221,6 +224,7 @@ void APlayerCharacter::OnRep_Controller()
 		PlayerController = CastChecked<APC_Player>(GetController());
 		NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 	}
+	EnsureSetting(EnsureCreateElement::EnsurePlayerController);
 }
 
 void APlayerCharacter::OnRep_PlayerState()
@@ -242,6 +246,8 @@ void APlayerCharacter::OnRep_PlayerState()
 	InitHUDWidget(AttributeSet);
 	UPlayerAnimInstance* AnimInstance = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	AnimInstance->InitializeWithAbilitySystem(ASC);
+
+	EnsureSetting(EnsureCreateElement::EnsurePlayerState);
 }
 
 bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
@@ -312,7 +318,6 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 		if (PC && PlayerHUDWidgetClass)
 		{
 			PC->RegisterWidget(TEXT("PlayerHUDWidget"), CreateWidget<UPlayerHUDWidget>(GetWorld(), PlayerHUDWidgetClass));
-			PC->SetWidget(TEXT("PlayerHUDWidget"), true, EMessageTargetType::LocalClient);
 			PlayerHUDWidget = Cast<UPlayerHUDWidget>(PC->GetWidget(TEXT("PlayerHUDWidget")));
 		}
 		else
@@ -901,6 +906,31 @@ void APlayerCharacter::UpdateWallSound()
 void APlayerCharacter::OnRep_CurrentWallRange()
 {
 	UpdateWallSound();
+}
+
+void APlayerCharacter::EnsureSetting(EnsureCreateElement Element)
+{
+	bool bStart = true;
+	bEnsureSet[Element] = true;
+	
+	for (bool node : bEnsureSet)
+	{
+		if (!node)
+		{
+			bStart = false;
+			break;
+		}
+	}
+
+	if (bStart)
+		EnsureGameStart();
+}
+
+void APlayerCharacter::EnsureGameStart()
+{
+	AUIManagerPlayerController* PC = Cast<AUIManagerPlayerController>(GetController());
+	if (PC)
+		PC->SetWidget(TEXT("PlayerHUDWidget"), true, EMessageTargetType::LocalClient);
 }
 
 void APlayerCharacter::RemoveHeldItemMesh()
