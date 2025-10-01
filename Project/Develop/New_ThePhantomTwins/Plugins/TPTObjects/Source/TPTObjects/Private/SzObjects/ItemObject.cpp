@@ -48,19 +48,33 @@ void AItemObject::DestroyItem()
 {
 	bIsActived = true;
 
-	if (UStaticMeshComponent* FoundMesh = FindComponentByClass<UStaticMeshComponent>())
+	// 이 액터 내 모든 UStaticMeshComponent를 찾아서 처리
+	TArray<UStaticMeshComponent*> StaticMeshComponents;
+	GetComponents<UStaticMeshComponent>(StaticMeshComponents);
+
+	for (UStaticMeshComponent* MeshComp : StaticMeshComponents)
 	{
-		FoundMesh->SetHiddenInGame(true);         // Mesh 숨김
-		FoundMesh->SetVisibility(false);          // 완전히 안 보이도록 설정 (추가 안전 조치)
-		FoundMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);  // 충돌 제거
+		if (MeshComp)
+		{
+			MeshComp->SetHiddenInGame(true);
+			MeshComp->SetVisibility(false);
+			MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
 	}
 
-	if (UNiagaraComponent* NiagaraComp = FindComponentByClass<UNiagaraComponent>())
+	// 이 액터 내 모든 UNiagaraComponent를 찾아서 처리
+	TArray<UNiagaraComponent*> NiagaraComponents;
+	GetComponents<UNiagaraComponent>(NiagaraComponents);
+
+	for (UNiagaraComponent* NiagaraComp : NiagaraComponents)
 	{
-		NiagaraComp->SetHiddenInGame(true);       // 파티클 렌더링 숨김
-		NiagaraComp->Deactivate();                // 파티클 효과 비활성화
-		NiagaraComp->SetVisibility(false);        // 안전 조치로 Visibility도 false
-		NiagaraComp->SetComponentTickEnabled(false); // 로직 비활성화 (선택 사항)
+		if (NiagaraComp)
+		{
+			NiagaraComp->SetHiddenInGame(true);
+			NiagaraComp->Deactivate();
+			NiagaraComp->SetVisibility(false);
+			NiagaraComp->SetComponentTickEnabled(false);
+		}
 	}
 
 	SetActorEnableCollision(false);	// 더이상 이벤트가 일어나지 않도록 false
