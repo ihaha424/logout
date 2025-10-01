@@ -49,10 +49,10 @@ void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	PC->SetWidget(TEXT("WASD"), true, EMessageTargetType::LocalClient);
 
 	Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
-
+	DefaultSocketOffset = Character->GetSpringArm()->SocketOffset;
 	if (USpringArmComponent* SpringArm = Character->GetSpringArm())
 	{
-		SpringArm->SocketOffset += FVector(0.f, 0.f, -100.f);
+		SpringArm->SocketOffset = DefaultSocketOffset + FVector(0.f, 0.f, -100.f);
 	}
 
 	SetSpeed(DownedSpeed, GAActorInfo);
@@ -115,7 +115,7 @@ void UGA_Downed::OnDownedTagChanged(const FGameplayTag Tag, int32 TagCount)
 	{
 		PC->SetWidget(TEXT("WASD"), false, EMessageTargetType::LocalClient);
 		Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-		Character->GetSpringArm()->SocketOffset += FVector(0.f, 0.f, 100.f);
+		Character->GetSpringArm()->SocketOffset = DefaultSocketOffset;
 		Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 		bool bReplicatedEndAbility = true;
