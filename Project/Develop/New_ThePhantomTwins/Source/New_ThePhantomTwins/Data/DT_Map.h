@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
+#include "Log/TPTLog.h"
 #include "DT_Map.generated.h"
 
 
