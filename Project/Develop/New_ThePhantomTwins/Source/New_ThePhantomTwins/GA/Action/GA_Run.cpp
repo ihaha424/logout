@@ -179,5 +179,9 @@ void UGA_Run::OnSprintTagChanged(const FGameplayTag Tag, int32 TagCount)
 
 	float FinalSpeed = bHasSprintTag ? BaseRunSpeed * SprintMultiplier : BaseRunSpeed;
 	OutPutRunSpeed = FinalSpeed;
-	SetSpeed(OutPutRunSpeed, GAActorInfo);
+
+	if (GAActorInfo->AbilitySystemComponent->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run))
+	{
+		SetSpeed(OutPutRunSpeed, GAActorInfo);
+	}
 }
