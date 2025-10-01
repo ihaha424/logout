@@ -4,6 +4,15 @@
 #include "OutGame/HubMap/GS_HubMap.h"
 #include "Net/UnrealNetwork.h"
 #include "SaveGame/TPTSaveGameHelperLibrary.h"
+#include "Log/TPTLog.h"
+
+void AGS_HubMap::SetCurState(EHubMapState State)
+{
+    PrevState = CurState;
+    CurState = State;
+
+    OnChangeHubMapState.Broadcast(PrevState, CurState);
+}
 
 void AGS_HubMap::SetIdentifyCharacterTypeData(ECharacterType CharacterType, bool bIsHost)
 {
@@ -57,6 +66,12 @@ void AGS_HubMap::SetCharacterReady(bool bIsReady, bool bIsHost)
     OnRep_ReadyCharacterData();
 }
 
+void AGS_HubMap::OnRep_HubMapState()
+{
+    OnChangeHubMapState.Broadcast(PrevState, CurState);
+    PrevState = CurState;
+}
+
 void AGS_HubMap::OnRep_MapData()
 {
     UTPTSaveGame* TPTLocalPlayerSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
@@ -87,4 +102,5 @@ void AGS_HubMap::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
     DOREPLIFETIME(AGS_HubMap, MapData);
     DOREPLIFETIME(AGS_HubMap, bIsServerReady);
     DOREPLIFETIME(AGS_HubMap, bIsClientReady);
+    DOREPLIFETIME(AGS_HubMap, CurState);
 }

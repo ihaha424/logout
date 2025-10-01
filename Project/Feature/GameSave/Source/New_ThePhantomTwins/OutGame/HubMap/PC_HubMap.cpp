@@ -77,7 +77,7 @@ void APC_HubMap::C2S_SelectMap_Implementation(const FName& type, EMapType State)
 
 	AGS_HubMap* GS = GetWorld()->GetGameState<AGS_HubMap>();
 	if (!GS)
-	{
+	{ 
 		TPT_LOG(OutGameLog, Error, TEXT("Cast to 'AGS_HubMap' Fail"));
 		return;
 	}
