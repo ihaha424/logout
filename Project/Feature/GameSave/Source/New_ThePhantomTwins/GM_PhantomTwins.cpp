@@ -5,11 +5,14 @@
 #include "GS_PhantomTwins.h"
 #include "AI/Utility/BossSpawner.h"
 #include "Blueprint/UserWidget.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerState.h"
 #include "SaveGame/TPTSaveGameHelperLibrary.h"
 
 
 #include "Log/TPTLog.h"
+#include "Microsoft/AllowMicrosoftPlatformTypes.h"
 #include "Player/PC_Player.h"
 
 void AGM_PhantomTwins::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -67,6 +70,17 @@ void AGM_PhantomTwins::NotifyPlayerDied(bool isDead)
 
     if (DeadPlayerCount >= TotalPlayerCount)
     {
+        for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+        {
+            APlayerController* PC = It->Get();
+            NULLCHECK_RETURN_LOG(PC, OutGameLog, Error, );
+        	APawn* Pawn = PC->GetPawn();
+        	NULLCHECK_RETURN_LOG(Pawn, OutGameLog, Error, );
+        	ACharacter* Character = Cast<ACharacter>(Pawn);
+        	NULLCHECK_RETURN_LOG(Character, OutGameLog, Error, );
+                    
+        	Character->GetCharacterMovement()->DisableMovement();
+        }
         ShowGameOverUI();
     }
 }
@@ -122,13 +136,20 @@ void AGM_PhantomTwins::NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 Cli
 {
     if (HostSelect == 1 && ClientSelect == 1)
     {
-        // 그냥  타이머를 넣으니까 멀티캐스트가 안됨.
+        //FTimerHandle DelayHandle;
+        //// 그냥  타이머를 넣으니까 멀티캐스트가 안됨.
+        //GetWorldTimerManager().SetTimer(
+        //    DelayHandle,
+        //    this,
+        //    &ThisClass::ShowLoadingScene,
+        //    2.0f,
+        //    false 
+        //);
         ShowLoadingScene();
         SeverToLevel(DestinationLevelName, false);
     }
     else if ((HostSelect != 0 && ClientSelect != 0) && (HostSelect == 2 || ClientSelect == 2))
     {
-        
         ShowResumeCountUI();
     }
 }
