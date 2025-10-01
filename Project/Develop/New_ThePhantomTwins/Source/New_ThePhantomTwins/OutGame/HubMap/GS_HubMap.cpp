@@ -68,7 +68,6 @@ void AGS_HubMap::SetCharacterReady(bool bIsReady, bool bIsHost)
 
 void AGS_HubMap::OnRep_HubMapState()
 {
-    TPT_LOG(LogTemp, Error, TEXT("asdas"));
     OnChangeHubMapState.Broadcast(PrevState, CurState);
     PrevState = CurState;
 }
