@@ -1011,106 +1011,119 @@ void APlayerCharacter::GivePassiveSkillBySkillType(ESkillType Type)
 
 void APlayerCharacter::UpdateSprintCooldownCount()
 {
-	float SprintTotal = 0.f, CooldownTotal = 0.f;
-	float SprintRemain = 0.f, CooldownRemain = 0.f;
+	float SprintTotal = 0.f;
+	float SprintStartTime = 0.f;
+
+	float CooldownTotal = 0.f;
+	float CooldownStartTime = 0.f;
 
 	if (ASC)
 	{
 		const FActiveGameplayEffectsContainer& Effects = ASC->GetActiveGameplayEffects();
 
-		// Sprint GE 확인
 		FGameplayTag SprintTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Sprinting;
-
-		for (auto It = Effects.CreateConstIterator(); It; ++It)
-		{
-			const FActiveGameplayEffect& Effect = *It;
-
-			if (Effect.Spec.Def && Effect.Spec.Def->GetGrantedTags().HasTag(SprintTag))
-			{
-				//TPT_LOG(PlayerLog, Log, TEXT("Find Sprint GE"));
-				SprintTotal = Effect.Spec.GetDuration();		// 5초
-				float StartTime = Effect.StartWorldTime;		// 흐른시간
-				SprintRemain = SprintTotal - (GetWorld()->GetTimeSeconds() - StartTime);	// 5초 빼기 흐른시간
-			}
-		}
-
-		// Cooldown GE 확인
 		FGameplayTag CooldownTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_SprintCoolDown;
 
 		for (auto It = Effects.CreateConstIterator(); It; ++It)
 		{
 			const FActiveGameplayEffect& Effect = *It;
+			if (!Effect.Spec.Def) continue;
 
-			if (Effect.Spec.Def && Effect.Spec.Def->GetGrantedTags().HasTag(CooldownTag))
+			if (Effect.Spec.Def->GetGrantedTags().HasTag(SprintTag))
 			{
-				//TPT_LOG(PlayerLog, Log, TEXT("Find Sprint Cooldown GE"));
-				CooldownTotal = Effect.Spec.GetDuration();		// 20초
-				float StartTime = Effect.StartWorldTime;		// 흐른시간
-				CooldownRemain = CooldownTotal - (GetWorld()->GetTimeSeconds() - StartTime) - SprintTotal;	// 20초 빼기 흐른시간
+				SprintTotal = Effect.GetDuration();
+				SprintStartTime = Effect.GetTimeRemaining(GetWorld()->GetTimeSeconds());
+			}
+			else if (Effect.Spec.Def->GetGrantedTags().HasTag(CooldownTag))
+			{
+				CooldownTotal = Effect.GetDuration(); 
+				CooldownStartTime = Effect.GetTimeRemaining(GetWorld()->GetTimeSeconds());
 			}
 		}
 	}
+	
+	CooldownTotal -= 5;
 
-	// 실행시간이 0보다 크다면 (남은 시간 / 5) 아니면 0
-	float SprintPercent = (SprintTotal > 0.f) ? SprintRemain / SprintTotal : 0.f;
-	//TPT_LOG(PlayerLog, Warning, TEXT("Sprint T %f, R %f, P %f"), SprintTotal, SprintRemain, SprintPercent);
+	//if (HasAuthority())
+		//TPT_LOG(LogTemp, Error, TEXT("SprintTotal: %.2f| SprintStartTime: %.2f| CooldownTotal: %.2f| CooldownStartTime: %.2f|"), SprintTotal, SprintStartTime, CooldownTotal, CooldownStartTime);
 
-	// 실행시간이 0보다 크다면 (남은 시간 / 20) 아니면 0
-	float CooldownPercent = (CooldownTotal > 0.f) ? CooldownRemain / CooldownTotal : 0.f;
-	//TPT_LOG(PlayerLog, Warning, TEXT("SprintCooldown T %f, R %f, P %f"), CooldownTotal, CooldownRemain, CooldownPercent);
+	float SprintPercent = 0;
+	float CooldownPercent = 0;
 
-	// TODO: 여기서 Widget에 값 전달하면 됨
+	//percent 연산
+	// Sprint 퍼센트 계산: 1 → 0
+	if (SprintTotal > 0.f)
+	{
+		SprintPercent = FMath::Clamp((SprintStartTime / SprintTotal), 0.f, 1.f);
+	}
+
+	if (SprintPercent <= 0.f) // Sprint 끝났으면
+	{
+		CooldownPercent = FMath::Clamp(1.f - (CooldownStartTime / CooldownTotal), 0.f, 1.f);
+	}
+	else
+	{
+		CooldownPercent = 0.f; // Sprint 진행 중이면 0
+	}
+
 	OnSprintSkillUI.Broadcast(SprintPercent, CooldownPercent);
 }
 
 void APlayerCharacter::UpdateAuraCooldownCount()
 {
-	float AuraTotal = 0.f, CooldownTotal = 0.f;
-	float AuraRemain = 0.f, CooldownRemain = 0.f;
+	float AuraTotal = 0.f;
+	float AuraStartTime = 0.f;
+
+	float CooldownTotal = 0.f;
+	float CooldownStartTime = 0.f;
 
 	if (ASC)
 	{
 		const FActiveGameplayEffectsContainer& Effects = ASC->GetActiveGameplayEffects();
 
-		// Sprint GE 확인
 		FGameplayTag SprintTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_UsingOutLine;
-
-		for (auto It = Effects.CreateConstIterator(); It; ++It)
-		{
-			const FActiveGameplayEffect& Effect = *It;
-
-			if (Effect.Spec.Def && Effect.Spec.Def->GetGrantedTags().HasTag(SprintTag))
-			{
-				//TPT_LOG(PlayerLog, Log, TEXT("Find Aura GE"));
-				AuraTotal = Effect.Spec.GetDuration();			// 5초
-				float StartTime = Effect.StartWorldTime;		// 흐른시간
-				AuraRemain = AuraTotal - (GetWorld()->GetTimeSeconds() - StartTime);	// 5초 빼기 흐른시간
-			}
-		}
-
-		// Cooldown GE 확인
 		FGameplayTag CooldownTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_OutLineCoolDown;
 
 		for (auto It = Effects.CreateConstIterator(); It; ++It)
 		{
 			const FActiveGameplayEffect& Effect = *It;
+			if (!Effect.Spec.Def) continue;
 
-			if (Effect.Spec.Def && Effect.Spec.Def->GetGrantedTags().HasTag(CooldownTag))
+			if (Effect.Spec.Def->GetGrantedTags().HasTag(SprintTag))
 			{
-				//TPT_LOG(PlayerLog, Log, TEXT("Find Aura Cooldown GE"));
-				CooldownTotal = Effect.Spec.GetDuration();		// 20초
-				float StartTime = Effect.StartWorldTime;		// 흐른시간
-				CooldownRemain = CooldownTotal - (GetWorld()->GetTimeSeconds() - StartTime) - AuraTotal;	// 20초 빼기 흐른시간
+				AuraTotal = Effect.GetDuration();
+				AuraStartTime = Effect.GetTimeRemaining(GetWorld()->GetTimeSeconds());
+			}
+			else if (Effect.Spec.Def->GetGrantedTags().HasTag(CooldownTag))
+			{
+				CooldownTotal = Effect.GetDuration();
+				CooldownStartTime = Effect.GetTimeRemaining(GetWorld()->GetTimeSeconds());
 			}
 		}
 	}
 
-	float AuraPercent = (AuraTotal > 0.f) ? AuraRemain / AuraTotal : 0.f;
-	//TPT_LOG(PlayerLog, Warning, TEXT("Aura T %f, R %f, P %f"), AuraTotal, AuraRemain, AuraPercent);
+	CooldownTotal -= 20;
 
-	float CooldownPercent = (CooldownTotal > 0.f) ? CooldownRemain / CooldownTotal : 0.f;
-	//TPT_LOG(PlayerLog, Warning, TEXT("AuraCooldown T %f, R %f, P %f"), CooldownTotal, CooldownRemain, CooldownPercent);
+	//if (HasAuthority())
+		//TPT_LOG(LogTemp, Error, TEXT("AuraTotal: %.2f| AuraStartTime: %.2f| CooldownTotal: %.2f| CooldownStartTime: %.2f|"), SprintTotal, SprintStartTime, CooldownTotal, CooldownStartTime);
 
-	// TODO: 여기서 Widget에 값 전달하면 됨
+	float AuraPercent = 0;
+	float CooldownPercent = 0;
+
+	//percent 연산
+	if (AuraTotal > 0.f)
+	{
+		AuraPercent = FMath::Clamp((AuraStartTime / AuraTotal), 0.f, 1.f);
+	}
+
+	if (AuraPercent <= 0.f)
+	{
+		CooldownPercent = FMath::Clamp(1.f - (CooldownStartTime / CooldownTotal), 0.f, 1.f);
+	}
+	else
+	{
+		CooldownPercent = 0.f;
+	}
+
 	OnAuraSkillUI.Broadcast(AuraPercent, CooldownPercent);
 }
