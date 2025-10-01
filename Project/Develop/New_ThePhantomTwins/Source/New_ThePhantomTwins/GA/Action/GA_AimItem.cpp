@@ -42,7 +42,7 @@ void UGA_AimItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
     {
         if (ThrowItemDataTable)
         {
-            Row = ThrowItemDataTable->FindRow<FThrowItemDT>(TEXT("Noise Bomb"), TEXT("Load DT"));
+            Row = ThrowItemDataTable->FindRow<FThrowItemDT>(TEXT("NoiseBomb"), TEXT("Load DT"));
         }
     }
     else if (ItemType == EItemType::EMP)
