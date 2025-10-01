@@ -56,6 +56,9 @@ public:
 	FSetIdentifyCharacterData OnSetIdentifyCharacterData;
 	UPROPERTY(BlueprintAssignable, Category = "HubMap | Character Ready")
 	FSetReadyData OnSetReadyData;
+	UPROPERTY(BlueprintReadWrite, Category = "HubMap | UserCount")
+
+	int32 UserCount = 0;
 	// ~End Lobby(Character Seletect)
 
 private:

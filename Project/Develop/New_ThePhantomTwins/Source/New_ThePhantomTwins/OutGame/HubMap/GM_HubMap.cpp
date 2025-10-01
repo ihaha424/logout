@@ -2,6 +2,7 @@
 
 
 #include "OutGame/HubMap/GM_HubMap.h"
+#include "OutGame/HubMap/GS_HubMap.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -34,4 +35,14 @@ void AGM_HubMap::TravelToLevel(const FName LevelName, bool bAbsolute)
 
 	UE_LOG(LogTemp, Log, TEXT("LevelPathWithListen: %s"), *LevelPathWithListen);
 	GetWorld()->ServerTravel(LevelPathWithListen, bAbsolute);
+}
+
+void AGM_HubMap::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+
+	if (AGS_HubMap* GS = GetGameState<AGS_HubMap>())
+	{
+		GS->UserCount++;
+	}
 }
