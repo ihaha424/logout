@@ -53,7 +53,7 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
     }
 
     // HeldItemComponent를 통해 아이템 처리
-    if (ChoiceItemType == EItemType::EMP || ChoiceItemType == EItemType::NoiseBomb || ChoiceItemType == EItemType::Key)
+    if (ChoiceItemType == EItemType::EMP || ChoiceItemType == EItemType::NoiseBomb)
     {
         // 투척 아이템인 경우 스폰 및 부착
         HeldItemComp->SpawnAndAttachHeldItem(ChoiceItemType);
