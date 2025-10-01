@@ -58,6 +58,80 @@ void AGM_PhantomTwins::PostLogin(APlayerController* NewPlayer)
     TotalPlayerCount++;
 }
 
+void AGM_PhantomTwins::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    if (HasAuthority())
+    {
+        AGS_PhantomTwins* GS = GetGameState<AGS_PhantomTwins>();
+        if (GS)
+        {
+            if (ItemChangedHandle.IsValid())
+                GS->OnCollectedItemCountChanged().Remove(ItemChangedHandle);
+        }
+        GetWorldTimerManager().ClearTimer(TimerHandle_SpawnByTime);
+    }
+    Super::EndPlay(EndPlayReason);
+}
+
+void AGM_PhantomTwins::NotifyPlayerClickedGameStop(FName LevelName)
+{
+    DestinationLevelName = LevelName;
+    ShowGameStopUI();
+}
+
+void AGM_PhantomTwins::ShowGameStopUI()
+{
+    SetAllPlayerUIMode(true);
+    // TODO 게임시간을 멈출 다른 방법 찾기
+	// 게임 틱 마저 멈추게 되어, UI 동기화가 되지않음.
+    // UGameplayStatics::SetGamePaused(GetWorld(), true);
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    APC_Player* ServerPC = Cast< APC_Player>(PC);
+
+    ServerPC->SetWidget(TEXT("ESC"), false, EMessageTargetType::Multicast);
+    ServerPC->SetWidget(TEXT("GameStop"), true, EMessageTargetType::Multicast);
+}
+
+void AGM_PhantomTwins::NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 ClientSelect)
+{
+    if (HostSelect == 1 && ClientSelect == 1)
+    {
+        // 그냥  타이머를 넣으니까 멀티캐스트가 안됨.
+		//Delay(3.1f);
+        //FTimerHandle TimerHandle;
+        //GetWorldTimerManager().SetTimer(TimerHandle, [this]() { ShowLoadingScene();},
+        //    3.f,
+        //    false
+        //);
+        ShowLoadingScene();
+        SeverToLevel(DestinationLevelName, false);
+    }
+    else if ((HostSelect != 0 && ClientSelect != 0) && (HostSelect == 2 || ClientSelect == 2))
+    {
+        ShowResumeCountUI();
+    }
+}
+
+void AGM_PhantomTwins::ShowResumeCountUI()
+{
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    APC_Player* ServerPC = Cast< APC_Player>(PC);
+
+    ServerPC->SetWidget(TEXT("GameStop"), false, EMessageTargetType::Multicast);
+    ServerPC->SetWidget(TEXT("ResumeCount"), true, EMessageTargetType::Multicast);
+}
+
+void AGM_PhantomTwins::ResumePlay()
+{
+    UGameplayStatics::SetGamePaused(GetWorld(), false);
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    APC_Player* ServerPC = Cast< APC_Player>(PC);
+
+    ServerPC->SetWidget(TEXT("ResumeCount"), false, EMessageTargetType::Multicast);
+    SetAllPlayerUIMode(false);
+}
+
 void AGM_PhantomTwins::NotifyPlayerDied(bool isDead)
 {
     if (isDead)
@@ -69,6 +143,15 @@ void AGM_PhantomTwins::NotifyPlayerDied(bool isDead)
     {
         ShowGameOverUI();
     }
+}
+
+void AGM_PhantomTwins::ShowGameOverUI()
+{
+    SetAllPlayerUIMode(true);
+    // 게임 시간을 정지하는 방법... 게임시간 여기에서 정지시키니까 트래블도 안됨.
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    APC_Player*ServerPC = Cast< APC_Player>(PC);
+    ServerPC->SetWidget(TEXT("GameOver"), true, EMessageTargetType::Multicast);
 }
 
 void AGM_PhantomTwins::NotifyPlayerClickRestart(bool bIsHostClicked, bool bIsClientClicked)
@@ -89,72 +172,6 @@ void AGM_PhantomTwins::NotifyPlayerClickRestart(bool bIsHostClicked, bool bIsCli
     }
 }
 
-void AGM_PhantomTwins::ShowGameOverUI()
-{
-    SetAllPlayerUIMode(true);
-
-    APlayerController* PC = GetWorld()->GetFirstPlayerController();
-    APC_Player*ServerPC = Cast< APC_Player>(PC);
-    ServerPC->SetWidget(TEXT("GameOver"), true, EMessageTargetType::Multicast);
-}
-
-void AGM_PhantomTwins::NotifyPlayerClickedGameStop(FName LevelName)
-{
-    DestinationLevelName = LevelName;
-    TPT_LOG(OutGameLog, Error, TEXT("%s"), *DestinationLevelName.ToString());
-    ShowGameStopUI();
-}
-
-void AGM_PhantomTwins::ShowGameStopUI()
-{
-    SetAllPlayerUIMode(true);
-    // TODO 게임시간을 멈출 다른 방법 찾기
-	// 게임 틱 마저 멈추게 되어, UI 동기화가 되지않음.
-    UGameplayStatics::SetGamePaused(GetWorld(), true);
-    APlayerController* PC = GetWorld()->GetFirstPlayerController();
-    APC_Player* ServerPC = Cast< APC_Player>(PC);
-
-    ServerPC->SetWidget(TEXT("ESC"), false, EMessageTargetType::Multicast);
-    ServerPC->SetWidget(TEXT("GameStop"), true, EMessageTargetType::Multicast);
-}
-
-void AGM_PhantomTwins::NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 ClientSelect)
-{
-    if (HostSelect == 1 && ClientSelect == 1)
-    {
-        // 그냥  타이머를 넣으니까 멀티캐스트가 안됨.
-        ShowLoadingScene();
-        SeverToLevel(DestinationLevelName, false);
-    }
-    else if ((HostSelect != 0 && ClientSelect != 0) && (HostSelect == 2 || ClientSelect == 2))
-    {
-        
-        ShowResumeCountUI();
-    }
-}
-
-void AGM_PhantomTwins::ShowResumeCountUI()
-{
-	UGameplayStatics::SetGamePaused(GetWorld(), true);
-    APlayerController* PC = GetWorld()->GetFirstPlayerController();
-    APC_Player* ServerPC = Cast< APC_Player>(PC);
-
-    ServerPC->SetWidget(TEXT("GameStop"), false, EMessageTargetType::Multicast);
-    ServerPC->SetWidget(TEXT("ResumeCount"), true, EMessageTargetType::Multicast);
-}
-
-
-void AGM_PhantomTwins::ShowLoadingScene()
-{
-    SetAllPlayerUIMode(true);
-    NULLCHECK_RETURN_LOG(GetWorld(), OutGameLog, Error, );
-    APlayerController* PC = GetWorld()->GetFirstPlayerController();
-    APC_Player* ServerPC = Cast< APC_Player>(PC);
-    ServerPC->SetWidget(TEXT("Loading"), true, EMessageTargetType::Multicast);
-
-    SetAllPlayerUIMode(false);
-}
-
 void AGM_PhantomTwins::RestartWithDelay(float Delay)
 {
     ShowLoadingScene();
@@ -165,51 +182,6 @@ void AGM_PhantomTwins::RestartWithDelay(float Delay)
             FString LevelPathWithListen = MapName + TEXT("?listen");
             GetWorld()->ServerTravel(LevelPathWithListen, false);
         }, Delay, false);
-}
-
-void AGM_PhantomTwins::ResumePlay()
-{
-    UGameplayStatics::SetGamePaused(GetWorld(), false);
-    APlayerController* PC = GetWorld()->GetFirstPlayerController();
-    APC_Player* ServerPC = Cast< APC_Player>(PC);
-
-    ServerPC->SetWidget(TEXT("ResumeCount"), false, EMessageTargetType::Multicast);
-    SetAllPlayerUIMode(false);
-}
-
-void AGM_PhantomTwins::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-    if (HasAuthority())
-    {
-        AGS_PhantomTwins* GS = GetGameState<AGS_PhantomTwins>();
-        if (GS)
-        {
-            if (ItemChangedHandle.IsValid())
-                GS->OnCollectedItemCountChanged().Remove(ItemChangedHandle);
-        }
-        GetWorldTimerManager().ClearTimer(TimerHandle_SpawnByTime);
-    }
-    Super::EndPlay(EndPlayReason);
-}
-
-void AGM_PhantomTwins::Delay(float Time)
-{
-    FTimerHandle TimerHandle;
-    GetWorldTimerManager().SetTimer(TimerHandle, [this]() {},
-        Time,
-        false
-    );
-}
-
-void AGM_PhantomTwins::SeverToLevel(const FName LevelName, bool bAbsolute)
-{
-    APlayerController* PC = GetWorld()->GetFirstPlayerController();
-    if (!PC->HasAuthority()) return;
-
-    FString LevelPathWithListen = LevelName.ToString() + TEXT("?listen");
-
-    TPT_LOG(GameRuleLog, Log, TEXT("LevelPathWithListen: %s"), *LevelPathWithListen);
-    GetWorld()->ServerTravel(LevelPathWithListen, bAbsolute);
 }
 
 void AGM_PhantomTwins::OnItemCountChanged(int32 NewCount)
@@ -267,4 +239,35 @@ void AGM_PhantomTwins::SetAllPlayerUIMode(bool bIsUIMode)
             PLayerPC->bShowMouseCursor = false;
         }
     }
+}
+
+void AGM_PhantomTwins::ShowLoadingScene()
+{
+    SetAllPlayerUIMode(true);
+    NULLCHECK_RETURN_LOG(GetWorld(), OutGameLog, Error, );
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    APC_Player* ServerPC = Cast< APC_Player>(PC);
+    ServerPC->SetWidget(TEXT("Loading"), true, EMessageTargetType::Multicast);
+
+    SetAllPlayerUIMode(false);
+}
+
+void AGM_PhantomTwins::Delay(float Time)
+{
+    FTimerHandle TimerHandle;
+    GetWorldTimerManager().SetTimer(TimerHandle, [this]() {},
+        Time,
+        false
+    );
+}
+
+void AGM_PhantomTwins::SeverToLevel(const FName LevelName, bool bAbsolute, bool bIsListen)
+{
+    APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    if (!PC->HasAuthority()) return;
+
+    FString LevelPathWithListen = bIsListen ? LevelName.ToString() + TEXT("?listen") : LevelName.ToString();
+
+    TPT_LOG(GameRuleLog, Log, TEXT("LevelPathWithListen: %s"), *LevelPathWithListen);
+    GetWorld()->ServerTravel(LevelPathWithListen, bAbsolute);
 }

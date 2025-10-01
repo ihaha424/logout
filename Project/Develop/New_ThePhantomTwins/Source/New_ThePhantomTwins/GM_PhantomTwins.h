@@ -19,15 +19,15 @@ public:
     virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
     virtual void BeginPlay() override;
     virtual void PostLogin(APlayerController* NewPlayer) override;
-	void NotifyPlayerDied(bool isDead);
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     //~ End AGameModeBase
 
+	void NotifyPlayerDied(bool isDead);
     void Delay(float Time);
 
     //~ Begin LevelTravel
     UFUNCTION(BlueprintCallable)
-	void SeverToLevel(const FName LevelName, bool bAbsolute);
+	void SeverToLevel(const FName LevelName, bool bAbsolute, bool bIsListen = true);
     UFUNCTION(BlueprintCallable)
     void ShowLoadingScene();
 	void RestartWithDelay(float Delay);
