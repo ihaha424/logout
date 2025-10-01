@@ -30,7 +30,7 @@ void AGM_HubMap::TravelToLevel(const FName LevelName, bool bAbsolute)
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
 	if (!PC->HasAuthority()) return;
 
-	FString LevelPathWithListen = LevelName.ToString() + TEXT("?listen");
+	FString LevelPathWithListen = (TEXT("Game/Maps/%s?listen"), *LevelName.ToString());
 
 	UE_LOG(LogTemp, Log, TEXT("LevelPathWithListen: %s"), *LevelPathWithListen);
 	GetWorld()->ServerTravel(LevelPathWithListen, bAbsolute);
