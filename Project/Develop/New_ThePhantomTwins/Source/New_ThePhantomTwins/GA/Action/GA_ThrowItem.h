@@ -24,6 +24,11 @@ class NEW_THEPHANTOMTWINS_API UGA_ThrowItem : public UGameplayAbility
 public:
 	UGA_ThrowItem();
 
+	UFUNCTION()
+	void OnMontageComplete();
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+	TObjectPtr<UAnimMontage> ThrowItemMontage;
 protected:
 	// GameplayAbility overrides
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -82,4 +87,5 @@ private:
 	/** Cancel AimItem ability if it's currently active */
 	UFUNCTION()
 	void CancelAimItemAbility();
+
 };
