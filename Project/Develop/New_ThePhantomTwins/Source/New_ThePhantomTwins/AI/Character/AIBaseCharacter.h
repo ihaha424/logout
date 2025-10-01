@@ -53,7 +53,11 @@ public:
 
 	//~ Begin State Control
 	UFUNCTION(BlueprintCallable, Category = "AI")
-	void  ResetDataForState(const FGameplayTag Tag, int32 TagCount);
+	void ResetDataForState(const FGameplayTag Tag, int32 TagCount);
+	
+	UFUNCTION(NetMulticast, Reliable, BlueprintCallable, Category = "AI")
+	void S2A_ResetDataForState(const FGameplayTag Tag, int32 TagCount);
+	void S2A_ResetDataForState_Implementation(const FGameplayTag Tag, int32 TagCount);
 	//~ End State Control
 
 	//~ Begin AI Control(Patrol)
