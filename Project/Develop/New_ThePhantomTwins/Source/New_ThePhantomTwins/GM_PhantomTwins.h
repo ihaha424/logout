@@ -29,8 +29,10 @@ public:
     UFUNCTION(BlueprintCallable)
 	void SeverToLevel(const FName LevelName, bool bAbsolute);
     UFUNCTION(BlueprintCallable)
-    void ShowLoadingScene(float Delay);
+    void ShowLoadingScene();
 	void RestartWithDelay(float Delay);
+    UFUNCTION(BlueprintCallable)
+	void ResumePlay();
 	//~ End LevelTravel
 
     //~ Begin BossSpawn

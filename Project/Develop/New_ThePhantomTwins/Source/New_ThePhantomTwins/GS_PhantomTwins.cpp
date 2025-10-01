@@ -47,7 +47,6 @@ void AGS_PhantomTwins::MarkBossSpawned(AActor* InBoss)
 
 void AGS_PhantomTwins::SetCharacterClickedRestart(bool bIsClicked, bool bIsHost)
 {
-	TPT_LOG(OutGameLog, Log, TEXT("bIsClicked : %d, bIsHost : %d"), bIsClicked, bIsHost);
     if (!HasAuthority()) return;
 
     if (bIsHost)
@@ -63,7 +62,6 @@ void AGS_PhantomTwins::SetCharacterClickedRestart(bool bIsClicked, bool bIsHost)
 
 void AGS_PhantomTwins::OnRep_SetCharacterClickedRestart()
 {
-    TPT_LOG(OutGameLog, Log, TEXT("bIsHostClickedRestart : %d, bIsClientClickedRestart : %d"), bIsHostClickedRestart, bIsClientClickedRestart);
     OnClickedRestartChanged.Broadcast(bIsHostClickedRestart, bIsClientClickedRestart);
 }
 
@@ -75,25 +73,15 @@ void AGS_PhantomTwins::SetCharacterClickedGameStop(FName LevelName)
 
 void AGS_PhantomTwins::SetCharacterAgreeWithGameStop(int32 Select, bool bIsHost)
 {
-    UKismetSystemLibrary::PrintString(this, TEXT("tlqkf"));
-	TPT_LOG(OutGameLog, Log, TEXT("Select : %d, bIsHost : %d"), Select, bIsHost);
     if (!HasAuthority()) return;
 
     if (bIsHost)
     {
-        FString temp = FString::Printf(TEXT("HostSelect : %d, Select : %d"), HostSelect, Select);
-        UKismetSystemLibrary::PrintString(this, temp);
         HostSelect = Select;
-        FString temp2 = FString::Printf(TEXT("HostSelect : %d, Select : %d"), HostSelect, Select);
-        UKismetSystemLibrary::PrintString(this, temp2);
     }
     else
     {
-        FString temp = FString::Printf(TEXT("ClientSelect : %d, Select : %d"), ClientSelect, Select);
-        UKismetSystemLibrary::PrintString(this, temp);
         ClientSelect = Select;
-        FString temp2 = FString::Printf(TEXT("ClientSelect : %d, Select : %d"), ClientSelect, Select);
-        UKismetSystemLibrary::PrintString(this, temp2);
     }
     OnClickedAgreeWithGameStopChanged.Broadcast(HostSelect, ClientSelect);
 }
@@ -105,7 +93,6 @@ void AGS_PhantomTwins::OnRep_SetCharacterClickedGameStop()
 
 void AGS_PhantomTwins::OnRep_SetCharacterAgreeWithGameStop()
 {
-    TPT_LOG(OutGameLog, Log, TEXT("HostSelect : %d, ClientSelect : %d"), HostSelect, ClientSelect);
     OnClickedAgreeWithGameStopChanged.Broadcast(HostSelect, ClientSelect);
 }
 
