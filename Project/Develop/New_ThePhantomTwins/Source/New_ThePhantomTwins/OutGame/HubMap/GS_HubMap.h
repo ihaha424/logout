@@ -33,7 +33,7 @@ class NEW_THEPHANTOMTWINS_API AGS_HubMap : public AGameStateBase
 public:
 	// ~Begin HubMap
 	UFUNCTION(BlueprintCallable, Category = "HubMap")
-	void SetCurState(EHubMapState State) { OnChangeHubMapState.Broadcast(CurState, State); CurState = State; }
+	void SetCurState(EHubMapState State);
 	UFUNCTION(BlueprintCallable, Category = "HubMap")
 	EHubMapState GetCurState() const { return CurState; }
 	UFUNCTION(BlueprintCallable, Category = "HubMap")
@@ -60,6 +60,8 @@ public:
 
 private:
 	// ~Begin HubMap
+	EHubMapState PrevState;
+	UPROPERTY(ReplicatedUsing = OnRep_HubMapState)
 	EHubMapState CurState;
 	UPROPERTY(BlueprintAssignable, Category = "HubMap")
 	FHubMapChanged OnChangeHubMapState;
@@ -72,7 +74,8 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_ReadyCharacterData)
 	bool bIsClientReady = false;
 	UFUNCTION()
-
+	void OnRep_HubMapState();
+	UFUNCTION()
 	void OnRep_MapData();
 	// ~End HubMap
 
