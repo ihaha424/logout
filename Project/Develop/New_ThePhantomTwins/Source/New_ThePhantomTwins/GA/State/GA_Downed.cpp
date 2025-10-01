@@ -31,7 +31,6 @@ UGA_Downed::UGA_Downed()
 void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
 	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
 	GAActorInfo = ActorInfo;
 	MyASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed).AddUObject(this, &UGA_Downed::OnDownedTagChanged);

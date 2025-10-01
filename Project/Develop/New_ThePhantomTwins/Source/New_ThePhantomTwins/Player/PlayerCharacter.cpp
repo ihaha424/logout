@@ -410,11 +410,31 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 	}
 }
 
+void APlayerCharacter::OnAbilityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureTags)
+{
+	NULLCHECK_RETURN_LOG(Ability, PlayerLog, Error, );
+	TPT_LOG(PlayerLog, Warning, TEXT("Ability Failed: %s"), *Ability->GetName());
+	for (const FGameplayTag& Tag : FailureTags)
+	{
+		TPT_LOG(PlayerLog, Warning, TEXT(" - Failure Tag: %s"), *Tag.ToString());
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Ability %s failed to activate. Reason: %s"),
+		*Ability->GetName(),
+		*FailureTags.ToString());
+}
+
 void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 {
 	ASC->AddLooseGameplayTag(InputTag);// 로컬에게 비네팅 적용 됨. 다운드 애니메이션 적용 안됨. 서버에선 엎어짐. 서버에만 태그가 붙음.(당연함)
 	ASC->AddReplicatedLooseGameplayTag(InputTag);// 리플리케이트로 붙이면 서버에서는 아무것도 적용안됨. 로컬에서는 다 됨. 태그도 로컬에만 존재함.
-	ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
+
+	bool bActivated = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
+	if(!bActivated)
+	{
+		TPT_LOG(PlayerLog, Warning, TEXT("Ability activation failed.%s"), *InputTag.ToString());
+		//ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
+	}
 
 	if(InputTag == FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed)
 	{
@@ -426,6 +446,7 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 {
 	if (HasAuthority())
 	{
+		
 		AttributeSet->OnPlayerDamaged.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 		AttributeSet->OnPlayerLowHP.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 		AttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
@@ -444,7 +465,7 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 	}
 	//AttributeSet->OnChangedSpeed.AddDynamic(this, &ThisClass::SpeedSetting);  //GA에서 직접하는것보다 동기화가 늦는다. 이유는 모름.
 	ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIChasing).AddUObject(this, &ThisClass::OnTagChanged);
-
+	ASC->AbilityFailedCallbacks.AddUObject(this, &ThisClass::OnAbilityFailed);
 	if (IsLocallyControlled())
 	{	
 		AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
@@ -601,18 +622,12 @@ void APlayerCharacter::InputMouseWheelDown(const FInputActionValue& Value)
 void APlayerCharacter::InputESC(const FInputActionValue& Value)
 {
 	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
-	//if (!bIsShowingESC)
-	//{
-		PC->SetWidget(TEXT("ESC"),	true, EMessageTargetType::LocalClient);
-		bIsShowingESC = true;
-		FInputModeUIOnly InputData;
-		PC->SetInputMode(InputData);
-		PC->bShowMouseCursor = true;
-	//}
-	//else
-	//{
-	//	PC->TurnOffESC();
-	//}
+
+	PC->SetWidget(TEXT("ESC"),	true, EMessageTargetType::LocalClient);
+	bIsShowingESC = true;
+	FInputModeUIOnly InputData;
+	PC->SetInputMode(InputData);
+	PC->bShowMouseCursor = true;
 }
 
 void APlayerCharacter::InputMouseWheelUp(const FInputActionValue& Value)

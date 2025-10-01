@@ -94,6 +94,18 @@ void AGM_PhantomTwins::ShowGameStopUI()
 
 void AGM_PhantomTwins::NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 ClientSelect)
 {
+    if (TotalPlayerCount == 1)
+    {
+	    if (HostSelect==1)
+	    {
+	    	ShowLoadingScene();
+	    	SeverToLevel(DestinationLevelName, false);
+	    }
+	    else if (HostSelect == 2)
+	    {
+	    	ShowResumeCountUI();
+	    }
+    }
     if (HostSelect == 1 && ClientSelect == 1)
     {
         // 그냥  타이머를 넣으니까 멀티캐스트가 안됨.

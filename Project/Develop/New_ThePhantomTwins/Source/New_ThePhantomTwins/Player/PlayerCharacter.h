@@ -120,7 +120,8 @@ public:
 	void PlayerHUDCoreEnergySet(int32 value);
 
 	FORCEINLINE APS_Player* GetPS() const { return PS.Get(); }
-
+	UFUNCTION()
+	void OnAbilityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureTags);
 	UFUNCTION(BlueprintCallable)
 	void ExecuteAbilityByTag(FGameplayTag InputTag);
 	UFUNCTION(BlueprintCallable)
