@@ -65,8 +65,7 @@ void AAIBaseController::BeginPlay()
 
 void AAIBaseController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-    if (SightTimerHandle.IsValid())
-        GetWorld()->GetTimerManager().ClearTimer(SightTimerHandle);
+    GetWorld()->GetTimerManager().ClearTimer(SightTimerHandle);
 
     Super::EndPlay(EndPlayReason);
 }
@@ -197,10 +196,14 @@ void AAIBaseController::FindCloseActor()
     UBlackboardComponent* BB = GetBlackboardComponent();
     for (AActor* Target : PerceptionSightList)
     {
-        if (!IsValid(Target) || Target == OwnerActor)
+        if (!IsValid(Target))
+            continue;
+        if(nullptr == OwnerActor || Target == OwnerActor)
             continue;
         UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
-        if (!IsValid(ASC) || ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
+        if (!IsValid(ASC))
+            continue;
+        if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
             continue;
         float DistSq = OwnerActor->GetDistanceTo(Target);
 
