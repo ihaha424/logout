@@ -18,8 +18,8 @@ UGameplayTagNavLinkComponent::UGameplayTagNavLinkComponent()
     AbilityTag = FGameplayTag();
     TargetActor = nullptr;
 
-    //NavModifier = CreateDefaultSubobject<UNavModifierComponent>(TEXT("NavModifier"));
-    //NavModifier->SetAreaClass(UNavArea_Null::StaticClass()); // 기본값: 차단
+    NavModifier = CreateDefaultSubobject<UNavModifierComponent>(TEXT("NavModifier"));
+    NavModifier->SetAreaClass(UNavArea_Obstacle::StaticClass()); // 기본값: 차단
 }
 
 void UGameplayTagNavLinkComponent::BeginPlay()
@@ -27,7 +27,7 @@ void UGameplayTagNavLinkComponent::BeginPlay()
     Super::BeginPlay();
 
     TargetActor = GetOwner();
-    SetLinkData(FVector{ 0.0f, -100.0f, 0.0f }, FVector{ 0.0f, 100.0f, 0.0f }, ENavLinkDirection::BothWays);
+    SetLinkData(LinkStartPos, LinkEndPos, ENavLinkDirection::BothWays);
     SetMoveReachedLink(this, &UGameplayTagNavLinkComponent::HandleSmartLinkReached);
 }
 

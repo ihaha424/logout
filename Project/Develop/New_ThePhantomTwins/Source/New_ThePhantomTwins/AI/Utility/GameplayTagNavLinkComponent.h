@@ -28,6 +28,11 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
     TObjectPtr<AActor> TargetActor;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
+    FVector LinkStartPos;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
+    FVector LinkEndPos;
+
     UFUNCTION()
     void HandleSmartLinkReached(UNavLinkCustomComponent* LinkComp, UObject* PathingAgent, const FVector& DestPoint);
 
