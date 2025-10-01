@@ -23,6 +23,11 @@ protected:
 	//~ Begin Blackboard Key
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector TargetActor;
+
+	UPROPERTY(EditAnywhere, Category = "Blackboard")
+	FBlackboardKeySelector ObjectActorKey;
+	UPROPERTY(EditAnywhere, Category = "Blackboard")
+	FBlackboardKeySelector bSmashObjectKey;
 	//~ End Blackboard Key
 
 
@@ -30,6 +35,9 @@ protected:
 	// 시야 감지 임계값
 	UPROPERTY(EditAnywhere)
 	float Distance = 200.f;
+
+	UPROPERTY(EditAnywhere)
+	float DistanceThreshold = 50.f;
 	//~ End Proterty
 
 };

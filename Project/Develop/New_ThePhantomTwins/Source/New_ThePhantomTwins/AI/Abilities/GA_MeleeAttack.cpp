@@ -60,7 +60,7 @@ void UGA_MeleeAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const 
 
     AAIBaseCharacter* Character = Cast<AAIBaseCharacter>(ActorInfo->AvatarActor.Get());
     NULLCHECK_CODE_RETURN_LOG(Character, AILog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
-    Character->SetAttackCollision(true);
+    Character->SetAttackCollision(false);
 }
 
 void UGA_MeleeAttack::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted, FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo)
