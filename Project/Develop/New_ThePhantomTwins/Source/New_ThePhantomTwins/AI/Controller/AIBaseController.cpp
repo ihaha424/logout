@@ -194,11 +194,14 @@ void AAIBaseController::FindCloseActor()
     float ClosestDistanceSq = std::numeric_limits<float>::max();
     const float CurrentTime = GetWorld()->GetTimeSeconds();
     UBlackboardComponent* BB = GetBlackboardComponent();
-    for (AActor* Target : PerceptionSightList)
+    for (const TWeakObjectPtr<AActor>& Weak : PerceptionSightList)
     {
+        AActor* Target = Weak.Get();
         if (!IsValid(Target))
             continue;
         if(nullptr == OwnerActor || Target == OwnerActor)
+            continue;
+        if (!Target->GetClass()->ImplementsInterface(UAbilitySystemInterface::StaticClass()))
             continue;
         UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Target);
         if (!IsValid(ASC))
