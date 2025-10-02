@@ -94,11 +94,11 @@ void UPlayerAttributeSet::OnRep_HP(const FGameplayAttributeData& OldValue)
 		OnPlayerLowHP.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
 	}
 	// 체력이 0이하라면 다운.
-	if (GetHP() <= 0.0f && !bPlayerDowned)
+	if (GetHP() <= 0.1f && !bPlayerDowned)
 	{
 		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 	}
-	bPlayerDowned = GetHP() <= 0.0f;
+	bPlayerDowned = GetHP() <= 0.1f;
 }
 void UPlayerAttributeSet::OnRep_MaxHP(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, MaxHP, OldValue); }
 void UPlayerAttributeSet::OnRep_Stamina(const FGameplayAttributeData& OldValue)
@@ -246,11 +246,11 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	}
 	bPlayerLowHP = GetHP() < GetMaxHP() * 0.3f;
 	// 체력이 0이하라면 다운.
-	if (GetHP() <= 0.0f && !bPlayerDowned)
+	if (GetHP() <= 0.1f && !bPlayerDowned)
 	{
 		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 	}
-	bPlayerDowned = GetHP() <= 0.0f;
+	bPlayerDowned = GetHP() <= 0.1f;
 
 	// 정신력이 MAX가 아니라면 거리별회복 GA 호출
 	if (GetMentalPoint() < GetMaxMentalPoint() && !bMentalPointNotMax)

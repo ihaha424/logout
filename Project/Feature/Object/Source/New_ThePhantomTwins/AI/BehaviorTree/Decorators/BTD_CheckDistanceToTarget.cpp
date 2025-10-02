@@ -4,6 +4,7 @@
 #include "BTD_CheckDistanceToTarget.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
+#include "SzInterface/Destroyable.h"
 #include "Log/TPTLog.h"
 
 UBTD_CheckDistanceToTarget::UBTD_CheckDistanceToTarget()
@@ -35,36 +36,53 @@ bool UBTD_CheckDistanceToTarget::CalculateRawConditionValue(UBehaviorTreeCompone
 
 	FVector MyLoc = AIPawn->GetActorLocation();
 	FVector TargetLoc = Target->GetActorLocation();
-	const float CurDistance = FVector::Dist(MyLoc, TargetLoc);
-	if (CurDistance <= Distance)
+	FVector MyLocDistance = MyLoc;
+	MyLocDistance.Z = 0;
+	FVector TargetLocDistance = TargetLoc;
+	TargetLocDistance.Z = 0;
+	const float CurDistance = FVector::Dist(MyLocDistance, TargetLocDistance);
+	if (CurDistance <= Distance + DistanceThreshold)
 	{
 		FHitResult HitResult;
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(AIPawn);
 
-		bool bHit = GetWorld()->LineTraceSingleByChannel(
-			HitResult,
-			MyLoc,
-			TargetLoc,
-			ECC_Pawn,
-			Params
+		FCollisionObjectQueryParams ObjParams;
+		ObjParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+		ObjParams.AddObjectTypesToQuery(ECC_Pawn);
+
+		const bool bHit = GetWorld()->LineTraceSingleByObjectType(
+			HitResult, MyLoc, TargetLoc, ObjParams, Params
 		);
-#if WITH_EDITOR
-		//DrawDebugLine(
-		//	GetWorld(),
-		//	MyLoc,
-		//	TargetLoc,
-		//	FColor::Red,
-		//	false,
-		//	2.0f,
-		//	0,
-		//	2.0f
-		//);
-#endif
+
+//#if WITH_EDITOR
+//		DrawDebugLine(
+//			GetWorld(),
+//			MyLoc,
+//			TargetLoc,
+//			FColor::Red,
+//			false,
+//			2.0f,
+//			0,
+//			5.0f
+//		);
+//#endif
 		if (bHit)
 		{
-			if (HitResult.GetActor() == Target)
-				return true;
+			AActor* HitActor = HitResult.GetActor();
+			if (HitActor)
+			{
+				if (HitActor && HitActor->GetClass()->ImplementsInterface(UDestroyable::StaticClass()))
+				{
+					BB->SetValueAsObject(ObjectActorKey.SelectedKeyName, HitActor);
+					BB->SetValueAsBool(bSmashObjectKey.SelectedKeyName, true);
+					return true;
+				}
+
+
+				if (HitActor == Target && CurDistance <= Distance)
+					return true;
+			}
 		}
 	}
 

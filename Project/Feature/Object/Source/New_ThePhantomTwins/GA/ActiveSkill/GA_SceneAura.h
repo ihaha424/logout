@@ -6,9 +6,9 @@
 #include "Abilities/GameplayAbility.h"
 #include "GA_SceneAura.generated.h"
 
-/**
- * 
- */
+
+class APlayerCharacter;
+
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UGA_SceneAura : public UGameplayAbility
 {
@@ -27,6 +27,7 @@ protected:
     void ApplyAuraToTarget(AActor* Target);
     void RemoveAuraFromTarget(AActor* Target);
 	bool IsValidAuraTarget(AActor* Target) const;
+    bool IsCameraBlocked();
 
     UFUNCTION()
     void OnSceneAuraTagChanged(const FGameplayTag InputTag, int32 TagCount);

@@ -2,8 +2,13 @@
 
 
 #include "GS_PhantomTwins.h"
+
+#include "GM_PhantomTwins.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
+#include "Log/TPTLog.h"
+
+#include "Kismet/KismetSystemLibrary.h"
 
 void AGS_PhantomTwins::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -13,6 +18,11 @@ void AGS_PhantomTwins::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
     DOREPLIFETIME(AGS_PhantomTwins, CoreCount);
     DOREPLIFETIME(AGS_PhantomTwins, bBossSpawned);
     DOREPLIFETIME(AGS_PhantomTwins, BossActor);
+    DOREPLIFETIME(AGS_PhantomTwins, bIsHostClickedRestart);
+    DOREPLIFETIME(AGS_PhantomTwins, bIsClientClickedRestart);
+    DOREPLIFETIME(AGS_PhantomTwins, DestinationLevelName);
+    DOREPLIFETIME(AGS_PhantomTwins, HostSelect);
+    DOREPLIFETIME(AGS_PhantomTwins, ClientSelect);
 }
 
 void AGS_PhantomTwins::AddCollectedItem(AActor* DataFragment, int32 Delta)
@@ -33,6 +43,57 @@ void AGS_PhantomTwins::MarkBossSpawned(AActor* InBoss)
     BossActor = InBoss;
 
     GameTime = GetServerWorldTimeSeconds();
+}
+
+void AGS_PhantomTwins::SetCharacterClickedRestart(bool bIsClicked, bool bIsHost)
+{
+    if (!HasAuthority()) return;
+
+    if (bIsHost)
+    {
+	    bIsHostClickedRestart = bIsClicked;
+    }
+    else
+    {
+	    bIsClientClickedRestart = bIsClicked;
+    }
+    OnClickedRestartChanged.Broadcast(bIsHostClickedRestart, bIsClientClickedRestart);
+}
+
+void AGS_PhantomTwins::OnRep_SetCharacterClickedRestart()
+{
+    OnClickedRestartChanged.Broadcast(bIsHostClickedRestart, bIsClientClickedRestart);
+}
+
+void AGS_PhantomTwins::SetCharacterClickedGameStop(FName LevelName)
+{
+    DestinationLevelName = LevelName;
+    OnClickedGameStopChanged.Broadcast(DestinationLevelName);
+}
+
+void AGS_PhantomTwins::SetCharacterAgreeWithGameStop(int32 Select, bool bIsHost)
+{
+    if (!HasAuthority()) return;
+
+    if (bIsHost)
+    {
+        HostSelect = Select;
+    }
+    else
+    {
+        ClientSelect = Select;
+    }
+    OnClickedAgreeWithGameStopChanged.Broadcast(HostSelect, ClientSelect);
+}
+
+void AGS_PhantomTwins::OnRep_SetCharacterClickedGameStop()
+{
+    OnClickedGameStopChanged.Broadcast(DestinationLevelName);
+}
+
+void AGS_PhantomTwins::OnRep_SetCharacterAgreeWithGameStop()
+{
+    OnClickedAgreeWithGameStopChanged.Broadcast(HostSelect, ClientSelect);
 }
 
 void AGS_PhantomTwins::OnRep_BossSpawned()

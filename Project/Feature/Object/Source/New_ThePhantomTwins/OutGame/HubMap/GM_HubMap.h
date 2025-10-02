@@ -20,4 +20,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void TravelToLevel(const FName LevelName, bool bAbsolute);
+
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+
 };

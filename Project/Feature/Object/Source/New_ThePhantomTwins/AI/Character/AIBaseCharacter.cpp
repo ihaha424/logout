@@ -176,6 +176,11 @@ void AAIBaseCharacter::ApplyDestroy_Implementation()
 
 void AAIBaseCharacter::ResetDataForState(const FGameplayTag Tag, int32 TagCount)
 {
+    S2A_ResetDataForState(Tag, TagCount);
+}
+
+void AAIBaseCharacter::S2A_ResetDataForState_Implementation(const FGameplayTag Tag, int32 TagCount)
+{
     const EFTPTGameplayTags* EnumTag = FTPTGameplayTags::Get().TagMap.Find(Tag);
     NULLCHECK_RETURN_LOG(EnumTag, AILog, Warning, );
 
@@ -382,16 +387,21 @@ void AAIBaseCharacter::CancleChaseActorGA()
 
 void AAIBaseCharacter::ResetDataForDieState_Implementation()
 {
-
+    if (!HasAuthority())
+        return;
 }
 
 void AAIBaseCharacter::ResetDataForStunState_Implementation()
 {
-
+    if (!HasAuthority())
+        return;
 }
 
 void AAIBaseCharacter::ResetDataForDefaultState_Implementation()
 {
+    if (!HasAuthority())
+        return;
+
     AAIController* AIController = Cast<AAIController>(GetController());
     NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
     UBlackboardComponent* BB = AIController->GetBlackboardComponent();
@@ -411,11 +421,15 @@ void AAIBaseCharacter::ResetDataForDefaultState_Implementation()
 
 void AAIBaseCharacter::ResetDataForSuspicionState_Implementation()
 {
-
+    if (!HasAuthority())
+        return;
 }
 
 void AAIBaseCharacter::ResetDataForCombatState_Implementation()
 {
+    if (!HasAuthority())
+        return;
+
     AAIController* AIController = Cast<AAIController>(GetController());
     NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
     UBlackboardComponent* BB = AIController->GetBlackboardComponent();
@@ -438,22 +452,33 @@ void AAIBaseCharacter::ResetDataForCombatState_Implementation()
 
 void AAIBaseCharacter::ResetDataForEscapeDefaultState_Implementation()
 {
+    if (!HasAuthority())
+        return;
 }
 
 void AAIBaseCharacter::ResetDataForEscapeSuspicionState_Implementation()
 {
+    if (!HasAuthority())
+        return;
 }
 
 void AAIBaseCharacter::ResetDataForEscapeDieState_Implementation()
 {
+    if (!HasAuthority())
+        return;
 }
 
 void AAIBaseCharacter::ResetDataForEscapeStunState_Implementation()
 {
+    if (!HasAuthority())
+        return;
 }
 
 void AAIBaseCharacter::ResetDataForEscapeCombatState_Implementation()
 {
+    if (!HasAuthority())
+        return;
+
     AAIController* AIController = Cast<AAIController>(GetController());
     NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
     UBlackboardComponent* BB = AIController->GetBlackboardComponent();

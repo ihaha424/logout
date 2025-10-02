@@ -17,6 +17,7 @@ public:
 
 protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void OnComponentDestroyed(bool bDestroyingHierarchy);
 
 
 public:

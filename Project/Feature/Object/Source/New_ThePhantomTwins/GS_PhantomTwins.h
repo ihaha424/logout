@@ -11,6 +11,9 @@
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCollectedItemCountChanged, int32);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBossSpawnedDynamic, AActor*, BossActor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCollectedItem, AActor*, DataFragment);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedGameStop, FName , LevelName);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedRestart, bool, bIsHostClicked, bool, bIsClientClicked);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedAgreeWithGameStop, int32, HostSelect, int32, ClientSelect);
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API AGS_PhantomTwins : public AGameStateBase
@@ -40,6 +43,41 @@ public:
 	void SetMapData(EMapType mapType) { MapData = mapType; }
 	//~ End MapData
 
+	//~ Begin Restart
+	UPROPERTY(BlueprintAssignable)
+	FOnClickedRestart OnClickedRestartChanged;
+
+	void SetCharacterClickedRestart(bool bIsClicked, bool bIsHost);
+	UFUNCTION()
+	void OnRep_SetCharacterClickedRestart();
+
+	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterClickedRestart)
+	bool bIsHostClickedRestart = false;
+	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterClickedRestart)
+	bool bIsClientClickedRestart = false;
+	//~ End Restart
+
+	// ~ Begin Stop game
+	UPROPERTY(BlueprintAssignable)
+	FOnClickedGameStop OnClickedGameStopChanged;
+	UPROPERTY(BlueprintAssignable)
+	FOnClickedAgreeWithGameStop OnClickedAgreeWithGameStopChanged;
+
+	void SetCharacterClickedGameStop(FName LevelName);
+	void SetCharacterAgreeWithGameStop(int32 bIsClicked, bool bIsHost);
+	UFUNCTION()
+	void OnRep_SetCharacterClickedGameStop();
+	UFUNCTION()
+	void OnRep_SetCharacterAgreeWithGameStop();
+
+	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterClickedGameStop)
+	FName DestinationLevelName;
+	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterAgreeWithGameStop)
+	int32 HostSelect = 0;
+	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterAgreeWithGameStop)
+	int32 ClientSelect = 0;
+
+	//~ End Stop game
 protected:
 	//~ Begin DataFragment
 	UPROPERTY(BlueprintAssignable, Category = "DataFragment")
@@ -57,7 +95,6 @@ protected:
 	//~ Begin MapData
 	EMapType MapData;
 	//~ End MapData
-
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out) const override;
 };

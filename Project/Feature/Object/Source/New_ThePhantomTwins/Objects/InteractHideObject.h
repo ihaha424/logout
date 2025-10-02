@@ -26,6 +26,8 @@ public:
 	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
 	virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
 
+	virtual void OnDestroy_Implementation(const APawn* Interactor) override;
+
 protected:
 	void CamLogicServer(const APawn* Interactor);
 	void CamLogicClient(const APawn* Interactor);
@@ -33,7 +35,11 @@ protected:
 	void EnterObject(const APawn* Interactor);
 	void ExitObject();
 
+	UFUNCTION(BlueprintCallable, Category = "HideObject")
 	void SetInputState(APlayerController* InteractorPC, bool bIgnoreInput);		// 입력 제어를 위한 함수
+
+
+	UFUNCTION(BlueprintCallable, Category = "HideObject")
 	void SetViewTarget(APlayerController* InteractorPC, AActor* NewViewTarget); // 카메라 전환을 위한 함수
 
 

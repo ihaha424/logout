@@ -28,4 +28,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	float DownedSpeed = 30.f;
+
+	FVector DefaultSocketOffset;
 };

@@ -5,6 +5,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "NiagaraComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "SzComponents/NoiseComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -55,37 +56,51 @@ void AThrowNoiseBomb::BeginPlay()
     }
 }
 
+void AThrowNoiseBomb::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    UE_LOG(LogTemp, Warning, TEXT("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
+    if (GetWorld())
+    {
+        GetWorld()->GetTimerManager().ClearTimer(GroundCheckTimer);
+    }
+
+    Super::EndPlay(EndPlayReason);
+}
+
 void AThrowNoiseBomb::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
-    // 자기 자신이나 소유자와의 충돌은 무시
-    if (OtherActor && OtherActor != this && OtherActor != GetOwner())
-    {
-        // 투사체 이동 정지
-        if (ProjectileMovementComponent)
-        {
-            ProjectileMovementComponent->StopMovementImmediately();
-            ProjectileMovementComponent->Deactivate();
-        }
 
-        // 화이트리스트 기반 붙기 판정[41][46]
-        bool bCanStickToSurface = CanStickToActor(OtherActor);
-
-        if (bCanStickToSurface)
+        // 자기 자신이나 소유자와의 충돌은 무시
+        if (OtherActor && OtherActor != this && OtherActor != GetOwner())
         {
-            // 특정 태그가 있는 장애물에만 붙기
-            StickToSurface(OtherActor, Hit);
-            UE_LOG(LogTemp, Warning, TEXT("NoiseBomb stuck to surface: %s"), *OtherActor->GetName());
-        }
-        else
-        {
-            // 기본 동작: 바닥으로 떨어뜨리기 (아이템, 적 등 모든 기타 오브젝트)
-            FallToGround();
-            UE_LOG(LogTemp, Warning, TEXT("NoiseBomb falling to ground after hitting: %s"), *OtherActor->GetName());
-        }
+            // 투사체 이동 정지
+            if (ProjectileMovementComponent)
+            {
+                ProjectileMovementComponent->StopMovementImmediately();
+                ProjectileMovementComponent->Deactivate();
+            }
 
-        // 폭발 및 소음 시작
-        ExplodeAndMakeNoise();
-    }
+            // 화이트리스트 기반 붙기 판정[41][46]
+            bool bCanStickToSurface = CanStickToActor(OtherActor);
+
+            if (bCanStickToSurface)
+            {
+                // 특정 태그가 있는 장애물에만 붙기
+                StickToSurface(OtherActor, Hit);
+                UE_LOG(LogTemp, Warning, TEXT("NoiseBomb stuck to surface: %s"), *OtherActor->GetName());
+            }
+            else
+            {
+                // 기본 동작: 바닥으로 떨어뜨리기 (아이템, 적 등 모든 기타 오브젝트)
+                FallToGround();
+                UE_LOG(LogTemp, Warning, TEXT("NoiseBomb falling to ground after hitting: %s"), *OtherActor->GetName());
+            }
+            if (OtherActor->ActorHasTag("Ground") || OtherActor->ActorHasTag("AttachableObject"))
+            {
+                // 폭발 및 소음 시작
+                ExplodeAndMakeNoise();
+            }
+        }
 }
 
 void AThrowNoiseBomb::InvokeGameplayCue()
@@ -124,6 +139,7 @@ void AThrowNoiseBomb::ExplodeAndMakeNoise()
         GetWorld()->GetTimerManager().SetTimer(DestroyTimer, [this]()
             {
                 NoiseComponent->StopNoise();
+                DestroyNoiseBomb();
                 Destroy();
             }, NoiseDuration, false); // 소음이 충분히 지속된 후 파괴
     }
@@ -209,16 +225,16 @@ void AThrowNoiseBomb::FallToGround()
         CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
         // 아래쪽으로만 떨어지도록 속도 조정
-        FVector DownwardVelocity = FVector(0.0f, 0.0f, -800.0f);
-        CollisionComponent->SetPhysicsLinearVelocity(DownwardVelocity);
+        //FVector DownwardVelocity = FVector(0.0f, 0.0f, -800.0f);
+        //CollisionComponent->SetPhysicsLinearVelocity(DownwardVelocity);
 
-        // 수평 속도는 제거
-        FVector CurrentVelocity = CollisionComponent->GetPhysicsLinearVelocity();
-        CurrentVelocity.X = 0.0f;
-        CurrentVelocity.Y = 0.0f;
-        CollisionComponent->SetPhysicsLinearVelocity(CurrentVelocity);
+        //// 수평 속도는 제거
+        //FVector CurrentVelocity = CollisionComponent->GetPhysicsLinearVelocity();
+        //CurrentVelocity.X = 0.0f;
+        //CurrentVelocity.Y = 0.0f;
+        //CollisionComponent->SetPhysicsLinearVelocity(CurrentVelocity);
 
-        UE_LOG(LogTemp, Warning, TEXT("NoiseBomb falling straight down"));
+        //UE_LOG(LogTemp, Warning, TEXT("NoiseBomb falling straight down"));
     }
 
     // TWeakObjectPtr을 사용한 안전한 람다 캡처
@@ -249,4 +265,40 @@ void AThrowNoiseBomb::FallToGround()
                     }
                 }
             }), 0.1f, true);
+}
+
+void AThrowNoiseBomb::DestroyNoiseBomb()
+{
+    // 이 액터 내 모든 UStaticMeshComponent를 찾아서 처리
+    TArray<UStaticMeshComponent*> StaticMeshComponents;
+    GetComponents<UStaticMeshComponent>(StaticMeshComponents);
+
+    for (UStaticMeshComponent* MeshComp : StaticMeshComponents)
+    {
+        if (MeshComp)
+        {
+            MeshComp->SetHiddenInGame(true);
+            MeshComp->SetVisibility(false);
+            MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        }
+    }
+
+    // 이 액터 내 모든 UNiagaraComponent를 찾아서 처리
+    TArray<UNiagaraComponent*> NiagaraComponents;
+    GetComponents<UNiagaraComponent>(NiagaraComponents);
+
+    for (UNiagaraComponent* NiagaraComp : NiagaraComponents)
+    {
+        if (NiagaraComp)
+        {
+            NiagaraComp->Activate(false);
+            NiagaraComp->SetHiddenInGame(true);
+            NiagaraComp->Deactivate();
+            NiagaraComp->SetVisibility(false);
+            NiagaraComp->SetComponentTickEnabled(false);
+        }
+    }
+
+    SetActorEnableCollision(false);	// 더이상 이벤트가 일어나지 않도록 false
+    SetLifeSpan(6.0f);				// 2초뒤에 자동으로 사라지도록.
 }

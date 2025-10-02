@@ -20,6 +20,7 @@ UBTT_PlayAbility::UBTT_PlayAbility()
     bIsWaitingForAbility = false;
     bWaitAbility = true;
     bNotifyTick = true;
+    bNotifyTaskFinished = true;
 }
 
 EBTNodeResult::Type UBTT_PlayAbility::Execute_Task(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -73,6 +74,25 @@ void UBTT_PlayAbility::Execute_TickTask(UBehaviorTreeComponent& OwnerComp, uint8
     {
         bIsWaitingForAbility = false;
         FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+    }
+}
+
+void UBTT_PlayAbility::OnTaskFinished(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, EBTNodeResult::Type TaskResult)
+{
+    if (TaskResult == EBTNodeResult::Aborted)
+    {
+        if (bAbortAbility)
+        {
+            AAIController* AICon = OwnerComp.GetAIOwner();
+            AAIBaseCharacter* AIPawn = Cast<AAIBaseCharacter>(AICon ? AICon->GetPawn() : nullptr);
+            if (!AICon || !AIPawn) return;
+
+            UAbilitySystemComponent* ASC = AIPawn->GetAbilitySystemComponent();
+            if (!ASC) return;
+
+            FGameplayTagContainer CancelTags = FGameplayTagContainer(AbilityTag);
+            ASC->CancelAbilities(&CancelTags);
+        }
     }
 }
 

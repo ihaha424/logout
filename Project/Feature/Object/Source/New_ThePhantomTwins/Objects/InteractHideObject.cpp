@@ -58,6 +58,21 @@ void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(AInteractHideObject, HidePlayer);
 }
 
+void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
+{
+	// 플레이어 컨트롤러 가져오기
+	APlayerController* InteractorPC = CastChecked<APlayerController>(HidePlayer->GetController());
+
+	if (!InteractorPC) return;
+
+
+	// 클라이언트에게 입력 활성화 명령 전달
+	SetInputState(InteractorPC, false);
+
+	// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
+	SetViewTarget(InteractorPC, HidePlayer);
+}
+
 bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
 	bCanInteract = bIsDetected;

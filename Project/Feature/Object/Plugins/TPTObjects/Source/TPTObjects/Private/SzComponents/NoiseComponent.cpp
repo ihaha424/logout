@@ -15,6 +15,18 @@ UNoiseComponent::UNoiseComponent()
 	bNoise = false;
 }
 
+void UNoiseComponent::OnComponentDestroyed(bool bDestroyingHierarchy)
+{
+	Super::OnComponentDestroyed(bDestroyingHierarchy);
+
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(NoiseTimerHandle);
+		UE_LOG(LogTemp, Log, TEXT("UNoiseComponent::444444444444444444444444444"));
+
+	}
+}
+
 void UNoiseComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -46,6 +58,8 @@ void UNoiseComponent::StopNoise()
 	}
 
 	bNoise = false;
+
+	UE_LOG(LogTemp, Log, TEXT("UNoiseComponent::33333333333333333333333333"));
 }
 
 void UNoiseComponent::GenerateNoise()
@@ -53,9 +67,10 @@ void UNoiseComponent::GenerateNoise()
 	if (!bNoise) return;
 
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	if (!OwnerPawn)
+	if (!IsValid(OwnerPawn))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UNoiseComponent::GenerateNoise - Owner is not a Pawn!"));
+		UE_LOG(LogTemp, Warning, TEXT("UNoiseComponent::GenerateNoise - OwnerPawn is invalid or pending kill."));
+		StopNoise();  // 소음 타이머 정지로 안전 종료도 고려
 		return;
 	}
 
@@ -67,7 +82,5 @@ void UNoiseComponent::GenerateNoise()
 		"NoiseItem"
 	);
 
-	UE_LOG(LogTemp, Log, TEXT("UNoiseComponent::GenerateNoise BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"));
-
-
+	UE_LOG(LogTemp, Log, TEXT("UNoiseComponent::GenerateNoise noise generated"));
 }

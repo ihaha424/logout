@@ -41,7 +41,8 @@ protected:
     UFUNCTION()
     void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
     FTimerHandle SightTimerHandle;
-    TArray<AActor*> PerceptionSightList;
+    UPROPERTY()
+    TArray<TWeakObjectPtr<AActor>> PerceptionSightList;
     void FindCloseActor();
     UPROPERTY()
     TMap<FName, FUintVector2> StimulusPriorityMap;

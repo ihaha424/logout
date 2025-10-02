@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/DT_Skill.h"
 #include "CharacterType.generated.h"
 
 UENUM(BlueprintType)
@@ -23,4 +24,10 @@ struct NEW_THEPHANTOMTWINS_API FIdentifyCharacterData
 
 	UPROPERTY(BlueprintReadOnly)
 	ECharacterType Client = ECharacterType::None;
+
+	UPROPERTY(BlueprintReadOnly)
+	ESkillType HostSkill = ESkillType::NoneSkill;
+
+	UPROPERTY(BlueprintReadOnly)
+	ESkillType ClientSkill = ESkillType::NoneSkill;
 };

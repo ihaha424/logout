@@ -30,12 +30,5 @@ void UGA_HPBuff::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
         ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, EffectSpecHandle);
     }
 
-    FGameplayEffectSpecHandle CoolDownSpecHandle = MakeOutgoingGameplayEffectSpec(CoolDownEffect, 1.0f);
-    if (CoolDownSpecHandle.IsValid())
-    {
-        CoolDownSpecHandle.Data->SetSetByCallerMagnitude(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_CoolDownCount, CoolDownValue);
-        ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, CoolDownSpecHandle);
-    }
-
     EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }

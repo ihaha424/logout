@@ -5,6 +5,8 @@
 #include "SzInterface/Destroyable.h"
 #include "AbilitySystemComponent.h"
 #include "Tags/TPTGameplayTags.h"
+#include "Log/TPTLog.h"
+
 
 UGA_SmashObstacle::UGA_SmashObstacle()
 {
@@ -24,9 +26,11 @@ UGA_SmashObstacle::UGA_SmashObstacle()
 void UGA_SmashObstacle::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
     AActor* Target = TriggerEventData ? const_cast<AActor*>(TriggerEventData->Target.Get()) : nullptr;
     if (Target && Target->GetClass()->ImplementsInterface(UDestroyable::StaticClass()))
     {
+
         if (IDestroyable::Execute_CanBeDestroyed(Target, Cast<APawn>(ActorInfo->AvatarActor.Get())))
         {
             IDestroyable::Execute_OnDestroy(Target, Cast<APawn>(ActorInfo->AvatarActor.Get()));

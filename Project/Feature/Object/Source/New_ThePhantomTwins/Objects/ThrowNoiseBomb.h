@@ -17,6 +17,7 @@ public:
 
 public:
     virtual void BeginPlay() override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
 
     // 폭발/충돌 처리
     UFUNCTION()
@@ -27,7 +28,6 @@ public:
 
     // 아이템에 대한 자체 이펙트(상자 오픈 이펙트)를 재생하기 위한 함수
     void InvokeGameplayCue();
-
 
 private:
     void ExplodeAndMakeNoise();
@@ -40,6 +40,8 @@ private:
 
     // 바닥으로 떨어뜨리는 처리
     void FallToGround();
+
+    void DestroyNoiseBomb();
 
 public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components") 

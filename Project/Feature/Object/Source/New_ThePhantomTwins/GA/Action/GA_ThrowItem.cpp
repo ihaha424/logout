@@ -12,18 +12,20 @@
 #include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
 #include "AbilitySystemComponent.h"
+#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 
 UGA_ThrowItem::UGA_ThrowItem()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerOnly;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 }
 
 void UGA_ThrowItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+                                    const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	CancelAimItemAbility();
 
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (ASC)
@@ -43,8 +45,10 @@ void UGA_ThrowItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 
 		SpawnThrowableItem(ItemType);
 	}
+	UAbilityTask_PlayMontageAndWait* PlayThrowItemMontageeTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("ThrowItemMontage"), ThrowItemMontage, 1.0f);
+	PlayThrowItemMontageeTask->OnCompleted.AddDynamic(this, &ThisClass::OnMontageComplete);
 
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	PlayThrowItemMontageeTask->ReadyForActivation();
 }
 
 void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
@@ -389,4 +393,10 @@ void UGA_ThrowItem::CancelAimItemAbility()
 	FGameplayTagContainer TagsToCancel;
 	TagsToCancel.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AimItem);
 	ASC->CancelAbilities(&TagsToCancel);
+}
+
+void UGA_ThrowItem::OnMontageComplete()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+
 }

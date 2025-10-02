@@ -19,15 +19,21 @@ public:
     virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
     virtual void BeginPlay() override;
     virtual void PostLogin(APlayerController* NewPlayer) override;
-	void NotifyPlayerDied(bool isDead);
-	void RestartLevelWithDelay(float Delay);
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     //~ End AGameModeBase
 
+	void NotifyPlayerDied(bool isDead);
+    void Delay(float Time);
 
     //~ Begin LevelTravel
-	void SeverToLevel(const FName LevelName, bool bAbsolute);
-    //~ End LevelTravel
+    UFUNCTION(BlueprintCallable)
+	void SeverToLevel(const FName LevelName, bool bAbsolute, bool bIsListen = true);
+    UFUNCTION(BlueprintCallable)
+    void ShowLoadingScene();
+	void RestartWithDelay(float Delay);
+    UFUNCTION(BlueprintCallable)
+	void ResumePlay();
+	//~ End LevelTravel
 
     //~ Begin BossSpawn
     UPROPERTY(EditAnywhere, Category = "BossSpawn", meta = (ClampMin = "0.0"))
@@ -41,17 +47,26 @@ public:
     //~ End BossSpawn
 
     // ~ Begin ReStart
-    UFUNCTION(NetMulticast, Reliable)
-    void S2A_ShowGameOverUI();
-    void S2A_ShowGameOverUI_Implementation();
+    UFUNCTION()
+    void NotifyPlayerClickRestart(bool bIsHostClicked, bool bIsClientClicked);
+    void ShowGameOverUI();
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameOverUI")
-    TObjectPtr<UUserWidget> GameOverUI;
-
-    int32 TotalPlayerCount = 0;
+	int32 TotalPlayerCount = 0;
     int32 DeadPlayerCount = 0;
+    int32 HostClick = 0;
+    int32 ClientClick = 0;
     // ~ End ReStart
 
+	// ~ Begin Stop game
+    UFUNCTION()
+    void NotifyPlayerClickedGameStop(FName LevelName);
+    void ShowGameStopUI();
+    UFUNCTION()
+    void NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 ClientSelect);
+    void ShowResumeCountUI();
+    FName DestinationLevelName;
+
+    // ~ End  Stop game
 protected:
     //~ Begin BossSpawn
     FTimerHandle TimerHandle_SpawnByTime;
@@ -61,5 +76,5 @@ protected:
     void RequestBossSpawn();
     //~ End BossSpawn
 
-
+    void SetAllPlayerUIMode(bool bIsUIMode);
 };

@@ -22,8 +22,6 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
 	virtual FGenericTeamId GetGenericTeamId() const override { return TeamID; }
-	TArray<FGameplayTag> GetPassiveSkillTag() const { return PassiveSkillTags;}
-
 	void SetIdentifyCharacterData();
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "CharacterType")
@@ -34,9 +32,6 @@ public:
 
 	UPROPERTY(Replicated)
 	TObjectPtr<UPlayerAttributeSet> AttributeSet;
-
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Skill")
-	TArray<FGameplayTag> PassiveSkillTags;
 
 	UPROPERTY(Replicated, EditAnywhere, Category = "Recovery")
 	bool bIsRecovery = false;

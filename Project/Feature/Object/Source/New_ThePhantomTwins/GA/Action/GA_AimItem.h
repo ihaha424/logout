@@ -9,6 +9,7 @@
 class UAbilityTask_PlayMontageAndWait;
 class USplineComponent;
 class USplineMeshComponent;
+struct FThrowItemDT;
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UGA_AimItem : public UGameplayAbility
@@ -31,12 +32,20 @@ public:
 	UPROPERTY()
 	UAbilityTask_PlayMontageAndWait* PlayHoldingItemMontageTask = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Data")
+	UDataTable* ThrowItemDataTable;
+
+	FThrowItemDT* Row = nullptr;
+
 	UPROPERTY()
 	USplineComponent* SplineComp = nullptr;
 	UPROPERTY()
 	USkeletalMeshComponent* OwnerMeshComp = nullptr;
 	UPROPERTY()
 	AActor* OwnerActor = nullptr;
+
+	FVector StartLocation;
+	FVector ForwardVector;
 
 	UPROPERTY()
 	TArray<USplineMeshComponent*> SplineMeshes;
