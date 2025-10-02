@@ -110,13 +110,23 @@ void AGM_PhantomTwins::NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 Cli
     {
         // 그냥  타이머를 넣으니까 멀티캐스트가 안됨.
 		//Delay(3.1f);
-        //FTimerHandle TimerHandle;
-        //GetWorldTimerManager().SetTimer(TimerHandle, [this]() { ShowLoadingScene();},
-        //    3.f,
-        //    false
-        //);
-        ShowLoadingScene();
-        SeverToLevel(DestinationLevelName, false);
+        FTimerHandle TimerHandle;
+        GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+        {
+	        ShowLoadingScene();
+            SeverToLevel(DestinationLevelName, false);
+        },
+            3.f,
+            false
+        );
+
+		//FLatentActionInfo ShowLoadingSceneInfo;
+
+		//ShowLoadingSceneInfo.CallbackTarget = this;
+		//ShowLoadingSceneInfo.ExecutionFunction = FName("ShowLoadingScene");
+
+		//UKismetSystemLibrary::Delay(this, 3.f, ShowLoadingSceneInfo);
+       // ShowLoadingScene();
     }
     else if ((HostSelect != 0 && ClientSelect != 0) && (HostSelect == 2 || ClientSelect == 2))
     {
@@ -244,7 +254,7 @@ void AGM_PhantomTwins::SetAllPlayerUIMode(bool bIsUIMode)
             PLayerPC->SetInputMode(InputModeData);
             PLayerPC->bShowMouseCursor = true;
         }
-        else
+        else// RPC로 해결해야한다.
         {
             FInputModeGameOnly GameInputMode;
             PLayerPC->SetInputMode(GameInputMode);
