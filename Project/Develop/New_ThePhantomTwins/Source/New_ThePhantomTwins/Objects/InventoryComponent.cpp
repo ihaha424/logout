@@ -233,6 +233,18 @@ void UInventoryComponent::C2S_UseItem_Implementation(int32 SlotIndex)
 
 void UInventoryComponent::AddItem_ServerAuth(EItemType eItemType)
 {
+    FItemDataTable* ItemData = GetItemAbilityData(eItemType);
+    if (!ItemData)
+    {
+        TPT_LOG(HUDLog, Warning, TEXT("ItemAbilityData not found for ItemType: %d"), (int32)eItemType);
+        return;
+    }
+
+    if (ItemData->ItemSound && GetOwner())
+    {
+        UGameplayStatics::PlaySoundAtLocation(GetOwner(), ItemData->ItemSound, GetOwner()->GetActorLocation());
+    }
+
     for (int32 i = 0; i < InventorySlots.Num(); ++i)
     {
         if (InventorySlots[i].ItemType == eItemType)

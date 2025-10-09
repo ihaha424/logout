@@ -9,6 +9,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
+#include "Player/PlayerCharacter.h"
+#include "TimerManager.h"
+#include "Components/PostProcessComponent.h"
 
 UGA_AIHitPlayer::UGA_AIHitPlayer()
 {
@@ -27,12 +30,28 @@ void UGA_AIHitPlayer::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	NULLCHECK_RETURN_LOG(ASC, GALog, Error, );
 	ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st).AddUObject(this, &ThisClass::OffSound);
+	
+	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
 
-	if (ActorInfo && ActorInfo->IsLocallyControlled())
+	if (Character && Character->IsLocallyControlled())
 	{
 		if (USoundBase* Sound = SoundCue) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함
 		{
-			ActiveAudioComponent = UGameplayStatics::SpawnSoundAttached(Sound, ActorInfo->AvatarActor->GetRootComponent());
+			ActiveAudioComponent = UGameplayStatics::SpawnSoundAttached(Sound, Character->GetRootComponent());
+		}
+
+		PPComp = Character->FindComponentByClass<UPostProcessComponent>();
+		if (PPComp && PPComp->Settings.WeightedBlendables.Array.Num() > 0)
+		{
+			// 즉시 효과 켜기
+			FPostProcessSettings NewSettings = PPComp->Settings;
+			NewSettings.WeightedBlendables.Array[0].Weight = 0.5f;
+			PPComp->Settings = NewSettings;
+
+			// 0.1초 후에 자동으로 끄기
+			FTimerHandle TempHandle;
+			GetWorld()->GetTimerManager().SetTimer(
+				TempHandle, this, &UGA_AIHitPlayer::FadeOutHitEffect, 0.3f, false);
 		}
 	}
 
@@ -71,4 +90,14 @@ void UGA_AIHitPlayer::OnMontageComplete()
 	ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit);
 	ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit);
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}
+
+void UGA_AIHitPlayer::FadeOutHitEffect()
+{
+	if (!PPComp || PPComp->Settings.WeightedBlendables.Array.Num() == 0)
+		return;
+
+	FPostProcessSettings NewSettings = PPComp->Settings;
+	NewSettings.WeightedBlendables.Array[0].Weight = 0.0f;
+	PPComp->Settings = NewSettings;
 }
