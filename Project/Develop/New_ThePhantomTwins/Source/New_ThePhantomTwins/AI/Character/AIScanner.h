@@ -50,6 +50,8 @@ protected:
 	FActiveGameplayEffectHandle ActivcBerserkertHandle;
 	UFUNCTION(BlueprintCallable, Category = "Scanner")
 	void SetBerserkerMode(const FGameplayTag Tag, int32 TagCount);
+	UFUNCTION(BlueprintImplementableEvent, Category = "Scanner")
+	void BerserkerModeEffect();
 	virtual void ResetDataForCombatState_Implementation() override;
 	virtual void ResetDataForEscapeCombatState_Implementation() override;
 	//~ End Berserker Mode
