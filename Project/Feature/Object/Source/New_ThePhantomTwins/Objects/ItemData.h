@@ -52,8 +52,8 @@ public:
         , GameplayTag()
         , GameAbility(nullptr)
         , GameEffect(nullptr)
+        , ItemSound(nullptr)
         , MaxStack(3)
-
     {}
 
 public:
@@ -77,6 +77,9 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TSubclassOf<UGameplayEffect> GameEffect;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<USoundBase> ItemSound;
 
     // 인벤토리 최대 스택
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
