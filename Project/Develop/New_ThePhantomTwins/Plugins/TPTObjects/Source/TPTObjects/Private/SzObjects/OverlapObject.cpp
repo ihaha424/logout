@@ -63,6 +63,8 @@ void AOverlapObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedCompon
 
 		// 2) 지속형 Cue 실행
 		InvokeGameplayCue(OtherActor);
+
+		ReceiveBeginOverlap(OtherActor);
 	}
 }
 
@@ -85,6 +87,8 @@ void AOverlapObject::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponen
 
 	// 2) Cue 제거
 	TargetASC->RemoveGameplayCue(GameplayCueTag);
+
+	ReceiveEndOverlap(OtherActor);
 }
 
 void AOverlapObject::InvokeGameplayCue(AActor* Interactor)
