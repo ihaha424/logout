@@ -28,10 +28,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject | Components")
 	TObjectPtr<class UOutlineComponent> OutlineComp;
 
-	// Decal
-	UPROPERTY(BlueprintReadOnly, Category = "BaseObject | Components")
-	TObjectPtr<class UDecalComponent> InteractDecalComp;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject")
 	bool bCanInteract = true;
 };
