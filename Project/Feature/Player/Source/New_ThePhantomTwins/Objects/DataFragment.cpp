@@ -90,6 +90,7 @@ void ADataFragment::SetDataFragmentPickupWidget()
 		NULLCHECK_RETURN_LOG(MyCharacter, ItemLog, Warning, );
 		UTPTSaveGame* TPTSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
 		TPTSaveGame->PlayerLocation = MyCharacter->GetActorLocation();
+		TPTSaveGame->PlayerRotation = MyCharacter->GetActorRotation();
 		UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTSaveGame>(TPTSaveGame);
 	}
 }
