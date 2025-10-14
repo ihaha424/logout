@@ -19,6 +19,8 @@
 #include "Perception/AISenseConfig_Hearing.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
+#include "EnhancedInputSubsystems.h"
+#include "Player/PC_Player.h"
 
 
 AInteractHideObject::AInteractHideObject() : AInteractableObject()
@@ -282,8 +284,12 @@ void AInteractHideObject::SetInputState(APlayerController* InteractorPC, bool bI
 {
 	if (InteractorPC && InteractorPC->IsLocalController())
 	{
-		InteractorPC->SetIgnoreMoveInput(bIgnoreInput);
-		InteractorPC->SetIgnoreLookInput(bIgnoreInput);
+		APC_Player* PC = Cast<APC_Player>(InteractorPC);
+
+		PC->SetHideObjectIMC(bIgnoreInput);
+
+		//InteractorPC->SetIgnoreMoveInput(bIgnoreInput);
+		//InteractorPC->SetIgnoreLookInput(bIgnoreInput);
 
 		//TPT_LOG(ObjectLog, Log, TEXT("Client: SetIgnoreInput called with value: %s"),
 		//	bIgnoreInput ? TEXT("True") : TEXT("False"));
@@ -327,4 +333,16 @@ void AInteractHideObject::EnableVignetteEffect(bool bEnable)
 	{
 		HideCameraComp->PostProcessSettings.RemoveBlendable(VignetteMaterial);
 	}
+}
+
+void AInteractHideObject::UpdateCameraRotation(const FVector2D& LookAxis)
+{
+	if (!SpringArm) return;
+
+	// 현재 상대 회전값을 읽어와서 누적
+	FRotator Rot = SpringArm->GetRelativeRotation();
+	Rot.Yaw += LookAxis.X;
+	Rot.Pitch = FMath::Clamp(Rot.Pitch + LookAxis.Y, -80.f, 80.f);
+
+	SpringArm->SetRelativeRotation(Rot);
 }

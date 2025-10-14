@@ -54,6 +54,9 @@ protected:
 
 	void EnableVignetteEffect(bool bEnable);
 
+	UFUNCTION(BlueprintCallable, Category="HideObject|Camera")
+	void UpdateCameraRotation(const FVector2D& LookAxis);
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject")
 	TObjectPtr<class UBoxComponent> InPosBox;

@@ -22,6 +22,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> IMC;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputMappingContext> HideObjectIMC;
+
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
@@ -55,5 +58,8 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void C2S_ClickedAgreeWithGameStop(const int32 SelectBtn);
 	void C2S_ClickedAgreeWithGameStop_Implementation(const int32 SelectBtn);
+
+	UFUNCTION(BlueprintCallable)
+	void SetHideObjectIMC(bool bActived);
 
 };

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "PC_Player.h"
@@ -47,7 +47,7 @@ void APC_Player::BeginPlay()
 		{
 			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
 			{
-				Subsystem->AddMappingContext(IMC, 0); // �켱������ �ʿ信 ���� ����
+				Subsystem->AddMappingContext(IMC, 0); // 우선순위는 필요에 따라 조정
 			}
 		}
 	}
@@ -122,4 +122,38 @@ void APC_Player::C2S_ClickedAgreeWithGameStop_Implementation(const int32 SelectB
 		return;
 	}
 	GS->SetCharacterAgreeWithGameStop(SelectBtn, bIsHost);
+}
+
+void APC_Player::SetHideObjectIMC(bool bActived)
+{
+	if (!HideObjectIMC || !IMC) return;
+
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+		{
+			constexpr int32 BasePriority = 0;
+			constexpr int32 HidePriority = 100;
+
+			if (bActived)
+			{
+				if (!Subsystem->HasMappingContext(HideObjectIMC))
+				{
+					Subsystem->AddMappingContext(HideObjectIMC, HidePriority);
+				}
+				Subsystem->RemoveMappingContext(IMC);
+			}
+			else
+			{
+				Subsystem->RemoveMappingContext(HideObjectIMC);
+				if (!Subsystem->HasMappingContext(IMC))
+				{
+					Subsystem->AddMappingContext(IMC, BasePriority);
+				}
+			}
+
+			UE_LOG(LogTemp, Log, TEXT("HideObjectIMC 활성화 여부: %s"), Subsystem->HasMappingContext(HideObjectIMC) ? TEXT("활성") : TEXT("비활성"));
+			UE_LOG(LogTemp, Log, TEXT("IMC 활성화 여부: %s"), Subsystem->HasMappingContext(IMC) ? TEXT("활성") : TEXT("비활성"));
+		}
+	}
 }

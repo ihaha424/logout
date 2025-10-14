@@ -379,6 +379,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	check(TPTInput);
 	TPTInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
 	TPTInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
+	TPTInput->BindAction(HideLookAction, ETriggerEvent::Triggered, this, &ThisClass::HideLook);
 	TPTInput->BindAction(MouseWheelUpAction, ETriggerEvent::Triggered, this, &ThisClass::InputMouseWheelUp);
 	TPTInput->BindAction(MouseWheelDownAction, ETriggerEvent::Triggered, this, &ThisClass::InputMouseWheelDown);
 	TPTInput->BindAction(ESC, ETriggerEvent::Started, this, &ThisClass::InputESC);
@@ -694,6 +695,20 @@ void APlayerCharacter::InputReleased(int32 InputID)
 	{
 		HidePlayerHUDStaminaSet(0);
 	}
+}
+
+void APlayerCharacter::HideLook(const FInputActionValue& Value)
+{
+	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
+	float MouseSensitivity = 0.3f;
+	FVector2D LookAxisVector = Value.Get<FVector2D>() * MouseSensitivity;
+	AddControllerYawInput(LookAxisVector.X);
+	AddControllerPitchInput(LookAxisVector.Y);
+
+	// HideObjectIMC가 활성일 때만 처리
+
+	// APlayerCharacter는 InteractHideObject 몰라야함
+	// InteractHideObject의 카메라 or SpringArm 만 보내서 처리 해야함
 }
 
 void APlayerCharacter::C2S_InputReleased_Implementation(const int32 InputID)
