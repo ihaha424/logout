@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "SzObjects/BaseObject.h"
 #include "SzInterface/Interact.h"
+#include "SzUI/InteractWidget.h"
 #include "InteractableObject.generated.h"
 
 UCLASS()
@@ -34,7 +35,10 @@ public:
 	TObjectPtr<class UWidgetComponent> InteractWidgetComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")
-	TSubclassOf<class UUserWidget> InteractWidgetClass;
+	TSubclassOf<class UInteractWidget> InteractWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")
+	FText ActionTxt;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject", ReplicatedUsing = OnRep_bIsActived)
 	bool bIsActived = false;

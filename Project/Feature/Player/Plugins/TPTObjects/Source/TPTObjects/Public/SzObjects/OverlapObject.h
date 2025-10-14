@@ -30,10 +30,17 @@ public:
     UFUNCTION()
     void OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-public:
 	// 아이템에 대한 자체 이펙트(상자 오픈 이펙트)를 재생하기 위한 함수
 	UFUNCTION()
 	void InvokeGameplayCue(AActor* Interactor);
+
+	// Overlap 되었을 때 실행할 로직을 블루프린트에서 구현
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "OverlapObject")
+	void ReceiveBeginOverlap(AActor* Interactor);
+
+	// Overlap 끝났을 때 실행할 로직을 블루프린트에서 구현
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "OverlapObject")
+	void ReceiveEndOverlap(AActor* Interactor);
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "OverlapObject | Control")

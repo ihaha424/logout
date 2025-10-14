@@ -25,13 +25,29 @@ void AInteractableObject::BeginPlay()
 {
     Super::BeginPlay();
 
-    // 위젯 설정 (필요할 때만)
+    // 위젯 설정
     if (InteractWidgetComp)
     {
         if (InteractWidgetClass)
         {
+            // 위젯 클래스 설정
             InteractWidgetComp->SetWidgetClass(InteractWidgetClass);
-            InteractWidgetComp->SetVisibility(false);
+        }
+
+        // 일단 숨김 상태로 시작
+        InteractWidgetComp->SetVisibility(false);
+
+        // 실제 위젯 인스턴스 가져오기
+        if (UUserWidget* CreatedWidget = InteractWidgetComp->GetUserWidgetObject())
+        {
+            if (UInteractWidget* InteractWidget = Cast<UInteractWidget>(CreatedWidget))
+            {
+                // ActionTxt가 비어있지 않다면 텍스트 설정
+                if (!ActionTxt.IsEmpty())
+                {
+                    InteractWidget->SetText(ActionTxt);
+                }
+            }
         }
     }
 }
