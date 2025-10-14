@@ -92,6 +92,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drone")
 	TObjectPtr<UWidgetComponent> DroneWidget;
 
+	TObjectPtr<UUserWidget> DroneUserWidget;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BoxCollision")
 	TObjectPtr<class UBoxComponent> BoxComp;
 

@@ -33,6 +33,7 @@
 #include "Components/PostProcessComponent.h"
 #include "Components/BoxComponent.h"
 #include "Data/DT_Skill.h"
+#include "UI/DroneStatWidget.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -115,9 +116,24 @@ void APlayerCharacter::BeginPlay()
 	DownedWidget->SetWidget(Down);
 	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
+	DroneMesh = FindComponentByTag<USkeletalMeshComponent>(TEXT("DroneMesh"));
+	if (DroneMesh)
+	{
+		DroneWidget->AttachToComponent(DroneMesh, FAttachmentTransformRules::KeepRelativeTransform);
+		TPT_LOG(PlayerLog, Log, TEXT("Attach Complete! : %s"), *DroneWidget->GetAttachParent()->GetName());
+	}
+
 	UUserWidget* Drone = CreateWidget(GetWorld(), DroneWidgetClass);
 	DroneWidget->SetWidget(Drone);
 	DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	DroneWidget->SetCastShadow(false);
+
+	if (DroneWidget)
+	{
+		// 실제 UUserWidget 인스턴스 가져오기
+		UUserWidget* WidgetInstance = DroneWidget->GetUserWidgetObject();
+		DroneUserWidget = Cast<UDroneStatWidget>(WidgetInstance);
+	}
 
 	FocusTrace->SetIsReplicated(true);
 
@@ -164,10 +180,24 @@ void APlayerCharacter::Tick(float DeltaTime)
 		FRotator CameraRotation;
 		PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
 		
-		// Pitch / Roll 완전 고정, Yaw만 사용
-		FRotator FinalRot = FRotator(0.f, -CameraRotation.Yaw, 0.f);
-		DroneWidget->SetRelativeRotation(FinalRot);
-		//TPT_LOG(PlayerLog, Log, TEXT("%.2f"), CameraRotation.Yaw);
+		// 위젯 위치와 방향 계산
+		FVector WidgetLoc = DroneWidget->GetComponentLocation();
+
+		// 카메라 → 위젯 방향 (즉, 서로 마주보게)
+		FVector ToCamera = CameraLocation - WidgetLoc;
+		ToCamera.Normalize();
+
+		// 이 벡터를 "위젯이 바라볼 방향"으로 사용
+		FRotator LookAtRot = ToCamera.Rotation();
+
+		// Yaw만 회전하고 싶다면 Pitch, Roll 고정
+		//LookAtRot.Pitch = 0.f;
+		//LookAtRot.Roll = 0.f;
+
+		// 회전 적용
+		DroneWidget->SetWorldRotation(LookAtRot);
+
+		//TPT_LOG(PlayerLog, Log, TEXT("%.2f"), -DroneWidget->GetRelativeRotation().Yaw);
 
 		// 클라에선 FocusTrace 세팅(시각효과용)
 		FocusTrace->SetStart(WorldLocation);
