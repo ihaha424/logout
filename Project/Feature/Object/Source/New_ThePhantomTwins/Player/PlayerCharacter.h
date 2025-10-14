@@ -108,6 +108,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
 	TObjectPtr<class UHeldItemComponent> HeldItemComponent;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HideObject")
+	TObjectPtr<class AInteractHideObject> CurrHideObj = nullptr;
+
 public:
 	// À§Á¬ ¼³Á¤
 	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);
@@ -267,6 +270,7 @@ protected:
 	TObjectPtr<UInputAction> ESC;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> HideLookAction;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 	int32 SelectedSlotNumber = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")

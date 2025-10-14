@@ -28,6 +28,7 @@
 #include "Components/WidgetComponent.h"
 #include "Objects/InventoryComponent.h"
 #include "Objects/HeldItemComponent.h"
+#include "Objects/InteractHideObject.h"
 #include "UI/HUD/PlayerHUDWidget.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/PostProcessComponent.h"
@@ -700,15 +701,17 @@ void APlayerCharacter::InputReleased(int32 InputID)
 void APlayerCharacter::HideLook(const FInputActionValue& Value)
 {
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
+	if (!CurrHideObj) return;
+
 	float MouseSensitivity = 0.3f;
 	FVector2D LookAxisVector = Value.Get<FVector2D>() * MouseSensitivity;
-	AddControllerYawInput(LookAxisVector.X);
-	AddControllerPitchInput(LookAxisVector.Y);
+/*	AddControllerYawInput(LookAxisVector.X);
+	AddControllerPitchInput(LookAxisVector.Y)*/;
 
 	// HideObjectIMC가 활성일 때만 처리
 
-	// APlayerCharacter는 InteractHideObject 몰라야함
-	// InteractHideObject의 카메라 or SpringArm 만 보내서 처리 해야함
+	// CurrHideObj의 카메라 회전
+	CurrHideObj->UpdateCameraRotation(LookAxisVector);
 }
 
 void APlayerCharacter::C2S_InputReleased_Implementation(const int32 InputID)

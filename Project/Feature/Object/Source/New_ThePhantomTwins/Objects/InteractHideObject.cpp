@@ -28,9 +28,9 @@ AInteractHideObject::AInteractHideObject() : AInteractableObject()
 	// Camera
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootSceneComp);
-	SpringArm->bUsePawnControlRotation = false;
+	SpringArm->bUsePawnControlRotation = false;  // Pawn 회전 따라가지 않음
+	SpringArm->bInheritYaw = true;              // 상대 회전만 반영
 	SpringArm->bInheritPitch = true;
-	SpringArm->bInheritYaw = true;
 	SpringArm->bInheritRoll = true;
 
 	HideCameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("HideCamComponent"));
@@ -207,11 +207,13 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 
 	if (!bIsActived)
 	{
-		// 클라이언트에게 입력 비활성화 명령 전달
-		SetInputState(InteractorPC, true);
 
 		// 클라이언트에게 카메라 전환 명령 전달 (플레이어 캠 -> 오브젝트 캠)
 		SetViewTarget(InteractorPC, this);
+
+		// 클라이언트에게 입력 비활성화 명령 전달
+		SetInputState(InteractorPC, true);
+
 
 		EnableVignetteEffect(true);
 
@@ -229,11 +231,11 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 	}
 	else
 	{
-		// 클라이언트에게 입력 활성화 명령 전달
-		SetInputState(InteractorPC, false);
-
 		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
 		SetViewTarget(InteractorPC, HidePlayer);
+
+		// 클라이언트에게 입력 활성화 명령 전달
+		SetInputState(InteractorPC, false);
 
 		EnableVignetteEffect(false);
 
@@ -251,6 +253,8 @@ void AInteractHideObject::EnterObject(const APawn* Interactor)
 {
 	bIsActived = true;
 	HidePlayer = const_cast<APawn*>(Interactor);
+	APlayerCharacter* HidePlayerChar = Cast<APlayerCharacter>(HidePlayer);
+	HidePlayerChar->CurrHideObj = this;
 
 	FVector playerLocation = { HidePlayer->GetActorLocation().X, HidePlayer->GetActorLocation().Y, 0 };
 	S2A_PlayEffect(playerLocation);
@@ -277,6 +281,8 @@ void AInteractHideObject::ExitObject()
 
 
 	bIsActived = false;
+	APlayerCharacter* HidePlayerChar = Cast<APlayerCharacter>(HidePlayer);
+	HidePlayerChar->CurrHideObj = nullptr;
 	HidePlayer = nullptr;
 }
 
@@ -335,14 +341,27 @@ void AInteractHideObject::EnableVignetteEffect(bool bEnable)
 	}
 }
 
-void AInteractHideObject::UpdateCameraRotation(const FVector2D& LookAxis)
+void AInteractHideObject::UpdateCameraRotation(const FVector2D LookAxis)
 {
 	if (!SpringArm) return;
 
-	// 현재 상대 회전값을 읽어와서 누적
-	FRotator Rot = SpringArm->GetRelativeRotation();
-	Rot.Yaw += LookAxis.X;
-	Rot.Pitch = FMath::Clamp(Rot.Pitch + LookAxis.Y, -80.f, 80.f);
+	UE_LOG(LogTemp, Warning, TEXT("SpringArm Rotation: %s"), *SpringArm->GetRelativeRotation().ToString());
+	
+	// 1) 기존 누적 회전
+	FRotator RelRot = SpringArm->GetRelativeRotation();
+	RelRot.Yaw += LookAxis.X;
+	RelRot.Pitch = FMath::Clamp(RelRot.Pitch + LookAxis.Y, -80.f, 80.f);
 
-	SpringArm->SetRelativeRotation(Rot);
+
+	// 2) Pawn 제어 회전은 건드리지 않고, 스프링암 상대 회전만 설정
+	SpringArm->SetRelativeRotation(RelRot);
+
+	// 컨트롤러의 회전도 동기화(이게 없으면 플레이어 컨트롤러가 카메라 매니저 쪽에서 override할 가능성 있음)
+	if (APlayerController* PC = Cast<APlayerController>(GetWorld()->GetFirstPlayerController()))
+	{
+		PC->SetControlRotation(SpringArm->GetComponentRotation());
+	}
+
+
+	UE_LOG(LogTemp, Warning, TEXT("SpringArm Rotation: %s"), *SpringArm->GetRelativeRotation().ToString());
 }

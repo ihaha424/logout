@@ -28,6 +28,9 @@ public:
 
 	virtual void OnDestroy_Implementation(const APawn* Interactor) override;
 
+	UFUNCTION(BlueprintCallable, Category="HideObject | Camera")
+	void UpdateCameraRotation(const FVector2D LookAxis);
+
 protected:
 	void CamLogicServer(const APawn* Interactor);
 	void CamLogicClient(const APawn* Interactor);
@@ -53,9 +56,6 @@ protected:
 	void PlayEffectLogic_Implementation(FVector EffectLocation);
 
 	void EnableVignetteEffect(bool bEnable);
-
-	UFUNCTION(BlueprintCallable, Category="HideObject|Camera")
-	void UpdateCameraRotation(const FVector2D& LookAxis);
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject")
