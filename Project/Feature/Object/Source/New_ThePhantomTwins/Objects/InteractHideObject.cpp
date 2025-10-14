@@ -1,6 +1,7 @@
 ﻿
 #include "InteractHideObject.h"
 #include "Net/UnrealNetwork.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "NiagaraComponent.h" 
 #include "Engine/World.h"
@@ -23,8 +24,16 @@
 AInteractHideObject::AInteractHideObject() : AInteractableObject()
 {
 	// Camera
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->SetupAttachment(RootSceneComp);
+	SpringArm->bUsePawnControlRotation = false;
+	SpringArm->bInheritPitch = true;
+	SpringArm->bInheritYaw = true;
+	SpringArm->bInheritRoll = true;
+
 	HideCameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("HideCamComponent"));
-	HideCameraComp->SetupAttachment(RootSceneComp);
+	HideCameraComp->SetupAttachment(SpringArm);
+	HideCameraComp->bUsePawnControlRotation = false;
 
 	// AIPerception과 player안의 sphere만 감지하는 Object
 	SphereCollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));

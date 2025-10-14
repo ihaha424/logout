@@ -69,6 +69,9 @@ public:
 	TObjectPtr<class USphereComponent> SphereCollisionComp;
 
 	// 카메라
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HideObject | Camera")
+	TObjectPtr<class USpringArmComponent> SpringArm;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HideObject | Camera")
 	TObjectPtr<class UCameraComponent> HideCameraComp;
 
