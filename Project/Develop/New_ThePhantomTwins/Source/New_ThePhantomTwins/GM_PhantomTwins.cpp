@@ -3,6 +3,7 @@
 
 #include "GM_PhantomTwins.h"
 #include "GS_PhantomTwins.h"
+#include "PhantomTwinsInstance.h"
 #include "AI/Utility/BossSpawner.h"
 #include "Blueprint/UserWidget.h"
 #include "GameFramework/PlayerState.h"
@@ -12,9 +13,29 @@
 #include "Log/TPTLog.h"
 #include "Player/PC_Player.h"
 
+AGM_PhantomTwins::AGM_PhantomTwins()
+{
+	PlayerControllerClass = APC_Player::StaticClass();
+	GameStateClass = AGS_PhantomTwins::StaticClass();
+    PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bStartWithTickEnabled = true;
+    PrimaryActorTick.bTickEvenWhenPaused = true;
+}
+
 void AGM_PhantomTwins::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
 {
     Super::InitGame(MapName, Options, ErrorMessage);
+}
+
+void AGM_PhantomTwins::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+    ElapsedTime += DeltaSeconds;
+
+    if (ElapsedTime >= 5.0f)
+    {
+        // 원하는 행동 수행
+    }
 }
 
 void AGM_PhantomTwins::BeginPlay()
@@ -33,7 +54,7 @@ void AGM_PhantomTwins::BeginPlay()
     if (AGS_PhantomTwins* GS = GetGameState<AGS_PhantomTwins>())
     {
         UTPTSaveGame* TPTLocalPlayerSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
-        if(TPTLocalPlayerSaveGame->IdentifyMapData.MapType == EMapType::None)
+        if (TPTLocalPlayerSaveGame->IdentifyMapData.MapType == EMapType::None)
             GS->SetMapData(EMapType::ST2);
         else
             GS->SetMapData(TPTLocalPlayerSaveGame->IdentifyMapData.MapType);
@@ -47,7 +68,7 @@ void AGM_PhantomTwins::BeginPlay()
         }
         GS->OnClickedRestartChanged.AddDynamic(this, &ThisClass::NotifyPlayerClickRestart);
         GS->OnClickedGameStopChanged.AddDynamic(this, &ThisClass::NotifyPlayerClickedGameStop);
-    	GS->OnClickedAgreeWithGameStopChanged.AddDynamic(this, &ThisClass::NotifyPlayerAgreeWithGameStop);
+        GS->OnClickedAgreeWithGameStopChanged.AddDynamic(this, &ThisClass::NotifyPlayerAgreeWithGameStop);
     }
 }
 
@@ -73,7 +94,13 @@ void AGM_PhantomTwins::EndPlay(const EEndPlayReason::Type EndPlayReason)
     Super::EndPlay(EndPlayReason);
 }
 
-void AGM_PhantomTwins::NotifyPlayerClickedGameStop(FName LevelName)
+AActor* AGM_PhantomTwins::ChoosePlayerStart_Implementation(AController* Player)
+{
+
+	return Super::ChoosePlayerStart_Implementation(Player);
+}
+
+void AGM_PhantomTwins::NotifyPlayerClickedGameStop(FName LevelName,FName PrintingName)
 {
     DestinationLevelName = LevelName;
     ShowGameStopUI();
@@ -82,9 +109,7 @@ void AGM_PhantomTwins::NotifyPlayerClickedGameStop(FName LevelName)
 void AGM_PhantomTwins::ShowGameStopUI()
 {
     SetAllPlayerUIMode(true);
-    // TODO 게임시간을 멈출 다른 방법 찾기
-	// 게임 틱 마저 멈추게 되어, UI 동기화가 되지않음.
-    // UGameplayStatics::SetGamePaused(GetWorld(), true);
+    UGameplayStatics::SetGamePaused(GetWorld(), true);
     APlayerController* PC = GetWorld()->GetFirstPlayerController();
     APC_Player* ServerPC = Cast< APC_Player>(PC);
 
@@ -96,27 +121,29 @@ void AGM_PhantomTwins::NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 Cli
 {
     if (TotalPlayerCount == 1)
     {
-	    if (HostSelect==1)
-	    {
-	    	ShowLoadingScene();
-	    	SeverToLevel(DestinationLevelName, false);
-	    }
-	    else if (HostSelect == 2)
-	    {
-	    	ShowResumeCountUI();
-	    }
+        if (HostSelect == 1)
+        {
+            ShowLoadingScene();
+            SeverToLevel(DestinationLevelName, false);
+        }
+        else if (HostSelect == 2)
+        {
+            ShowResumeCountUI();
+        }
     }
-    if (HostSelect == 1 && ClientSelect == 1)
+    if (HostSelect == 1 && ClientSelect == 1) 
     {
-        // 그냥  타이머를 넣으니까 멀티캐스트가 안됨.
-		//Delay(3.1f);
-        //FTimerHandle TimerHandle;
-        //GetWorldTimerManager().SetTimer(TimerHandle, [this]() { ShowLoadingScene();},
-        //    3.f,
-        //    false
-        //);
-        ShowLoadingScene();
-        SeverToLevel(DestinationLevelName, false);
+        UGameplayStatics::SetGamePaused(GetWorld(), false);
+		// 그냥  타이머를 넣으니까 멀티캐스트가 안됨. 안되는게 아니라 타이머가 끝나기 전에 트래블이 동시에 일어나기 때문에 안되는 거였음....
+    	FTimerHandle TimerHandle;
+        GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+            {
+                ShowLoadingScene();
+                SeverToLevel(DestinationLevelName, false);
+            },
+            1.f,
+            false
+        );
     }
     else if ((HostSelect != 0 && ClientSelect != 0) && (HostSelect == 2 || ClientSelect == 2))
     {
@@ -126,7 +153,6 @@ void AGM_PhantomTwins::NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 Cli
 
 void AGM_PhantomTwins::ShowResumeCountUI()
 {
-	UGameplayStatics::SetGamePaused(GetWorld(), true);
     APlayerController* PC = GetWorld()->GetFirstPlayerController();
     APC_Player* ServerPC = Cast< APC_Player>(PC);
 
@@ -162,7 +188,7 @@ void AGM_PhantomTwins::ShowGameOverUI()
     SetAllPlayerUIMode(true);
     // 게임 시간을 정지하는 방법... 게임시간 여기에서 정지시키니까 트래블도 안됨.
     APlayerController* PC = GetWorld()->GetFirstPlayerController();
-    APC_Player*ServerPC = Cast< APC_Player>(PC);
+    APC_Player* ServerPC = Cast< APC_Player>(PC);
     ServerPC->SetWidget(TEXT("GameOver"), true, EMessageTargetType::Multicast);
 }
 
@@ -180,17 +206,17 @@ void AGM_PhantomTwins::NotifyPlayerClickRestart(bool bIsHostClicked, bool bIsCli
 
     if (HostClick + ClientClick >= TotalPlayerCount)
     {
-        RestartWithDelay(2.f);
+        RestartWithDelay(1.f);
     }
 }
 
 void AGM_PhantomTwins::RestartWithDelay(float Delay)
 {
-    ShowLoadingScene();
     FTimerHandle TimerHandle;
     GetWorldTimerManager().SetTimer(TimerHandle, [this]()
         {
-            FString MapName = GetWorld()->GetOutermost()->GetName();
+            ShowLoadingScene();
+    		FString MapName = GetWorld()->GetOutermost()->GetName();
             FString LevelPathWithListen = MapName + TEXT("?listen");
             GetWorld()->ServerTravel(LevelPathWithListen, false);
         }, Delay, false);
@@ -235,21 +261,10 @@ void AGM_PhantomTwins::SetAllPlayerUIMode(bool bIsUIMode)
         NULLCHECK_RETURN_LOG(PS, OutGameLog, Error, );
         APlayerController* PC = Cast<APlayerController>(PS->GetOwner());
         NULLCHECK_RETURN_LOG(PC, OutGameLog, Error, );
-        APC_Player* PLayerPC = Cast<APC_Player>(PC);
-        NULLCHECK_RETURN_LOG(PLayerPC, OutGameLog, Error, );
+        APC_Player* PlayerPC = Cast<APC_Player>(PC);
+        NULLCHECK_RETURN_LOG(PlayerPC, OutGameLog, Error, );
 
-        if (bIsUIMode)
-        {
-	        FInputModeUIOnly InputModeData;
-            PLayerPC->SetInputMode(InputModeData);
-            PLayerPC->bShowMouseCursor = true;
-        }
-        else
-        {
-            FInputModeGameOnly GameInputMode;
-            PLayerPC->SetInputMode(GameInputMode);
-            PLayerPC->bShowMouseCursor = false;
-        }
+        PlayerPC->Client_SetUIInputMode(bIsUIMode);
     }
 }
 
@@ -264,14 +279,6 @@ void AGM_PhantomTwins::ShowLoadingScene()
     SetAllPlayerUIMode(false);
 }
 
-void AGM_PhantomTwins::Delay(float Time)
-{
-    FTimerHandle TimerHandle;
-    GetWorldTimerManager().SetTimer(TimerHandle, [this]() {},
-        Time,
-        false
-    );
-}
 
 void AGM_PhantomTwins::SeverToLevel(const FName LevelName, bool bAbsolute, bool bIsListen)
 {

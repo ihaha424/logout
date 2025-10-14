@@ -49,11 +49,14 @@ public:
 	void C2S_ClickedRestart_Implementation(const bool bIsClicked);
 
 	UFUNCTION(BlueprintCallable, Server, Reliable)
-	void C2S_ClickedGameStop(const FName LevelName);
-	void C2S_ClickedGameStop_Implementation(const FName LevelName);
+	void C2S_ClickedGameStop(const FName LevelName, const FName MapName);
+	void C2S_ClickedGameStop_Implementation(const FName LevelName, const FName MapName);
 
 	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void C2S_ClickedAgreeWithGameStop(const int32 SelectBtn);
 	void C2S_ClickedAgreeWithGameStop_Implementation(const int32 SelectBtn);
 
+	UFUNCTION(Client, Reliable)
+	void Client_SetUIInputMode(bool bUIOnly);
+	void Client_SetUIInputMode_Implementation(bool bUIOnly);
 };

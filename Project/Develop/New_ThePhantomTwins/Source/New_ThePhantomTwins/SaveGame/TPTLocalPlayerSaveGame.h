@@ -13,5 +13,12 @@ UCLASS()
 class NEW_THEPHANTOMTWINS_API UTPTLocalPlayerSaveGame : public ULocalPlayerSaveGame
 {
 	GENERATED_BODY()
-	
+public:
+    // 플레이어 인벤토리 (아이템 ID, 수량)
+    UPROPERTY()
+    TMap<int32,int32> Inventory;
+
+    UPROPERTY()
+    int32 CoreEnergy;
+
 };

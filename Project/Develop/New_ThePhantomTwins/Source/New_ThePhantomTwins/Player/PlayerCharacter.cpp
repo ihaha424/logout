@@ -33,6 +33,7 @@
 #include "Components/PostProcessComponent.h"
 #include "Components/BoxComponent.h"
 #include "Data/DT_Skill.h"
+#include "UI/DroneStatWidget.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -54,6 +55,10 @@ APlayerCharacter::APlayerCharacter()
 	DownedWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DownedWidget"));
 	DownedWidget->SetupAttachment(GetMesh());
 	DownedWidget->SetRelativeLocation(FVector(0, 0, 0));
+
+	DroneWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DroneWidget"));
+	DroneWidget->SetupAttachment(GetMesh());
+	DroneWidget->SetRelativeLocation(FVector(0, 0, 0));
 
 	PostProcessComponent = CreateDefaultSubobject<UPostProcessComponent>(TEXT("Vignette"));
 	PostProcessComponent->SetupAttachment(RootComponent);
@@ -111,6 +116,25 @@ void APlayerCharacter::BeginPlay()
 	DownedWidget->SetWidget(Down);
 	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
+	DroneMesh = FindComponentByTag<USkeletalMeshComponent>(TEXT("DroneMesh"));
+	if (DroneMesh)
+	{
+		DroneWidget->AttachToComponent(DroneMesh, FAttachmentTransformRules::KeepRelativeTransform);
+		TPT_LOG(PlayerLog, Log, TEXT("Attach Complete! : %s"), *DroneWidget->GetAttachParent()->GetName());
+	}
+
+	UUserWidget* Drone = CreateWidget(GetWorld(), DroneWidgetClass);
+	DroneWidget->SetWidget(Drone);
+	DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	DroneWidget->SetCastShadow(false);
+
+	if (DroneWidget)
+	{
+		// 실제 UUserWidget 인스턴스 가져오기
+		UUserWidget* WidgetInstance = DroneWidget->GetUserWidgetObject();
+		DroneUserWidget = Cast<UDroneStatWidget>(WidgetInstance);
+	}
+
 	FocusTrace->SetIsReplicated(true);
 
 	NULLCHECK_RETURN_LOG(VignetteMaterial, PlayerLog, Error, );
@@ -156,6 +180,25 @@ void APlayerCharacter::Tick(float DeltaTime)
 		FRotator CameraRotation;
 		PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
 		
+		// 위젯 위치와 방향 계산
+		FVector WidgetLoc = DroneWidget->GetComponentLocation();
+
+		// 카메라 → 위젯 방향 (즉, 서로 마주보게)
+		FVector ToCamera = CameraLocation - WidgetLoc;
+		ToCamera.Normalize();
+
+		// 이 벡터를 "위젯이 바라볼 방향"으로 사용
+		FRotator LookAtRot = ToCamera.Rotation();
+
+		// Yaw만 회전하고 싶다면 Pitch, Roll 고정
+		//LookAtRot.Pitch = 0.f;
+		//LookAtRot.Roll = 0.f;
+
+		// 회전 적용
+		DroneWidget->SetWorldRotation(LookAtRot);
+
+		//TPT_LOG(PlayerLog, Log, TEXT("%.2f"), -DroneWidget->GetRelativeRotation().Yaw);
+
 		// 클라에선 FocusTrace 세팅(시각효과용)
 		FocusTrace->SetStart(WorldLocation);
 		FocusTrace->SetDirection(WorldDirection);
@@ -382,6 +425,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	TPTInput->BindAction(MouseWheelUpAction, ETriggerEvent::Triggered, this, &ThisClass::InputMouseWheelUp);
 	TPTInput->BindAction(MouseWheelDownAction, ETriggerEvent::Triggered, this, &ThisClass::InputMouseWheelDown);
 	TPTInput->BindAction(ESC, ETriggerEvent::Started, this, &ThisClass::InputESC);
+	TPTInput->BindAction(TabAction, ETriggerEvent::Started, this, &APlayerCharacter::InputTab);
 
 
 	SetupPlayerInputByTag(TPTInput);
@@ -628,6 +672,21 @@ void APlayerCharacter::InputESC(const FInputActionValue& Value)
 	FInputModeUIOnly InputData;
 	PC->SetInputMode(InputData);
 	PC->bShowMouseCursor = true;
+}
+
+void APlayerCharacter::InputTab(const FInputActionValue& Value)
+{
+	NULLCHECK_RETURN_LOG(DroneWidget, PlayerLog, Error, );
+	if (!IsLocallyControlled()) return;
+
+	if (DroneWidget->GetUserWidgetObject()->GetVisibility() == ESlateVisibility::Visible)
+	{
+		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	}
+	else if (DroneWidget->GetUserWidgetObject()->GetVisibility() == ESlateVisibility::Hidden)
+	{
+		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+	}
 }
 
 void APlayerCharacter::InputMouseWheelUp(const FInputActionValue& Value)

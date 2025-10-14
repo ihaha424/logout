@@ -36,7 +36,7 @@ public:
 	// 府目滚府 包访 函荐
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	FTimerHandle CompleteHandle;
-	FTimerHandle UpdateHandle;;
+	FTimerHandle UpdateHandle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
 	TObjectPtr<UAnimMontage> InteractMontage;
