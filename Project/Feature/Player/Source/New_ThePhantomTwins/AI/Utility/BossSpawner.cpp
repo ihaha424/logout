@@ -37,6 +37,7 @@ void ABossSpawner::SpawnBossOnce()
     if (!Boss) return;
 
     GS->MarkBossSpawned(Boss);
+    SpawnBoss();
 }
 
 

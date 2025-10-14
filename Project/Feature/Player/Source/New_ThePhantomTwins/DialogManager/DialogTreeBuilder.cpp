@@ -63,14 +63,14 @@ FDialogNode* UDialogTreeBuilder::AddTriggerEventByPath(FDialogNode* Root, const 
         return nullptr;
     }
 
-    const int32 OldNum = Target->LeafList.Num();
+    const int32 OldNum = Target->TriggerList.Num();
     if (OldNum <= TriggerKey)
     {
-        Target->LeafList.SetNum(TriggerKey + 1);
-        for (int32 i = OldNum; i < Target->LeafList.Num(); ++i)
-            Target->LeafList[i] = -1;
+        Target->TriggerList.SetNum(TriggerKey + 1);
+        for (int32 i = OldNum; i < Target->TriggerList.Num(); ++i)
+            Target->TriggerList[i] = -1;
     }
-    Target->LeafList[TriggerKey] = TriggerKey;
+    Target->TriggerList[TriggerKey] = TriggerKey;
 
     // 선택 인덱스 보정(필요 시)
     EnsureSequenceValid(*Target);

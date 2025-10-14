@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "AIBaseCharacter.h"
@@ -40,8 +40,8 @@ void AAIBaseCharacter::BeginPlay()
     if (!HasAuthority())
         return;
 
-    //GetCharacterMovement()->MaxAcceleration = 800.f;           // ´À¸° °¡¼Ó
-    //GetCharacterMovement()->BrakingDecelerationWalking = 600.f; // ´À¸° °¨¼Ó
+    //GetCharacterMovement()->MaxAcceleration = 800.f;           // ëŠë¦° ê°€ì†
+    //GetCharacterMovement()->BrakingDecelerationWalking = 600.f; // ëŠë¦° ê°ì†
     GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
 
     CombatRange->OnComponentBeginOverlap.AddDynamic(this, &AAIBaseCharacter::CombatRangeBeginOverlap);
@@ -77,7 +77,7 @@ void AAIBaseCharacter::BeginPlay()
 
         for (const auto& CueNotify : GamePlayCueNotifys)
         {
-
+            // If you Want to Cue Register, Here.
         }
 
         AbilitySystem->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Die)
@@ -90,6 +90,7 @@ void AAIBaseCharacter::BeginPlay()
             .AddUObject(this, &AAIBaseCharacter::ResetDataForState);
         AbilitySystem->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Combat)
             .AddUObject(this, &AAIBaseCharacter::ResetDataForState);
+        ResetDataForState(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Default, 1); // Initialize
     }
 }
 
@@ -143,19 +144,19 @@ void AAIBaseCharacter::ApplyDestroy_Implementation()
     if (GetLocalRole() != ROLE_Authority)
         return;
 
-    // GAS Á¤¸®: ´É·Â/ÀÌÆåÆ®/Å¥ °­Á¦ Á¾·á
+    // GAS ì •ë¦¬: ëŠ¥ë ¥/ì´íŽ™íŠ¸/í ê°•ì œ ì¢…ë£Œ
     if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this))
     {
-        ASC->CancelAllAbilities();        // È°¼º GA ÀüºÎ Ãë¼Ò
-        ASC->RemoveAllGameplayCues();     // È°¼º GameplayCue Á¦°Å
+        ASC->CancelAllAbilities();        // í™œì„± GA ì „ë¶€ ì·¨ì†Œ
+        ASC->RemoveAllGameplayCues();     // í™œì„± GameplayCue ì œê±°
 
-        // È°¼º GE ÀüºÎ Á¦°Å
+        // í™œì„± GE ì „ë¶€ ì œê±°
         FGameplayEffectQuery Q;
         Q.CustomMatchDelegate.BindLambda([](const FActiveGameplayEffect&) { return true; });
         const int32 Removed = ASC->RemoveActiveEffects(Q);
     }
 
-    // BT/AI Á¤Áö
+    // BT/AI ì •ì§€
     AAIController* AIController = Cast<AAIController>(GetController());
     if (AIController)
     {
@@ -166,7 +167,7 @@ void AAIBaseCharacter::ApplyDestroy_Implementation()
     }
     DetachFromControllerPendingDestroy();
 
-    // ÆÄ±«(½ÇÆÐ ´ëºñ Lifespan ¹é¾÷)
+    // íŒŒê´´(ì‹¤íŒ¨ ëŒ€ë¹„ Lifespan ë°±ì—…)
     if (!Destroy())
     {
        SetLifeSpan(0.01f);
@@ -179,56 +180,32 @@ void AAIBaseCharacter::ResetDataForState(const FGameplayTag Tag, int32 TagCount)
     S2A_ResetDataForState(Tag, TagCount);
 }
 
+
+#include "Kismet/KismetSystemLibrary.h"
 void AAIBaseCharacter::S2A_ResetDataForState_Implementation(const FGameplayTag Tag, int32 TagCount)
 {
+    const TMap<EFTPTGameplayTags, EAIBaseState> StateMap =
+    {
+        { EFTPTGameplayTags::TPTGameplay_Character_AIState_Die, EAIBaseState::Die},
+        { EFTPTGameplayTags::TPTGameplay_Character_AIState_Stun, EAIBaseState::Stun},
+        { EFTPTGameplayTags::TPTGameplay_Character_AIState_Default, EAIBaseState::Default},
+        { EFTPTGameplayTags::TPTGameplay_Character_AIState_Suspicion, EAIBaseState::Suspicion},
+        { EFTPTGameplayTags::TPTGameplay_Character_AIState_Combat, EAIBaseState::Combat}
+    };
+
+
     const EFTPTGameplayTags* EnumTag = FTPTGameplayTags::Get().TagMap.Find(Tag);
     NULLCHECK_RETURN_LOG(EnumTag, AILog, Warning, );
 
-    if (TagCount > 0)
+    bool bHandled = false;
+    if (const EAIBaseState* State = StateMap.Find(*EnumTag))
     {
-        switch (*EnumTag)
-        {
-        case EFTPTGameplayTags::TPTGameplay_Character_AIState_Die:
-            ResetDataForStunState();
-            break;
-        case EFTPTGameplayTags::TPTGameplay_Character_AIState_Stun:
-            ResetDataForStunState();
-            break;
-        case EFTPTGameplayTags::TPTGameplay_Character_AIState_Default:
-            ResetDataForDefaultState();
-            break;
-        case EFTPTGameplayTags::TPTGameplay_Character_AIState_Suspicion:
-            ResetDataForSuspicionState();
-            break;
-        case EFTPTGameplayTags::TPTGameplay_Character_AIState_Combat:
-            ResetDataForCombatState();
-            break;
-        default:
-            break;
-        }
-    }
-    else // (TagCount <= 0)
-    {
-        switch (*EnumTag)
-        {
-        case EFTPTGameplayTags::TPTGameplay_Character_AIState_Die:
-            ResetDataForEscapeDieState();
-            break;
-        case EFTPTGameplayTags::TPTGameplay_Character_AIState_Stun:
-            ResetDataForEscapeStunState();
-            break;
-        case EFTPTGameplayTags::TPTGameplay_Character_AIState_Default:
-            ResetDataForEscapeDefaultState();
-            break;
-        case EFTPTGameplayTags::TPTGameplay_Character_AIState_Suspicion:
-            ResetDataForEscapeSuspicionState();
-            break;
-        case EFTPTGameplayTags::TPTGameplay_Character_AIState_Combat:
-            ResetDataForEscapeCombatState();
-            break;
-        default:
-            break;
-        }
+        if (TagCount > 0)
+            ResetDataForEnterState(*State);
+        else
+            ResetDataForExitState(*State);
+
+        bHandled = true;
     }
 }
 
@@ -275,7 +252,7 @@ void AAIBaseCharacter::CheckCombatRangeInActor()
     {
         if (!MatchingChaseActorType(actor))
             continue;
-        //SweepResult¸¦ ÀÌ¿ëÇØ¼­µµ È®ÀÎ °¡´É, ¸¸¾à ·¹ÀÌÄÉ½ºÆÃÀÌ ºÎÀûÀýÇÏ¸é SweepÀÇ Á¤º¸¸¦ ÀÌ¿ëÇØ¼­ »ç¿ë
+        //SweepResultë¥¼ ì´ìš©í•´ì„œë„ í™•ì¸ ê°€ëŠ¥, ë§Œì•½ ë ˆì´ì¼€ìŠ¤íŒ…ì´ ë¶€ì ì ˆí•˜ë©´ Sweepì˜ ì •ë³´ë¥¼ ì´ìš©í•´ì„œ ì‚¬ìš©
         FVector MyLoc = GetActorLocation();
         FVector TargetLoc = actor->GetActorLocation();
         FHitResult HitResult;
@@ -389,12 +366,24 @@ void AAIBaseCharacter::ResetDataForDieState_Implementation()
 {
     if (!HasAuthority())
         return;
+
+    AAIController* AIController = Cast<AAIController>(GetController());
+    NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
+
+    AIController->StopMovement();
+
 }
 
 void AAIBaseCharacter::ResetDataForStunState_Implementation()
 {
     if (!HasAuthority())
         return;
+
+    AAIController* AIController = Cast<AAIController>(GetController());
+    NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
+
+    AIController->StopMovement();
+
 }
 
 void AAIBaseCharacter::ResetDataForDefaultState_Implementation()
@@ -493,3 +482,50 @@ void AAIBaseCharacter::ResetDataForEscapeCombatState_Implementation()
     CancleChaseActorGA();
 }
 
+void AAIBaseCharacter::ResetDataForEnterState_Implementation(EAIBaseState state)
+{
+    switch (state)
+    {
+    case EAIBaseState::Die:
+        ResetDataForDieState();
+        break;
+    case EAIBaseState::Stun:
+        ResetDataForStunState();
+        break;
+    case EAIBaseState::Default:
+        ResetDataForDefaultState();
+        break;
+    case EAIBaseState::Suspicion:
+        ResetDataForSuspicionState();
+        break;
+    case EAIBaseState::Combat:
+        ResetDataForCombatState();
+        break;
+    default:
+        break;
+    }
+}
+
+void AAIBaseCharacter::ResetDataForExitState_Implementation(EAIBaseState state)
+{
+    switch (state)
+    {
+    case EAIBaseState::Die:
+        ResetDataForEscapeDieState();
+        break;
+    case EAIBaseState::Stun:
+        ResetDataForEscapeStunState();
+        break;
+    case EAIBaseState::Default:
+        ResetDataForEscapeDefaultState();
+        break;
+    case EAIBaseState::Suspicion:
+        ResetDataForEscapeSuspicionState();
+        break;
+    case EAIBaseState::Combat:
+        ResetDataForEscapeCombatState();
+        break;
+    default:
+        break;
+    }
+}

@@ -21,13 +21,17 @@ void UGA_MentalRecovery::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 	const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	if (GetAvatarActorFromActorInfo()->HasAuthority()) // 서버에서만!
-	{
-		// 1초마다 반복
-		GetWorld()->GetTimerManager().SetTimer(
-			HealTimerHandle, this, &UGA_MentalRecovery::HealTick, 1.0f, true
-		);
-	}
+	AActor* AvatarActor = GetAvatarActorFromActorInfo();
+    if (AvatarActor)
+    {
+        if (AvatarActor->HasAuthority()) // 서버에서만!
+        {
+            // 1초마다 반복
+            GetWorld()->GetTimerManager().SetTimer(
+                HealTimerHandle, this, &UGA_MentalRecovery::HealTick, 1.0f, true
+            );
+        }
+    }
 }
 
 void UGA_MentalRecovery::HealTick()

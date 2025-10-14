@@ -4,12 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "Player/PlayerCharacter.h"
 #include "GA_AIHitPlayer.generated.h"
 
 class UAbilityTask_PlayMontageAndWait;
-/**
- *
- */
+class UPostProcessComponent;
+
+
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UGA_AIHitPlayer : public UGameplayAbility
 {
@@ -29,7 +30,7 @@ public:
 	UPROPERTY()
 	UAbilityTask_PlayMontageAndWait* HitMontageTask = nullptr;
 
-
+	TObjectPtr<UPostProcessComponent> PPComp;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SFX")
@@ -37,4 +38,11 @@ protected:
 
 	UPROPERTY()
 	UAudioComponent* ActiveAudioComponent = nullptr;
+
+	// Fade 관련 함수 및 변수
+	void FadeOutHitEffect();
+	FTimerHandle FadeTimerHandle;
+	float CurrentWeight;
+	float FinalWeight;
+	float InterpSpeed = 2.0f;
 };

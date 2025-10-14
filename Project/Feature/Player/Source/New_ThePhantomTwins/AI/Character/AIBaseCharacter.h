@@ -7,6 +7,7 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
 #include "AI/AIEventReceiver.h"
+#include "AI/Utility/AIBaseState.h"
 #include "AIBaseCharacter.generated.h"
 
 class UGameplayAbility;
@@ -136,6 +137,19 @@ protected:
 protected:
 	//~ Begin State Control
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AI")
+	void ResetDataForEnterState(EAIBaseState state);
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AI")
+	void ResetDataForExitState(EAIBaseState state);
+
+	virtual void ResetDataForEnterState_Implementation(EAIBaseState state);
+	virtual void ResetDataForExitState_Implementation(EAIBaseState state);
+
+
+	/**
+		 I even use the Alpha_V0.0.1 version.
+		 Currently, ResetDataForEnterState, ResetDataForExitState is recommended.
+	 */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AI")
 	void ResetDataForDieState();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AI")
 	void ResetDataForStunState();
@@ -156,6 +170,7 @@ protected:
 	void ResetDataForEscapeSuspicionState();
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AI")
 	void ResetDataForEscapeCombatState();
+
 
 	virtual void ResetDataForDieState_Implementation();
 	virtual void ResetDataForStunState_Implementation();
