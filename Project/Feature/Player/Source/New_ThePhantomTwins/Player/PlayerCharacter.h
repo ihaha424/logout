@@ -88,6 +88,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TObjectPtr<UWidgetComponent> DownedWidget;
 
+	// 캐릭터 상태 위젯
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drone")
+	TObjectPtr<UWidgetComponent> DroneWidget;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BoxCollision")
 	TObjectPtr<class UBoxComponent> BoxComp;
 
@@ -107,6 +111,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
 	TObjectPtr<class UHeldItemComponent> HeldItemComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drone")
+	USkeletalMeshComponent* DroneMesh = nullptr;
 
 public:
 	// 위젯 설정
@@ -172,6 +179,8 @@ protected:
 	void InputMouseWheelDown(const FInputActionValue& Value);
 	UFUNCTION(BlueprintCallable)
 	void InputESC(const FInputActionValue& Value);
+	UFUNCTION(BlueprintCallable)
+	void InputTab(const FInputActionValue& Value);
 	void InputPressedUseItem(int32 InputID);
 	void InputReleased(int32 InputID);
 
@@ -263,6 +272,8 @@ protected:
 	TObjectPtr<UInputAction> MouseWheelDownAction;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> ESC;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> TabAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 	int32 SelectedSlotNumber = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
@@ -297,6 +308,8 @@ protected:
 	TSubclassOf<UUserWidget> InteractWidgetClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TSubclassOf<UUserWidget> DownWidgetClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drone")
+	TSubclassOf<UUserWidget> DroneWidgetClass;
 
 	// 재시작용 위젯
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")

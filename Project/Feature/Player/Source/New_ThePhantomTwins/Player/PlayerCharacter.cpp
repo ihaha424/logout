@@ -55,6 +55,10 @@ APlayerCharacter::APlayerCharacter()
 	DownedWidget->SetupAttachment(GetMesh());
 	DownedWidget->SetRelativeLocation(FVector(0, 0, 0));
 
+	DroneWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DroneWidget"));
+	DroneWidget->SetupAttachment(GetMesh());
+	DroneWidget->SetRelativeLocation(FVector(0, 0, 0));
+
 	PostProcessComponent = CreateDefaultSubobject<UPostProcessComponent>(TEXT("Vignette"));
 	PostProcessComponent->SetupAttachment(RootComponent);
 	PostProcessComponent->bUnbound = false;
@@ -111,6 +115,10 @@ void APlayerCharacter::BeginPlay()
 	DownedWidget->SetWidget(Down);
 	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
+	UUserWidget* Drone = CreateWidget(GetWorld(), DroneWidgetClass);
+	DroneWidget->SetWidget(Drone);
+	DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+
 	FocusTrace->SetIsReplicated(true);
 
 	NULLCHECK_RETURN_LOG(VignetteMaterial, PlayerLog, Error, );
@@ -156,6 +164,11 @@ void APlayerCharacter::Tick(float DeltaTime)
 		FRotator CameraRotation;
 		PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
 		
+		// Pitch / Roll 완전 고정, Yaw만 사용
+		FRotator FinalRot = FRotator(0.f, -CameraRotation.Yaw, 0.f);
+		DroneWidget->SetRelativeRotation(FinalRot);
+		//TPT_LOG(PlayerLog, Log, TEXT("%.2f"), CameraRotation.Yaw);
+
 		// 클라에선 FocusTrace 세팅(시각효과용)
 		FocusTrace->SetStart(WorldLocation);
 		FocusTrace->SetDirection(WorldDirection);
@@ -382,6 +395,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	TPTInput->BindAction(MouseWheelUpAction, ETriggerEvent::Triggered, this, &ThisClass::InputMouseWheelUp);
 	TPTInput->BindAction(MouseWheelDownAction, ETriggerEvent::Triggered, this, &ThisClass::InputMouseWheelDown);
 	TPTInput->BindAction(ESC, ETriggerEvent::Started, this, &ThisClass::InputESC);
+	TPTInput->BindAction(TabAction, ETriggerEvent::Started, this, &APlayerCharacter::InputTab);
 
 
 	SetupPlayerInputByTag(TPTInput);
@@ -628,6 +642,21 @@ void APlayerCharacter::InputESC(const FInputActionValue& Value)
 	FInputModeUIOnly InputData;
 	PC->SetInputMode(InputData);
 	PC->bShowMouseCursor = true;
+}
+
+void APlayerCharacter::InputTab(const FInputActionValue& Value)
+{
+	NULLCHECK_RETURN_LOG(DroneWidget, PlayerLog, Error, );
+	if (!IsLocallyControlled()) return;
+
+	if (DroneWidget->GetUserWidgetObject()->GetVisibility() == ESlateVisibility::Visible)
+	{
+		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	}
+	else if (DroneWidget->GetUserWidgetObject()->GetVisibility() == ESlateVisibility::Hidden)
+	{
+		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+	}
 }
 
 void APlayerCharacter::InputMouseWheelUp(const FInputActionValue& Value)
