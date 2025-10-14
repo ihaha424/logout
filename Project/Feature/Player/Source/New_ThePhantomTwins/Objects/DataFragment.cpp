@@ -7,6 +7,9 @@
 #include "../UI/HUD/PlayerHUDWidget.h"
 #include "../UI/DataFragmentPickupWidget.h"
 #include "GS_PhantomTwins.h"
+#include "Log/TPTLog.h"
+#include "SaveGame/TPTSaveGame.h"
+#include "SaveGame/TPTSaveGameHelperLibrary.h"
 
 ADataFragment::ADataFragment()
 {
@@ -82,6 +85,12 @@ void ADataFragment::SetDataFragmentPickupWidget()
 			WidgetDuration,
 			false
 		);
+
+		APlayerCharacter* MyCharacter = Cast<APlayerCharacter>(PC_Player->GetPawn());
+		NULLCHECK_RETURN_LOG(MyCharacter, ItemLog, Warning, );
+		UTPTSaveGame* TPTSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
+		TPTSaveGame->PlayerLocation = MyCharacter->GetActorLocation();
+		UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTSaveGame>(TPTSaveGame);
 	}
 }
 

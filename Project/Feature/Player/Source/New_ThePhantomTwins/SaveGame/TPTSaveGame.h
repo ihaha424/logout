@@ -20,4 +20,8 @@ public:
 	FIdentifyCharacterData IdentifyCharacterData;
 	UPROPERTY()
 	FIdentifyMapData IdentifyMapData;
+	UPROPERTY()
+	FVector PlayerLocation;
+	UPROPERTY()
+	int DataFragmentNum;
 };

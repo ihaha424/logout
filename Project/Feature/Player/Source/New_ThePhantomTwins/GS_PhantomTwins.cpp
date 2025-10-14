@@ -9,6 +9,8 @@
 #include "Log/TPTLog.h"
 
 #include "Kismet/KismetSystemLibrary.h"
+#include "SaveGame/TPTSaveGame.h"
+#include "SaveGame/TPTSaveGameHelperLibrary.h"
 
 void AGS_PhantomTwins::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -21,6 +23,7 @@ void AGS_PhantomTwins::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
     DOREPLIFETIME(AGS_PhantomTwins, bIsHostClickedRestart);
     DOREPLIFETIME(AGS_PhantomTwins, bIsClientClickedRestart);
     DOREPLIFETIME(AGS_PhantomTwins, DestinationLevelName);
+    DOREPLIFETIME(AGS_PhantomTwins, PrintingMapName);
     DOREPLIFETIME(AGS_PhantomTwins, HostSelect);
     DOREPLIFETIME(AGS_PhantomTwins, ClientSelect);
 }
@@ -30,6 +33,10 @@ void AGS_PhantomTwins::AddCollectedItem(AActor* DataFragment, int32 Delta)
     if (!HasAuthority()) return;
 
     CoreCount = FMath::Max(0, CoreCount + Delta);
+
+    UTPTSaveGame* TPTSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
+    TPTSaveGame->DataFragmentNum = CoreCount;
+    UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTSaveGame>(TPTSaveGame);
 
     CollectedItemCountChanged.Broadcast(CoreCount);
     DataFragmentChanged.Broadcast(DataFragment);
@@ -45,7 +52,7 @@ void AGS_PhantomTwins::MarkBossSpawned(AActor* InBoss)
     GameTime = GetServerWorldTimeSeconds();
 }
 
-void AGS_PhantomTwins::SetCharacterClickedRestart(bool bIsClicked, bool bIsHost)
+void AGS_PhantomTwins::C2S_SetCharacterClickedRestart_Implementation(bool bIsClicked, bool bIsHost)
 {
     if (!HasAuthority()) return;
 
@@ -58,20 +65,27 @@ void AGS_PhantomTwins::SetCharacterClickedRestart(bool bIsClicked, bool bIsHost)
 	    bIsClientClickedRestart = bIsClicked;
     }
     OnClickedRestartChanged.Broadcast(bIsHostClickedRestart, bIsClientClickedRestart);
+	S2A_SetCharacterClickedRestart(bIsClicked, bIsHost);
 }
 
-void AGS_PhantomTwins::OnRep_SetCharacterClickedRestart()
+void AGS_PhantomTwins::S2A_SetCharacterClickedRestart_Implementation(bool bIsClicked, bool bIsHost)
 {
     OnClickedRestartChanged.Broadcast(bIsHostClickedRestart, bIsClientClickedRestart);
 }
 
-void AGS_PhantomTwins::SetCharacterClickedGameStop(FName LevelName)
+void AGS_PhantomTwins::SetCharacterClickedGameStop(FName LevelName, FName PrintingName)
 {
     DestinationLevelName = LevelName;
-    OnClickedGameStopChanged.Broadcast(DestinationLevelName);
+    PrintingMapName = PrintingName;
+    OnClickedGameStopChanged.Broadcast(DestinationLevelName, PrintingMapName);
 }
 
-void AGS_PhantomTwins::SetCharacterAgreeWithGameStop(int32 Select, bool bIsHost)
+void AGS_PhantomTwins::OnRep_SetCharacterClickedGameStop()
+{
+    OnClickedGameStopChanged.Broadcast(DestinationLevelName, PrintingMapName);
+}
+
+void AGS_PhantomTwins::C2S_SetCharacterAgreeWithGameStop_Implementation(int32 Select, bool bIsHost)
 {
     if (!HasAuthority()) return;
 
@@ -84,16 +98,20 @@ void AGS_PhantomTwins::SetCharacterAgreeWithGameStop(int32 Select, bool bIsHost)
         ClientSelect = Select;
     }
     OnClickedAgreeWithGameStopChanged.Broadcast(HostSelect, ClientSelect);
+	S2A_SetCharacterAgreeWithGameStop(Select, bIsHost);
 }
 
-void AGS_PhantomTwins::OnRep_SetCharacterClickedGameStop()
+void AGS_PhantomTwins::S2A_SetCharacterAgreeWithGameStop_Implementation(int32 Select, bool bIsHost)
 {
-    OnClickedGameStopChanged.Broadcast(DestinationLevelName);
-}
-
-void AGS_PhantomTwins::OnRep_SetCharacterAgreeWithGameStop()
-{
-    OnClickedAgreeWithGameStopChanged.Broadcast(HostSelect, ClientSelect);
+	if (bIsHost)
+    {
+        HostSelect = Select;
+    }
+    else
+    {
+        ClientSelect = Select;
+    }
+	OnClickedAgreeWithGameStopChanged.Broadcast(HostSelect, ClientSelect);
 }
 
 void AGS_PhantomTwins::OnRep_BossSpawned()

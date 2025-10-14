@@ -14,16 +14,24 @@ class NEW_THEPHANTOMTWINS_API AGM_PhantomTwins : public AGameModeBase
 	GENERATED_BODY()
 	
 public:
+	AGM_PhantomTwins();
 
     //~ Begin AGameModeBase
     virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
+    virtual void Tick(float DeltaSeconds) override;
+
+    float ElapsedTime;
     virtual void BeginPlay() override;
     virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     //~ End AGameModeBase
 
+    virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+
+
+	// ~ Begin PlayerDied
 	void NotifyPlayerDied(bool isDead);
-    void Delay(float Time);
+    // ~ End PlayerDied
 
     //~ Begin LevelTravel
     UFUNCTION(BlueprintCallable)
@@ -59,14 +67,14 @@ public:
 
 	// ~ Begin Stop game
     UFUNCTION()
-    void NotifyPlayerClickedGameStop(FName LevelName);
+    void NotifyPlayerClickedGameStop(FName LevelName, FName PrintingName);
     void ShowGameStopUI();
     UFUNCTION()
     void NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 ClientSelect);
     void ShowResumeCountUI();
     FName DestinationLevelName;
-
     // ~ End  Stop game
+
 protected:
     //~ Begin BossSpawn
     FTimerHandle TimerHandle_SpawnByTime;

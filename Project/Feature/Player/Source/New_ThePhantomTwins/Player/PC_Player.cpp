@@ -95,10 +95,10 @@ void APC_Player::C2S_ClickedRestart_Implementation(const bool bIsClicked)
 		TPT_LOG(OutGameLog, Error, TEXT("Cast to 'AGS_PhantomTwins' Fail"));
 		return;
 	}
-	GS->SetCharacterClickedRestart(bIsClicked, bIsHost);
+	GS->C2S_SetCharacterClickedRestart(bIsClicked, bIsHost);
 }
 
-void APC_Player::C2S_ClickedGameStop_Implementation(const FName LevelName)
+void APC_Player::C2S_ClickedGameStop_Implementation(const FName LevelName, const FName PrintingName)
 {
 	AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>();
 	if (!GS)
@@ -106,7 +106,7 @@ void APC_Player::C2S_ClickedGameStop_Implementation(const FName LevelName)
 		TPT_LOG(OutGameLog, Error, TEXT("Cast to 'AGS_PhantomTwins' Fail"));
 		return;
 	}
-	GS->SetCharacterClickedGameStop(LevelName);
+	GS->SetCharacterClickedGameStop(LevelName, PrintingName);
 }
 
 void APC_Player::C2S_ClickedAgreeWithGameStop_Implementation(const int32 SelectBtn)
@@ -121,5 +121,21 @@ void APC_Player::C2S_ClickedAgreeWithGameStop_Implementation(const int32 SelectB
 		TPT_LOG(OutGameLog, Error, TEXT("Cast to 'AGS_PhantomTwins' Fail"));
 		return;
 	}
-	GS->SetCharacterAgreeWithGameStop(SelectBtn, bIsHost);
+	GS->C2S_SetCharacterAgreeWithGameStop(SelectBtn, bIsHost);
+}
+
+void APC_Player::Client_SetUIInputMode_Implementation(bool bUIOnly)
+{
+	if (bUIOnly)
+	{
+		FInputModeUIOnly InputModeData;
+		SetInputMode(InputModeData);
+		bShowMouseCursor = true;
+	}
+	else
+	{
+		FInputModeGameOnly GameInputMode;
+		SetInputMode(GameInputMode);
+		bShowMouseCursor = false;
+	}
 }

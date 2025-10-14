@@ -11,7 +11,7 @@
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCollectedItemCountChanged, int32);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBossSpawnedDynamic, AActor*, BossActor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCollectedItem, AActor*, DataFragment);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedGameStop, FName , LevelName);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedGameStop, FName , LevelName, FName, PrintingMapName);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedRestart, bool, bIsHostClicked, bool, bIsClientClicked);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedAgreeWithGameStop, int32, HostSelect, int32, ClientSelect);
 
@@ -47,13 +47,17 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnClickedRestart OnClickedRestartChanged;
 
-	void SetCharacterClickedRestart(bool bIsClicked, bool bIsHost);
-	UFUNCTION()
-	void OnRep_SetCharacterClickedRestart();
+	UFUNCTION(Server, Reliable)
+	void C2S_SetCharacterClickedRestart(bool bIsClicked, bool bIsHost);
+	void C2S_SetCharacterClickedRestart_Implementation(bool bIsClicked, bool bIsHost);
 
-	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterClickedRestart)
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_SetCharacterClickedRestart(bool bIsClicked, bool bIsHost);
+	void S2A_SetCharacterClickedRestart_Implementation(bool bIsClicked, bool bIsHost);
+
+	UPROPERTY(Replicated = true)
 	bool bIsHostClickedRestart = false;
-	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterClickedRestart)
+	UPROPERTY(Replicated = true)
 	bool bIsClientClickedRestart = false;
 	//~ End Restart
 
@@ -63,20 +67,27 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnClickedAgreeWithGameStop OnClickedAgreeWithGameStopChanged;
 
-	void SetCharacterClickedGameStop(FName LevelName);
-	void SetCharacterAgreeWithGameStop(int32 bIsClicked, bool bIsHost);
+	void SetCharacterClickedGameStop(FName LevelName, FName PrintingName);
 	UFUNCTION()
 	void OnRep_SetCharacterClickedGameStop();
-	UFUNCTION()
-	void OnRep_SetCharacterAgreeWithGameStop();
-
+	UFUNCTION(BlueprintCallable)
+	FName GetPrintingMapName() const { return PrintingMapName; }
 	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterClickedGameStop)
 	FName DestinationLevelName;
-	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterAgreeWithGameStop)
-	int32 HostSelect = 0;
-	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterAgreeWithGameStop)
-	int32 ClientSelect = 0;
+	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterClickedGameStop)
+	FName PrintingMapName;
 
+	UFUNCTION(Server, Reliable)
+	void C2S_SetCharacterAgreeWithGameStop(int32 bIsClicked, bool bIsHost);
+	void C2S_SetCharacterAgreeWithGameStop_Implementation(int32 bIsClicked, bool bIsHost);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_SetCharacterAgreeWithGameStop(int32 Select, bool bIsHost);
+	void S2A_SetCharacterAgreeWithGameStop_Implementation(int32 Select, bool bIsHost);
+	UPROPERTY(Replicated = true)
+	int32 HostSelect = 0;
+	UPROPERTY(Replicated = true)
+	int32 ClientSelect = 0;
 	//~ End Stop game
 protected:
 	//~ Begin DataFragment
