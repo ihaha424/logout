@@ -65,4 +65,7 @@ protected:
 public:
     // Processing of world position/rotation/attachment with hit information
     void PlaceOnHit(const FHitResult& Hit, bool bAttachToHitComponent);
+
+private:
+    const float DecalZVolume = 1.f;
 };

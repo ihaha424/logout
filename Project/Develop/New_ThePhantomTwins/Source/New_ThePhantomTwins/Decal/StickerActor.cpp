@@ -43,7 +43,7 @@ void AStickerActor::Init(const FStickerParams& InParams)
     {
         DecalComp->SetDecalMaterial(BaseDecalMat);
         // X=Depth, Y=Width, Z=Height (원하면 비정방형 지원)
-        DecalComp->DecalSize = FVector(Params.Size, Params.Size, Params.Size);
+        DecalComp->DecalSize = FVector(DecalZVolume, Params.Size, Params.Size);
         DMI = DecalComp->CreateDynamicMaterialInstance();
     }
     ApplyParams();
@@ -60,7 +60,7 @@ void AStickerActor::OnRep_Params()
     if (BaseDecalMat)
     {
         DecalComp->SetDecalMaterial(BaseDecalMat);
-        DecalComp->DecalSize = FVector(Params.Size, Params.Size, Params.Size);
+        DecalComp->DecalSize = FVector(DecalZVolume, Params.Size, Params.Size);
         DMI = DecalComp->CreateDynamicMaterialInstance();
         ApplyParams();
     }
@@ -68,7 +68,6 @@ void AStickerActor::OnRep_Params()
 
 void AStickerActor::ApplyParams()
 {
-    DecalComp->DecalSize = FVector(Params.Size);
     if (DMI)
     {
         //// 머티리얼 파라미터 명은 네가 쓰는 머티리얼에 맞춰서:
