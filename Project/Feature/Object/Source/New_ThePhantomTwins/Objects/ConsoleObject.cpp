@@ -106,6 +106,12 @@ void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 
 void AConsoleObject::SetWidgetVisible(bool bVisible)
 {
+	// UDecalComponent 가 있고 이름이 FName("InteractDecal") 이라면 bVisible 상태에 따라 아래 로직 실행
+	if (InteractDecalComp)
+	{
+		InteractDecalComp->SetHiddenInGame(!bVisible);
+	}
+
 	if (!InteractWidgetComp || !LockWidgetComp) return;
 
 	if (!bVisible || bIsActived)

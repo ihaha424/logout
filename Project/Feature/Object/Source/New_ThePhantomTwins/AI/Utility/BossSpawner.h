@@ -20,4 +20,7 @@ public:
 	TSubclassOf<AActor> BossClass;
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Spawn")
 	void SpawnBossOnce();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Spawn")
+	void SpawnBoss();
 };
