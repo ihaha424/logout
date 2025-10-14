@@ -88,6 +88,7 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& O
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(APlayerCharacter, RecoveryPercent);
 	DOREPLIFETIME(APlayerCharacter, CurrentWallRange);
+	DOREPLIFETIME(APlayerCharacter, CurrHideObj);
 }
 
 void APlayerCharacter::BeginPlay()

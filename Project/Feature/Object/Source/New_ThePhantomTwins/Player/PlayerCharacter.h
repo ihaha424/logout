@@ -108,7 +108,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
 	TObjectPtr<class UHeldItemComponent> HeldItemComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HideObject")
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadOnly, Category = "HideObject")
 	TObjectPtr<class AInteractHideObject> CurrHideObj = nullptr;
 
 public:

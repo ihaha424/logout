@@ -152,11 +152,11 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 	{
 		EnterObject(Interactor);
 
-		// 클라이언트에게 입력 비활성화 명령 전달
-		SetInputState(InteractorPC, true);
-
 		// 클라이언트에게 카메라 전환 명령 전달 (플레이어 캠 -> 오브젝트 캠)
 		SetViewTarget(InteractorPC, this);
+
+		// 클라이언트에게 입력 비활성화 명령 전달
+		SetInputState(InteractorPC, true);
 
 		EnableVignetteEffect(true);
 
@@ -178,11 +178,11 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 
 		ExitObject();
 
-		// 클라이언트에게 입력 활성화 명령 전달
-		SetInputState(InteractorPC, false);
-
 		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
 		SetViewTarget(InteractorPC, PlayerActor);
+
+		// 클라이언트에게 입력 활성화 명령 전달
+		SetInputState(InteractorPC, false);
 
 		EnableVignetteEffect(false);
 
@@ -213,7 +213,6 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 
 		// 클라이언트에게 입력 비활성화 명령 전달
 		SetInputState(InteractorPC, true);
-
 
 		EnableVignetteEffect(true);
 
@@ -279,6 +278,7 @@ void AInteractHideObject::ExitObject()
 		S2A_PlayEffect(NewLocation);
 	}
 
+	SpringArm->SetRelativeRotation({0,0,0});
 
 	bIsActived = false;
 	APlayerCharacter* HidePlayerChar = Cast<APlayerCharacter>(HidePlayer);
@@ -345,8 +345,6 @@ void AInteractHideObject::UpdateCameraRotation(const FVector2D LookAxis)
 {
 	if (!SpringArm) return;
 
-	UE_LOG(LogTemp, Warning, TEXT("SpringArm Rotation: %s"), *SpringArm->GetRelativeRotation().ToString());
-	
 	// 1) 기존 누적 회전
 	FRotator RelRot = SpringArm->GetRelativeRotation();
 	RelRot.Yaw += LookAxis.X;
@@ -357,11 +355,12 @@ void AInteractHideObject::UpdateCameraRotation(const FVector2D LookAxis)
 	SpringArm->SetRelativeRotation(RelRot);
 
 	// 컨트롤러의 회전도 동기화(이게 없으면 플레이어 컨트롤러가 카메라 매니저 쪽에서 override할 가능성 있음)
-	if (APlayerController* PC = Cast<APlayerController>(GetWorld()->GetFirstPlayerController()))
-	{
-		PC->SetControlRotation(SpringArm->GetComponentRotation());
-	}
+	APlayerController* InteractorPC = CastChecked<APlayerController>(HidePlayer->GetController());
 
+	//if (InteractorPC)
+	//{
+	//	InteractorPC->SetControlRotation(SpringArm->GetComponentRotation());
+	//}
 
 	UE_LOG(LogTemp, Warning, TEXT("SpringArm Rotation: %s"), *SpringArm->GetRelativeRotation().ToString());
 }
