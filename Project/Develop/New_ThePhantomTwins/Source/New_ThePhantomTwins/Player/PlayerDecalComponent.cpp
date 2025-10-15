@@ -41,9 +41,6 @@ bool UPlayerDecalComponent::TryPlaceSticker(int32 EmojiId, float Size, float Lif
     APlayerController* PC = Cast<APlayerController>(Pawn->GetController());
     NULLCHECK_RETURN_LOG(PC, PlayerLog, Warning, false);
 
-    ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(PC->Player);
-    NULLCHECK_RETURN_LOG(LocalPlayer, PlayerLog, Warning, false);
-
     FVector CamLoc; FRotator CamRot;
     PC->GetPlayerViewPoint(CamLoc, CamRot);
 
