@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "PC_Player.h"
@@ -47,7 +47,7 @@ void APC_Player::BeginPlay()
 		{
 			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
 			{
-				Subsystem->AddMappingContext(IMC, 0); // ¿ì¼±¼øÀ§´Â ÇÊ¿ä¿¡ µû¶ó Á¶Á¤
+				Subsystem->AddMappingContext(IMC, 0); // ìš°ì„ ìˆœìœ„ëŠ” í•„ìš”ì— ë”°ë¼ ì¡°ì •
 			}
 		}
 	}
@@ -168,8 +168,8 @@ void APC_Player::SetHideObjectIMC(bool bActived)
 				}
 			}
 
-			UE_LOG(LogTemp, Log, TEXT("HideObjectIMC È°¼ºÈ­ ¿©ºÎ: %s"), Subsystem->HasMappingContext(HideObjectIMC) ? TEXT("È°¼º") : TEXT("ºñÈ°¼º"));
-			UE_LOG(LogTemp, Log, TEXT("IMC È°¼ºÈ­ ¿©ºÎ: %s"), Subsystem->HasMappingContext(IMC) ? TEXT("È°¼º") : TEXT("ºñÈ°¼º"));
+			UE_LOG(LogTemp, Log, TEXT("HideObjectIMC í™œì„±í™” ì—¬ë¶€: %s"), Subsystem->HasMappingContext(HideObjectIMC) ? TEXT("í™œì„±") : TEXT("ë¹„í™œì„±"));
+			UE_LOG(LogTemp, Log, TEXT("IMC í™œì„±í™” ì—¬ë¶€: %s"), Subsystem->HasMappingContext(IMC) ? TEXT("í™œì„±") : TEXT("ë¹„í™œì„±"));
 		}
 	}
 }

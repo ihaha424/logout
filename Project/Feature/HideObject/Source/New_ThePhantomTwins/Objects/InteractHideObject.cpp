@@ -91,20 +91,6 @@ bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bo
 	return bCanInteract;
 }
 
-void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
-{
-	// 플레이어 컨트롤러 가져오기
-	APlayerController* InteractorPC = CastChecked<APlayerController>(HidePlayer->GetController());
-
-	if (!InteractorPC) return;
-
-	// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
-	SetViewTarget(InteractorPC, HidePlayer);
-
-	// 클라이언트에게 입력 활성화 명령 전달
-	SetInputState(InteractorPC, false);
-}
-
 void AInteractHideObject::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	// 서버에서 실행되는 코드
@@ -128,6 +114,35 @@ void AInteractHideObject::OnInteractClient_Implementation(const APawn* Interacto
 	CamLogicClient(Interactor);
 }
 
+void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
+{
+	// 플레이어 컨트롤러 가져오기
+	APlayerController* InteractorPC = CastChecked<APlayerController>(HidePlayer->GetController());
+
+	if (!InteractorPC) return;
+
+	// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
+	SetViewTarget(InteractorPC, HidePlayer);
+
+	// 클라이언트에게 입력 활성화 명령 전달
+	SetInputState(InteractorPC, false, Interactor);
+}
+
+//void AInteractHideObject::UpdateCameraRotation(const FVector2D LookAxis)
+//{
+//	if (!HideCameraComp) return;
+//
+//	// 카메라 현재 회전값을 가져옴 (Rotator 형태)
+//	FRotator CurrentRotation = HideCameraComp->GetRelativeRotation();
+//
+//	// Pitch(상하) 회전은 X축 움직임에 대응, Yaw(좌우) 회전은 Y축 움직임에 대응
+//	float NewPitch = FMath::Clamp(CurrentRotation.Pitch + LookAxis.Y, -89.9f, 89.9f);	// 상하 각도
+//	float NewYaw = FMath::Clamp(CurrentRotation.Yaw + LookAxis.X, -89.9f, 89.9f);		// 좌우 각도
+//
+//	// 새로운 회전값 설정
+//	HideCameraComp->SetRelativeRotation(FRotator(NewPitch, NewYaw, 0.f));
+//}
+
 void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 {
 	// 플레이어 컨트롤러 가져오기
@@ -145,7 +160,7 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 		SetViewTarget(InteractorPC, this);
 
 		// 클라이언트에게 입력 비활성화 명령 전달
-		SetInputState(InteractorPC, true);
+		SetInputState(InteractorPC, true, Interactor);
 
 		EnableVignetteEffect(true);
 
@@ -171,7 +186,7 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 		SetViewTarget(InteractorPC, PlayerActor);
 
 		// 클라이언트에게 입력 활성화 명령 전달
-		SetInputState(InteractorPC, false);
+		SetInputState(InteractorPC, false, Interactor);
 
 		EnableVignetteEffect(false);
 
@@ -200,7 +215,7 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 		SetViewTarget(InteractorPC, this);
 
 		// 클라이언트에게 입력 비활성화 명령 전달
-		SetInputState(InteractorPC, true);
+		SetInputState(InteractorPC, true, Interactor);
 
 		EnableVignetteEffect(true);
 
@@ -222,7 +237,7 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 		SetViewTarget(InteractorPC, HidePlayer);
 
 		// 클라이언트에게 입력 활성화 명령 전달
-		SetInputState(InteractorPC, false);
+		SetInputState(InteractorPC, false, Interactor);
 
 		EnableVignetteEffect(false);
 
@@ -240,6 +255,7 @@ void AInteractHideObject::EnterObject(const APawn* Interactor)
 {
 	bIsActived = true;
 	HidePlayer = const_cast<APawn*>(Interactor);
+	APlayerCharacter* HidePlayerChar = Cast<APlayerCharacter>(HidePlayer);
 
 	FVector playerLocation = { HidePlayer->GetActorLocation().X, HidePlayer->GetActorLocation().Y, 0 };
 	S2A_PlayEffect(playerLocation);
@@ -269,19 +285,59 @@ void AInteractHideObject::ExitObject()
 	HidePlayer = nullptr;
 }
 
-void AInteractHideObject::SetInputState(APlayerController* InteractorPC, bool bIgnoreInput)
+void AInteractHideObject::SetInputState(APlayerController* InteractorPC, bool bIgnoreInput, const APawn* Interactor)
 {
-	if (InteractorPC && InteractorPC->IsLocalController())
+	if (!InteractorPC)
 	{
-		APC_Player* PC = Cast<APC_Player>(InteractorPC);
+		UE_LOG(LogTemp, Warning, TEXT("SetInputState: InteractorPC is nullptr"));
+		return;
+	}
 
-		PC->SetHideObjectIMC(bIgnoreInput);
+	if (!InteractorPC->IsLocalPlayerController())
+	{
+		return;
+	}
 
-		//InteractorPC->SetIgnoreMoveInput(bIgnoreInput);
-		//InteractorPC->SetIgnoreLookInput(bIgnoreInput);
+	APC_Player* PC = Cast<APC_Player>(InteractorPC);
+	if (!PC)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SetInputState: Failed to cast InteractorPC to APC_Player"));
+		return;
+	}
 
-		//TPT_LOG(ObjectLog, Log, TEXT("Client: SetIgnoreInput called with value: %s"),
-		//	bIgnoreInput ? TEXT("True") : TEXT("False"));
+	PC->SetHideObjectIMC(bIgnoreInput);
+
+	if (bIgnoreInput)
+	{
+		// HidePlayer 대신 Interactor 사용 (없으면 HidePlayer 사용)
+		const APawn* TargetPawn = Interactor ? Interactor : HidePlayer;
+
+		if (TargetPawn)
+		{
+			if (HideCameraComp)
+			{
+				HideCameraComp->AttachToComponent(TargetPawn->GetRootComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("SetInputState: HideCameraComp is nullptr"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("SetInputState: Both Interactor and HidePlayer are nullptr"));
+		}
+	}
+	else
+	{
+		if (HideCameraComp)
+		{
+			HideCameraComp->AttachToComponent(this->GetRootComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("SetInputState: HideCameraComp is nullptr"));
+		}
 	}
 }
 

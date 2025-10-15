@@ -759,17 +759,24 @@ void APlayerCharacter::InputReleased(int32 InputID)
 
 void APlayerCharacter::HideLook(const FInputActionValue& Value)
 {
-	// Hide 상태일 때, 마우스를 움직이면 생기는 일 작성 : 카메라 움직이기..
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 
 	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
 	{
 		float MouseSensitivity = 0.3f;
 		FVector2D LookAxisVector = Value.Get<FVector2D>() * MouseSensitivity;
-		AddControllerYawInput(LookAxisVector.X);
-		AddControllerPitchInput(LookAxisVector.Y);
 
-		TPT_LOG(ObjectLog, Log, TEXT("APlayerCharacter::HideLook"));
+		// 현재 컨트롤러의 회전값 가져오기
+		FRotator CurrentRot = PlayerController->GetControlRotation();
+
+		// 제한 각도 계산
+		float NewPitch = FMath::Clamp(CurrentRot.Pitch + LookAxisVector.Y, -89.9f, 89.9f);   // 상하 제한
+		float NewYaw = FMath::Clamp(CurrentRot.Yaw + LookAxisVector.X, -30.0f, 30.0f);    // 좌우 제한(원하는 범위로 조절)
+
+		// 회전값 적용
+		PlayerController->SetControlRotation(FRotator(NewPitch, NewYaw, 0.f));
+
+		//TPT_LOG(ObjectLog, Log, TEXT("APlayerCharacter::HideLook"));
 	}
 }
 
