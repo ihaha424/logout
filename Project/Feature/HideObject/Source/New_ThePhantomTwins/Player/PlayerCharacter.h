@@ -186,6 +186,9 @@ protected:
 	void InputPressedUseItem(int32 InputID);
 	void InputReleased(int32 InputID);
 
+	UFUNCTION(BlueprintCallable)
+	void HideLook(const FInputActionValue& Value);
+
 	UFUNCTION(Server, Reliable)
 	void C2S_InputReleased(const int32 InputID);
 	void C2S_InputReleased_Implementation(const int32 InputID);
@@ -268,6 +271,8 @@ protected:
 	TObjectPtr<UInputAction> MoveAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> LookAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> HideLookAction;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> MouseWheelUpAction;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")

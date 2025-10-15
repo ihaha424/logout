@@ -426,6 +426,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	TPTInput->BindAction(MouseWheelDownAction, ETriggerEvent::Triggered, this, &ThisClass::InputMouseWheelDown);
 	TPTInput->BindAction(ESC, ETriggerEvent::Started, this, &ThisClass::InputESC);
 	TPTInput->BindAction(TabAction, ETriggerEvent::Started, this, &APlayerCharacter::InputTab);
+	TPTInput->BindAction(HideLookAction, ETriggerEvent::Triggered, this, &ThisClass::HideLook);
 
 
 	SetupPlayerInputByTag(TPTInput);
@@ -451,6 +452,7 @@ void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInpu
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 4);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 5);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_UseItem, ETriggerEvent::Started, this, &ThisClass::InputPressedUseItem);
+		
 	}
 }
 
@@ -752,6 +754,22 @@ void APlayerCharacter::InputReleased(int32 InputID)
 	if (InputID == InputNum && AttributeSet->GetStamina() >= AttributeSet->GetMaxStamina())
 	{
 		HidePlayerHUDStaminaSet(0);
+	}
+}
+
+void APlayerCharacter::HideLook(const FInputActionValue& Value)
+{
+	// Hide 상태일 때, 마우스를 움직이면 생기는 일 작성 : 카메라 움직이기..
+	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
+
+	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
+	{
+		float MouseSensitivity = 0.3f;
+		FVector2D LookAxisVector = Value.Get<FVector2D>() * MouseSensitivity;
+		AddControllerYawInput(LookAxisVector.X);
+		AddControllerPitchInput(LookAxisVector.Y);
+
+		TPT_LOG(ObjectLog, Log, TEXT("APlayerCharacter::HideLook"));
 	}
 }
 

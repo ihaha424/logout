@@ -74,9 +74,6 @@ TPT_TAG_GEN(Character, Action, ScanCloestPlayer, "AI Action: ScanCloestPlayer")
 	Object
 */
 TPT_TAG_GEN(Character, Object, Key, "Object: Key")
-TPT_TAG_GEN(Character, Object, Hide, "Object: Hide")
-
-
 
 /*
 	Common

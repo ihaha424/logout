@@ -5,7 +5,8 @@
 #include "NiagaraComponent.h" 
 #include "Engine/World.h"
 #include "TimerManager.h"
-#include "../Player/PlayerCharacter.h"
+#include "Player/PC_Player.h"
+#include "Player/PlayerCharacter.h"
 #include "Materials/MaterialInterface.h"
 #include "../Log/TPTLog.h"
 
@@ -272,8 +273,12 @@ void AInteractHideObject::SetInputState(APlayerController* InteractorPC, bool bI
 {
 	if (InteractorPC && InteractorPC->IsLocalController())
 	{
-		InteractorPC->SetIgnoreMoveInput(bIgnoreInput);
-		InteractorPC->SetIgnoreLookInput(bIgnoreInput);
+		APC_Player* PC = Cast<APC_Player>(InteractorPC);
+
+		PC->SetHideObjectIMC(bIgnoreInput);
+
+		//InteractorPC->SetIgnoreMoveInput(bIgnoreInput);
+		//InteractorPC->SetIgnoreLookInput(bIgnoreInput);
 
 		//TPT_LOG(ObjectLog, Log, TEXT("Client: SetIgnoreInput called with value: %s"),
 		//	bIgnoreInput ? TEXT("True") : TEXT("False"));
