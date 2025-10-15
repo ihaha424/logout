@@ -65,6 +65,7 @@ void UPlayerDecalComponent::PlaceSticker(const FHitResult& Hit, const FStickerPa
     if (!Hit.bBlockingHit || !StickerActorClass) return;
 
     const AActor* InstigatorActor = GetOwner();
+    const APlayerController* PC = InstigatorActor->GetInstigatorController<APlayerController>();
     if (!InstigatorActor) return;
 
     if (FVector::Dist(Hit.TraceStart, Hit.ImpactPoint) > MaxDist) return;
@@ -75,6 +76,7 @@ void UPlayerDecalComponent::PlaceSticker(const FHitResult& Hit, const FStickerPa
 
     SA->Init(Params);
     SA->FinishSpawning(FTransform::Identity);
-    SA->PlaceOnHit(Hit, bAttach);
+    SA->PlaceOnHit(Hit, PC, bAttach);
+
 }
 

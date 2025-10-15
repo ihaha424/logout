@@ -64,7 +64,7 @@ protected:
 
 public:
     // Processing of world position/rotation/attachment with hit information
-    void PlaceOnHit(const FHitResult& Hit, bool bAttachToHitComponent);
+    void PlaceOnHit(const FHitResult& Hit, const APlayerController* PC, bool bAttachToHitComponent);
 
 private:
     const float DecalZVolume = 1.f;
