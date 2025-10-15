@@ -31,6 +31,7 @@ class UInputAction;
 class UFocusTraceComponent;
 class UWidgetComponent;
 class UPostProcessComponent;
+class UDroneStatWidget;
 
 UENUM(BlueprintType)
 enum class EEnemyRange : uint8
@@ -92,7 +93,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drone")
 	TObjectPtr<UWidgetComponent> DroneWidget;
 
-	TObjectPtr<UUserWidget> DroneUserWidget;
+	TObjectPtr<UDroneStatWidget> DroneUserWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BoxCollision")
 	TObjectPtr<class UBoxComponent> BoxComp;
@@ -169,6 +170,11 @@ protected:
 	UFUNCTION()
 	void OnTagChanged(const FGameplayTag InputTag, int32 Count);
 
+	UFUNCTION()
+	void SetHP(int32 value);
+	UFUNCTION()
+	void SetMP(int32 value);
+
 	// 플레이어 상태변경
 	UFUNCTION()
 	void OnRecoveryCompleted();
@@ -226,6 +232,8 @@ protected:
 	 */
 	void EnsureGameStart();
 
+	int32 HealthPoint = 200.f;
+	int32 MentalPoint = 100.f;
 
 private:
 	UFUNCTION(BlueprintCallable, Category="Item")

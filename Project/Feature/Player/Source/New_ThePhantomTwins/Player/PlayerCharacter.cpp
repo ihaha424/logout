@@ -128,11 +128,9 @@ void APlayerCharacter::BeginPlay()
 	DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 	DroneWidget->SetCastShadow(false);
 
-	if (DroneWidget)
+	if (Drone)
 	{
-		// 실제 UUserWidget 인스턴스 가져오기
-		UUserWidget* WidgetInstance = DroneWidget->GetUserWidgetObject();
-		DroneUserWidget = Cast<UDroneStatWidget>(WidgetInstance);
+		DroneUserWidget = Cast<UDroneStatWidget>(Drone);
 	}
 
 	FocusTrace->SetIsReplicated(true);
@@ -156,6 +154,16 @@ void APlayerCharacter::BeginPlay()
 		PlayerController->RegisterWidget(TEXT("ESC"), CreateWidget(GetWorld(), ESCWidgetClass));
 		PlayerController->RegisterWidget(TEXT("GameStop"), CreateWidget(GetWorld(), GameStopWidgetClass));
 		PlayerController->RegisterWidget(TEXT("ResumeCount"), CreateWidget(GetWorld(), ResumeCountWidgetClass));
+
+		if (DroneUserWidget)
+		{
+			SetHP(HealthPoint);
+			SetMP(MentalPoint);
+		}
+		else
+		{
+			TPT_LOG(HUDLog, Error, TEXT("InitHUDWidget: DroneUserWidget is null"));
+		}
 	}
 
 	// RecoveryGauge Time
@@ -344,6 +352,20 @@ void APlayerCharacter::SetHoldingGaugeUI_Implementation(const APawn* Interactor,
 	PC->SetWidget(TEXT("RecoveryGauge"), bVisible, EMessageTargetType::Multicast);
 }
 
+void APlayerCharacter::SetHP(int32 value)
+{
+	NULLCHECK_RETURN_LOG(DroneUserWidget, HUDLog, Error, );
+	TPT_LOG(HUDLog, Log, TEXT("HP : %d"), value);
+	DroneUserWidget->SetHP(value);
+}
+
+void APlayerCharacter::SetMP(int32 value)
+{
+	NULLCHECK_RETURN_LOG(DroneUserWidget, HUDLog, Error, );
+	TPT_LOG(HUDLog, Log, TEXT("MP : %d"), value);
+	DroneUserWidget->SetMP(value);
+}
+
 void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 {
 	if (!AttributeSet) return;
@@ -377,6 +399,9 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 	int32 CoreEnergy = AttributeSet->GetMaxCoreEnergy();
 
 	PlayerHUDWidget->InitializeWidgets(HP, Mental, Stamina, CoreEnergy);
+
+	HealthPoint = HP;
+	MentalPoint = Mental;
 
 	PS->InventoryComp->SetPlayerHUDWidget(PlayerHUDWidget);
 }
@@ -515,6 +540,8 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 		AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
 		AttributeSet->OnFullStamina.AddDynamic(this, &ThisClass::HidePlayerHUDStaminaSet);
 		AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
+		AttributeSet->OnChangedHP.AddDynamic(this, &APlayerCharacter::SetHP);
+		AttributeSet->OnChangedMentalPoint.AddDynamic(this, &APlayerCharacter::SetMP);
 	}
 }
 

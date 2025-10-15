@@ -16,6 +16,7 @@ class NEW_THEPHANTOMTWINS_API UDroneStatWidget : public UUserWidget
 
 protected:
     virtual void NativeConstruct() override;
+	void NativeDestruct();
 
 public:
     // 레벨 별 총 클리어 아이템 갯수 체크
@@ -29,6 +30,8 @@ public:
 
     // 클리어 아이템 표시용 함수
     void SetClearItemCount(int32 CurrentClearItem);
+
+    FDelegateHandle ItemChangedHandle;
 
 protected:
 	UPROPERTY(meta = (BindWidget))
