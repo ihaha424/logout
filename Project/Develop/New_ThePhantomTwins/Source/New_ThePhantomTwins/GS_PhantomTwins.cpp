@@ -12,6 +12,15 @@
 #include "SaveGame/TPTSaveGame.h"
 #include "SaveGame/TPTSaveGameHelperLibrary.h"
 
+#include "Decal/StickerManager.h"
+
+AStickerManager* AGS_PhantomTwins::GetStickerManager()
+{
+    if(!StickerManager.IsValid())
+        StickerManager = GetWorld()->SpawnActor<AStickerManager>();
+    return StickerManager.Get();
+}
+
 void AGS_PhantomTwins::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);

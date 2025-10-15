@@ -9,6 +9,9 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
 #include "Decal/StickerLibrary.h"
+#include "GS_PhantomTwins.h"
+#include "Decal/StickerManager.h"
+#include "GameFramework/PlayerState.h"
 
 #include "Log/TPTLog.h"
 
@@ -77,6 +80,11 @@ void UPlayerDecalComponent::PlaceSticker(const FHitResult& Hit, const FStickerPa
     SA->Init(Params);
     SA->FinishSpawning(FTransform::Identity);
     SA->PlaceOnHit(Hit, PC, bAttach);
-
+    AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>();
+    if (GS)
+    {
+        const int OwnerPlayerId = PC->PlayerState ? PC->PlayerState->GetPlayerId() : -1;
+        GS->GetStickerManager()->RegisterSticker(OwnerPlayerId, SA);
+    }
 }
 

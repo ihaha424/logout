@@ -15,6 +15,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedGameStop, FName , LevelNa
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedRestart, bool, bIsHostClicked, bool, bIsClientClicked);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedAgreeWithGameStop, int32, HostSelect, int32, ClientSelect);
 
+class AStickerManager;
+
 UCLASS()
 class NEW_THEPHANTOMTWINS_API AGS_PhantomTwins : public AGameStateBase
 {
@@ -89,6 +91,12 @@ public:
 	UPROPERTY(Replicated = true)
 	int32 ClientSelect = 0;
 	//~ End Stop game
+
+	//~ Begin StickerManager
+	UFUNCTION(BlueprintCallable)
+	AStickerManager* GetStickerManager();
+	//~ End StickerManager
+
 protected:
 	//~ Begin DataFragment
 	UPROPERTY(BlueprintAssignable, Category = "DataFragment")
@@ -106,6 +114,11 @@ protected:
 	//~ Begin MapData
 	EMapType MapData;
 	//~ End MapData
+
+	//~ Begin StickerManager
+	UPROPERTY()
+	TWeakObjectPtr<AStickerManager> StickerManager;
+	//~ End StickerManager
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out) const override;
 };

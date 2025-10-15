@@ -10,6 +10,8 @@
 
 #include "Kismet/KismetSystemLibrary.h"
 
+int AStickerActor::SortOrder = 0;
+
 AStickerActor::AStickerActor()
 {
     bReplicates = true;
@@ -31,7 +33,7 @@ void AStickerActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
     DOREPLIFETIME(AStickerActor, AttachedComp);
 }
 
-void AStickerActor::Init(const FStickerParams& InParams)
+void AStickerActor::Init(const FStickerParams& InParams, const APlayerController* PC)
 {
     check(HasAuthority());
 
@@ -44,6 +46,7 @@ void AStickerActor::Init(const FStickerParams& InParams)
         DecalComp->SetDecalMaterial(BaseDecalMat);
         // X=Depth, Y=Width, Z=Height (원하면 비정방형 지원)
         DecalComp->DecalSize = FVector(DecalZVolume, Params.Size, Params.Size);
+        DecalComp->SortOrder = SortOrder++;
         DMI = DecalComp->CreateDynamicMaterialInstance();
     }
     ApplyParams();
