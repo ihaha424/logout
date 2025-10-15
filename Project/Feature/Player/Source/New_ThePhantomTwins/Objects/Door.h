@@ -74,7 +74,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
     int32 MinRequiredCount = 0;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door", ReplicatedUsing = OnRep_bKeyUsed)
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Door", ReplicatedUsing = OnRep_bKeyUsed)
 	bool bKeyUsed = false;
 
 	UFUNCTION()
