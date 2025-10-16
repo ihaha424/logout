@@ -48,6 +48,7 @@ void AGS_PhantomTwins::AddCollectedItem(AActor* DataFragment, int32 Delta)
     UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTSaveGame>(TPTSaveGame);
 
     CollectedItemCountChanged.Broadcast(CoreCount);
+    DynamicCollectedItemCountChanged.Broadcast(CoreCount);
     DataFragmentChanged.Broadcast(DataFragment);
 }
 
@@ -134,4 +135,5 @@ void AGS_PhantomTwins::OnRep_BossSpawned()
 void AGS_PhantomTwins::OnRep_CollectedItemCount()
 {
     CollectedItemCountChanged.Broadcast(CoreCount);
+    DynamicCollectedItemCountChanged.Broadcast(CoreCount);
 }

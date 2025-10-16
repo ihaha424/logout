@@ -9,6 +9,7 @@
 
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCollectedItemCountChanged, int32);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDynamicOnCollectedItemCountChanged, int32, FragmentCount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBossSpawnedDynamic, AActor*, BossActor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCollectedItem, AActor*, DataFragment);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedGameStop, FName , LevelName, FName, PrintingMapName);
@@ -105,6 +106,9 @@ protected:
 
 	//~ Begin BossSpawn
 	FOnCollectedItemCountChanged CollectedItemCountChanged;
+	UPROPERTY(BlueprintAssignable, Category = "DataFragment")
+
+	FDynamicOnCollectedItemCountChanged DynamicCollectedItemCountChanged;
 	UFUNCTION()
 	void OnRep_BossSpawned();
 	UFUNCTION()
