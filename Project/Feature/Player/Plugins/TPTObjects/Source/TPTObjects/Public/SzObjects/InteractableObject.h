@@ -29,6 +29,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "InteractableObject")
 	virtual void SetWidgetVisible(bool bVisible);
 
+	UFUNCTION(BlueprintCallable)
+	void SetActive(bool bIsActive)
+	{
+		bIsActived = bIsActive;
+	}
 public:	
 	// 가까운 오브젝트 확인용 위젯
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")

@@ -23,7 +23,9 @@ public:
 	static void SetSaveGameData(T* Data, const FString& SlotName = "MainSlot", int32 Slot = 0)
 	{
 		if (!UGameplayStatics::SaveGameToSlot(Data, FString(T::StaticClass()->GetName() + SlotName), Slot))
+		{
 			UE_LOG(LogTPTSaveGame, Warning, TEXT("TPTSaveGame set Fail."));
+		}
 	}
 
 	template<TPTSaveGameConcept T>
@@ -31,10 +33,15 @@ public:
 	{
 		T* SaveGameInstance = Cast<T>(UGameplayStatics::LoadGameFromSlot(FString(T::StaticClass()->GetName() + SlotName), Slot));
 		if (nullptr == SaveGameInstance)
+		{
 			SaveGameInstance = Cast<T>(UGameplayStatics::CreateSaveGameObject(T::StaticClass()));
+		}
 
-		if(nullptr == SaveGameInstance)
+		if (nullptr == SaveGameInstance)
+		{
 			UE_LOG(LogTPTSaveGame, Warning, TEXT("TPTSaveGame get Fail."));
+		}
+
 		return SaveGameInstance;
 	}
 };

@@ -57,6 +57,7 @@ public:
 
 	UPROPERTY(Replicated = true)
 	bool bIsHostClickedRestart = false;
+
 	UPROPERTY(Replicated = true)
 	bool bIsClientClickedRestart = false;
 	//~ End Restart
@@ -64,16 +65,22 @@ public:
 	// ~ Begin Stop game
 	UPROPERTY(BlueprintAssignable)
 	FOnClickedGameStop OnClickedGameStopChanged;
+
 	UPROPERTY(BlueprintAssignable)
 	FOnClickedAgreeWithGameStop OnClickedAgreeWithGameStopChanged;
 
+	UFUNCTION(BlueprintCallable)
 	void SetCharacterClickedGameStop(FName LevelName, FName PrintingName);
+
 	UFUNCTION()
 	void OnRep_SetCharacterClickedGameStop();
+
 	UFUNCTION(BlueprintCallable)
 	FName GetPrintingMapName() const { return PrintingMapName; }
+
 	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterClickedGameStop)
 	FName DestinationLevelName;
+
 	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterClickedGameStop)
 	FName PrintingMapName;
 

@@ -34,4 +34,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BaseObject")
 	bool bCanInteract = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Save")
+	FGuid PersistentActorID;
 };

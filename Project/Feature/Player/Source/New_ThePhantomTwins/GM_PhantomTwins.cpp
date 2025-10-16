@@ -12,6 +12,7 @@
 
 #include "Log/TPTLog.h"
 #include "Player/PC_Player.h"
+#include "SaveGame/TPTSaveGameManager.h"
 
 AGM_PhantomTwins::AGM_PhantomTwins()
 {
@@ -77,6 +78,9 @@ void AGM_PhantomTwins::PostLogin(APlayerController* NewPlayer)
     Super::PostLogin(NewPlayer);
 
     TotalPlayerCount++;
+
+    UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+    SaveGameManager->LoadSaveGame();
 }
 
 void AGM_PhantomTwins::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -187,9 +191,16 @@ void AGM_PhantomTwins::ShowGameOverUI()
 {
     SetAllPlayerUIMode(true);
     // 게임 시간을 정지하는 방법... 게임시간 여기에서 정지시키니까 트래블도 안됨.
-    APlayerController* PC = GetWorld()->GetFirstPlayerController();
-    APC_Player* ServerPC = Cast< APC_Player>(PC);
-    ServerPC->SetWidget(TEXT("GameOver"), true, EMessageTargetType::Multicast);
+    FTimerHandle TimerHandle;
+    GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+        {
+            APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    		APC_Player* ServerPC = Cast< APC_Player>(PC);
+            ServerPC->SetWidget(TEXT("GameOver"), true, EMessageTargetType::Multicast);
+        },
+        1.f,
+        false
+    );
 }
 
 void AGM_PhantomTwins::NotifyPlayerClickRestart(bool bIsHostClicked, bool bIsClientClicked)

@@ -4,12 +4,11 @@
 #include "Blueprint/UserWidget.h"
 #include "../Player/PC_Player.h"
 #include "../Player/PlayerCharacter.h"
-#include "../UI/HUD/PlayerHUDWidget.h"
 #include "../UI/DataFragmentPickupWidget.h"
 #include "GS_PhantomTwins.h"
+#include "Kismet/GameplayStatics.h"
 #include "Log/TPTLog.h"
-#include "SaveGame/TPTSaveGame.h"
-#include "SaveGame/TPTSaveGameHelperLibrary.h"
+#include "SaveGame/TPTSaveGameManager.h"
 
 ADataFragment::ADataFragment()
 {
@@ -41,12 +40,34 @@ void ADataFragment::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	bIsActived = true;
 
+	const APlayerCharacter* Player = Cast<APlayerCharacter>(Interactor);
+	NULLCHECK_RETURN_LOG(Player, ItemLog, Warning, );
+	UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+	SaveGameManager->SaveRestartPoint(Player->GetActorLocation(), Player->GetActorRotation());
+
+	UWorld* World = GetWorld();
+	NULLCHECK_RETURN_LOG(World, ItemLog, Warning, );
+
+	APlayerController* HostPC = World->GetFirstPlayerController();
+	if (HostPC)
+	{
+		SaveGameManager->TempSavePlayer(HostPC, HasAuthority());
+	}
+
+	APlayerController* ClientPC = UGameplayStatics::GetPlayerController(World, 0);
+	if (ClientPC && ClientPC->IsLocalController())
+	{
+		SaveGameManager->TempSavePlayer(ClientPC, HasAuthority());
+	}
+	
 	InvokeGameplayCue(Interactor);
 	ApplyEffectToTarget(Interactor);
 
 	SetDataFragmentPickupWidget();
 
 	DestroyItem();
+
+	SaveGameManager->SaveUpdate();
 }
 
 void ADataFragment::SetDataFragmentPickupWidget()
@@ -85,13 +106,6 @@ void ADataFragment::SetDataFragmentPickupWidget()
 			WidgetDuration,
 			false
 		);
-
-		APlayerCharacter* MyCharacter = Cast<APlayerCharacter>(PC_Player->GetPawn());
-		NULLCHECK_RETURN_LOG(MyCharacter, ItemLog, Warning, );
-		UTPTSaveGame* TPTSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
-		TPTSaveGame->PlayerLocation = MyCharacter->GetActorLocation();
-		TPTSaveGame->PlayerRotation = MyCharacter->GetActorRotation();
-		UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTSaveGame>(TPTSaveGame);
 	}
 }
 

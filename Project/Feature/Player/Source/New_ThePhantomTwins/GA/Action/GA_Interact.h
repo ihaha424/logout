@@ -25,11 +25,14 @@ public:
 	UFUNCTION(Server, Reliable)
 	void C2S_Interact(UObject* interact, AActor* Owner);
 	void C2S_Interact_Implementation(UObject* interact, AActor* Owner);
-	UFUNCTION()
+
+	UFUNCTION(BlueprintCallable)
 	void OnMontageComplete();
 	void InteractExecute();
+
 	UPROPERTY()
 	APlayerCharacter* Character = nullptr;
+
 	UPROPERTY()
 	AActor* TargetActor = nullptr;
 

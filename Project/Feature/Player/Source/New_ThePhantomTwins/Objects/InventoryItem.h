@@ -22,7 +22,9 @@ protected:
 
 public:
 	virtual bool CanInteract_Implementation(const APawn* Interactor, bool bIsDetected) override;
+
 	void SetWidgetVisible(const APawn* Interactor, bool bVisible, EItemType eItemType);
+
 	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
 
 	EItemType GetEItemType(){return ItemType;}

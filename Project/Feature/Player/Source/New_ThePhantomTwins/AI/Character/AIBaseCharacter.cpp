@@ -31,6 +31,8 @@ AAIBaseCharacter::AAIBaseCharacter()
 
     CombatRange = CreateDefaultSubobject<USphereComponent>(TEXT("CombatRangeSphereComponent"));
     CombatRange->SetupAttachment(RootComponent);
+
+    PersistentActorID = FGuid::NewGuid();
 }
 
 void AAIBaseCharacter::BeginPlay()
@@ -91,6 +93,11 @@ void AAIBaseCharacter::BeginPlay()
         AbilitySystem->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Combat)
             .AddUObject(this, &AAIBaseCharacter::ResetDataForState);
         ResetDataForState(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Default, 1); // Initialize
+    }
+
+    if (!PersistentActorID.IsValid())
+    {
+        PersistentActorID = FGuid::NewGuid();
     }
 }
 

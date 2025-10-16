@@ -103,6 +103,9 @@ public:
 	void CancleChaseActorGA();
 	//~ End AI Control(Combat)
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Save")
+	FGuid PersistentActorID;
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystem;

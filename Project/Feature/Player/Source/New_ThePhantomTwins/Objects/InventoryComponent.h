@@ -77,10 +77,10 @@ public:
     UPROPERTY(EditDefaultsOnly, Replicated)
     FText QuestionBoxText;
 
-protected:
     UPROPERTY(EditDefaultsOnly, ReplicatedUsing=OnRep_InventorySlots)
     TArray<FItemSlot> InventorySlots;
 
+protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     TObjectPtr<UDataTable> ItemAbilityTable;
 
