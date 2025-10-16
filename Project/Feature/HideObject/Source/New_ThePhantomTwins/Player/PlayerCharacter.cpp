@@ -770,8 +770,11 @@ void APlayerCharacter::HideLook(const FInputActionValue& Value)
 		FRotator CurrentRot = PlayerController->GetControlRotation();
 
 		// 제한 각도 계산
-		float NewPitch = FMath::Clamp(CurrentRot.Pitch + LookAxisVector.Y, -89.9f, 89.9f);   // 상하 제한
-		float NewYaw = FMath::Clamp(CurrentRot.Yaw + LookAxisVector.X, 150.0f, 210.0f);    // 좌우 제한(원하는 범위로 조절)
+		//float NewPitch = FMath::Clamp(CurrentRot.Pitch + LookAxisVector.Y, -89.9f, 89.9f);   // 상하 제한
+		//float NewYaw = FMath::Clamp(CurrentRot.Yaw + LookAxisVector.X, 150.0f, 210.0f);    // 좌우 제한(원하는 범위로 조절)
+
+		float NewPitch = CurrentRot.Pitch + LookAxisVector.Y; // 상하 제한 없음
+		float NewYaw = CurrentRot.Yaw + LookAxisVector.X;     // 좌우 제한 없음
 
 		// 회전값 적용
 		PlayerController->SetControlRotation(FRotator(NewPitch, NewYaw, 0.f));
