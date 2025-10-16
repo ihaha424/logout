@@ -13,8 +13,26 @@
 void UDroneStatWidget::NativeConstruct()
 {
     Super::NativeConstruct();
+
+    if (AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>())
+    {
+        ItemChangedHandle = GS->OnCollectedItemCountChanged().AddUObject(
+            this, &UDroneStatWidget::SetClearItemCount);
+    }
+
     SetMaxClearItem();
     SetClearItemCount(0);
+}
+
+void UDroneStatWidget::NativeDestruct()
+{
+    if (AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>())
+    {
+        if (ItemChangedHandle.IsValid())
+            GS->OnCollectedItemCountChanged().Remove(ItemChangedHandle);
+    }
+
+    Super::NativeDestruct();
 }
 
 void UDroneStatWidget::SetMaxClearItem()

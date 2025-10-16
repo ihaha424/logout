@@ -60,10 +60,10 @@ APlayerCharacter::APlayerCharacter()
 	DroneWidget->SetupAttachment(GetMesh());
 	DroneWidget->SetRelativeLocation(FVector(0, 0, 0));
 
-	PostProcessComponent = CreateDefaultSubobject<UPostProcessComponent>(TEXT("Vignette"));
-	PostProcessComponent->SetupAttachment(RootComponent);
-	PostProcessComponent->bUnbound = false;
-	PostProcessComponent->Priority = 1.f;
+	PostProcessComp = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PlayerVFX"));
+	PostProcessComp->SetupAttachment(RootComponent);
+	PostProcessComp->bUnbound = false;
+	PostProcessComp->Priority = 1.f;
 
 	BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
 	BoxComp->SetupAttachment(RootComponent);
@@ -128,22 +128,14 @@ void APlayerCharacter::BeginPlay()
 	DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 	DroneWidget->SetCastShadow(false);
 
-	if (DroneWidget)
+	if (Drone)
 	{
-		// 실제 UUserWidget 인스턴스 가져오기
-		UUserWidget* WidgetInstance = DroneWidget->GetUserWidgetObject();
-		DroneUserWidget = Cast<UDroneStatWidget>(WidgetInstance);
+		DroneUserWidget = Cast<UDroneStatWidget>(Drone);
 	}
 
 	FocusTrace->SetIsReplicated(true);
 
-	NULLCHECK_RETURN_LOG(VignetteMaterial, PlayerLog, Error, );
-	VignetteMID = UMaterialInstanceDynamic::Create(VignetteMaterial, this);
-	FWeightedBlendable Blendable;
-	Blendable.Object = VignetteMID;
-	Blendable.Weight = 0.0f;
-
-	PostProcessComponent->Settings.WeightedBlendables.Array.Add(Blendable);
+	InitPostProcessComponent();
 
 	if (IsLocallyControlled())
 	{
@@ -156,6 +148,16 @@ void APlayerCharacter::BeginPlay()
 		PlayerController->RegisterWidget(TEXT("ESC"), CreateWidget(GetWorld(), ESCWidgetClass));
 		PlayerController->RegisterWidget(TEXT("GameStop"), CreateWidget(GetWorld(), GameStopWidgetClass));
 		PlayerController->RegisterWidget(TEXT("ResumeCount"), CreateWidget(GetWorld(), ResumeCountWidgetClass));
+
+		if (DroneUserWidget)
+		{
+			SetHP(HealthPoint);
+			SetMP(MentalPoint);
+		}
+		else
+		{
+			TPT_LOG(HUDLog, Error, TEXT("InitHUDWidget: DroneUserWidget is null"));
+		}
 	}
 
 	// RecoveryGauge Time
@@ -344,6 +346,88 @@ void APlayerCharacter::SetHoldingGaugeUI_Implementation(const APawn* Interactor,
 	PC->SetWidget(TEXT("RecoveryGauge"), bVisible, EMessageTargetType::Multicast);
 }
 
+void APlayerCharacter::InitPostProcessComponent()
+{
+	NULLCHECK_RETURN_LOG(HitVignette, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(DownedVignette, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(Confused3rdVignette, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(TrapVignette, PlayerLog, Error, );
+
+	UMaterialInstanceDynamic* HitMID = UMaterialInstanceDynamic::Create(HitVignette, this);
+	UMaterialInstanceDynamic* LowHPMID = UMaterialInstanceDynamic::Create(DownedVignette, this);
+	UMaterialInstanceDynamic* Confused3rdMID = UMaterialInstanceDynamic::Create(Confused3rdVignette, this);
+	UMaterialInstanceDynamic* TrapMID = UMaterialInstanceDynamic::Create(TrapVignette, this);
+
+	HitBlendable.Object = HitMID;
+	HitBlendable.Weight = 0.0f;
+
+	DownedBlendable.Object = LowHPMID;
+	DownedBlendable.Weight = 0.0f;
+
+	Confused3rdBlendable.Object = Confused3rdMID;
+	Confused3rdBlendable.Weight = 0.0f;
+
+	TrapBlendable.Object = TrapMID;
+	TrapBlendable.Weight = 0.0f;
+
+	PostProcessComp->Settings.WeightedBlendables.Array.Add(HitBlendable);
+	PostProcessComp->Settings.WeightedBlendables.Array.Add(DownedBlendable);
+	PostProcessComp->Settings.WeightedBlendables.Array.Add(TrapBlendable);
+	PostProcessComp->Settings.WeightedBlendables.Array.Add(Confused3rdBlendable);
+}
+
+void APlayerCharacter::SetHP(int32 value)
+{
+	NULLCHECK_RETURN_LOG(DroneUserWidget, HUDLog, Error, );
+	//TPT_LOG(HUDLog, Log, TEXT("HP : %d"), value);
+	DroneUserWidget->SetHP(value);
+}
+
+void APlayerCharacter::SetMP(int32 value)
+{
+	NULLCHECK_RETURN_LOG(DroneUserWidget, HUDLog, Error, );
+	//TPT_LOG(HUDLog, Log, TEXT("MP : %d"), value);
+	DroneUserWidget->SetMP(value);
+}
+
+void APlayerCharacter::SettingPostProcessComponentBlendable(EVignetteType Type, float Weight)
+{
+	NULLCHECK_RETURN_LOG(PostProcessComp, PlayerLog, Warning, );
+
+	if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 0)
+		return;
+
+	FPostProcessSettings NewSettings;
+	NewSettings = PostProcessComp->Settings;
+
+	switch (Type)
+	{
+	case EVignetteType::HitVignette:
+		NewSettings.WeightedBlendables.Array[0].Object = HitBlendable.Object;
+		NewSettings.WeightedBlendables.Array[0].Weight = Weight;
+		break;
+	case EVignetteType::DownedVignette:
+		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 1) return;
+		NewSettings.WeightedBlendables.Array[1].Object = DownedBlendable.Object;
+		NewSettings.WeightedBlendables.Array[1].Weight = Weight;
+		break;
+	case EVignetteType::TrapVignette:
+		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 2) return;
+		NewSettings.WeightedBlendables.Array[2].Object = TrapBlendable.Object;
+		NewSettings.WeightedBlendables.Array[2].Weight = Weight;
+		break;
+	case EVignetteType::Confused3rdVignette:
+		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 3) return;
+		NewSettings.WeightedBlendables.Array[3].Object = Confused3rdBlendable.Object;
+		NewSettings.WeightedBlendables.Array[3].Weight = Weight;
+		break;
+	default:
+		break;
+	}
+
+	PostProcessComp->Settings = NewSettings;
+}
+
 void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 {
 	if (!AttributeSet) return;
@@ -377,6 +461,9 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 	int32 CoreEnergy = AttributeSet->GetMaxCoreEnergy();
 
 	PlayerHUDWidget->InitializeWidgets(HP, Mental, Stamina, CoreEnergy);
+
+	HealthPoint = HP;
+	MentalPoint = Mental;
 
 	PS->InventoryComp->SetPlayerHUDWidget(PlayerHUDWidget);
 }
@@ -515,6 +602,8 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 		AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
 		AttributeSet->OnFullStamina.AddDynamic(this, &ThisClass::HidePlayerHUDStaminaSet);
 		AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
+		AttributeSet->OnChangedHP.AddDynamic(this, &APlayerCharacter::SetHP);
+		AttributeSet->OnChangedMentalPoint.AddDynamic(this, &APlayerCharacter::SetMP);
 	}
 }
 
