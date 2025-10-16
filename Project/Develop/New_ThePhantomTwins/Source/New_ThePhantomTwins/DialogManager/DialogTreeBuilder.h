@@ -9,8 +9,8 @@ class UDialogTreeBuilder
 {
 public:
     // LevelPath 경로에 해당하는 리프에 ID 추가
-    static FDialogNode* AddLeafByPath(FDialogNode* Root, const TArray<int32>& InLevelPath, int32 LeafID, bool bUnique = true, bool bAllowPromoteLeafToInternal = false);
-    static FDialogNode* AddTriggerEventByPath(FDialogNode* Root, const TArray<int32>& InLevelPath, int32 TriggerKey, bool bUnique = true, bool bAllowPromoteLeafToInternal = false);
+    static FDialogNode* AddLeafByPath(FDialogNode* Root, const TArray<int32>& InLevelPath, int32 LeafID, int64 LogicalID, bool bUnique = true, bool bAllowPromoteLeafToInternal = false);
+    static FDialogNode* AddTriggerEventByPath(FDialogNode* Root, const TArray<int32>& InLevelPath, int32 TriggerKey, int64 LogicalID, bool bUnique = true, bool bAllowPromoteLeafToInternal = false);
 
 
 private:

@@ -21,13 +21,14 @@ class NEW_THEPHANTOMTWINS_API UDialogManager : public UObject
 public:
 	void Initialize(TMap<TSubclassOf<UUserWidget>, TObjectPtr<UDataTable>>& InitializeData);
 
+	// ~Begin Main Sequence
 	UFUNCTION(BlueprintCallable, Category = "DialogManager | DialogNode")
-	int32 NextSequence(int32 Jump = 1);
+	int32 NextSequence(int32 Jump = 1, bool bExcuteBindEvent = false);
 
 	UFUNCTION(BlueprintCallable, Category = "DialogManager | DialogNode")
-	void SetSequence(const TArray<int32>& LevelIndex);
+	void SetSequence(const TArray<int32>& LevelIndex, bool bExcuteBindEvent = false);
 	template<EnumValue Enum>
-	void SetSequence(const TArray<Enum>& LevelIndex)
+	void SetSequence(const TArray<Enum>& LevelIndex, bool bExcuteBindEvent = false)
 	{
 		TArray<int32> AsInt;
 		AsInt.Reserve(LevelIndex.Num());
@@ -36,7 +37,7 @@ public:
 			using U = std::underlying_type_t<Enum>;
 			AsInt.Add(static_cast<int32>(static_cast<U>(E)));
 		}
-		SetSequence(AsInt);
+		SetSequence(AsInt, bExcuteBindEvent);
 	}
 
 	UFUNCTION(BlueprintCallable, Category = "DialogManager | DialogNode")
@@ -54,6 +55,39 @@ public:
 		return Out;
 	}
 
+	//		//	~Begin Dialog Binding Event
+	UFUNCTION(BlueprintCallable, Category = "DialogManager | EvnetDelegate")
+	bool AddByDialogEvent(const TArray<int32>& Level, int32 Index, UObject* Target, FName FunctionName);
+	template<class UserClass>
+	bool AddByDialogEvent(const TArray<int32>& Level, int32 Index, UserClass* Listener, void (UserClass::* Func)(int32))
+	{
+		if (!Listener || !Func) return false;
+		uint64  LogicalID = MakeLogicalID(Level, Index, false);
+		auto& Ev = ExcuteByDialogEventMap.FindOrAdd(LogicalID);
+		Ev.AddDynamic(Listener, Func);
+		return true;
+	}
+
+	UFUNCTION(BlueprintCallable, Category = "DialogManager | EvnetDelegate")
+	bool RemoveyDialogEvent(const TArray<int32>& Level, int32 Index, UObject* Target, FName FunctionName);
+	template<class UserClass>
+	bool RemoveByDialogEvent(const TArray<int32>& Level, int32 Index, UserClass* Listener, void (UserClass::* Func)(int32))
+	{
+		uint64  LogicalID = MakeLogicalID(Level, Index, false);
+		if (FExcuteByDialogEvent* Ev = ExcuteByDialogEventMap.Find(LogicalID))
+		{
+			Ev->RemoveDynamic(Listener, Func);
+			return true;
+		}
+		return false;
+	}
+
+	UFUNCTION(BlueprintCallable, Category = "DialogManager | EvnetDelegate")
+	bool ExcuteByDialogEvent(const TArray<int32>& Level, int32 Index);
+	//		// ~End Dialog Binding Event
+	// ~End Main Sequence
+
+	// ~Begin EventTrriger
 	UFUNCTION(BlueprintCallable, Category = "DialogManager | DialogNode")
 	int32 EventTrriger(int32 Level, int32 Index) const;
 	template<EnumValue Enum>
@@ -65,40 +99,26 @@ public:
 		int32 out = EventTrriger(L, I);
 		return static_cast<Enum>(out);
 	}
-	UFUNCTION(BlueprintCallable, Category = "DialogManager | EvnetDelegate")
-	bool AddByDialogEvent(int32 Index, UObject* Target, FName FunctionName);
-	template<class UserClass>
-	bool AddByDialogEvent(int32 Index, UserClass* Listener, void (UserClass::* Func)(int32))
-	{
-		if (!Listener || !Func) return false;
-		auto& Ev = ExcuteByDialogEventMap.FindOrAdd(Index);
-		Ev.AddDynamic(Listener, Func);
-		return true;
-	}
-
-	UFUNCTION(BlueprintCallable, Category = "DialogManager | EvnetDelegate")
-	bool RemoveyDialogEvent(int32 Index, UObject* Target, FName FunctionName);
-	template<class UserClass>
-	bool RemoveByDialogEvent(int32 Index, UserClass* Listener, void (UserClass::* Func)(int32))
-	{
-		if (FExcuteByDialogEvent* Ev = ExcuteByDialogEventMap.Find(Index))
-		{
-			Ev->RemoveDynamic(Listener, Func);
-			return true;
-		}
-		return false;
-	}
-
-	UFUNCTION(BlueprintCallable, Category = "DialogManager | EvnetDelegate")
-	bool ExcuteByDialogEvent(int32 Index);
+	// ~End EventTrriger
 
 
 protected:
+	// ~Begin Database
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogManager | Database")
 	TObjectPtr<UDialogDatabaseAsset> DataBase;
+	// ~End Database
 
-	UPROPERTY()
-	TMap<int32, FExcuteByDialogEvent> ExcuteByDialogEventMap;
 
+	// ~Begin Main Sequence
 	FDialogNode DialogNode;
+	//		//	~Begin Dialog Binding Event
+	UPROPERTY()
+	TMap<int64, FExcuteByDialogEvent> ExcuteByDialogEventMap;
+	//		// ~End Dialog Binding Event
+	// ~End Main Sequence
+
+
+private:
+	// Utils Function
+	int32 MakeLogicalID(const TArray<int32> Level, int32 ID, bool bTriggered) const;
 };
