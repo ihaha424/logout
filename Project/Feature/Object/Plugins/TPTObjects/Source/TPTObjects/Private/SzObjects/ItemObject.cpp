@@ -6,6 +6,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
+#include "GeometryCacheComponent.h"
 
 AItemObject::AItemObject() : AInteractableObject()
 {
@@ -74,6 +75,21 @@ void AItemObject::DestroyItem()
 			NiagaraComp->Deactivate();
 			NiagaraComp->SetVisibility(false);
 			NiagaraComp->SetComponentTickEnabled(false);
+		}
+	}
+
+	TArray<UGeometryCacheComponent*> GeometryCacheComponents;
+	GetComponents<UGeometryCacheComponent>(GeometryCacheComponents);
+
+	for (UGeometryCacheComponent* GCComp : GeometryCacheComponents)
+	{
+		if (GCComp)
+		{
+			GCComp->SetHiddenInGame(true);
+			GCComp->SetVisibility(false);
+			GCComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			GCComp->Stop(); // 재생 중지
+			GCComp->SetComponentTickEnabled(false);
 		}
 	}
 

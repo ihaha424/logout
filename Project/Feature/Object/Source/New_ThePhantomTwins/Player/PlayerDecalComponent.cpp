@@ -9,6 +9,9 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
 #include "Decal/StickerLibrary.h"
+#include "GS_PhantomTwins.h"
+#include "Decal/StickerManager.h"
+#include "GameFramework/PlayerState.h"
 
 #include "Log/TPTLog.h"
 
@@ -38,9 +41,6 @@ bool UPlayerDecalComponent::TryPlaceSticker(int32 EmojiId, float Size, float Lif
     APlayerController* PC = Cast<APlayerController>(Pawn->GetController());
     NULLCHECK_RETURN_LOG(PC, PlayerLog, Warning, false);
 
-    ULocalPlayer* LocalPlayer = Cast<ULocalPlayer>(PC->Player);
-    NULLCHECK_RETURN_LOG(LocalPlayer, PlayerLog, Warning, false);
-
     FVector CamLoc; FRotator CamRot;
     PC->GetPlayerViewPoint(CamLoc, CamRot);
 
@@ -65,6 +65,7 @@ void UPlayerDecalComponent::PlaceSticker(const FHitResult& Hit, const FStickerPa
     if (!Hit.bBlockingHit || !StickerActorClass) return;
 
     const AActor* InstigatorActor = GetOwner();
+    const APlayerController* PC = InstigatorActor->GetInstigatorController<APlayerController>();
     if (!InstigatorActor) return;
 
     if (FVector::Dist(Hit.TraceStart, Hit.ImpactPoint) > MaxDist) return;
@@ -75,6 +76,12 @@ void UPlayerDecalComponent::PlaceSticker(const FHitResult& Hit, const FStickerPa
 
     SA->Init(Params);
     SA->FinishSpawning(FTransform::Identity);
-    SA->PlaceOnHit(Hit, bAttach);
+    SA->PlaceOnHit(Hit, PC, bAttach);
+    AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>();
+    if (GS)
+    {
+        const int OwnerPlayerId = PC->PlayerState ? PC->PlayerState->GetPlayerId() : -1;
+        GS->GetStickerManager()->RegisterSticker(OwnerPlayerId, SA);
+    }
 }
 

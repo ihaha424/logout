@@ -58,6 +58,14 @@ void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
     OwnerActor = GetAvatarActorFromActorInfo();
 	NULLCHECK_RETURN_LOG(OwnerActor, GALog, Warning, );
 
+	APlayerCharacter* Character = Cast<APlayerCharacter>(OwnerActor);
+
+	FGameplayCueParameters Param;
+	Param.SourceObject = this;
+	Param.Instigator = ActorInfo->AvatarActor;
+	Param.Location = ActorInfo->AvatarActor->GetActorLocation();
+    ASC->ExecuteGameplayCue(FTPTGameplayTags::Get().GameplayCue_Notify_ScanEffect, Param);
+
 	// 아우라 효과를 자기 자신에게도 적용 (초기설정)
 	ApplyAuraToTarget(OwnerActor);
 

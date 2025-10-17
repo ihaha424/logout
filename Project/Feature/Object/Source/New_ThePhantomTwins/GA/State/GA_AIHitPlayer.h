@@ -40,9 +40,6 @@ protected:
 	UAudioComponent* ActiveAudioComponent = nullptr;
 
 	// Fade 관련 함수 및 변수
-	void FadeOutHitEffect();
+	void VignetteEffectOff();
 	FTimerHandle FadeTimerHandle;
-	float CurrentWeight;
-	float FinalWeight;
-	float InterpSpeed = 2.0f;
 };

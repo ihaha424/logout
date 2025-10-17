@@ -22,7 +22,8 @@ public class New_ThePhantomTwins : ModuleRules
             "OnlineSubsystem",
             "Sockets",
             "Networking",
-            "Niagara"
+            "Niagara",
+            "GeometryCache"
 
         });
 

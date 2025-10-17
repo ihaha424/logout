@@ -6,8 +6,10 @@
 #include "AbilitySystemComponent.h"
 #include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Player/PlayerCharacter.h"
 #include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
+#include "Components/PostProcessComponent.h"
 
 UGA_Confused3rd::UGA_Confused3rd()
 {
@@ -26,24 +28,33 @@ void UGA_Confused3rd::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 	NULLCHECK_RETURN_LOG(ASC, GALog, Error, );
 	ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd).AddUObject(this, &UGA_Confused3rd::OffSound);
 
-	if (ActorInfo && ActorInfo->IsLocallyControlled())
+	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
+
+	if (Character && Character->IsLocallyControlled())
 	{
 		if (USoundBase* Sound = SoundCue1st) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함
 		{
-			ActiveAudioComponent1st = UGameplayStatics::SpawnSoundAttached(Sound, ActorInfo->AvatarActor->GetRootComponent());
+			ActiveAudioComponent1st = UGameplayStatics::SpawnSoundAttached(Sound, Character->GetRootComponent());
 		}
 		if (USoundBase* Sound = SoundCue2nd) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함
 		{
-			ActiveAudioComponent2nd = UGameplayStatics::SpawnSoundAttached(Sound, ActorInfo->AvatarActor->GetRootComponent());
+			ActiveAudioComponent2nd = UGameplayStatics::SpawnSoundAttached(Sound, Character->GetRootComponent());
 		}
+
+		Character->SettingPostProcessComponentBlendable(EVignetteType::Confused3rdVignette, 1.0f);
 	}
 }
 
 void UGA_Confused3rd::EndAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	APlayerCharacter* Character = Cast<APlayerCharacter>(GetActorInfo().AvatarActor);
+	NULLCHECK_RETURN_LOG(Character, GALog, Error, );
+
 	if (ActorInfo && ActorInfo->IsLocallyControlled())
 	{
+		Character->SettingPostProcessComponentBlendable(EVignetteType::Confused3rdVignette, 0.0f);
+
 		if (ActiveAudioComponent1st)
 		{
 			ActiveAudioComponent1st->Stop();
@@ -61,8 +72,12 @@ void UGA_Confused3rd::EndAbility(FGameplayAbilitySpecHandle Handle, const FGamep
 void UGA_Confused3rd::OffSound(const FGameplayTag InputTag, int32 Count)
 {
 	bool bHasSoundTag = Count > 0;
+	APlayerCharacter* Character = Cast<APlayerCharacter>(GetActorInfo().AvatarActor);
+	NULLCHECK_RETURN_LOG(Character, GALog, Error, );
+
 	if (!bHasSoundTag)
 	{
+		Character->SettingPostProcessComponentBlendable(EVignetteType::Confused3rdVignette, 0.0f);
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	}
 }

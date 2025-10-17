@@ -6,6 +6,7 @@
 #include "Log/TPTLog.h"
 #include "Player/PlayerCharacter.h"
 #include "Attribute/PlayerAttributeSet.h"
+#include "Components/PostProcessComponent.h"
 #include "Tags/TPTGameplayTags.h"
 
 UGA_LowHP::UGA_LowHP()

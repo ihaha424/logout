@@ -29,7 +29,8 @@ public class TPTObjects : ModuleRules
                 "GameplayAbilities",
                 "GameplayTags",
                 "GameplayTasks",
-                "Niagara"
+                "Niagara",
+                "GeometryCache"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

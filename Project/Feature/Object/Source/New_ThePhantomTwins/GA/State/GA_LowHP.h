@@ -6,6 +6,8 @@
 #include "Abilities/GameplayAbility.h"
 #include "GA_LowHP.generated.h"
 
+class UPostProcessComponent;
+
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UGA_LowHP : public UGameplayAbility
 {

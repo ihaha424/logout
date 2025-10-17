@@ -8,6 +8,7 @@ TPT_TAG_GEN(Notify, Scanner_Berserker, "Scanner Berserker")
 
 // Player
 TPT_TAG_GEN(Notify, Navigation, "Navigation Indicator")
+TPT_TAG_GEN(Notify, ScanEffect, "Scan Effect")
 
 // AI Footstep_Mansion
 // 저택 맵에 들어갈 적 발소리 테스트용입니다.

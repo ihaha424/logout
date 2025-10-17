@@ -28,9 +28,6 @@ public:
 
 	virtual void OnDestroy_Implementation(const APawn* Interactor) override;
 
-	UFUNCTION(BlueprintCallable, Category="HideObject | Camera")
-	void UpdateCameraRotation(const FVector2D LookAxis);
-
 protected:
 	void CamLogicServer(const APawn* Interactor);
 	void CamLogicClient(const APawn* Interactor);
@@ -72,9 +69,6 @@ public:
 	TObjectPtr<class USphereComponent> SphereCollisionComp;
 
 	// 카메라
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HideObject | Camera")
-	TObjectPtr<class USpringArmComponent> SpringArm;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "HideObject | Camera")
 	TObjectPtr<class UCameraComponent> HideCameraComp;
 

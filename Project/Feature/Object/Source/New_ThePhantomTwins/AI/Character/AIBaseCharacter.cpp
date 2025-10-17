@@ -79,7 +79,7 @@ void AAIBaseCharacter::BeginPlay()
         {
             // If you Want to Cue Register, Here.
         }
-
+        
         AbilitySystem->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Die)
             .AddUObject(this, &AAIBaseCharacter::ResetDataForState);
         AbilitySystem->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Stun)

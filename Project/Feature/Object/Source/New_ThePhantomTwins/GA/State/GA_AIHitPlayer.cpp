@@ -40,19 +40,12 @@ void UGA_AIHitPlayer::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 			ActiveAudioComponent = UGameplayStatics::SpawnSoundAttached(Sound, Character->GetRootComponent());
 		}
 
-		PPComp = Character->FindComponentByClass<UPostProcessComponent>();
-		if (PPComp && PPComp->Settings.WeightedBlendables.Array.Num() > 0)
-		{
-			// 즉시 효과 켜기
-			FPostProcessSettings NewSettings = PPComp->Settings;
-			NewSettings.WeightedBlendables.Array[0].Weight = 0.5f;
-			PPComp->Settings = NewSettings;
+		Character->SettingPostProcessComponentBlendable(EVignetteType::HitVignette, 1.0f);
 
-			// 0.1초 후에 자동으로 끄기
-			FTimerHandle TempHandle;
-			GetWorld()->GetTimerManager().SetTimer(
-				TempHandle, this, &UGA_AIHitPlayer::FadeOutHitEffect, 0.3f, false);
-		}
+		// 0.1초 후에 자동으로 끄기
+		FTimerHandle TempHandle;
+		GetWorld()->GetTimerManager().SetTimer(
+			TempHandle, this, &UGA_AIHitPlayer::VignetteEffectOff, 0.5f, false);
 	}
 
 	HitMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("HitMontage"), HitMontage, 1.0f);
@@ -92,12 +85,9 @@ void UGA_AIHitPlayer::OnMontageComplete()
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
-void UGA_AIHitPlayer::FadeOutHitEffect()
+void UGA_AIHitPlayer::VignetteEffectOff()
 {
-	if (!PPComp || PPComp->Settings.WeightedBlendables.Array.Num() == 0)
-		return;
-
-	FPostProcessSettings NewSettings = PPComp->Settings;
-	NewSettings.WeightedBlendables.Array[0].Weight = 0.0f;
-	PPComp->Settings = NewSettings;
+	APlayerCharacter* Character = Cast<APlayerCharacter>(GetActorInfo().AvatarActor);
+	NULLCHECK_RETURN_LOG(Character, GALog, Error, );
+	Character->SettingPostProcessComponentBlendable(EVignetteType::HitVignette, 0.0f);
 }

@@ -38,7 +38,7 @@ public:
     /**
      * @brief : Initialize is only Sever.
      */
-    void Init(const FStickerParams& InParams);
+    void Init(const FStickerParams& InParams, const APlayerController* PC = nullptr);
 
 protected:
     UPROPERTY(EditDefaultsOnly, Category = "Sticker")
@@ -64,5 +64,9 @@ protected:
 
 public:
     // Processing of world position/rotation/attachment with hit information
-    void PlaceOnHit(const FHitResult& Hit, bool bAttachToHitComponent);
+    void PlaceOnHit(const FHitResult& Hit, const APlayerController* PC, bool bAttachToHitComponent);
+
+private:
+    const float DecalZVolume = 1.f;
+    static int SortOrder;
 };

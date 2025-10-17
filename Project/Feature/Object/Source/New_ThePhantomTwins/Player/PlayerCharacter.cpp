@@ -28,12 +28,12 @@
 #include "Components/WidgetComponent.h"
 #include "Objects/InventoryComponent.h"
 #include "Objects/HeldItemComponent.h"
-#include "Objects/InteractHideObject.h"
 #include "UI/HUD/PlayerHUDWidget.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/PostProcessComponent.h"
 #include "Components/BoxComponent.h"
 #include "Data/DT_Skill.h"
+#include "UI/DroneStatWidget.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -56,10 +56,14 @@ APlayerCharacter::APlayerCharacter()
 	DownedWidget->SetupAttachment(GetMesh());
 	DownedWidget->SetRelativeLocation(FVector(0, 0, 0));
 
-	PostProcessComponent = CreateDefaultSubobject<UPostProcessComponent>(TEXT("Vignette"));
-	PostProcessComponent->SetupAttachment(RootComponent);
-	PostProcessComponent->bUnbound = false;
-	PostProcessComponent->Priority = 1.f;
+	DroneWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DroneWidget"));
+	DroneWidget->SetupAttachment(GetMesh());
+	DroneWidget->SetRelativeLocation(FVector(0, 0, 0));
+
+	PostProcessComp = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PlayerVFX"));
+	PostProcessComp->SetupAttachment(RootComponent);
+	PostProcessComp->bUnbound = false;
+	PostProcessComp->Priority = 1.f;
 
 	BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
 	BoxComp->SetupAttachment(RootComponent);
@@ -88,7 +92,6 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& O
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(APlayerCharacter, RecoveryPercent);
 	DOREPLIFETIME(APlayerCharacter, CurrentWallRange);
-	DOREPLIFETIME(APlayerCharacter, CurrHideObj);
 }
 
 void APlayerCharacter::BeginPlay()
@@ -113,15 +116,26 @@ void APlayerCharacter::BeginPlay()
 	DownedWidget->SetWidget(Down);
 	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
+	DroneMesh = FindComponentByTag<USkeletalMeshComponent>(TEXT("DroneMesh"));
+	if (DroneMesh)
+	{
+		DroneWidget->AttachToComponent(DroneMesh, FAttachmentTransformRules::KeepRelativeTransform);
+		TPT_LOG(PlayerLog, Log, TEXT("Attach Complete! : %s"), *DroneWidget->GetAttachParent()->GetName());
+	}
+
+	UUserWidget* Drone = CreateWidget(GetWorld(), DroneWidgetClass);
+	DroneWidget->SetWidget(Drone);
+	DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	DroneWidget->SetCastShadow(false);
+
+	if (Drone)
+	{
+		DroneUserWidget = Cast<UDroneStatWidget>(Drone);
+	}
+
 	FocusTrace->SetIsReplicated(true);
 
-	NULLCHECK_RETURN_LOG(VignetteMaterial, PlayerLog, Error, );
-	VignetteMID = UMaterialInstanceDynamic::Create(VignetteMaterial, this);
-	FWeightedBlendable Blendable;
-	Blendable.Object = VignetteMID;
-	Blendable.Weight = 0.0f;
-
-	PostProcessComponent->Settings.WeightedBlendables.Array.Add(Blendable);
+	InitPostProcessComponent();
 
 	if (IsLocallyControlled())
 	{
@@ -134,6 +148,16 @@ void APlayerCharacter::BeginPlay()
 		PlayerController->RegisterWidget(TEXT("ESC"), CreateWidget(GetWorld(), ESCWidgetClass));
 		PlayerController->RegisterWidget(TEXT("GameStop"), CreateWidget(GetWorld(), GameStopWidgetClass));
 		PlayerController->RegisterWidget(TEXT("ResumeCount"), CreateWidget(GetWorld(), ResumeCountWidgetClass));
+
+		if (DroneUserWidget)
+		{
+			SetHP(HealthPoint);
+			SetMP(MentalPoint);
+		}
+		else
+		{
+			TPT_LOG(HUDLog, Error, TEXT("InitHUDWidget: DroneUserWidget is null"));
+		}
 	}
 
 	// RecoveryGauge Time
@@ -158,6 +182,25 @@ void APlayerCharacter::Tick(float DeltaTime)
 		FRotator CameraRotation;
 		PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
 		
+		// 위젯 위치와 방향 계산
+		FVector WidgetLoc = DroneWidget->GetComponentLocation();
+
+		// 카메라 → 위젯 방향 (즉, 서로 마주보게)
+		FVector ToCamera = CameraLocation - WidgetLoc;
+		ToCamera.Normalize();
+
+		// 이 벡터를 "위젯이 바라볼 방향"으로 사용
+		FRotator LookAtRot = ToCamera.Rotation();
+
+		// Yaw만 회전하고 싶다면 Pitch, Roll 고정
+		//LookAtRot.Pitch = 0.f;
+		//LookAtRot.Roll = 0.f;
+
+		// 회전 적용
+		DroneWidget->SetWorldRotation(LookAtRot);
+
+		//TPT_LOG(PlayerLog, Log, TEXT("%.2f"), -DroneWidget->GetRelativeRotation().Yaw);
+
 		// 클라에선 FocusTrace 세팅(시각효과용)
 		FocusTrace->SetStart(WorldLocation);
 		FocusTrace->SetDirection(WorldDirection);
@@ -303,6 +346,88 @@ void APlayerCharacter::SetHoldingGaugeUI_Implementation(const APawn* Interactor,
 	PC->SetWidget(TEXT("RecoveryGauge"), bVisible, EMessageTargetType::Multicast);
 }
 
+void APlayerCharacter::InitPostProcessComponent()
+{
+	NULLCHECK_RETURN_LOG(HitVignette, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(DownedVignette, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(Confused3rdVignette, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(TrapVignette, PlayerLog, Error, );
+
+	UMaterialInstanceDynamic* HitMID = UMaterialInstanceDynamic::Create(HitVignette, this);
+	UMaterialInstanceDynamic* LowHPMID = UMaterialInstanceDynamic::Create(DownedVignette, this);
+	UMaterialInstanceDynamic* Confused3rdMID = UMaterialInstanceDynamic::Create(Confused3rdVignette, this);
+	UMaterialInstanceDynamic* TrapMID = UMaterialInstanceDynamic::Create(TrapVignette, this);
+
+	HitBlendable.Object = HitMID;
+	HitBlendable.Weight = 0.0f;
+
+	DownedBlendable.Object = LowHPMID;
+	DownedBlendable.Weight = 0.0f;
+
+	Confused3rdBlendable.Object = Confused3rdMID;
+	Confused3rdBlendable.Weight = 0.0f;
+
+	TrapBlendable.Object = TrapMID;
+	TrapBlendable.Weight = 0.0f;
+
+	PostProcessComp->Settings.WeightedBlendables.Array.Add(HitBlendable);
+	PostProcessComp->Settings.WeightedBlendables.Array.Add(DownedBlendable);
+	PostProcessComp->Settings.WeightedBlendables.Array.Add(TrapBlendable);
+	PostProcessComp->Settings.WeightedBlendables.Array.Add(Confused3rdBlendable);
+}
+
+void APlayerCharacter::SetHP(int32 value)
+{
+	NULLCHECK_RETURN_LOG(DroneUserWidget, HUDLog, Error, );
+	//TPT_LOG(HUDLog, Log, TEXT("HP : %d"), value);
+	DroneUserWidget->SetHP(value);
+}
+
+void APlayerCharacter::SetMP(int32 value)
+{
+	NULLCHECK_RETURN_LOG(DroneUserWidget, HUDLog, Error, );
+	//TPT_LOG(HUDLog, Log, TEXT("MP : %d"), value);
+	DroneUserWidget->SetMP(value);
+}
+
+void APlayerCharacter::SettingPostProcessComponentBlendable(EVignetteType Type, float Weight)
+{
+	NULLCHECK_RETURN_LOG(PostProcessComp, PlayerLog, Warning, );
+
+	if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 0)
+		return;
+
+	FPostProcessSettings NewSettings;
+	NewSettings = PostProcessComp->Settings;
+
+	switch (Type)
+	{
+	case EVignetteType::HitVignette:
+		NewSettings.WeightedBlendables.Array[0].Object = HitBlendable.Object;
+		NewSettings.WeightedBlendables.Array[0].Weight = Weight;
+		break;
+	case EVignetteType::DownedVignette:
+		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 1) return;
+		NewSettings.WeightedBlendables.Array[1].Object = DownedBlendable.Object;
+		NewSettings.WeightedBlendables.Array[1].Weight = Weight;
+		break;
+	case EVignetteType::TrapVignette:
+		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 2) return;
+		NewSettings.WeightedBlendables.Array[2].Object = TrapBlendable.Object;
+		NewSettings.WeightedBlendables.Array[2].Weight = Weight;
+		break;
+	case EVignetteType::Confused3rdVignette:
+		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 3) return;
+		NewSettings.WeightedBlendables.Array[3].Object = Confused3rdBlendable.Object;
+		NewSettings.WeightedBlendables.Array[3].Weight = Weight;
+		break;
+	default:
+		break;
+	}
+
+	PostProcessComp->Settings = NewSettings;
+}
+
 void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 {
 	if (!AttributeSet) return;
@@ -336,6 +461,9 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 	int32 CoreEnergy = AttributeSet->GetMaxCoreEnergy();
 
 	PlayerHUDWidget->InitializeWidgets(HP, Mental, Stamina, CoreEnergy);
+
+	HealthPoint = HP;
+	MentalPoint = Mental;
 
 	PS->InventoryComp->SetPlayerHUDWidget(PlayerHUDWidget);
 }
@@ -381,10 +509,10 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	check(TPTInput);
 	TPTInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
 	TPTInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
-	TPTInput->BindAction(HideLookAction, ETriggerEvent::Triggered, this, &ThisClass::HideLook);
 	TPTInput->BindAction(MouseWheelUpAction, ETriggerEvent::Triggered, this, &ThisClass::InputMouseWheelUp);
 	TPTInput->BindAction(MouseWheelDownAction, ETriggerEvent::Triggered, this, &ThisClass::InputMouseWheelDown);
 	TPTInput->BindAction(ESC, ETriggerEvent::Started, this, &ThisClass::InputESC);
+	TPTInput->BindAction(TabAction, ETriggerEvent::Started, this, &APlayerCharacter::InputTab);
 
 
 	SetupPlayerInputByTag(TPTInput);
@@ -474,6 +602,8 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 		AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
 		AttributeSet->OnFullStamina.AddDynamic(this, &ThisClass::HidePlayerHUDStaminaSet);
 		AttributeSet->OnChangedCoreEnergy.AddDynamic(this, &ThisClass::PlayerHUDCoreEnergySet);
+		AttributeSet->OnChangedHP.AddDynamic(this, &APlayerCharacter::SetHP);
+		AttributeSet->OnChangedMentalPoint.AddDynamic(this, &APlayerCharacter::SetMP);
 	}
 }
 
@@ -633,6 +763,21 @@ void APlayerCharacter::InputESC(const FInputActionValue& Value)
 	PC->bShowMouseCursor = true;
 }
 
+void APlayerCharacter::InputTab(const FInputActionValue& Value)
+{
+	NULLCHECK_RETURN_LOG(DroneWidget, PlayerLog, Error, );
+	if (!IsLocallyControlled()) return;
+
+	if (DroneWidget->GetUserWidgetObject()->GetVisibility() == ESlateVisibility::Visible)
+	{
+		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	}
+	else if (DroneWidget->GetUserWidgetObject()->GetVisibility() == ESlateVisibility::Hidden)
+	{
+		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
 void APlayerCharacter::InputMouseWheelUp(const FInputActionValue& Value)
 {
 	SelectedSlotNumber--;
@@ -697,22 +842,6 @@ void APlayerCharacter::InputReleased(int32 InputID)
 	{
 		HidePlayerHUDStaminaSet(0);
 	}
-}
-
-void APlayerCharacter::HideLook(const FInputActionValue& Value)
-{
-	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
-	if (!CurrHideObj) return;
-
-	float MouseSensitivity = 0.3f;
-	FVector2D LookAxisVector = Value.Get<FVector2D>() * MouseSensitivity;
-/*	AddControllerYawInput(LookAxisVector.X);
-	AddControllerPitchInput(LookAxisVector.Y)*/;
-
-	// HideObjectIMC가 활성일 때만 처리
-
-	// CurrHideObj의 카메라 회전
-	CurrHideObj->UpdateCameraRotation(LookAxisVector);
 }
 
 void APlayerCharacter::C2S_InputReleased_Implementation(const int32 InputID)

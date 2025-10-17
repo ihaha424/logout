@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "PC_Player.h"
@@ -47,7 +47,7 @@ void APC_Player::BeginPlay()
 		{
 			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
 			{
-				Subsystem->AddMappingContext(IMC, 0); // 우선순위는 필요에 따라 조정
+				Subsystem->AddMappingContext(IMC, 0); // �켱������ �ʿ信 ���� ����
 			}
 		}
 	}
@@ -95,10 +95,10 @@ void APC_Player::C2S_ClickedRestart_Implementation(const bool bIsClicked)
 		TPT_LOG(OutGameLog, Error, TEXT("Cast to 'AGS_PhantomTwins' Fail"));
 		return;
 	}
-	GS->SetCharacterClickedRestart(bIsClicked, bIsHost);
+	GS->C2S_SetCharacterClickedRestart(bIsClicked, bIsHost);
 }
 
-void APC_Player::C2S_ClickedGameStop_Implementation(const FName LevelName)
+void APC_Player::C2S_ClickedGameStop_Implementation(const FName LevelName, const FName PrintingName)
 {
 	AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>();
 	if (!GS)
@@ -106,7 +106,7 @@ void APC_Player::C2S_ClickedGameStop_Implementation(const FName LevelName)
 		TPT_LOG(OutGameLog, Error, TEXT("Cast to 'AGS_PhantomTwins' Fail"));
 		return;
 	}
-	GS->SetCharacterClickedGameStop(LevelName);
+	GS->SetCharacterClickedGameStop(LevelName, PrintingName);
 }
 
 void APC_Player::C2S_ClickedAgreeWithGameStop_Implementation(const int32 SelectBtn)
@@ -121,39 +121,21 @@ void APC_Player::C2S_ClickedAgreeWithGameStop_Implementation(const int32 SelectB
 		TPT_LOG(OutGameLog, Error, TEXT("Cast to 'AGS_PhantomTwins' Fail"));
 		return;
 	}
-	GS->SetCharacterAgreeWithGameStop(SelectBtn, bIsHost);
+	GS->C2S_SetCharacterAgreeWithGameStop(SelectBtn, bIsHost);
 }
 
-void APC_Player::SetHideObjectIMC(bool bActived)
+void APC_Player::Client_SetUIInputMode_Implementation(bool bUIOnly)
 {
-	if (!HideObjectIMC || !IMC) return;
-
-	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	if (bUIOnly)
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
-		{
-			constexpr int32 BasePriority = 0;
-			constexpr int32 HidePriority = 100;
-
-			if (bActived)
-			{
-				if (!Subsystem->HasMappingContext(HideObjectIMC))
-				{
-					Subsystem->AddMappingContext(HideObjectIMC, HidePriority);
-				}
-				Subsystem->RemoveMappingContext(IMC);
-			}
-			else
-			{
-				Subsystem->RemoveMappingContext(HideObjectIMC);
-				if (!Subsystem->HasMappingContext(IMC))
-				{
-					Subsystem->AddMappingContext(IMC, BasePriority);
-				}
-			}
-
-			UE_LOG(LogTemp, Log, TEXT("HideObjectIMC 활성화 여부: %s"), Subsystem->HasMappingContext(HideObjectIMC) ? TEXT("활성") : TEXT("비활성"));
-			UE_LOG(LogTemp, Log, TEXT("IMC 활성화 여부: %s"), Subsystem->HasMappingContext(IMC) ? TEXT("활성") : TEXT("비활성"));
-		}
+		FInputModeUIOnly InputModeData;
+		SetInputMode(InputModeData);
+		bShowMouseCursor = true;
+	}
+	else
+	{
+		FInputModeGameOnly GameInputMode;
+		SetInputMode(GameInputMode);
+		bShowMouseCursor = false;
 	}
 }

@@ -10,6 +10,8 @@
 
 #include "Kismet/KismetSystemLibrary.h"
 
+int AStickerActor::SortOrder = 0;
+
 AStickerActor::AStickerActor()
 {
     bReplicates = true;
@@ -31,7 +33,7 @@ void AStickerActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
     DOREPLIFETIME(AStickerActor, AttachedComp);
 }
 
-void AStickerActor::Init(const FStickerParams& InParams)
+void AStickerActor::Init(const FStickerParams& InParams, const APlayerController* PC)
 {
     check(HasAuthority());
 
@@ -43,7 +45,8 @@ void AStickerActor::Init(const FStickerParams& InParams)
     {
         DecalComp->SetDecalMaterial(BaseDecalMat);
         // X=Depth, Y=Width, Z=Height (원하면 비정방형 지원)
-        DecalComp->DecalSize = FVector(Params.Size, Params.Size, Params.Size);
+        DecalComp->DecalSize = FVector(DecalZVolume, Params.Size, Params.Size);
+        DecalComp->SortOrder = SortOrder++;
         DMI = DecalComp->CreateDynamicMaterialInstance();
     }
     ApplyParams();
@@ -60,7 +63,7 @@ void AStickerActor::OnRep_Params()
     if (BaseDecalMat)
     {
         DecalComp->SetDecalMaterial(BaseDecalMat);
-        DecalComp->DecalSize = FVector(Params.Size, Params.Size, Params.Size);
+        DecalComp->DecalSize = FVector(DecalZVolume, Params.Size, Params.Size);
         DMI = DecalComp->CreateDynamicMaterialInstance();
         ApplyParams();
     }
@@ -68,7 +71,6 @@ void AStickerActor::OnRep_Params()
 
 void AStickerActor::ApplyParams()
 {
-    DecalComp->DecalSize = FVector(Params.Size);
     if (DMI)
     {
         //// 머티리얼 파라미터 명은 네가 쓰는 머티리얼에 맞춰서:
@@ -82,20 +84,40 @@ void AStickerActor::ApplyParams()
     }
 }
 
-void AStickerActor::PlaceOnHit(const FHitResult& Hit, bool bAttachToHitComponent)
+void AStickerActor::PlaceOnHit(const FHitResult& Hit, const APlayerController* PC, bool bAttachToHitComponent)
 {
+    if (!PC)    
+        return;
     const FVector N = Hit.ImpactNormal.GetSafeNormal();
 
-    // 회전: 데칼의 +X가 표면 안쪽(-N)으로 향하도록
-    const FRotator Rot = UKismetMathLibrary::MakeRotFromX(-N);
+    // 플레이어 카메라 방향 및 Up 벡터
+    FVector CamLoc;
+    FRotator CamRot;
+
+    PC->GetPlayerViewPoint(CamLoc, CamRot);
+    const FVector CamForward = CamRot.Vector();
+    const FVector CamUp = FRotationMatrix(CamRot).GetScaledAxis(EAxis::Z);
+
+    // 카메라 Up을 표면에 투영
+    FVector TangentUp = (CamUp - FVector::DotProduct(CamUp, N) * N).GetSafeNormal();
+    if (TangentUp.IsNearlyZero())
+    {
+        // 카메라가 표면에 수직이면 Forward 사용
+        TangentUp = (CamForward - FVector::DotProduct(CamForward, N) * N).GetSafeNormal();
+    }
+
+    // 회전 생성: +X는 표면 안쪽(-N), +Z는 카메라 기준 위쪽
+    FRotator Rot = UKismetMathLibrary::MakeRotFromXZ(-N, TangentUp);
+    Rot.Roll += 90.f; // +90.f 또는 -90.f
     SetActorRotation(Rot);
 
-    // 위치: ImpactPoint에서 '깊이의 절반 - epsilon'만큼 표면 바깥쪽(+N)으로
+    // 위치 보정
     const float Depth = (DecalComp ? DecalComp->DecalSize.X : 32.f);
-    const float Eps = 0.5f; // Z-fight 방지 미세 오프셋
+    const float Eps = 0.5f;
     const FVector Loc = Hit.ImpactPoint + N * (Depth * 0.5f - Eps);
     SetActorLocation(Loc);
 
+    // 부착
     if (bAttachToHitComponent && Hit.GetComponent())
     {
         AttachToComponent(Hit.GetComponent(), FAttachmentTransformRules::KeepWorldTransform);

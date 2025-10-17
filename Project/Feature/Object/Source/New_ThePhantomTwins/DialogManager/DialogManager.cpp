@@ -31,12 +31,14 @@ void UDialogManager::Initialize(TMap<TSubclassOf<UUserWidget>, TObjectPtr<UDataT
         {
             uint8* pointer = TablePair.Value;
             FDialogDataTableBase* DialogDataTableBase = reinterpret_cast<FDialogDataTableBase*>(pointer);
-            Datas.DataIndexKeyMap.Add({ DialogDataTableBase->ID, TablePair.Key });
+
+            uint64 LogicalID = MakeLogicalID(DialogDataTableBase->Level, DialogDataTableBase->ID, DialogDataTableBase->bIsTrigger);
+            Datas.DataIndexKeyMap.Add({ LogicalID, TablePair.Key});
 
             if (DialogDataTableBase->bIsTrigger)
-                UDialogTreeBuilder::AddTriggerEventByPath(&DialogNode, DialogDataTableBase->Level, DialogDataTableBase->ID);
+                UDialogTreeBuilder::AddTriggerEventByPath(&DialogNode, DialogDataTableBase->Level, DialogDataTableBase->ID, LogicalID);
             else
-                UDialogTreeBuilder::AddLeafByPath(&DialogNode, DialogDataTableBase->Level, DialogDataTableBase->ID);
+                UDialogTreeBuilder::AddLeafByPath(&DialogNode, DialogDataTableBase->Level, DialogDataTableBase->ID, LogicalID);
         }
     }
 
@@ -55,33 +57,48 @@ void UDialogManager::Initialize(TMap<TSubclassOf<UUserWidget>, TObjectPtr<UDataT
 
 }
 
-int32 UDialogManager::NextSequence(int32 Jump)
+int32 UDialogManager::NextSequence(int32 Jump, bool bExcuteBindEvent)
 {
-	return DialogNode.NextSequence(Jump);
+    int32 Sequence = DialogNode.NextSequence(Jump);
+    if (bExcuteBindEvent)
+    {
+        TArray<int32> Level = GetSequence();
+        const int32 Last = Level.Pop();
+        ExcuteByDialogEvent(Level, Last);
+    }
+	return Sequence;
 }
 
-int32 UDialogManager::EventTrriger(int32 Level, int32 index) const
+TArray<int32> UDialogManager::GetSequence() const
 {
-    return DialogNode.EventTrriger(Level, index);
+    return  DialogNode.GetSequence();
 }
 
-bool UDialogManager::AddByDialogEvent(int32 Index, UObject* Target, FName FunctionName)
+void UDialogManager::SetSequence(const TArray<int32>& LevelIndex, bool bExcuteBindEvent)
+{
+    DialogNode.SetSequence(LevelIndex);
+}
+
+
+bool UDialogManager::AddByDialogEvent(const TArray<int32>& Level, int32 Index, UObject* Target, FName FunctionName)
 {
     if (!Target || FunctionName.IsNone()) return false;
 
     FScriptDelegate Delegate;
     Delegate.BindUFunction(Target, FunctionName);
 
-    auto& Ev = ExcuteByDialogEventMap.FindOrAdd(Index);
+    uint64  LogicalID = MakeLogicalID(Level, Index, false);
+    auto& Ev = ExcuteByDialogEventMap.FindOrAdd(LogicalID);
     Ev.Add(Delegate);
     return true;
 }
 
-bool UDialogManager::RemoveyDialogEvent(int32 Index, UObject* Target, FName FunctionName)
+bool UDialogManager::RemoveyDialogEvent(const TArray<int32>& Level, int32 Index, UObject* Target, FName FunctionName)
 {
     if (!Target || FunctionName.IsNone()) return false;
 
-    if (FExcuteByDialogEvent* Ev = ExcuteByDialogEventMap.Find(Index))
+    uint64  LogicalID = MakeLogicalID(Level, Index, false);
+    if (FExcuteByDialogEvent* Ev = ExcuteByDialogEventMap.Find(LogicalID))
     {
         FScriptDelegate Delegate;
         Delegate.BindUFunction(Target, FunctionName);
@@ -92,9 +109,10 @@ bool UDialogManager::RemoveyDialogEvent(int32 Index, UObject* Target, FName Func
     return false;
 }
 
-bool UDialogManager::ExcuteByDialogEvent(int32 Index)
+bool UDialogManager::ExcuteByDialogEvent(const TArray<int32>& Level, int32 Index)
 {
-    FExcuteByDialogEvent* Event = ExcuteByDialogEventMap.Find(Index);
+    uint64  LogicalID = MakeLogicalID(Level, Index, false);
+    FExcuteByDialogEvent* Event = ExcuteByDialogEventMap.Find(LogicalID);
     if (!Event)
         return false;
 
@@ -102,12 +120,28 @@ bool UDialogManager::ExcuteByDialogEvent(int32 Index)
     return true;
 }
 
-TArray<int32> UDialogManager::GetSequence() const
+
+int32 UDialogManager::EventTrriger(int32 Level, int32 index) const
 {
-	return  DialogNode.GetSequence();
+    return DialogNode.EventTrriger(Level, index);
 }
 
-void UDialogManager::SetSequence(const TArray<int32>& LevelIndex)
+int32 UDialogManager::MakeLogicalID(const TArray<int32> Level, int32 ID, bool bTriggered) const
 {
-    DialogNode.SetSequence(LevelIndex);
+    uint32 H = 0;
+    if (Level.Num() > 0)
+    {
+        const uint32 C = FCrc::MemCrc32(Level.GetData(), Level.Num() * sizeof(int32));
+        H = HashCombineFast(H, C);
+    }
+    else
+    {
+        H = HashCombineFast(H, 0x9E3779B9u);
+    }
+
+    H = HashCombineFast(H, ::GetTypeHash(ID));
+
+    H = HashCombineFast(H, uint32(bTriggered));
+
+    return int32(H);
 }
