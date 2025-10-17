@@ -19,6 +19,8 @@
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
 
+#include "Components/StaticMeshComponent.h"
+
 
 AInteractHideObject::AInteractHideObject() : AInteractableObject()
 {
@@ -49,6 +51,7 @@ AInteractHideObject::AInteractHideObject() : AInteractableObject()
 void AInteractHideObject::BeginPlay()
 {
 	Super::BeginPlay();
+
 }
 
 void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -250,6 +253,8 @@ void AInteractHideObject::EnterObject(const APawn* Interactor)
 		FVector NewLocation = InPosBox->GetComponentLocation();
 		FRotator NewRotation = InPosBox->GetComponentRotation();
 		HidePlayer->SetActorLocationAndRotation(NewLocation, NewRotation);
+
+		ShowOverlayOutline(false);
 	}
 }
 
@@ -262,6 +267,8 @@ void AInteractHideObject::ExitObject()
 		HidePlayer->SetActorLocationAndRotation(NewLocation, NewRotation);
 
 		S2A_PlayEffect(NewLocation);
+
+		ShowOverlayOutline(true);
 	}
 
 
@@ -297,6 +304,8 @@ void AInteractHideObject::SetViewTarget(APlayerController* InteractorPC, AActor*
 void AInteractHideObject::S2A_PlayEffect_Implementation(FVector EffectLocation)
 {
 	PlayEffectLogic(EffectLocation);
+
+	ShowOverlayOutline(bIsActived);
 }
 
 
