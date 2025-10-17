@@ -240,10 +240,8 @@ void UInventoryComponent::AddItem_ServerAuth(EItemType eItemType)
         return;
     }
 
-    if (ItemData->ItemSound && GetOwner())
-    {
-        UGameplayStatics::PlaySoundAtLocation(GetOwner(), ItemData->ItemSound, GetOwner()->GetActorLocation());
-    }
+    // 아이템 먹을 때 소리 출력
+    PlayItemSound(ItemData);
 
     for (int32 i = 0; i < InventorySlots.Num(); ++i)
     {
@@ -576,4 +574,12 @@ int32 UInventoryComponent::GetMaxQuantity(EItemType ItemType)
     if (!ItemData) return -1;
 
     return ItemData->MaxStack;
+}
+
+void UInventoryComponent::PlayItemSound(FItemDataTable* ItemData)
+{
+    if (ItemData->ItemSound && GetOwner())
+    {
+        UGameplayStatics::PlaySoundAtLocation(GetOwner(), ItemData->ItemSound, GetOwner()->GetActorLocation());
+    }
 }
