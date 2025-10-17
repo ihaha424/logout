@@ -50,6 +50,23 @@ void AInteractableObject::BeginPlay()
             }
         }
     }
+
+    // BeginPlay에서 모든 MeshComponent의 OverlayMaterial을 미리 캐싱
+    TArray<UMeshComponent*> MeshComponents;
+    GetComponents<UMeshComponent>(MeshComponents);
+
+    for (UMeshComponent* MeshComp : MeshComponents)
+    {
+        if (MeshComp)
+        {
+            UMaterialInterface* CurrentOverlay = MeshComp->GetOverlayMaterial();
+            if (CurrentOverlay)
+            {
+                // OverlayMaterial이 존재하는 경우에만 TMap에 저장
+                CachedOverlayMaterials.Add(MeshComp, CurrentOverlay);
+            }
+        }
+    }
 }
 
 void AInteractableObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -97,7 +114,34 @@ void AInteractableObject::SetWidgetVisible(bool bVisible)
 
 }
 
+void AInteractableObject::ShowOverlayOutline(bool bVisible)
+{
+    // 캐시된 MeshComponent들만 순회하면서 활성화/비활성화
+    for (auto& Pair : CachedOverlayMaterials)
+    {
+        UMeshComponent* MeshComp = Pair.Key;
+        UMaterialInterface* OverlayMat = Pair.Value;
+
+        if (MeshComp)
+        {
+            if (bVisible)
+            {
+                // OverlayMaterial 활성화 (원본 머티리얼로 복원)
+                MeshComp->SetOverlayMaterial(OverlayMat);
+            }
+            else
+            {
+                // OverlayMaterial 비활성화
+                MeshComp->SetOverlayMaterial(nullptr);
+            }
+        }
+    }
+}
+
 void AInteractableObject::OnRep_bIsActived()
 {
-
+	if (bIsActived)
+	{
+		ShowOverlayOutline(!bIsActived);
+	}
 }

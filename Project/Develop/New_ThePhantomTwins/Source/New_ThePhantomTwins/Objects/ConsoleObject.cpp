@@ -114,14 +114,20 @@ void AConsoleObject::SetWidgetVisible(bool bVisible)
 
 	if (!InteractWidgetComp || !LockWidgetComp) return;
 
+	// 아웃라인 코드
+	if (bIsActived)
+	{
+		ShowOverlayOutline(!bIsActived);
+	}
+
 	if (!bVisible || bIsActived)
 	{
 		// 감지 안 되었거나 명시적으로 숨길 때는 둘 다 숨김
 		InteractWidgetComp->SetVisibility(false);
 		LockWidgetComp->SetVisibility(false);
+
 		return;
 	}
-
 
 	// AreAllTriggerActived 와 HasPlayerNum 조건을 체크해서 InteractWidgetComp 표시 결정
 	const bool bAllTriggersActive = AreAllTriggerActived();
@@ -203,5 +209,10 @@ void AConsoleObject::OnRep_bIsActived()
 		{
 			ConnectedDoor->CheckAndUpdateDoorState();
 		}
+	}
+
+	if (bIsActived)
+	{
+		ShowOverlayOutline(!bIsActived);
 	}
 }
