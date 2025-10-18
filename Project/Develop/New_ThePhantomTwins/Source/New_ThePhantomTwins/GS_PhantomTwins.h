@@ -42,7 +42,9 @@ public:
 	//~ End BossSpawn
 
 	//~ Begin MapData
+	UFUNCTION(BlueprintCallable)
 	EMapType GetMapData() const { return MapData; }
+	UFUNCTION(BlueprintCallable)
 	void SetMapData(EMapType mapType) { MapData = mapType; }
 	//~ End MapData
 
