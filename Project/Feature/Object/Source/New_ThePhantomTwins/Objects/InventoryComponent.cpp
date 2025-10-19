@@ -117,9 +117,6 @@ EItemType UInventoryComponent::UseItem(int32 SlotIndex)
 
     selectedNum = -1;
 
-    // 아이템 사용할 때 소리 출력
-    PlayItemSound(LocalSlot.ItemType);
-
     return Used;
 }
 
@@ -231,6 +228,9 @@ void UInventoryComponent::C2S_UseItem_Implementation(int32 SlotIndex)
 
     UseItem_ServerAuth(SlotIndex);
     RefreshUIFromInventory();
+
+    // 아이템 사용할 때 소리 출력
+    S2C_PlayItemSound(ItemType);
 }
 
 // Server-side logic
@@ -294,7 +294,14 @@ EItemType UInventoryComponent::UseItem_ServerAuth(int32 SlotIndex)
     
     selectedNum = -1;
     
-
+    // 서버에서 클라이언트에게 소리 재생 요청
+    APS_Player* PS = Cast<APS_Player>(GetOwner());
+    APC_Player* PC = Cast<APC_Player>(PS->GetPlayerController());
+    if (PC && PC->IsLocalPlayerController() && PC->HasAuthority())
+    {
+        // 리슨 서버(호스트)인 경우
+        S2C_PlayItemSound(usedItemType);
+    }
     
     return usedItemType;
 }
@@ -597,4 +604,9 @@ void UInventoryComponent::PlayItemSound(EItemType ItemType)
     if (!ItemData || !ItemData->ItemSound) return;
 
     UGameplayStatics::PlaySoundAtLocation(GetOwner(), ItemData->ItemSound, GetOwner()->GetActorLocation());
+}
+
+void UInventoryComponent::S2C_PlayItemSound_Implementation(EItemType ItemType)
+{
+    PlayItemSound(ItemType); // 로컬에서 재생
 }
