@@ -258,7 +258,9 @@ protected:
 	/**
 	 * @brief : GameStart(GS, PS, PC ensuring the create.)
 	 */
+	UFUNCTION(BlueprintNativeEvent)
 	void EnsureGameStart();
+	void EnsureGameStart_Implementation();
 
 	int32 HealthPoint = 200.f;
 	int32 MentalPoint = 100.f;
@@ -389,6 +391,7 @@ protected:
 
 	// 세팅 보장
 	bool bEnsureSet[EnsureCreateElement::End];
+	bool bOnceTime = false;
 
 	
 private:

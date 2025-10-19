@@ -1085,11 +1085,14 @@ void APlayerCharacter::EnsureSetting(EnsureCreateElement Element)
 		}
 	}
 
-	if (bStart)
+	if (bStart && !bOnceTime)
+	{
+		bOnceTime = true;
 		EnsureGameStart();
+	}
 }
 
-void APlayerCharacter::EnsureGameStart()
+void APlayerCharacter::EnsureGameStart_Implementation()
 {
 	AUIManagerPlayerController* PC = Cast<AUIManagerPlayerController>(GetController());
 	if (PC)

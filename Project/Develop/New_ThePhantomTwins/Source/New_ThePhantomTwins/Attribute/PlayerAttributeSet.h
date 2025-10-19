@@ -69,8 +69,10 @@ public:
 	virtual bool PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data) override;
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 
+	UPROPERTY(BlueprintAssignable)
 	mutable FAttTagDelegate OnPlayerDamaged;
 	mutable FAttTagDelegate OnPlayerLowHP;
+	UPROPERTY(BlueprintAssignable)
 	mutable FAttTagDelegate OnPlayerDowned;
 	mutable FAttTagDelegate OnPlayerConfused1st;
 	mutable FAttTagDelegate OnPlayerConfused2nd;
@@ -79,8 +81,10 @@ public:
 	mutable FAttTagDelegate OnMentalPointNotMax;
 
 	mutable FAttValueDelegate OnChangedHP;
+	UPROPERTY(BlueprintAssignable)
 	mutable FAttValueDelegate OnChangedMentalPoint;
 	mutable FAttValueDelegate OnChangedCoreEnergy;
+	UPROPERTY(BlueprintAssignable)
 	mutable FAttValueDelegate OnChangedStamina;
 	mutable FAttValueDelegate OnFullStamina;
 	mutable FAttValueDelegate OnChangedSpeed;
