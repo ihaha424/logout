@@ -116,6 +116,10 @@ EItemType UInventoryComponent::UseItem(int32 SlotIndex)
     }
 
     selectedNum = -1;
+
+    // 아이템 사용할 때 소리 출력
+    PlayItemSound(LocalSlot.ItemType);
+
     return Used;
 }
 
@@ -240,9 +244,6 @@ void UInventoryComponent::AddItem_ServerAuth(EItemType eItemType)
         return;
     }
 
-    // 아이템 먹을 때 소리 출력
-    PlayItemSound(ItemData);
-
     for (int32 i = 0; i < InventorySlots.Num(); ++i)
     {
         if (InventorySlots[i].ItemType == eItemType)
@@ -290,7 +291,11 @@ EItemType UInventoryComponent::UseItem_ServerAuth(int32 SlotIndex)
     }
 
     ExecuteItemEffects(usedItemType);
+    
     selectedNum = -1;
+    
+
+    
     return usedItemType;
 }
 
@@ -582,4 +587,14 @@ void UInventoryComponent::PlayItemSound(FItemDataTable* ItemData)
     {
         UGameplayStatics::PlaySoundAtLocation(GetOwner(), ItemData->ItemSound, GetOwner()->GetActorLocation());
     }
+}
+
+void UInventoryComponent::PlayItemSound(EItemType ItemType)
+{
+    if (!ItemAbilityTable || !GetOwner()) return;
+
+    FItemDataTable* ItemData = GetItemAbilityData(ItemType);
+    if (!ItemData || !ItemData->ItemSound) return;
+
+    UGameplayStatics::PlaySoundAtLocation(GetOwner(), ItemData->ItemSound, GetOwner()->GetActorLocation());
 }

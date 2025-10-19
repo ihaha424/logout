@@ -133,4 +133,5 @@ private:
     int32 GetMaxQuantity(EItemType ItemType);
 
     void PlayItemSound(FItemDataTable* ItemData);
+    void PlayItemSound(EItemType ItemType);
 };
