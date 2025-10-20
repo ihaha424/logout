@@ -25,6 +25,7 @@ UGA_OpenObstacle::UGA_OpenObstacle()
 void UGA_OpenObstacle::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
     AActor* Target = TriggerEventData ? const_cast<AActor*>(TriggerEventData->Target.Get()) : nullptr;
     if (Target && Target->GetClass()->ImplementsInterface(UInteract::StaticClass()))
     {
