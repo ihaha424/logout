@@ -29,15 +29,35 @@ UGA_SceneAura::UGA_SceneAura()
     ActivationBlockedTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 }
 
+bool UGA_SceneAura::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+    const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
+    FGameplayTagContainer* OptionalRelevantTags) const
+{
+    bool bCanActivate = Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
+
+    if (!bCanActivate)
+    {
+        //UE_LOG(LogTemp, Warning, TEXT("CanActivateAbility failed - Cost or Cooldown or Tags check failed"));
+        // 필요하다면 OptionalRelevantTags 안에 실패 원인을 분석 가능
+       /* if (OptionalRelevantTags && OptionalRelevantTags->HasTag(FGameplayTag::RequestGameplayTag(FName("Ability.ActivateFail.Cost"))))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Activation failed due to Cost."));
+        }*/
+    }
+    return bCanActivate;
+}
+
 void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-    Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
     if (!Super::CommitAbility(Handle, ActorInfo, ActivationInfo))
     {
         EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
         return;
     }
-    UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+
+    Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 
     // 스킬 실행후 이 GA가 종료되는 시점을 정해줄 쿨타임 이펙트.
     FGameplayEffectSpecHandle CoolDownSpecHandle = MakeOutgoingGameplayEffectSpec(CoolDownEffect, 1.0f);
@@ -60,26 +80,27 @@ void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 
 	APlayerCharacter* Character = Cast<APlayerCharacter>(OwnerActor);
 
-	FGameplayCueParameters Param;
-	Param.SourceObject = this;
-	Param.Instigator = ActorInfo->AvatarActor;
-	Param.Location = ActorInfo->AvatarActor->GetActorLocation();
-    ASC->ExecuteGameplayCue(FTPTGameplayTags::Get().GameplayCue_Notify_ScanEffect, Param);
+    if (Character && Character->IsLocallyControlled())
+    {
+        UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("AuraObject"), UnlimitedObjects);
 
-	// 아우라 효과를 자기 자신에게도 적용 (초기설정)
-	ApplyAuraToTarget(OwnerActor);
+        SpawnScanEffectActor();
 
-    // 첫 탐지 실행
-    ScanTargets();
+        // 아우라 효과를 자기 자신에게도 적용 (초기설정)
+        ApplyAuraToTarget(OwnerActor);
 
-    // 주기적 탐지 시작
-    GetWorld()->GetTimerManager().SetTimer(
-        ScanTimerHandle,
-        this,
-        &UGA_SceneAura::ScanTargets,
-        ScanInterval,
-        true
-    );
+        // 첫 탐지 실행
+        ScanTargets();
+
+        // 주기적 탐지 시작
+        GetWorld()->GetTimerManager().SetTimer(
+            ScanTimerHandle,
+            this,
+            &UGA_SceneAura::ScanTargets,
+            ScanInterval,
+            true
+        );
+    }
 }
 
 void UGA_SceneAura::ScanTargets()
@@ -103,9 +124,6 @@ void UGA_SceneAura::ScanTargets()
 
     // 1) 상대 플레이어 & 특정 오브젝트
     {
-        TArray<AActor*> UnlimitedObjects;
-        UGameplayStatics::GetAllActorsWithTag(World, FName("AuraObject"), UnlimitedObjects);
-
 		for (AActor* Target : UnlimitedObjects)
 		{
 			if (!Target || Target == OwnerActor) continue;
@@ -252,6 +270,32 @@ bool UGA_SceneAura::IsCameraBlocked()
     }
 
     return true;
+}
+
+void UGA_SceneAura::SpawnScanEffectActor()
+{
+    TPT_LOG(GALog, Log, TEXT(""));
+
+    UWorld* World = OwnerActor ? OwnerActor->GetWorld() : nullptr;
+    if (!World) return;
+
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.Owner = OwnerActor;
+    SpawnParams.Instigator = OwnerActor->GetInstigator();
+    SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+    FVector SpawnLocation = OwnerActor->GetActorLocation();
+    FRotator SpawnRotation = OwnerActor->GetActorRotation();
+
+    if (ScanEffectActorClass)
+    {
+        AActor* EffectActor = World->SpawnActor<AActor>(
+            ScanEffectActorClass,
+            SpawnLocation,
+            SpawnRotation,
+            SpawnParams
+        );
+    }
 }
 
 void UGA_SceneAura::OnSceneAuraTagChanged(const FGameplayTag InputTag, int32 TagCount)

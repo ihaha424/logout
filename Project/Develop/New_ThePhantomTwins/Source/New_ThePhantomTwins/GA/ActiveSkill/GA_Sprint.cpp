@@ -18,6 +18,24 @@ UGA_Sprint::UGA_Sprint()
     ActivationBlockedTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 }
 
+bool UGA_Sprint::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+    const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
+    FGameplayTagContainer* OptionalRelevantTags) const
+{
+    bool bCanActivate = Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
+
+    if (!bCanActivate)
+    {
+        //UE_LOG(LogTemp, Warning, TEXT("CanActivateAbility failed - Cost or Cooldown or Tags check failed"));
+        // 필요하다면 OptionalRelevantTags 안에 실패 원인을 분석 가능
+       /* if (OptionalRelevantTags && OptionalRelevantTags->HasTag(FGameplayTag::RequestGameplayTag(FName("Ability.ActivateFail.Cost"))))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Activation failed due to Cost."));
+        }*/
+    }
+    return bCanActivate;
+}
+
 void UGA_Sprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, 
     const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {

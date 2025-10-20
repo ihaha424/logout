@@ -32,6 +32,9 @@ public:
 
 	TObjectPtr<UPostProcessComponent> PPComp;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VFX")
+	float VignetteDuration = 0.5f;
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SFX")
 	USoundBase* SoundCue;

@@ -45,7 +45,7 @@ void UGA_AIHitPlayer::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 		// 0.1초 후에 자동으로 끄기
 		FTimerHandle TempHandle;
 		GetWorld()->GetTimerManager().SetTimer(
-			TempHandle, this, &UGA_AIHitPlayer::VignetteEffectOff, 0.5f, false);
+			TempHandle, this, &UGA_AIHitPlayer::VignetteEffectOff, VignetteDuration, false);
 	}
 
 	HitMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("HitMontage"), HitMontage, 1.0f);

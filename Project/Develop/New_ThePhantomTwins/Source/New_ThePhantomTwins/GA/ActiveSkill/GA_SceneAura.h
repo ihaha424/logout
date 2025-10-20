@@ -17,7 +17,12 @@ class NEW_THEPHANTOMTWINS_API UGA_SceneAura : public UGameplayAbility
 public:
     UGA_SceneAura();
 
-    virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+    virtual bool CanActivateAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	                        const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
+	                        FGameplayTagContainer* OptionalRelevantTags) const override;
+
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
 
 protected:
    
@@ -28,11 +33,18 @@ protected:
     void RemoveAuraFromTarget(AActor* Target);
 	bool IsValidAuraTarget(AActor* Target) const;
     bool IsCameraBlocked();
+    void SpawnScanEffectActor();
 
     UFUNCTION()
     void OnSceneAuraTagChanged(const FGameplayTag InputTag, int32 TagCount);
     UFUNCTION()
     void OnCoolDownTagChanged(const FGameplayTag InputTag, int32 TagCount);
+
+    // 블루프린트에서 지정할 수 있도록
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Scan Effect")
+    TSubclassOf<AActor> ScanEffectActorClass;
+
+    TArray<AActor*> UnlimitedObjects;
 
     // 타이머
     FTimerHandle ScanTimerHandle;
