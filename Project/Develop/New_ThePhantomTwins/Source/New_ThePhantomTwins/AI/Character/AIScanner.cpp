@@ -12,12 +12,12 @@
 #include "Engine/SpotLight.h"
 #include "Engine/OverlapResult.h"
 
+
 bool AAIScanner::MatchingChaseActorType(AActor* OtherActor) const
 {
     UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
     if (nullptr == ASC)
         return false;
-
     return (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_Player) 
         && !ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
         || ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Identifier_AI);
