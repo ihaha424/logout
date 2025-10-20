@@ -22,14 +22,14 @@ public:
 	                        FGameplayTagContainer* OptionalRelevantTags) const override;
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-
+    virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 
 protected:
    
     void ScanTargets();
 
     // Aura 
-    void ApplyAuraToTarget(AActor* Target);
+    void ApplyAuraToTarget(AActor* Target, int32 Value);
     void RemoveAuraFromTarget(AActor* Target);
 	bool IsValidAuraTarget(AActor* Target) const;
     bool IsCameraBlocked();
@@ -46,6 +46,8 @@ protected:
 
     TArray<AActor*> UnlimitedObjects;
 
+    AActor* OtherPlayer = nullptr;
+
     // ≈∏¿Ã∏”
     FTimerHandle ScanTimerHandle;
 
@@ -53,6 +55,8 @@ protected:
     TSet<TWeakObjectPtr<AActor>> CurrentAuraTargets;
 
 	AActor* OwnerActor = nullptr;
+
+    TSet<TWeakObjectPtr<AActor>> NewTargets;
 
     // === Configurable Variables ===
 

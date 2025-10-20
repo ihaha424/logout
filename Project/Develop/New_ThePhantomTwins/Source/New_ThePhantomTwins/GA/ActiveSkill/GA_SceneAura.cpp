@@ -78,16 +78,28 @@ void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
     OwnerActor = GetAvatarActorFromActorInfo();
 	NULLCHECK_RETURN_LOG(OwnerActor, GALog, Warning, );
 
-	APlayerCharacter* Character = Cast<APlayerCharacter>(OwnerActor);
+    APlayerCharacter* Character = Cast<APlayerCharacter>(OwnerActor);
 
     if (Character && Character->IsLocallyControlled())
     {
-        UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("AuraObject"), UnlimitedObjects);
+        TArray<AActor*> Players;
+
+        UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("PlayerAura"), Players);
+
+        for (AActor* Player : Players)
+        {
+            if (Player && Player != OwnerActor)
+            {
+                OtherPlayer = Player;
+                NewTargets.Add(OtherPlayer);
+                ApplyAuraToTarget(OtherPlayer, 2);
+            }
+        }
 
         SpawnScanEffectActor();
 
         // 아우라 효과를 자기 자신에게도 적용 (초기설정)
-        ApplyAuraToTarget(OwnerActor);
+        ApplyAuraToTarget(OwnerActor, 4);
 
         // 첫 탐지 실행
         ScanTargets();
@@ -103,6 +115,13 @@ void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
     }
 }
 
+void UGA_SceneAura::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
+{
+	Super::OnGiveAbility(ActorInfo, Spec);
+
+    UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("AuraObject"), UnlimitedObjects);
+}
+
 void UGA_SceneAura::ScanTargets()
 {
     NULLCHECK_RETURN_LOG(OwnerActor, GALog, Warning, )
@@ -110,19 +129,18 @@ void UGA_SceneAura::ScanTargets()
     if (IsCameraBlocked())
     {
         RemoveAuraFromTarget(OwnerActor);
-        TPT_LOG(GALog, Log, TEXT("IsCameraBlocked"));
+        //TPT_LOG(GALog, Log, TEXT("IsCameraBlocked"));
     }
     else
     {
-        ApplyAuraToTarget(OwnerActor);
-        TPT_LOG(GALog, Log, TEXT("IsCameraNonBlocked"));
+        ApplyAuraToTarget(OwnerActor, 4);
+    	//TPT_LOG(GALog, Log, TEXT("IsCameraNonBlocked"));
     }
 
     FVector Origin = OwnerActor->GetActorLocation();
-    TSet<TWeakObjectPtr<AActor>> NewTargets;
     UWorld* World = GetWorld();
 
-    // 1) 상대 플레이어 & 특정 오브젝트
+    // 1) 특정 오브젝트
     {
 		for (AActor* Target : UnlimitedObjects)
 		{
@@ -130,7 +148,7 @@ void UGA_SceneAura::ScanTargets()
 
             if (IsValidAuraTarget(Target))
             {
-				ApplyAuraToTarget(Target);
+				ApplyAuraToTarget(Target, 3);
 				NewTargets.Add(Target);
             }
         }
@@ -165,7 +183,7 @@ void UGA_SceneAura::ScanTargets()
                 if ((MaxPoint - Origin).Size() <= SenseRadius &&
                     (MinPoint - Origin).Size() <= SenseRadius)
                 {
-                    ApplyAuraToTarget(Target);
+                    ApplyAuraToTarget(Target, 1);
                     NewTargets.Add(Target);
                 }
             }
@@ -187,7 +205,7 @@ void UGA_SceneAura::ScanTargets()
     CurrentAuraTargets = NewTargets;
 }
 
-void UGA_SceneAura::ApplyAuraToTarget(AActor* Target)
+void UGA_SceneAura::ApplyAuraToTarget(AActor* Target, int32 Value)
 {
 	NULLCHECK_RETURN_LOG(Target, GALog, Warning, );
 	NULLCHECK_RETURN_LOG(OwnerActor, GALog, Warning, );
@@ -199,8 +217,8 @@ void UGA_SceneAura::ApplyAuraToTarget(AActor* Target)
     {
         if (!Mesh) continue;
 
+        Mesh->SetCustomDepthStencilValue(Value);
         Mesh->SetRenderCustomDepth(true);
-        Mesh->SetCustomDepthStencilValue(1);
     }
 }
 
@@ -274,8 +292,6 @@ bool UGA_SceneAura::IsCameraBlocked()
 
 void UGA_SceneAura::SpawnScanEffectActor()
 {
-    TPT_LOG(GALog, Log, TEXT(""));
-
     UWorld* World = OwnerActor ? OwnerActor->GetWorld() : nullptr;
     if (!World) return;
 
