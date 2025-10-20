@@ -382,6 +382,13 @@ void AAIBaseCharacter::ResetDataForDieState_Implementation()
     Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     Capsule->SetGenerateOverlapEvents(false);
     Capsule->SetNotifyRigidBodyCollision(false);
+
+    USkeletalMeshComponent* ChracterMesh = GetMesh();
+    NULLCHECK_RETURN_LOG(ChracterMesh, AILog, Warning, );
+
+    ChracterMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    ChracterMesh->SetGenerateOverlapEvents(false);
+    ChracterMesh->SetNotifyRigidBodyCollision(false);
 }
 
 void AAIBaseCharacter::ResetDataForStunState_Implementation()
