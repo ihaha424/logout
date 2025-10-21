@@ -69,7 +69,7 @@ void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 
 	if (Character->IsLocallyControlled())
 	{
-		Character->SettingPostProcessComponentBlendable(EVignetteType::DownedVignette, 1.0f);
+		Character->SetFadeVFX(EVignetteType::DownedVignette, 0);
 	}
 }
 
@@ -131,7 +131,7 @@ void UGA_Downed::OnDownedTagChanged(const FGameplayTag Tag, int32 TagCount)
 		Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 		Character->GetSpringArm()->SocketOffset = DefaultSocketOffset;
 		Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		Character->SettingPostProcessComponentBlendable(EVignetteType::DownedVignette, 0.0f);
+		Character->SetFadeVFX(EVignetteType::DownedVignette,1);
 
 		bool bReplicatedEndAbility = true;
 		bool bWasCancelled = false;

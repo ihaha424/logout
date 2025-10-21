@@ -494,6 +494,18 @@ void APlayerCharacter::PlayerHUDCoreEnergySet(int32 value)
 	PlayerHUDWidget->UpdateCoreEnergy(value);
 }
 
+void APlayerCharacter::PlayStaminaDrainSound()
+{
+	NULLCHECK_RETURN_LOG(StaminaDrainSound, PlayerLog, Error, );
+
+	UGameplayStatics::PlaySoundAtLocation(this, StaminaDrainSound, GetActorLocation());
+}
+
+void APlayerCharacter::PlayStaminaRegenSound()
+{
+	PlayStaminaRegenSoundByCharacterType();
+}
+
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// 로컬에서만 일어남.
@@ -1239,8 +1251,13 @@ void APlayerCharacter::UpdateSprintCooldownCount()
 		FGameplayTag SprintTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Sprinting;
 		FGameplayTag CooldownTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_SprintCoolDown;
 
+		if (Effects.GetNumGameplayEffects() <= 0)
+			return;
+
 		for (auto It = Effects.CreateConstIterator(); It; ++It)
 		{
+			if (!It) continue;
+
 			const FActiveGameplayEffect& Effect = *It;
 			if (!Effect.Spec.Def) continue;
 
@@ -1296,11 +1313,16 @@ void APlayerCharacter::UpdateAuraCooldownCount()
 	{
 		const FActiveGameplayEffectsContainer& Effects = ASC->GetActiveGameplayEffects();
 
+		if (Effects.GetNumGameplayEffects() <= 0)
+			return;
+
 		FGameplayTag SprintTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_UsingOutLine;
 		FGameplayTag CooldownTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_OutLineCoolDown;
 
 		for (auto It = Effects.CreateConstIterator(); It; ++It)
 		{
+			if (!It) continue;
+
 			const FActiveGameplayEffect& Effect = *It;
 			if (!Effect.Spec.Def) continue;
 

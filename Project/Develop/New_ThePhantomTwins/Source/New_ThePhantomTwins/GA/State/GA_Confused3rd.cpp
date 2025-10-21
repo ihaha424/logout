@@ -41,7 +41,7 @@ void UGA_Confused3rd::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 			ActiveAudioComponent2nd = UGameplayStatics::SpawnSoundAttached(Sound, Character->GetRootComponent());
 		}
 
-		Character->SettingPostProcessComponentBlendable(EVignetteType::Confused3rdVignette, 1.0f);
+		Character->SetFadeVFX(EVignetteType::Confused3rdVignette, 0);
 	}
 }
 
@@ -53,7 +53,7 @@ void UGA_Confused3rd::EndAbility(FGameplayAbilitySpecHandle Handle, const FGamep
 
 	if (ActorInfo && ActorInfo->IsLocallyControlled())
 	{
-		Character->SettingPostProcessComponentBlendable(EVignetteType::Confused3rdVignette, 0.0f);
+		Character->SettingPostProcessComponentBlendable(EVignetteType::Confused3rdVignette, 0);
 
 		if (ActiveAudioComponent1st)
 		{
@@ -77,7 +77,6 @@ void UGA_Confused3rd::OffSound(const FGameplayTag InputTag, int32 Count)
 
 	if (!bHasSoundTag)
 	{
-		Character->SettingPostProcessComponentBlendable(EVignetteType::Confused3rdVignette, 0.0f);
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	}
 }
