@@ -74,9 +74,8 @@ public:
 	mutable FAttTagDelegate OnPlayerLowHP;
 	UPROPERTY(BlueprintAssignable)
 	mutable FAttTagDelegate OnPlayerDowned;
-	mutable FAttTagDelegate OnPlayerConfused1st;
-	mutable FAttTagDelegate OnPlayerConfused2nd;
-	mutable FAttTagDelegate OnPlayerConfused3rd;
+	UPROPERTY(BlueprintAssignable)
+	mutable FAttTagDelegate OnPlayerConfused;
 	mutable FAttTagDelegate OnPlayerUseSkill;
 	mutable FAttTagDelegate OnMentalPointNotMax;
 
@@ -127,6 +126,7 @@ protected:
 
 	bool bPlayerLowHP = false;
 	bool bPlayerDowned = false;
+	bool bPlayerNotConfused = false;
 	bool bPlayerConfused1st = false;
 	bool bPlayerConfused2nd = false;
 	bool bPlayerConfused3rd = false;
