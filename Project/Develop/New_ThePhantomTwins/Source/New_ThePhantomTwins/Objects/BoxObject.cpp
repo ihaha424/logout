@@ -16,87 +16,74 @@ void ABoxObject::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Child Actor Component의 Warning Actor를 찾아서 숨김
-	AActor* WarningActor = FindWarningActor();
-	if (WarningActor)
-	{
-		WarningActor->SetActorHiddenInGame(true);
-		WarningActor->SetActorEnableCollision(false);
-	}
+	//// Child Actor Component의 Warning Actor를 찾아서 숨김
+	//AActor* WarningActor = FindWarningActor();
+	//if (WarningActor)
+	//{
+	//	WarningActor->SetActorHiddenInGame(true);
+	//	WarningActor->SetActorEnableCollision(false);
+	//}
 }
 
-AActor* ABoxObject::FindWarningActor()
-{
-	TArray<UChildActorComponent*> ChildActorComponents;
-	GetComponents<UChildActorComponent>(ChildActorComponents);
-
-	for (UChildActorComponent* ChildActorComp : ChildActorComponents)
-	{
-		if (ChildActorComp && ChildActorComp->GetChildActor())
-		{
-			AActor* ChildActor = ChildActorComp->GetChildActor();
-			if (WarningClass && ChildActor->GetClass() == WarningClass)
-			{
-				return ChildActor;
-			}
-		}
-	}
-	return nullptr;
-}
+//AActor* ABoxObject::FindWarningActor()
+//{
+//	TArray<UChildActorComponent*> ChildActorComponents;
+//	GetComponents<UChildActorComponent>(ChildActorComponents);
+//
+//	for (UChildActorComponent* ChildActorComp : ChildActorComponents)
+//	{
+//		if (ChildActorComp && ChildActorComp->GetChildActor())
+//		{
+//			AActor* ChildActor = ChildActorComp->GetChildActor();
+//			if (WarningClass && ChildActor->GetClass() == WarningClass)
+//			{
+//				return ChildActor;
+//			}
+//		}
+//	}
+//	return nullptr;
+//}
 
 void ABoxObject::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	if (bIsActived) return;
 
 	// 서버에서 멀티캐스트 함수들 호출
-	MulticastInvokeGameplayCue(Interactor);
-	MulticastApplyEffect(Interactor);
+	S2A_InvokeGameplayCue(Interactor);
+	S2A_ApplyEffect(Interactor);
 
 	if (bisTrapBox)
 	{
-		MulticastExecuteTrapBox(Interactor);
-		MulticastShowWarning();
+		S2A_ExecuteTrapBox(Interactor);
+		S2A_ShowWarning();
 	}
 }
 
 // 멀티캐스트 함수들 구현
-void ABoxObject::MulticastApplyEffect_Implementation(const APawn* Interactor)
+void ABoxObject::S2A_ApplyEffect_Implementation(const APawn* Interactor)
 {
 	ApplyEffectToTarget(Interactor);
 }
 
-void ABoxObject::MulticastInvokeGameplayCue_Implementation(const APawn* Interactor)
+void ABoxObject::S2A_InvokeGameplayCue_Implementation(const APawn* Interactor)
 {
 	InvokeGameplayCue(Interactor);
 }
 
-void ABoxObject::MulticastExecuteTrapBox_Implementation(const APawn* Interactor)
+void ABoxObject::S2A_ExecuteTrapBox_Implementation(const APawn* Interactor)
 {
 	ExecuteTrapBoxGA(Interactor);
 }
 
-void ABoxObject::MulticastShowWarning_Implementation()
+void ABoxObject::S2A_ShowWarning_Implementation()
 {
-	if (!bisTrapBox) return;
+	//if (!bisTrapBox) return;
 
-	AActor* WarningActor = FindWarningActor();
-	if (WarningActor && !WarningActor->IsActorBeingDestroyed())
-	{
-		WarningActor->SetActorHiddenInGame(false);
-		WarningActor->SetActorEnableCollision(true);
+	//AActor* WarningActor = FindWarningActor();
+	//if (!WarningActor || WarningActor->IsActorBeingDestroyed()) return;
 
-		FTimerHandle TimerHandle;
-		FTimerDelegate TimerDel;
-		TimerDel.BindLambda([WarningActor]()
-			{
-				if (WarningActor && !WarningActor->IsActorBeingDestroyed())
-				{
-					WarningActor->SetActorHiddenInGame(true);
-					WarningActor->SetActorEnableCollision(false);
-				}
-			});
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 5.f, false);
-	}
+	PlayWarning();
+
 }
 
 // 기존 함수들은 그대로 유지
