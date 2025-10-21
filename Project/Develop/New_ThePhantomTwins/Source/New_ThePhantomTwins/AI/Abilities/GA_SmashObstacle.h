@@ -27,4 +27,25 @@ public:
         const FGameplayAbilityActivationInfo ActivationInfo,
         bool bReplicateEndAbility,
         bool bWasCancelled) override;
+
+    void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted,
+        FGameplayAbilitySpecHandle Handle,
+        const FGameplayAbilityActorInfo* ActorInfo,
+        FGameplayAbilityActivationInfo ActivationInfo);
+
+    UFUNCTION()
+    void OnCompleteCallback();
+    UFUNCTION()
+    void OnInterruptedCallback();
+
+protected:
+    UPROPERTY(EditDefaultsOnly, Category = "Animation")
+    TObjectPtr<UAnimMontage> AttackMontage;
+    UPROPERTY(EditDefaultsOnly, Category = "Animation")
+    int32 Count = 0;
+private:
+    bool bActiveAbility = false;
+    AActor* Target = nullptr;
+    APawn* OwnerPawn = nullptr;
+    int32 CurCount = 0;
 };
