@@ -30,8 +30,6 @@ ABaseObject::ABaseObject()
     // "Interactable" 태그 추가
     Tags.Add(FName("Interactable"));
     Tags.Add(FName("AttachableObject"));
-
-    PersistentActorID = FGuid::NewGuid();
 }
 
 void ABaseObject::BeginPlay()
@@ -66,10 +64,5 @@ void ABaseObject::BeginPlay()
             InteractDecalComp->SetHiddenInGame(true); // 시작 시 숨김
             break;
         }
-    }
-
-    if (!PersistentActorID.IsValid())
-    {
-        PersistentActorID = FGuid::NewGuid();
     }
 }

@@ -35,7 +35,7 @@ public:
 	virtual void UseItemEffectClient_Implementation(const APawn* Interactor){}
 
     UFUNCTION(BlueprintCallable, Category = "ItemObject")
-	void DestroyItem();
+	virtual void DestroyItem();
 
 	virtual void OnRep_bIsActived() override;
 

@@ -46,6 +46,7 @@ void AItemObject::OnInteractClient_Implementation(const APawn* Interactor)
 
 void AItemObject::DestroyItem()
 {
+
 	bIsActived = true;
 
 	// 이 액터 내 모든 UStaticMeshComponent를 찾아서 처리

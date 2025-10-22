@@ -30,7 +30,7 @@ public:
 	virtual void SetWidgetVisible(bool bVisible);
 
 	UFUNCTION(BlueprintCallable)
-	void SetActive(bool bIsActive)
+	virtual void SetActive(bool bIsActive)
 	{
 		bIsActived = bIsActive;
 	}

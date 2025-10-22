@@ -21,7 +21,9 @@ protected:
 
 public:
 	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
+	virtual void DestroyItem() override;
 
+	void SaveToGameState();
 private:
 	void SetDataFragmentPickupWidget();
 	void HideFragmentMesh();

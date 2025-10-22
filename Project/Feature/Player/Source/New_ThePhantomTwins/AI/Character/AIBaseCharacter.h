@@ -49,7 +49,7 @@ public:
 	//~ End IAIEventReceiver
 
 	//~ Begin GameplayCueNotify
-	TArray<UGameplayCueInterface> GamePlayCueNotifys;
+	TArray<UGameplayCueInterface> GamePlayCueNotifies;
 	//~ End GameplayCueNotify
 
 	//~ Begin State Control
@@ -68,7 +68,9 @@ public:
 	//~ End AI Control(Patrol)
 
 	//~ Begin AI Control(Combat)
+	UPROPERTY(EditAnywhere, Category = "AI")
 	TArray<AActor*> CombatRangeInActor;
+
 	FTimerHandle CombatRangeInActorTimerHandle;
 	virtual bool MatchingChaseActorType(AActor* OtherActor) const;
 	UFUNCTION()
@@ -102,9 +104,6 @@ public:
 	void ExcuteChaseActorGA(AActor* TargetActor);
 	void CancleChaseActorGA();
 	//~ End AI Control(Combat)
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Save")
-	FGuid PersistentActorID;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")

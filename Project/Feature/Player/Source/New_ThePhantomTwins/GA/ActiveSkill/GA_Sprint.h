@@ -17,7 +17,6 @@ public:
 	UGA_Sprint();
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-
 	UFUNCTION()
 	void OnCoolDownTagChanged(const FGameplayTag InputTag, int32 TagCount);
 

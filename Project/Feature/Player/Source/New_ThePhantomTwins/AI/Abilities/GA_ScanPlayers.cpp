@@ -12,7 +12,9 @@ UGA_ScanPlayers::UGA_ScanPlayers()
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
     ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateYes;
 
-    AbilityTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_ScanCloestPlayer);
+    FGameplayTagContainer DefaultTags;
+    DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_ScanCloestPlayer);
+    SetAssetTags(DefaultTags);
 
     FAbilityTriggerData TriggerData;
     TriggerData.TriggerTag = FTPTGameplayTags::Get().TPTGameplay_Character_Action_ScanCloestPlayer;

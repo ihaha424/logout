@@ -61,7 +61,6 @@ void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 		if (AGM_PhantomTwins* GM = GetWorld()->GetAuthGameMode<AGM_PhantomTwins>())
 		{
 			GM->NotifyPlayerDied(true);
-			PS->bIsDowned = true;
 		}
 	}
 }

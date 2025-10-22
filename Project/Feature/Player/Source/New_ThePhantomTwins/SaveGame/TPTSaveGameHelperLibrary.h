@@ -29,10 +29,10 @@ public:
 	}
 
 	template<TPTSaveGameConcept T>
-	static T* GetSaveGameData(const FString& SlotName = "MainSlot", int32 Slot = 0)
+	static T* GetSaveGameData(const FString& SlotName = "MainSlot", int32 Slot = 0, bool bCreate = false)
 	{
 		T* SaveGameInstance = Cast<T>(UGameplayStatics::LoadGameFromSlot(FString(T::StaticClass()->GetName() + SlotName), Slot));
-		if (nullptr == SaveGameInstance)
+		if (nullptr == SaveGameInstance || bCreate)
 		{
 			SaveGameInstance = Cast<T>(UGameplayStatics::CreateSaveGameObject(T::StaticClass()));
 		}

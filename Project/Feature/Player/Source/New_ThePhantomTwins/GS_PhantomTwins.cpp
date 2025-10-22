@@ -34,10 +34,6 @@ void AGS_PhantomTwins::AddCollectedItem(AActor* DataFragment, int32 Delta)
 
     CoreCount = FMath::Max(0, CoreCount + Delta);
 
-    UTPTSaveGame* TPTSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
-    TPTSaveGame->DataFragmentNum = CoreCount;
-    UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTSaveGame>(TPTSaveGame);
-
     CollectedItemCountChanged.Broadcast(CoreCount);
     DataFragmentChanged.Broadcast(DataFragment);
 }

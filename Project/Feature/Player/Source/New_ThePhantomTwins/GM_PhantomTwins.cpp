@@ -18,25 +18,6 @@ AGM_PhantomTwins::AGM_PhantomTwins()
 {
 	PlayerControllerClass = APC_Player::StaticClass();
 	GameStateClass = AGS_PhantomTwins::StaticClass();
-    PrimaryActorTick.bCanEverTick = true;
-    PrimaryActorTick.bStartWithTickEnabled = true;
-    PrimaryActorTick.bTickEvenWhenPaused = true;
-}
-
-void AGM_PhantomTwins::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
-{
-    Super::InitGame(MapName, Options, ErrorMessage);
-}
-
-void AGM_PhantomTwins::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-    ElapsedTime += DeltaSeconds;
-
-    if (ElapsedTime >= 5.0f)
-    {
-        // 원하는 행동 수행
-    }
 }
 
 void AGM_PhantomTwins::BeginPlay()
@@ -71,6 +52,16 @@ void AGM_PhantomTwins::BeginPlay()
         GS->OnClickedGameStopChanged.AddDynamic(this, &ThisClass::NotifyPlayerClickedGameStop);
         GS->OnClickedAgreeWithGameStopChanged.AddDynamic(this, &ThisClass::NotifyPlayerAgreeWithGameStop);
     }
+    FTimerHandle TimerHandle;
+    GetWorldTimerManager().SetTimer(TimerHandle,this, &ThisClass::DelayedInitializeSaveTargets, 0.1f, false);
+}
+
+void AGM_PhantomTwins::DelayedInitializeSaveTargets()
+{
+    UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+	SaveGameManager->InitializeSaveTargets();
+    SaveGameManager->ApplyActorSaveGame();
+    SaveGameManager->InitializeSavePlayer();
 }
 
 void AGM_PhantomTwins::PostLogin(APlayerController* NewPlayer)
@@ -78,9 +69,6 @@ void AGM_PhantomTwins::PostLogin(APlayerController* NewPlayer)
     Super::PostLogin(NewPlayer);
 
     TotalPlayerCount++;
-
-    UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-    SaveGameManager->LoadSaveGame();
 }
 
 void AGM_PhantomTwins::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -227,9 +215,14 @@ void AGM_PhantomTwins::RestartWithDelay(float Delay)
     GetWorldTimerManager().SetTimer(TimerHandle, [this]()
         {
             ShowLoadingScene();
-    		FString MapName = GetWorld()->GetOutermost()->GetName();
-            FString LevelPathWithListen = MapName + TEXT("?listen");
-            GetWorld()->ServerTravel(LevelPathWithListen, false);
+            FString PackageName = GetWorld()->GetOutermost()->GetName();
+            FString CleanPath = FPackageName::GetLongPackagePath(PackageName);
+            FString MapBaseName = FPackageName::GetShortName(PackageName);
+
+
+            FString TravelURL = CleanPath + TEXT("/") + MapBaseName + TEXT("?listen");
+            GetWorld()->ServerTravel(TravelURL, false);
+
         }, Delay, false);
 }
 

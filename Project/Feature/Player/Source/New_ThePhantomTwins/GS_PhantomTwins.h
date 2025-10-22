@@ -91,8 +91,10 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_SetCharacterAgreeWithGameStop(int32 Select, bool bIsHost);
 	void S2A_SetCharacterAgreeWithGameStop_Implementation(int32 Select, bool bIsHost);
+
 	UPROPERTY(Replicated = true)
 	int32 HostSelect = 0;
+
 	UPROPERTY(Replicated = true)
 	int32 ClientSelect = 0;
 	//~ End Stop game

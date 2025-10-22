@@ -56,10 +56,12 @@ public:
 	virtual FGenericTeamId GetGenericTeamId() const override;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
+
 	UPlayerHUDWidget* GetPlayerHUDWidget() const { return PlayerHUDWidget; }
 	UFocusTraceComponent* GetFocusTrace() const { return FocusTrace; }
 	USpringArmComponent* GetSpringArm() const { return SpringArm; }
 	UCameraComponent* GetCamera() const { return Camera; }
+
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;

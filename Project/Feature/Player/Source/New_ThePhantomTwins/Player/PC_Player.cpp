@@ -11,6 +11,7 @@
 #include "GS_PhantomTwins.h"
 #include "Player/PlayerCharacter.h"
 #include "OutGame/HubMap/GS_HubMap.h"
+#include "SaveGame/TPTSaveGameManager.h"
 
 APC_Player::APC_Player()
 {

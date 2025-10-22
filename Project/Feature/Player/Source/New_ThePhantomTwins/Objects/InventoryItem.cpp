@@ -5,6 +5,8 @@
 #include "Blueprint/UserWidget.h"
 #include "../Player/PS_Player.h"
 #include "../Player/PlayerCharacter.h"
+#include "SaveGame/SaveIDComponent.h"
+#include "SaveGame/TPTSaveGameManager.h"
 
 AInventoryItem::AInventoryItem()
 {
@@ -107,6 +109,9 @@ void AInventoryItem::OnInteractServer_Implementation(const APawn* Interactor)
             }
         }
     }
+
+    UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+    SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, false);
 
 	DestroyItem();
 }

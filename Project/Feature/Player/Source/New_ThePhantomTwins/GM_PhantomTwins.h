@@ -17,12 +17,8 @@ public:
 	AGM_PhantomTwins();
 
     //~ Begin AGameModeBase
-    virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
-    virtual void Tick(float DeltaSeconds) override;
-
-    float ElapsedTime;
     virtual void BeginPlay() override;
-    virtual void PostLogin(APlayerController* NewPlayer) override;
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     //~ End AGameModeBase
 
@@ -34,11 +30,16 @@ public:
     // ~ End PlayerDied
 
     //~ Begin LevelTravel
+    UFUNCTION()
+	void DelayedInitializeSaveTargets();
+
     UFUNCTION(BlueprintCallable)
 	void SeverToLevel(const FName LevelName, bool bAbsolute, bool bIsListen = true);
+
     UFUNCTION(BlueprintCallable)
     void ShowLoadingScene();
 	void RestartWithDelay(float Delay);
+
     UFUNCTION(BlueprintCallable)
 	void ResumePlay();
 	//~ End LevelTravel
@@ -69,9 +70,11 @@ public:
     UFUNCTION()
     void NotifyPlayerClickedGameStop(FName LevelName, FName PrintingName);
     void ShowGameStopUI();
+
     UFUNCTION()
     void NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 ClientSelect);
     void ShowResumeCountUI();
+
     FName DestinationLevelName;
     // ~ End  Stop game
 

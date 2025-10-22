@@ -74,6 +74,16 @@ void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
     );
 }
 
+void UGA_SceneAura::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+    UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+    if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_UsingOutLine))
+    {
+		ASC->RemoveActiveEffectsWithGrantedTags(FGameplayTagContainer(FTPTGameplayTags::Get().TPTGameplay_Character_State_UsingOutLine));
+    }
+}
+
 void UGA_SceneAura::ScanTargets()
 {
     NULLCHECK_RETURN_LOG(OwnerActor, GALog, Warning, )

@@ -89,16 +89,17 @@ void UPlayerAttributeSet::OnRep_HP(const FGameplayAttributeData& OldValue)
 	OnChangedHP.Broadcast(GetHP());
 
 	// 체력이 MaxHp의 30%이하라면 Low HP 효과 발동.
-	if (GetHP() < GetMaxHP() * 0.3f && !bPlayerLowHP)
+	if (GetHP() > 0.1f && GetHP() < GetMaxHP() * 0.3f && !bPlayerLowHP)
 	{
 		OnPlayerLowHP.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
 	}
+	bPlayerLowHP = GetHP() > 0.1f && GetHP() < GetMaxHP() * 0.3f;
 	// 체력이 0이하라면 다운.
-	if (GetHP() <= 0.1f && !bPlayerDowned)
+	if (GetHP() < 0.1f && !bPlayerDowned)
 	{
 		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 	}
-	bPlayerDowned = GetHP() <= 0.1f;
+	bPlayerDowned = GetHP() < 0.1f;
 }
 void UPlayerAttributeSet::OnRep_MaxHP(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, MaxHP, OldValue); }
 void UPlayerAttributeSet::OnRep_Stamina(const FGameplayAttributeData& OldValue)
@@ -234,23 +235,23 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 		SetFinalSpeed(FMath::Clamp(GetSpeed() + GetSpeedAdjustment(), MinimumPoint, 10000));
 	}
 	// 체력이 30% 보다 늘어나면 Low HP 태그 제거.
-	if (GetHP() >= GetMaxHP() * 0.3f && Data.Target.HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP))
+	if (GetHP() >= GetMaxHP() * 0.3f && Data.Target.HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP) && GetHP() < 0.1f)
 	{
 		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
 		Data.Target.RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
 	}
 	// 체력이 MaxHp의 30%이하라면 Low HP 효과 발동.
-	if (GetHP() < GetMaxHP() * 0.3f && !bPlayerLowHP)
+	if (GetHP() > 0.1f && GetHP() < GetMaxHP() * 0.3f && !bPlayerLowHP)
 	{
 		OnPlayerLowHP.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_LowHP);
 	}
-	bPlayerLowHP = GetHP() < GetMaxHP() * 0.3f;
+	bPlayerLowHP = (GetHP() > 0.1f && GetHP() < GetMaxHP() * 0.3f);
 	// 체력이 0이하라면 다운.
-	if (GetHP() <= 0.1f && !bPlayerDowned)
+	if (GetHP() < 0.1f && !bPlayerDowned)
 	{
 		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 	}
-	bPlayerDowned = GetHP() <= 0.1f;
+	bPlayerDowned = GetHP() < 0.1f;
 
 	// 정신력이 MAX가 아니라면 거리별회복 GA 호출
 	if (GetMentalPoint() < GetMaxMentalPoint() && !bMentalPointNotMax)

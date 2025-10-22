@@ -17,6 +17,7 @@
 #include "Log/TPTLog.h"
 
 
+
 AAIBaseCharacter::AAIBaseCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
@@ -31,8 +32,6 @@ AAIBaseCharacter::AAIBaseCharacter()
 
     CombatRange = CreateDefaultSubobject<USphereComponent>(TEXT("CombatRangeSphereComponent"));
     CombatRange->SetupAttachment(RootComponent);
-
-    PersistentActorID = FGuid::NewGuid();
 }
 
 void AAIBaseCharacter::BeginPlay()
@@ -77,7 +76,7 @@ void AAIBaseCharacter::BeginPlay()
             AbilitySystem->GiveAbility(StartSpec);
         }
 
-        for (const auto& CueNotify : GamePlayCueNotifys)
+        for (const auto& CueNotify : GamePlayCueNotifies)
         {
             // If you Want to Cue Register, Here.
         }
@@ -94,11 +93,6 @@ void AAIBaseCharacter::BeginPlay()
             .AddUObject(this, &AAIBaseCharacter::ResetDataForState);
         ResetDataForState(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Default, 1); // Initialize
     }
-
-    if (!PersistentActorID.IsValid())
-    {
-        PersistentActorID = FGuid::NewGuid();
-    }
 }
 
 void AAIBaseCharacter::Tick(float DeltaTime)
@@ -106,6 +100,7 @@ void AAIBaseCharacter::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
 
 }
+
 void AAIBaseCharacter::PostInitializeComponents()
 {
     Super::PostInitializeComponents();
