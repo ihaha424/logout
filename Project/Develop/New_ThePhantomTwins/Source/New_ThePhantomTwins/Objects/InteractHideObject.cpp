@@ -256,6 +256,18 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 
 void AInteractHideObject::EnterObject(const APawn* Interactor)
 {
+	// PlayerState 가져옴
+	APlayerController* InteractorPC = CastChecked<APlayerController>(Interactor->GetController());
+	APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
+	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+
+	// 플레이어에 Hide 태그가 없다면
+	if (!ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
+	{
+		// 플레이어 Hide 태그 추가
+		ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+	}
+
 	bIsActived = true;
 	HidePlayer = const_cast<APawn*>(Interactor);
 
@@ -277,6 +289,18 @@ void AInteractHideObject::ExitObject()
 {
 	if (OutPosBox && HidePlayer)
 	{
+		// PlayerState 가져옴
+		APlayerController* InteractorPC = CastChecked<APlayerController>(HidePlayer->GetController());
+		APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
+		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+
+		// 플레이어에 Hide 태그가 있다면
+		if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
+		{
+			// 플레이어 Hide 태그 제거
+			ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+		}
+		
 		FVector NewLocation = OutPosBox->GetComponentLocation();
 		FRotator NewRotation = OutPosBox->GetComponentRotation();
 		HidePlayer->SetActorLocationAndRotation(NewLocation, NewRotation);
