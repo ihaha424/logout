@@ -24,6 +24,7 @@ public:
 	void StaminaRegen();
 	void SetSpeed(float Speed, const FGameplayAbilityActorInfo* ActorInfo);
 	void OnSprintTagChanged(const FGameplayTag Tag, int32 TotalCount);
+	void OffSound(const FGameplayTag Tag, int32 TagCount);
 
 protected:
 
@@ -49,6 +50,16 @@ protected:
 	bool bHasSprintTag = false;
 
 	const FGameplayAbilityActorInfo* GAActorInfo;
+
+	UPROPERTY()
+	UAudioComponent* DrainAudioComponent = nullptr;
+	UPROPERTY()
+	UAudioComponent* ZeroAudioComponent = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound");
+	USoundBase* StaminaDrainSound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound");
+	USoundBase* StaminaZeroSound;
 
 	bool bIsStaminaRegen = false;
 };

@@ -19,6 +19,8 @@
 #include "Objects/HeldItemComponent.h"
 #include "TimerManager.h"
 #include "Components/PostProcessComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
 
 UGA_Downed::UGA_Downed()
 {
@@ -54,6 +56,11 @@ void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	if (USpringArmComponent* SpringArm = Character->GetSpringArm())
 	{
 		SpringArm->SocketOffset = DefaultSocketOffset + FVector(0.f, 0.f, -100.f);
+	}
+
+	if (SoundCue) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함
+	{
+		ActiveAudioComponent = UGameplayStatics::SpawnSoundAttached(SoundCue, Character->GetRootComponent());
 	}
 
 	SetSpeed(DownedSpeed, GAActorInfo);
@@ -132,6 +139,12 @@ void UGA_Downed::OnDownedTagChanged(const FGameplayTag Tag, int32 TagCount)
 		Character->GetSpringArm()->SocketOffset = DefaultSocketOffset;
 		Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		Character->SetFadeVFX(EVignetteType::DownedVignette,1);
+
+		if (ActiveAudioComponent)
+		{
+			ActiveAudioComponent->Stop();
+			ActiveAudioComponent = nullptr;
+		}
 
 		bool bReplicatedEndAbility = true;
 		bool bWasCancelled = false;

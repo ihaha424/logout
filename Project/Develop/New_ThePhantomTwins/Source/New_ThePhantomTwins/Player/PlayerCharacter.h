@@ -191,19 +191,6 @@ public:
 	};
 	void EnsureSetting(EnsureCreateElement Element);
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound");
-	USoundBase* StaminaDrainSound;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound");
-	USoundBase* StaminaRegenSound_Dana;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound");
-	USoundBase* StaminaRegenSound_Bell;
-	// 스테미나 감소 사운드 재생
-	void PlayStaminaDrainSound();
-	void PlayStaminaRegenSound();
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void PlayStaminaRegenSoundByCharacterType();
 protected:
 	// 플레이어 인풋 바인딩
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;

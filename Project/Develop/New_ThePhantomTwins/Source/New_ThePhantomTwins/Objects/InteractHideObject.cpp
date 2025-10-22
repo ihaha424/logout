@@ -100,6 +100,7 @@ bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bo
 		if (Interactor->IsLocallyControlled())
 		{
 			SetWidgetVisible(false);
+			PlayHideUnable(Interactor);
 		}
 
 		return false;

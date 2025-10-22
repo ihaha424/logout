@@ -494,18 +494,6 @@ void APlayerCharacter::PlayerHUDCoreEnergySet(int32 value)
 	PlayerHUDWidget->UpdateCoreEnergy(value);
 }
 
-void APlayerCharacter::PlayStaminaDrainSound()
-{
-	NULLCHECK_RETURN_LOG(StaminaDrainSound, PlayerLog, Error, );
-
-	UGameplayStatics::PlaySoundAtLocation(this, StaminaDrainSound, GetActorLocation());
-}
-
-void APlayerCharacter::PlayStaminaRegenSound()
-{
-	PlayStaminaRegenSoundByCharacterType();
-}
-
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// 로컬에서만 일어남.
