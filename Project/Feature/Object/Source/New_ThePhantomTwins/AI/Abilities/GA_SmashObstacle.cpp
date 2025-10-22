@@ -5,6 +5,9 @@
 #include "SzInterface/Destroyable.h"
 #include "AbilitySystemComponent.h"
 #include "Tags/TPTGameplayTags.h"
+#include "AI/Character/AIBaseCharacter.h"
+#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+
 #include "Log/TPTLog.h"
 
 
@@ -27,42 +30,80 @@ void UGA_SmashObstacle::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-    AActor* Target = TriggerEventData ? const_cast<AActor*>(TriggerEventData->Target.Get()) : nullptr;
+    Target = TriggerEventData ? const_cast<AActor*>(TriggerEventData->Target.Get()) : nullptr;
     if (Target && Target->GetClass()->ImplementsInterface(UDestroyable::StaticClass()))
     {
-
-        if (IDestroyable::Execute_CanBeDestroyed(Target, Cast<APawn>(ActorInfo->AvatarActor.Get())))
+        AAIBaseCharacter* Owner = Cast<AAIBaseCharacter>(ActorInfo->AvatarActor.Get());
+        if (IsValid(Owner) && IDestroyable::Execute_CanBeDestroyed(Target, Owner))
         {
-            IDestroyable::Execute_OnDestroy(Target, Cast<APawn>(ActorInfo->AvatarActor.Get()));
+            bActiveAbility = true;
+            OwnerPawn = Owner;
+
+            if (UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo())
+            {
+                MyASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_SmashObstacle);
+                MyASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
+            }
+
+            UAbilityTask_PlayMontageAndWait* PlayAttackTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+                this, TEXT("PlayAttack"), AttackMontage, 1.0f, TEXT("Attack"));
+            NULLCHECK_CODE_RETURN_LOG(PlayAttackTask, AILog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
+            PlayAttackTask->OnCompleted.AddDynamic(this, &UGA_SmashObstacle::OnCompleteCallback);
+            PlayAttackTask->OnInterrupted.AddDynamic(this, &UGA_SmashObstacle::OnInterruptedCallback);
+            PlayAttackTask->ReadyForActivation();
+            return;
         }
     }
-    if (UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo())
-    {
-        MyASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_SmashObstacle);
-        MyASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
-    }
-
-    // 애니메이션 & VFX(서버 클라 둘다)
-    // 애니메이션 & VFX가 끝나면 EndAbillity
 
     EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-    // 위 과업을 하기 전까지 사용할 테스트용 코드 1초후 종료
-    //FTimerHandle TimerHandle;
-    //FTimerDelegate EndDelegate = FTimerDelegate::CreateUObject(this, &UGA_SmashObstacle::EndAbility,
-    //    Handle, ActorInfo, ActivationInfo, true, false);
-    //if (UWorld* World = GetWorld())
-    //{
-    //    World->GetTimerManager().SetTimer(TimerHandle, EndDelegate, 1.0f, false);
-    //}
 }
 
 void UGA_SmashObstacle::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-    if (UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo())
+    UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
+    if (bActiveAbility && MyASC)
     {
         MyASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_SmashObstacle);
         MyASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
     }
-
+    bActiveAbility = false;
+    Target = nullptr;
+    OwnerPawn = nullptr;
     Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UGA_SmashObstacle::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted, FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayAbilityActivationInfo ActivationInfo)
+{
+    EndAbility(Handle, ActorInfo, ActivationInfo, true, bInterrupted);
+}
+
+void UGA_SmashObstacle::OnCompleteCallback()
+{
+    bool bReplicateEndAbility = true; // 서버에서 실행되는 어빌리티는 클라이언트에게도 복제되어야 한다.
+    bool bWasCancelled = false; // 몽타주가 끝나면 취소되지 않았으므로 false로 설정한다.
+
+    if (CurCount <= Count)
+    {
+        CurCount++;
+        UAbilityTask_PlayMontageAndWait* PlayAttackTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+            this, TEXT("PlayAttack"), AttackMontage, 1.0f, TEXT("Attack"));
+        NULLCHECK_CODE_RETURN_LOG(PlayAttackTask, AILog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);, );
+        PlayAttackTask->OnCompleted.AddDynamic(this, &UGA_SmashObstacle::OnCompleteCallback);
+        PlayAttackTask->OnInterrupted.AddDynamic(this, &UGA_SmashObstacle::OnInterruptedCallback);
+        PlayAttackTask->ReadyForActivation();
+        return;
+    }
+
+    if (OwnerPawn)
+    {
+        IDestroyable::Execute_OnDestroy(Target, OwnerPawn);
+    }
+    EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UGA_SmashObstacle::OnInterruptedCallback()
+{
+    bool bReplicateEndAbility = true; // 서버에서 실행되는 어빌리티는 클라이언트에게도 복제되어야 한다.
+    bool bWasCancelled = true; // 몽타주가 끝나면 취소되지 않았으므로 false로 설정한다.
+    EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);
 }

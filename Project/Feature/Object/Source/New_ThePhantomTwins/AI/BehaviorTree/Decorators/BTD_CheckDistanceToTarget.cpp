@@ -7,6 +7,8 @@
 #include "SzInterface/Destroyable.h"
 #include "Log/TPTLog.h"
 
+#include "Kismet/KismetSystemLibrary.h"
+
 UBTD_CheckDistanceToTarget::UBTD_CheckDistanceToTarget()
 {
 	NodeName = TEXT("CheckDistanceToTarget");
@@ -41,6 +43,7 @@ bool UBTD_CheckDistanceToTarget::CalculateRawConditionValue(UBehaviorTreeCompone
 	FVector TargetLocDistance = TargetLoc;
 	TargetLocDistance.Z = 0;
 	const float CurDistance = FVector::Dist(MyLocDistance, TargetLocDistance);
+
 	if (CurDistance <= Distance + DistanceThreshold)
 	{
 		FHitResult HitResult;
@@ -72,6 +75,7 @@ bool UBTD_CheckDistanceToTarget::CalculateRawConditionValue(UBehaviorTreeCompone
 			AActor* HitActor = HitResult.GetActor();
 			if (HitActor)
 			{
+
 				if (HitActor && HitActor->GetClass()->ImplementsInterface(UDestroyable::StaticClass()))
 				{
 					BB->SetValueAsObject(ObjectActorKey.SelectedKeyName, HitActor);
@@ -79,9 +83,11 @@ bool UBTD_CheckDistanceToTarget::CalculateRawConditionValue(UBehaviorTreeCompone
 					return true;
 				}
 
+				if (HitActor == Target && HitResult.Distance <= Distance)
+				{
 
-				if (HitActor == Target && CurDistance <= Distance)
 					return true;
+				}
 			}
 		}
 	}

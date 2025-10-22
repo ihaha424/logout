@@ -21,21 +21,29 @@ public:
 
 	// 모든 클라이언트에게 복제되는 함수들 추가
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastApplyEffect(const APawn* Interactor);
+	void S2A_ApplyEffect(const APawn* Interactor);
+	void S2A_ApplyEffect_Implementation(const APawn* Interactor);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastInvokeGameplayCue(const APawn* Interactor);
+	void S2A_InvokeGameplayCue(const APawn* Interactor);
+	void S2A_InvokeGameplayCue_Implementation(const APawn* Interactor);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastExecuteTrapBox(const APawn* Interactor);
+	void S2A_ExecuteTrapBox(const APawn* Interactor);
+	void S2A_ExecuteTrapBox_Implementation(const APawn* Interactor);
 
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastShowWarning();
+	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
+	void S2A_ShowWarning();
+	void S2A_ShowWarning_Implementation();
 
 	// 기존 함수들 (서버에서만 실행)
 	void ApplyEffectToTarget(const APawn* Interactor);
 	void InvokeGameplayCue(const APawn* Interactor);
 	void ExecuteTrapBoxGA(const APawn* Interactor);
+
+	// 블루프린트에서 문을 여는 동작을 구현할 수 있도록 선언
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "BoxObject")
+	void PlayWarning();
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "BoxObject | GAS")
@@ -47,8 +55,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "BoxObject")
 	bool bisTrapBox;
 
-	UPROPERTY(EditAnywhere, Category = "BoxObject | UI")
-	TSubclassOf<AActor> WarningClass;
+	//UPROPERTY(EditAnywhere, Category = "BoxObject | UI")
+	//TSubclassOf<AActor> WarningClass;
 
-	AActor* FindWarningActor();
+	//AActor* FindWarningActor();
+
+	//FTimerHandle WarningTimerHandle;
 };

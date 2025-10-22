@@ -150,6 +150,9 @@ public:
 	// ¿ß¡¨ º≥¡§
 	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);
 
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void SetFadeVFX(EVignetteType Type, int32 StartValue);
+
 	UFUNCTION()
 	void PlayerHUDStaminaSet(int32 value);
 	UFUNCTION()
@@ -258,7 +261,9 @@ protected:
 	/**
 	 * @brief : GameStart(GS, PS, PC ensuring the create.)
 	 */
+	UFUNCTION(BlueprintNativeEvent)
 	void EnsureGameStart();
+	void EnsureGameStart_Implementation();
 
 	int32 HealthPoint = 200.f;
 	int32 MentalPoint = 100.f;
@@ -328,7 +333,7 @@ protected:
 	// Ω∫≈› ¿ß¡¨
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UPlayerHUDWidget> PlayerHUDWidgetClass;
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TObjectPtr<UPlayerHUDWidget> PlayerHUDWidget;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
@@ -389,6 +394,7 @@ protected:
 
 	// ºº∆√ ∫∏¿Â
 	bool bEnsureSet[EnsureCreateElement::End];
+	bool bOnceTime = false;
 
 	
 private:

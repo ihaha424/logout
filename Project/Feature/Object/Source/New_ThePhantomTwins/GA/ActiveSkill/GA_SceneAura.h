@@ -17,22 +17,36 @@ class NEW_THEPHANTOMTWINS_API UGA_SceneAura : public UGameplayAbility
 public:
     UGA_SceneAura();
 
-    virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+    virtual bool CanActivateAbility(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	                        const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
+	                        FGameplayTagContainer* OptionalRelevantTags) const override;
+
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+    virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 
 protected:
    
     void ScanTargets();
 
     // Aura 
-    void ApplyAuraToTarget(AActor* Target);
+    void ApplyAuraToTarget(AActor* Target, int32 Value);
     void RemoveAuraFromTarget(AActor* Target);
 	bool IsValidAuraTarget(AActor* Target) const;
     bool IsCameraBlocked();
+    void SpawnScanEffectActor();
 
     UFUNCTION()
     void OnSceneAuraTagChanged(const FGameplayTag InputTag, int32 TagCount);
     UFUNCTION()
     void OnCoolDownTagChanged(const FGameplayTag InputTag, int32 TagCount);
+
+    // 블루프린트에서 지정할 수 있도록
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Scan Effect")
+    TSubclassOf<AActor> ScanEffectActorClass;
+
+    TArray<AActor*> UnlimitedObjects;
+
+    AActor* OtherPlayer = nullptr;
 
     // 타이머
     FTimerHandle ScanTimerHandle;
@@ -41,6 +55,8 @@ protected:
     TSet<TWeakObjectPtr<AActor>> CurrentAuraTargets;
 
 	AActor* OwnerActor = nullptr;
+
+    TSet<TWeakObjectPtr<AActor>> NewTargets;
 
     // === Configurable Variables ===
 

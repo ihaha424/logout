@@ -42,6 +42,8 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "HideObject")
 	void SetViewTarget(APlayerController* InteractorPC, AActor* NewViewTarget); // 카메라 전환을 위한 함수
 
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void PlayHideUnable(const APawn* Interactor);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_PlayEffect(FVector EffectLocation);

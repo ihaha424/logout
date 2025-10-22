@@ -6,6 +6,8 @@
 #include "Attribute/PlayerAttributeSet.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Components/AudioComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Log/TPTLog.h"
 
 UGA_Run::UGA_Run()
@@ -33,6 +35,8 @@ void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	GAActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffectBySourceEffect(StaminaRegenEffect, MyASC);
 	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
+
+	MyASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run).AddUObject(this, &UGA_Run::OffSound);
 
 	MyASC->CancelAbilities(&CancelTags);
 	// 스프린트로 인한 달리기 속도 변경을 태그바인딩을 통해 실행.
@@ -82,6 +86,33 @@ void UGA_Run::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 			{
 				// 스태미나 0이면 종료
 				CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
+				
+				if (Character->IsLocallyControlled())
+				{
+					if (StaminaZeroSound && (!ZeroAudioComponent || !ZeroAudioComponent->IsPlaying())) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함
+					{
+						ZeroAudioComponent = UGameplayStatics::SpawnSoundAttached
+						(StaminaZeroSound,
+							Character->GetRootComponent(),
+							NAME_None,
+							FVector::ZeroVector,
+							EAttachLocation::KeepRelativeOffset,
+							false, 
+							1.0f,
+							1.0f,
+							0.0f,
+							nullptr,
+							nullptr,
+							true 
+							);
+
+						if (DrainAudioComponent && DrainAudioComponent->IsPlaying())
+						{
+							DrainAudioComponent->Stop();
+						}
+					}
+				}
+
 			}
 		}, 0.1f, true); // 0.1초마다 체크
 }
@@ -140,6 +171,17 @@ void UGA_Run::StaminaDrain()
 	{
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, StaminaDrainEffectSpecHandle);
 	}
+
+	if (APlayerCharacter* Character = Cast<APlayerCharacter>(GAActorInfo->AvatarActor.Get()))
+	{
+		if (Character->IsLocallyControlled())
+		{
+			if (StaminaDrainSound && (!DrainAudioComponent || !DrainAudioComponent->IsPlaying())) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함
+			{
+				DrainAudioComponent = UGameplayStatics::SpawnSoundAttached(StaminaDrainSound, Character->GetRootComponent());
+			}
+		}
+	}
 }
 
 void UGA_Run::StaminaRegen()
@@ -153,6 +195,17 @@ void UGA_Run::StaminaRegen()
 	if (StaminaRegenEffectSpecHandle.IsValid())
 	{
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, StaminaRegenEffectSpecHandle);
+	}
+
+	if (APlayerCharacter* Character = Cast<APlayerCharacter>(GAActorInfo->AvatarActor.Get()))
+	{
+		if (Character->IsLocallyControlled())
+		{
+			if (DrainAudioComponent && DrainAudioComponent->IsPlaying())
+			{
+				DrainAudioComponent->Stop();
+			}
+		}
 	}
 }
 
@@ -183,5 +236,25 @@ void UGA_Run::OnSprintTagChanged(const FGameplayTag Tag, int32 TagCount)
 	if (GAActorInfo->AbilitySystemComponent->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run))
 	{
 		SetSpeed(OutPutRunSpeed, GAActorInfo);
+	}
+}
+
+void UGA_Run::OffSound(const FGameplayTag Tag, int32 TagCount)
+{
+	bool bHasDownedTag = TagCount > 0; // 태그가 붙었으면 true, 없으면 false
+
+	// 스피드 재정의 GE 부여 & 재정의된 스피드 적용
+	APlayerCharacter* Character = Cast<APlayerCharacter>(GAActorInfo->AvatarActor.Get());
+	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
+
+	NULLCHECK_RETURN_LOG(DrainAudioComponent, GALog, Warning, );
+
+	if (!bHasDownedTag)
+	{
+		if (Character->IsLocallyControlled())
+		{
+			DrainAudioComponent->Stop();
+			DrainAudioComponent = nullptr;
+		}
 	}
 }

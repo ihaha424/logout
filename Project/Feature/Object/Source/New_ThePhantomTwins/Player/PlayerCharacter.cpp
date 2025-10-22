@@ -107,6 +107,9 @@ void APlayerCharacter::BeginPlay()
 	}
 
 	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(DownedWidget, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(InteractWidgetClass, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(DownWidgetClass, PlayerLog, Error, );
 
 	UUserWidget* Interact = CreateWidget(GetWorld(), InteractWidgetClass);
 	InteractWidget->SetWidget(Interact);
@@ -135,20 +138,8 @@ void APlayerCharacter::BeginPlay()
 
 	FocusTrace->SetIsReplicated(true);
 
-	InitPostProcessComponent();
-
 	if (IsLocallyControlled())
 	{
-		PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
-		PlayerController->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
-		PlayerController->RegisterWidget(TEXT("CannotUseItem"), CreateWidget<UUserWidget>(GetWorld(), CannotUseItemWidgetClass));
-		PlayerController->RegisterWidget(TEXT("GameOver"), CreateWidget(GetWorld(), GameOverWidgetClass));
-		PlayerController->RegisterWidget(TEXT("Loading"), CreateWidget(GetWorld(), LoadingWidgetClass));
-
-		PlayerController->RegisterWidget(TEXT("ESC"), CreateWidget(GetWorld(), ESCWidgetClass));
-		PlayerController->RegisterWidget(TEXT("GameStop"), CreateWidget(GetWorld(), GameStopWidgetClass));
-		PlayerController->RegisterWidget(TEXT("ResumeCount"), CreateWidget(GetWorld(), ResumeCountWidgetClass));
-
 		if (DroneUserWidget)
 		{
 			SetHP(HealthPoint);
@@ -159,6 +150,8 @@ void APlayerCharacter::BeginPlay()
 			TPT_LOG(HUDLog, Error, TEXT("InitHUDWidget: DroneUserWidget is null"));
 		}
 	}
+
+	InitPostProcessComponent();
 
 	// RecoveryGauge Time
 	Time = RecoveryTime;
@@ -581,9 +574,7 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 		AttributeSet->OnPlayerDamaged.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 		AttributeSet->OnPlayerLowHP.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 		AttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-		AttributeSet->OnPlayerConfused1st.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-		AttributeSet->OnPlayerConfused2nd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-		AttributeSet->OnPlayerConfused3rd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+		AttributeSet->OnPlayerConfused.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 		AttributeSet->OnPlayerUseSkill.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 		AttributeSet->OnMentalPointNotMax.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 
@@ -1085,15 +1076,40 @@ void APlayerCharacter::EnsureSetting(EnsureCreateElement Element)
 		}
 	}
 
-	if (bStart)
+	if (bStart && !bOnceTime)
+	{
+		bOnceTime = true;
 		EnsureGameStart();
+	}
 }
 
-void APlayerCharacter::EnsureGameStart()
+void APlayerCharacter::EnsureGameStart_Implementation()
 {
 	AUIManagerPlayerController* PC = Cast<AUIManagerPlayerController>(GetController());
-	if (PC)
-		PC->SetWidget(TEXT("PlayerHUDWidget"), true, EMessageTargetType::LocalClient);
+	if (!PC)
+		return;
+
+	PC->SetWidget(TEXT("PlayerHUDWidget"), true, EMessageTargetType::LocalClient);
+
+	if (IsLocallyControlled())
+	{
+		//NULLCHECK_RETURN_LOG(RecoveryWidgetClass, PlayerLog, Error, );
+		PC->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
+		//NULLCHECK_RETURN_LOG(KeyWidgetClass, PlayerLog, Error, );
+		PC->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
+		//NULLCHECK_RETURN_LOG(CannotUseItemWidgetClass, PlayerLog, Error, );
+		PC->RegisterWidget(TEXT("CannotUseItem"), CreateWidget<UUserWidget>(GetWorld(), CannotUseItemWidgetClass));
+		//NULLCHECK_RETURN_LOG(GameOverWidgetClass, PlayerLog, Error, );
+		PC->RegisterWidget(TEXT("GameOver"), CreateWidget(GetWorld(), GameOverWidgetClass));
+		//NULLCHECK_RETURN_LOG(LoadingWidgetClass, PlayerLog, Error, );
+		//PC->RegisterWidget(TEXT("Loading"), CreateWidget(GetWorld(), LoadingWidgetClass));
+		//NULLCHECK_RETURN_LOG(ESCWidgetClass, PlayerLog, Error, );
+		PC->RegisterWidget(TEXT("ESC"), CreateWidget(GetWorld(), ESCWidgetClass));
+		//NULLCHECK_RETURN_LOG(GameStopWidgetClass, PlayerLog, Error, );
+		PC->RegisterWidget(TEXT("GameStop"), CreateWidget(GetWorld(), GameStopWidgetClass));
+		//NULLCHECK_RETURN_LOG(ResumeCountWidgetClass, PlayerLog, Error, );
+		PC->RegisterWidget(TEXT("ResumeCount"), CreateWidget(GetWorld(), ResumeCountWidgetClass));
+	}
 }
 
 void APlayerCharacter::RemoveHeldItemMesh()
@@ -1223,8 +1239,13 @@ void APlayerCharacter::UpdateSprintCooldownCount()
 		FGameplayTag SprintTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Sprinting;
 		FGameplayTag CooldownTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_SprintCoolDown;
 
+		if (Effects.GetNumGameplayEffects() <= 0)
+			return;
+
 		for (auto It = Effects.CreateConstIterator(); It; ++It)
 		{
+			if (!It) continue;
+
 			const FActiveGameplayEffect& Effect = *It;
 			if (!Effect.Spec.Def) continue;
 
@@ -1280,11 +1301,16 @@ void APlayerCharacter::UpdateAuraCooldownCount()
 	{
 		const FActiveGameplayEffectsContainer& Effects = ASC->GetActiveGameplayEffects();
 
+		if (Effects.GetNumGameplayEffects() <= 0)
+			return;
+
 		FGameplayTag SprintTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_UsingOutLine;
 		FGameplayTag CooldownTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_OutLineCoolDown;
 
 		for (auto It = Effects.CreateConstIterator(); It; ++It)
 		{
+			if (!It) continue;
+
 			const FActiveGameplayEffect& Effect = *It;
 			if (!Effect.Spec.Def) continue;
 

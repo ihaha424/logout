@@ -27,9 +27,10 @@ void UGA_AIHitPlayer::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	TPT_LOG(GALog, Log, TEXT(""));
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	NULLCHECK_RETURN_LOG(ASC, GALog, Error, );
-	ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st).AddUObject(this, &ThisClass::OffSound);
+	ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit).AddUObject(this, &ThisClass::OffSound);
 	
 	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
 
@@ -40,12 +41,7 @@ void UGA_AIHitPlayer::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 			ActiveAudioComponent = UGameplayStatics::SpawnSoundAttached(Sound, Character->GetRootComponent());
 		}
 
-		Character->SettingPostProcessComponentBlendable(EVignetteType::HitVignette, 1.0f);
-
-		// 0.1초 후에 자동으로 끄기
-		FTimerHandle TempHandle;
-		GetWorld()->GetTimerManager().SetTimer(
-			TempHandle, this, &UGA_AIHitPlayer::VignetteEffectOff, 0.5f, false);
+		Character->SetFadeVFX(EVignetteType::HitVignette, 0);
 	}
 
 	HitMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("HitMontage"), HitMontage, 1.0f);
@@ -56,6 +52,7 @@ void UGA_AIHitPlayer::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 void UGA_AIHitPlayer::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	TPT_LOG(GALog, Log, TEXT(""));
 	if (ActorInfo && ActorInfo->IsLocallyControlled())
 	{
 		if (ActiveAudioComponent)
@@ -69,19 +66,20 @@ void UGA_AIHitPlayer::EndAbility(const FGameplayAbilitySpecHandle Handle, const 
 
 void UGA_AIHitPlayer::OffSound(const FGameplayTag InputTag, int32 Count)
 {
+	TPT_LOG(GALog, Log, TEXT(""));
 	bool bHasSoundTag = Count > 0;
-	if (!bHasSoundTag)
-	{
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-	}
 }
 
 void UGA_AIHitPlayer::OnMontageComplete()
 {
+	TPT_LOG(GALog, Log, TEXT(""));
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 
 	ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit);
 	ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit);
+	
+	VignetteEffectOff();
+
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
@@ -89,5 +87,10 @@ void UGA_AIHitPlayer::VignetteEffectOff()
 {
 	APlayerCharacter* Character = Cast<APlayerCharacter>(GetActorInfo().AvatarActor);
 	NULLCHECK_RETURN_LOG(Character, GALog, Error, );
-	Character->SettingPostProcessComponentBlendable(EVignetteType::HitVignette, 0.0f);
+
+	if (Character->IsLocallyControlled())
+	{
+		Character->SetFadeVFX(EVignetteType::HitVignette, 1);
+		TPT_LOG(GALog, Log, TEXT(""));
+	}
 }

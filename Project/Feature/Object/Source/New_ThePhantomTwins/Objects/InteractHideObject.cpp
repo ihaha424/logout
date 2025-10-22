@@ -6,6 +6,8 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "../Player/PlayerCharacter.h"
+#include "Player/PS_Player.h"
+
 #include "Materials/MaterialInterface.h"
 #include "../Log/TPTLog.h"
 
@@ -20,6 +22,8 @@
 #include "GameplayEffect.h"
 
 #include "Components/StaticMeshComponent.h"
+#include "Tags/TPTGameplayTags.h"
+
 
 
 AInteractHideObject::AInteractHideObject() : AInteractableObject()
@@ -67,7 +71,17 @@ void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
 	APlayerController* InteractorPC = CastChecked<APlayerController>(HidePlayer->GetController());
 
 	if (!InteractorPC) return;
+	
+	// PlayerState 가져옴
+	APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
+	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
 
+	// 플레이어에 Hide 태그가 있다면
+	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
+	{
+		// 플레이어 Hide 태그 제거
+		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+	}
 
 	// 클라이언트에게 입력 활성화 명령 전달
 	SetInputState(InteractorPC, false);
@@ -86,6 +100,7 @@ bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bo
 		if (Interactor->IsLocallyControlled())
 		{
 			SetWidgetVisible(false);
+			PlayHideUnable(Interactor);
 		}
 
 		return false;
