@@ -88,6 +88,14 @@ public:
 	virtual void CalculateGaugePercent_Implementation(float Elapsed) override;
 	virtual void SetHoldingGaugeUI_Implementation(const APawn* Interactor, bool bVisible) override;
 
+	void UpdatePlayerDist();
+	float PlayerDist = 0;
+
+	TArray<AActor*> Players;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void CallPlayerDistDialog();
+
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnRep_RecoveryPercent();
 

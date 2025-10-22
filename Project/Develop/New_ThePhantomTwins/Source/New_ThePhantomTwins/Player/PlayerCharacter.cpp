@@ -111,6 +111,8 @@ void APlayerCharacter::BeginPlay()
 	NULLCHECK_RETURN_LOG(InteractWidgetClass, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(DownWidgetClass, PlayerLog, Error, );
 
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ThisClass::StaticClass(), Players);
+
 	UUserWidget* Interact = CreateWidget(GetWorld(), InteractWidgetClass);
 	InteractWidget->SetWidget(Interact);
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
@@ -151,7 +153,7 @@ void APlayerCharacter::BeginPlay()
 		}
 	}
 
-	InitPostProcessComponent();
+	//InitPostProcessComponent();
 
 	// RecoveryGauge Time
 	Time = RecoveryTime;
@@ -160,6 +162,8 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+
 
 	if (IsLocallyControlled() && PlayerController && FocusTrace)
 	{
@@ -250,6 +254,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 
 	SetSelectSkill(PS);
 
+	InitPostProcessComponent();
+
 	EnsureSetting(EnsureCreateElement::EnsurePlayerController);
 	EnsureSetting(EnsureCreateElement::EnsurePlayerState);
 }
@@ -280,6 +286,8 @@ void APlayerCharacter::OnRep_PlayerState()
 	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
 	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
 	BindAttributeDelegates(AttributeSet);
+
+	InitPostProcessComponent();
 
 	InitHUDWidget(AttributeSet);
 	UPlayerAnimInstance* AnimInstance = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
@@ -339,6 +347,24 @@ void APlayerCharacter::SetHoldingGaugeUI_Implementation(const APawn* Interactor,
 	PC->SetWidget(TEXT("RecoveryGauge"), bVisible, EMessageTargetType::Multicast);
 }
 
+void APlayerCharacter::UpdatePlayerDist()
+{
+	if (Players.Num() == 2)
+	{
+		APlayerCharacter* SelfActor = this;
+		APlayerCharacter* Other = (Cast<APlayerCharacter>(Players[0]) == SelfActor) ? Cast<APlayerCharacter>(Players[1]) : Cast<APlayerCharacter>(Players[0]);
+		NULLCHECK_RETURN_LOG(SelfActor, GALog, Error, );
+		NULLCHECK_RETURN_LOG(Other, GALog, Error, );
+
+		PlayerDist = FVector::Dist(SelfActor->GetActorLocation(), Other->GetActorLocation());
+
+		if (PlayerDist > 300.f)
+		{
+			CallPlayerDistDialog();
+		}
+	}
+}
+
 void APlayerCharacter::InitPostProcessComponent()
 {
 	NULLCHECK_RETURN_LOG(HitVignette, PlayerLog, Error, );
@@ -396,40 +422,10 @@ void APlayerCharacter::SettingPostProcessComponentBlendable(EVignetteType Type, 
 	if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 0)
 		return;
 
-	FPostProcessSettings NewSettings;
-	NewSettings = PostProcessComp->Settings;
-
-	switch (Type)
-	{
-	case EVignetteType::HitVignette:
-		NewSettings.WeightedBlendables.Array[0].Object = HitBlendable.Object;
-		NewSettings.WeightedBlendables.Array[0].Weight = Weight;
-		break;
-	case EVignetteType::DownedVignette:
-		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 1) return;
-		NewSettings.WeightedBlendables.Array[1].Object = DownedBlendable.Object;
-		NewSettings.WeightedBlendables.Array[1].Weight = Weight;
-		break;
-	case EVignetteType::TrapVignette:
-		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 2) return;
-		NewSettings.WeightedBlendables.Array[2].Object = TrapBlendable.Object;
-		NewSettings.WeightedBlendables.Array[2].Weight = Weight;
-		break;
-	case EVignetteType::Confused3rdVignette:
-		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 3) return;
-		NewSettings.WeightedBlendables.Array[3].Object = Confused3rdBlendable.Object;
-		NewSettings.WeightedBlendables.Array[3].Weight = Weight;
-		break;
-	case EVignetteType::MentalAttackVignette:
-		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 4) return;
-		NewSettings.WeightedBlendables.Array[4].Object = MentalAttackBlendable.Object;
-		NewSettings.WeightedBlendables.Array[4].Weight = Weight;
-		break;
-	default:
-		break;
-	}
-
-	PostProcessComp->Settings = NewSettings;
+	//FPostProcessSettings& NewSettings = PostProcessComp->Settings;
+	const int32 index = static_cast<int32>(Type) - 1;
+	if (!PostProcessComp->Settings.WeightedBlendables.Array.IsValidIndex(index)) return;
+	PostProcessComp->AddOrUpdateBlendable(PostProcessComp->Settings.WeightedBlendables.Array[index].Object, Weight);
 }
 
 void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
@@ -524,25 +520,22 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInput)
 {
-	if (IsValid(ASC) && IsValid(TPTInput))
-	{
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Started, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
+	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
 
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Started, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
+	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Started, this, &ThisClass::InputPressed);
 
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_Q, ETriggerEvent::Started, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_E, ETriggerEvent::Started, this, &ThisClass::InputPressed);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 1);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 2);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 3);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 4);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 5);
-		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_UseItem, ETriggerEvent::Started, this, &ThisClass::InputPressedUseItem);
-	}
+	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_Q, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_E, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 1);
+	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 2);
+	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 3);
+	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 4);
+	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 5);
+	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_UseItem, ETriggerEvent::Started, this, &ThisClass::InputPressedUseItem);
 }
 
 void APlayerCharacter::OnAbilityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureTags)
