@@ -164,8 +164,10 @@ void AAIBaseController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
 
 void AAIBaseController::AddPerceptionSightList(AActor* Actor)
 {
-    if(INDEX_NONE == PerceptionSightList.Find(Actor))
+    if (INDEX_NONE == PerceptionSightList.Find(Actor))
+    {
         PerceptionSightList.Add(Actor);
+    }
 
     if (!SightTimerHandle.IsValid())
     {

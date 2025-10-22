@@ -45,8 +45,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Indicator")
     void RotationToTargetActor();
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Indicator")
+    TWeakObjectPtr<AActor> TargetCached;
 private:
 
-    TWeakObjectPtr<AActor> TargetCached;
     float AngleDeg = 0.f;
 };

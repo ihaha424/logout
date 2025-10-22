@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/ShapeComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AI/Controller/AIBaseController.h"
@@ -183,7 +184,6 @@ void AAIBaseCharacter::ResetDataForState(const FGameplayTag Tag, int32 TagCount)
 }
 
 
-#include "Kismet/KismetSystemLibrary.h"
 void AAIBaseCharacter::S2A_ResetDataForState_Implementation(const FGameplayTag Tag, int32 TagCount)
 {
     const TMap<EFTPTGameplayTags, EAIBaseState> StateMap =
@@ -224,7 +224,7 @@ void AAIBaseCharacter::CombatRangeBeginOverlap(UPrimitiveComponent* OverlappedCo
 {
     if (OtherActor == this)
         return;
-    if (MatchingChaseActorType(OtherActor))
+    if (this->MatchingChaseActorType(OtherActor))
     {
         if (INDEX_NONE == CombatRangeInActor.Find(OtherActor))
             CombatRangeInActor.Add(OtherActor);
@@ -252,7 +252,7 @@ void AAIBaseCharacter::CheckCombatRangeInActor()
 {
     for (AActor* actor : CombatRangeInActor)
     {
-        if (!MatchingChaseActorType(actor))
+        if (!this->MatchingChaseActorType(actor))
             continue;
         //SweepResult를 이용해서도 확인 가능, 만약 레이케스팅이 부적절하면 Sweep의 정보를 이용해서 사용
         FVector MyLoc = GetActorLocation();
@@ -303,6 +303,10 @@ void AAIBaseCharacter::SetAttackCollision(bool bIsActive)
     NULLCHECK_RETURN_LOG(AttackCollision, AILog, Warning, );
     if (bIsActive)
     {
+        AAIController* AIController = Cast<AAIController>(GetController());
+        NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
+        AIController->StopMovement();
+
         AttackCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
         AttackCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
         AttackCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
@@ -374,6 +378,19 @@ void AAIBaseCharacter::ResetDataForDieState_Implementation()
 
     AIController->StopMovement();
 
+    UCapsuleComponent* Capsule = GetCapsuleComponent();
+    NULLCHECK_RETURN_LOG(Capsule, AILog, Warning, );
+
+    Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    Capsule->SetGenerateOverlapEvents(false);
+    Capsule->SetNotifyRigidBodyCollision(false);
+
+    USkeletalMeshComponent* ChracterMesh = GetMesh();
+    NULLCHECK_RETURN_LOG(ChracterMesh, AILog, Warning, );
+
+    ChracterMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    ChracterMesh->SetGenerateOverlapEvents(false);
+    ChracterMesh->SetNotifyRigidBodyCollision(false);
 }
 
 void AAIBaseCharacter::ResetDataForStunState_Implementation()
@@ -385,7 +402,6 @@ void AAIBaseCharacter::ResetDataForStunState_Implementation()
     NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
 
     AIController->StopMovement();
-
 }
 
 void AAIBaseCharacter::ResetDataForDefaultState_Implementation()

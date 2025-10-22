@@ -125,24 +125,31 @@ void UPlayerAttributeSet::OnRep_MentalPoint(const FGameplayAttributeData& OldVal
 	}
 	bMentalPointNotMax = GetMentalPoint() < GetMaxMentalPoint();
 
+	// 정신력이 정상 상태
+	if (GetMentalPoint() > 50.0f && !bPlayerNotConfused)
+	{
+		OnPlayerConfused.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_NotConfused);
+	}
+	bPlayerNotConfused = GetMentalPoint() > 50.0f;
+
 	// 정신력이 50 이하라면 착란 1단계
 	if (GetMentalPoint() > 25.0f && GetMentalPoint() <= 50.0f && !bPlayerConfused1st)
 	{
-		OnPlayerConfused1st.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
+		OnPlayerConfused.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
 	}
 	bPlayerConfused1st = (GetMentalPoint() > 25.0f && GetMentalPoint() <= 50.0f);
 
 	// 정신력이 25 이하라면 착란 2단계
 	if (GetMentalPoint() > 0.0f && GetMentalPoint() <= 25.0f && !bPlayerConfused2nd)
 	{
-		OnPlayerConfused2nd.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
+		OnPlayerConfused.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
 	}
 	bPlayerConfused2nd = (GetMentalPoint() > 0.0f && GetMentalPoint() <= 25.0f);
 
 	// 정신력이 0 이라면 착란 3단계
 	if (GetMentalPoint() <= 0.0f && !bPlayerConfused3rd)
 	{
-		OnPlayerConfused3rd.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
+		OnPlayerConfused.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
 	}
 	bPlayerConfused3rd = GetMentalPoint() <= 0.0f;
 }
@@ -261,18 +268,22 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 		OnMentalPointNotMax.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalRecovery);
 	}
 	bMentalPointNotMax = GetMentalPoint() < GetMaxMentalPoint();
-	// 정신력 이상 단계가 아니게 되면 태그 떼주기.
-	if (GetMentalPoint() > 50.0f && Data.Target.HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st))
+
+	// 정신력이 정상 상태
+	if (GetMentalPoint() > 50.0f && !bPlayerNotConfused)
 	{
 		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
 		Data.Target.RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
+		OnPlayerConfused.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_NotConfused);
 	}
+	bPlayerNotConfused = GetMentalPoint() > 50.0f;
+
 	// 정신력이 50 이하라면 착란 1단계
 	if (GetMentalPoint() > 25.0f && GetMentalPoint() <= 50.0f && !bPlayerConfused1st)
 	{
 		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
 		Data.Target.RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
-		OnPlayerConfused1st.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
+		OnPlayerConfused.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
 	}
 	bPlayerConfused1st = (GetMentalPoint() > 25.0f && GetMentalPoint() <= 50.0f);
 
@@ -283,7 +294,7 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 		Data.Target.RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused1st);
 		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
 		Data.Target.RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
-		OnPlayerConfused2nd.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
+		OnPlayerConfused.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
 	}
 	bPlayerConfused2nd = (GetMentalPoint() > 0.0f && GetMentalPoint() <= 25.0f);
 
@@ -292,7 +303,7 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	{
 		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
 		Data.Target.RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused2nd);
-		OnPlayerConfused3rd.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
+		OnPlayerConfused.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd);
 	}
 	bPlayerConfused3rd = GetMentalPoint() <= 0.0f;
 

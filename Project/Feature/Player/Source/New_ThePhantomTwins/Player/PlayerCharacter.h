@@ -42,6 +42,16 @@ enum class EEnemyRange : uint8
 	WallMaria UMETA(DisplayName = "WallMaria")
 };
 
+UENUM(BlueprintType)
+enum class EVignetteType : uint8
+{
+	None UMETA(DisplayName = "None"),
+	HitVignette UMETA(DisplayName = "HitVignette"),
+	DownedVignette UMETA(DisplayName = "DownedVignette"),
+	Confused3rdVignette UMETA(DisplayName = "Confused3rdVignette"),
+	TrapVignette UMETA(DisplayName = "TrapVignette")
+};
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSprintSkillUI, float, SprintPercent, float, CooldownPercent);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FAuraSkillUI, float, AuraPercent, float, CooldownPercent);
 
@@ -106,13 +116,31 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	float RecoveryTime = 5.0f;
 
+	UFUNCTION()
+	void InitPostProcessComponent();
+
 	// Low HP Post Process Vignette 관련 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
-	TObjectPtr<UPostProcessComponent> PostProcessComponent;
+	TObjectPtr<UPostProcessComponent> PostProcessComp;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
-	TObjectPtr<UMaterialInterface> VignetteMaterial;
+	TObjectPtr<UMaterialInterface> HitVignette;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
-	TObjectPtr<UMaterialInstanceDynamic> VignetteMID;
+	TObjectPtr<UMaterialInterface> DownedVignette;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
+	TObjectPtr<UMaterialInterface> TrapVignette;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
+	TObjectPtr<UMaterialInterface> Confused3rdVignette;
+	UPROPERTY(BlueprintReadWrite)
+	FWeightedBlendable HitBlendable;
+	UPROPERTY(BlueprintReadWrite)
+	FWeightedBlendable DownedBlendable;
+	UPROPERTY(BlueprintReadWrite)
+	FWeightedBlendable Confused3rdBlendable;
+	UPROPERTY(BlueprintReadWrite)
+	FWeightedBlendable TrapBlendable;
+
+	UFUNCTION(BlueprintCallable)
+	void SettingPostProcessComponentBlendable(EVignetteType Type, float Weight);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
 	TObjectPtr<class UHeldItemComponent> HeldItemComponent;
@@ -123,6 +151,9 @@ public:
 public:
 	// 위젯 설정
 	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void SetFadeVFX(EVignetteType Type, int32 StartValue);
 
 	UFUNCTION()
 	void PlayerHUDStaminaSet(int32 value);
@@ -162,6 +193,19 @@ public:
 	};
 	void EnsureSetting(EnsureCreateElement Element);
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound");
+	USoundBase* StaminaDrainSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound");
+	USoundBase* StaminaRegenSound_Dana;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound");
+	USoundBase* StaminaRegenSound_Bell;
+	// 스테미나 감소 사운드 재생
+	void PlayStaminaDrainSound();
+	void PlayStaminaRegenSound();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayStaminaRegenSoundByCharacterType();
 protected:
 	// 플레이어 인풋 바인딩
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -232,7 +276,9 @@ protected:
 	/**
 	 * @brief : GameStart(GS, PS, PC ensuring the create.)
 	 */
+	UFUNCTION(BlueprintNativeEvent)
 	void EnsureGameStart();
+	void EnsureGameStart_Implementation();
 
 	int32 HealthPoint = 200.f;
 	int32 MentalPoint = 100.f;
@@ -363,6 +409,7 @@ protected:
 
 	// 세팅 보장
 	bool bEnsureSet[EnsureCreateElement::End];
+	bool bOnceTime = false;
 
 	
 private:

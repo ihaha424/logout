@@ -140,6 +140,14 @@ void UGA_Run::StaminaDrain()
 	{
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, StaminaDrainEffectSpecHandle);
 	}
+
+	if (APlayerCharacter* Character = Cast<APlayerCharacter>(GAActorInfo->AvatarActor.Get()))
+	{
+		if (Character->IsLocallyControlled())
+		{
+			Character->PlayStaminaDrainSound();
+		}
+	}
 }
 
 void UGA_Run::StaminaRegen()
@@ -153,6 +161,14 @@ void UGA_Run::StaminaRegen()
 	if (StaminaRegenEffectSpecHandle.IsValid())
 	{
 		ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, StaminaRegenEffectSpecHandle);
+	}
+
+	if (APlayerCharacter* Character = Cast<APlayerCharacter>(GAActorInfo->AvatarActor.Get()))
+	{
+		if (Character->IsLocallyControlled())
+		{
+			Character->PlayStaminaRegenSoundByCharacterType();
+		}
 	}
 }
 

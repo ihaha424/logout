@@ -6,9 +6,8 @@
 #include "Abilities/GameplayAbility.h"
 #include "GA_Confused3rd.generated.h"
 
-/**
- *
- */
+class UPostProcessComponent;
+
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UGA_Confused3rd : public UGameplayAbility
 {
@@ -30,4 +29,8 @@ protected:
 	USoundBase* SoundCue2nd;
 	UPROPERTY()
 	UAudioComponent* ActiveAudioComponent2nd = nullptr;
+
+	TObjectPtr<UPostProcessComponent> PPComp;
+	// Fade 관련 함수 및 변수
+	void VignetteEffectOff();
 };

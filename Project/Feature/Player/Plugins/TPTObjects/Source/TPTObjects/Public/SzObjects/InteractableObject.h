@@ -29,12 +29,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "InteractableObject")
 	virtual void SetWidgetVisible(bool bVisible);
 
+
+	UFUNCTION(BlueprintCallable, Category = "InteractableObject")
+	void ShowOverlayOutline(bool bVisible);
 	UFUNCTION(BlueprintCallable)
 	virtual void SetActive(bool bIsActive)
 	{
 		bIsActived = bIsActive;
-	}
-public:	
+	}public:	
 	// 가까운 오브젝트 확인용 위젯
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")
 	TObjectPtr<class UWidgetComponent> InteractWidgetComp;
@@ -50,4 +52,9 @@ public:
 
 	UFUNCTION()
 	virtual void OnRep_bIsActived();
+
+protected:
+	UPROPERTY()
+	TMap<UMeshComponent*, UMaterialInterface*> CachedOverlayMaterials;
+
 };

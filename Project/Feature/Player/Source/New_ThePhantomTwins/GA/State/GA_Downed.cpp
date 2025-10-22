@@ -17,6 +17,8 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Objects/HeldItemComponent.h"
+#include "TimerManager.h"
+#include "Components/PostProcessComponent.h"
 
 UGA_Downed::UGA_Downed()
 {
@@ -63,7 +65,19 @@ void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 			GM->NotifyPlayerDied(true);
 		}
 	}
+
+	if (Character->IsLocallyControlled())
+	{
+		Character->SetFadeVFX(EVignetteType::DownedVignette, 0);
+	}
 }
+
+void UGA_Downed::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
 void UGA_Downed::SetSpeed(float Speed, const FGameplayAbilityActorInfo* ActorInfo)
 {
 	// 스피드 재정의 GE 부여
@@ -93,6 +107,7 @@ void UGA_Downed::SetSpeed(float Speed, const FGameplayAbilityActorInfo* ActorInf
 		}, 0.05f, false); // 0.05초 정도 후에 반영
 
 }
+
 void UGA_Downed::OnDownedTagChanged(const FGameplayTag Tag, int32 TagCount)
 {
 	bool bHasDownedTag = TagCount > 0; // 태그가 붙었으면 true, 없으면 false
@@ -115,6 +130,7 @@ void UGA_Downed::OnDownedTagChanged(const FGameplayTag Tag, int32 TagCount)
 		Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 		Character->GetSpringArm()->SocketOffset = DefaultSocketOffset;
 		Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		Character->SetFadeVFX(EVignetteType::DownedVignette,1);
 
 		bool bReplicatedEndAbility = true;
 		bool bWasCancelled = false;

@@ -131,4 +131,12 @@ private:
 
     bool CanUseKey();
     int32 GetMaxQuantity(EItemType ItemType);
+
+    void PlayItemSound(FItemDataTable* ItemData);
+    void PlayItemSound(EItemType ItemType);
+
+    UFUNCTION(Client, Reliable)
+    void S2C_PlayItemSound(EItemType ItemType);
+    void S2C_PlayItemSound_Implementation(EItemType ItemType);
+
 };

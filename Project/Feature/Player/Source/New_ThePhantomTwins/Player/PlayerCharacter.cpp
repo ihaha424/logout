@@ -33,7 +33,6 @@
 #include "Components/PostProcessComponent.h"
 #include "Components/BoxComponent.h"
 #include "Data/DT_Skill.h"
-#include "SaveGame/TPTSaveGameManager.h"
 #include "UI/DroneStatWidget.h"
 
 APlayerCharacter::APlayerCharacter()
@@ -61,10 +60,10 @@ APlayerCharacter::APlayerCharacter()
 	DroneWidget->SetupAttachment(GetMesh());
 	DroneWidget->SetRelativeLocation(FVector(0, 0, 0));
 
-	PostProcessComponent = CreateDefaultSubobject<UPostProcessComponent>(TEXT("Vignette"));
-	PostProcessComponent->SetupAttachment(RootComponent);
-	PostProcessComponent->bUnbound = false;
-	PostProcessComponent->Priority = 1.f;
+	PostProcessComp = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PlayerVFX"));
+	PostProcessComp->SetupAttachment(RootComponent);
+	PostProcessComp->bUnbound = false;
+	PostProcessComp->Priority = 1.f;
 
 	BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
 	BoxComp->SetupAttachment(RootComponent);
@@ -108,6 +107,9 @@ void APlayerCharacter::BeginPlay()
 	}
 
 	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(DownedWidget, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(InteractWidgetClass, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(DownWidgetClass, PlayerLog, Error, );
 
 	UUserWidget* Interact = CreateWidget(GetWorld(), InteractWidgetClass);
 	InteractWidget->SetWidget(Interact);
@@ -136,17 +138,8 @@ void APlayerCharacter::BeginPlay()
 
 	FocusTrace->SetIsReplicated(true);
 
-	NULLCHECK_RETURN_LOG(VignetteMaterial, PlayerLog, Error, );
-	VignetteMID = UMaterialInstanceDynamic::Create(VignetteMaterial, this);
-	FWeightedBlendable Blendable;
-	Blendable.Object = VignetteMID;
-	Blendable.Weight = 0.0f;
-
-	PostProcessComponent->Settings.WeightedBlendables.Array.Add(Blendable);
-
 	if (IsLocallyControlled())
 	{
-
 		if (DroneUserWidget)
 		{
 			SetHP(HealthPoint);
@@ -157,6 +150,8 @@ void APlayerCharacter::BeginPlay()
 			TPT_LOG(HUDLog, Error, TEXT("InitHUDWidget: DroneUserWidget is null"));
 		}
 	}
+
+	InitPostProcessComponent();
 
 	// RecoveryGauge Time
 	Time = RecoveryTime;
@@ -227,9 +222,9 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	ASC = PS->GetAbilitySystemComponent();
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
 	ASC->InitAbilityActorInfo(PS, this);
+
 	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
 	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
-	ASC->AbilityFailedCallbacks.AddUObject(this, &ThisClass::OnAbilityFailed);
 
 	BindAttributeDelegates(AttributeSet);
 	NULLCHECK_RETURN_LOG(InitAttributeSetEffect, PlayerLog, Error, );
@@ -257,12 +252,6 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 
 	EnsureSetting(EnsureCreateElement::EnsurePlayerController);
 	EnsureSetting(EnsureCreateElement::EnsurePlayerState);
-
-	UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-
-	APC_Player* PC = Cast<APC_Player>(NewController);
-	SaveGameManager->InitializeSavePlayer();
-	SaveGameManager->ApplyPlayerSaveGame(PC);
 }
 
 void APlayerCharacter::OnRep_Controller()
@@ -350,18 +339,86 @@ void APlayerCharacter::SetHoldingGaugeUI_Implementation(const APawn* Interactor,
 	PC->SetWidget(TEXT("RecoveryGauge"), bVisible, EMessageTargetType::Multicast);
 }
 
+void APlayerCharacter::InitPostProcessComponent()
+{
+	NULLCHECK_RETURN_LOG(HitVignette, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(DownedVignette, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(Confused3rdVignette, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(TrapVignette, PlayerLog, Error, );
+
+	UMaterialInstanceDynamic* HitMID = UMaterialInstanceDynamic::Create(HitVignette, this);
+	UMaterialInstanceDynamic* LowHPMID = UMaterialInstanceDynamic::Create(DownedVignette, this);
+	UMaterialInstanceDynamic* Confused3rdMID = UMaterialInstanceDynamic::Create(Confused3rdVignette, this);
+	UMaterialInstanceDynamic* TrapMID = UMaterialInstanceDynamic::Create(TrapVignette, this);
+
+	HitBlendable.Object = HitMID;
+	HitBlendable.Weight = 0.0f;
+
+	DownedBlendable.Object = LowHPMID;
+	DownedBlendable.Weight = 0.0f;
+
+	Confused3rdBlendable.Object = Confused3rdMID;
+	Confused3rdBlendable.Weight = 0.0f;
+
+	TrapBlendable.Object = TrapMID;
+	TrapBlendable.Weight = 0.0f;
+
+	PostProcessComp->Settings.WeightedBlendables.Array.Add(HitBlendable);
+	PostProcessComp->Settings.WeightedBlendables.Array.Add(DownedBlendable);
+	PostProcessComp->Settings.WeightedBlendables.Array.Add(TrapBlendable);
+	PostProcessComp->Settings.WeightedBlendables.Array.Add(Confused3rdBlendable);
+}
+
 void APlayerCharacter::SetHP(int32 value)
 {
 	NULLCHECK_RETURN_LOG(DroneUserWidget, HUDLog, Error, );
-	TPT_LOG(HUDLog, Log, TEXT("HP : %d"), value);
+	//TPT_LOG(HUDLog, Log, TEXT("HP : %d"), value);
 	DroneUserWidget->SetHP(value);
 }
 
 void APlayerCharacter::SetMP(int32 value)
 {
 	NULLCHECK_RETURN_LOG(DroneUserWidget, HUDLog, Error, );
-	TPT_LOG(HUDLog, Log, TEXT("MP : %d"), value);
+	//TPT_LOG(HUDLog, Log, TEXT("MP : %d"), value);
 	DroneUserWidget->SetMP(value);
+}
+
+void APlayerCharacter::SettingPostProcessComponentBlendable(EVignetteType Type, float Weight)
+{
+	NULLCHECK_RETURN_LOG(PostProcessComp, PlayerLog, Warning, );
+
+	if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 0)
+		return;
+
+	FPostProcessSettings NewSettings;
+	NewSettings = PostProcessComp->Settings;
+
+	switch (Type)
+	{
+	case EVignetteType::HitVignette:
+		NewSettings.WeightedBlendables.Array[0].Object = HitBlendable.Object;
+		NewSettings.WeightedBlendables.Array[0].Weight = Weight;
+		break;
+	case EVignetteType::DownedVignette:
+		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 1) return;
+		NewSettings.WeightedBlendables.Array[1].Object = DownedBlendable.Object;
+		NewSettings.WeightedBlendables.Array[1].Weight = Weight;
+		break;
+	case EVignetteType::TrapVignette:
+		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 2) return;
+		NewSettings.WeightedBlendables.Array[2].Object = TrapBlendable.Object;
+		NewSettings.WeightedBlendables.Array[2].Weight = Weight;
+		break;
+	case EVignetteType::Confused3rdVignette:
+		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 3) return;
+		NewSettings.WeightedBlendables.Array[3].Object = Confused3rdBlendable.Object;
+		NewSettings.WeightedBlendables.Array[3].Weight = Weight;
+		break;
+	default:
+		break;
+	}
+
+	PostProcessComp->Settings = NewSettings;
 }
 
 void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
@@ -437,6 +494,18 @@ void APlayerCharacter::PlayerHUDCoreEnergySet(int32 value)
 	PlayerHUDWidget->UpdateCoreEnergy(value);
 }
 
+void APlayerCharacter::PlayStaminaDrainSound()
+{
+	NULLCHECK_RETURN_LOG(StaminaDrainSound, PlayerLog, Error, );
+
+	UGameplayStatics::PlaySoundAtLocation(this, StaminaDrainSound, GetActorLocation());
+}
+
+void APlayerCharacter::PlayStaminaRegenSound()
+{
+	PlayStaminaRegenSoundByCharacterType();
+}
+
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// 로컬에서만 일어남.
@@ -456,22 +525,25 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInput)
 {
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Started, this, &ThisClass::InputPressed);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+	if (IsValid(ASC) && IsValid(TPTInput))
+	{
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
 
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Started, this, &ThisClass::InputPressed);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Started, this, &ThisClass::InputPressed);
 
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_Q, ETriggerEvent::Started, this, &ThisClass::InputPressed);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_E, ETriggerEvent::Started, this, &ThisClass::InputPressed);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 1);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 2);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 3);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 4);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 5);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_UseItem, ETriggerEvent::Started, this, &ThisClass::InputPressedUseItem);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_Q, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_E, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 1);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 2);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 3);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 4);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 5);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_UseItem, ETriggerEvent::Started, this, &ThisClass::InputPressedUseItem);
+	}
 }
 
 void APlayerCharacter::OnAbilityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureTags)
@@ -490,8 +562,8 @@ void APlayerCharacter::OnAbilityFailed(const UGameplayAbility* Ability, const FG
 
 void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 {
-	ASC->AddLooseGameplayTag(InputTag); // 로컬에게 비네팅 적용 됨. 다운드 애니메이션 적용 안됨. 서버에선 엎어짐. 서버에만 태그가 붙음.(당연함)
-	ASC->AddReplicatedLooseGameplayTag(InputTag); // 리플리케이트로 붙이면 서버에서는 아무것도 적용안됨. 로컬에서는 다 됨. 태그도 로컬에만 존재함.
+	ASC->AddLooseGameplayTag(InputTag);// 로컬에게 비네팅 적용 됨. 다운드 애니메이션 적용 안됨. 서버에선 엎어짐. 서버에만 태그가 붙음.(당연함)
+	ASC->AddReplicatedLooseGameplayTag(InputTag);// 리플리케이트로 붙이면 서버에서는 아무것도 적용안됨. 로컬에서는 다 됨. 태그도 로컬에만 존재함.
 
 	bool bActivated = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
 	if(!bActivated)
@@ -510,12 +582,11 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 {
 	if (HasAuthority())
 	{
+		
 		AttributeSet->OnPlayerDamaged.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 		AttributeSet->OnPlayerLowHP.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 		AttributeSet->OnPlayerDowned.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-		AttributeSet->OnPlayerConfused1st.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-		AttributeSet->OnPlayerConfused2nd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
-		AttributeSet->OnPlayerConfused3rd.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
+		AttributeSet->OnPlayerConfused.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 		AttributeSet->OnPlayerUseSkill.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 		AttributeSet->OnMentalPointNotMax.AddDynamic(this, &ThisClass::ExecuteAbilityByTag);
 
@@ -528,6 +599,7 @@ void APlayerCharacter::BindAttributeDelegates(const UPlayerAttributeSet* Attribu
 	}
 	//AttributeSet->OnChangedSpeed.AddDynamic(this, &ThisClass::SpeedSetting);  //GA에서 직접하는것보다 동기화가 늦는다. 이유는 모름.
 	ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIChasing).AddUObject(this, &ThisClass::OnTagChanged);
+	ASC->AbilityFailedCallbacks.AddUObject(this, &ThisClass::OnAbilityFailed);
 	if (IsLocallyControlled())
 	{	
 		AttributeSet->OnChangedStamina.AddDynamic(this, &ThisClass::PlayerHUDStaminaSet);
@@ -586,6 +658,7 @@ void APlayerCharacter::OnRecoveryCompleted()
 		if (AGM_PhantomTwins* GM = GetWorld()->GetAuthGameMode<AGM_PhantomTwins>())
 		{
 			GM->NotifyPlayerDied(false);
+			PS->bIsDowned = false;
 		}
 	}
 
@@ -1015,35 +1088,40 @@ void APlayerCharacter::EnsureSetting(EnsureCreateElement Element)
 		}
 	}
 
-	if (bStart)
+	if (bStart && !bOnceTime)
+	{
+		bOnceTime = true;
 		EnsureGameStart();
+	}
 }
 
-void APlayerCharacter::EnsureGameStart()
+void APlayerCharacter::EnsureGameStart_Implementation()
 {
 	AUIManagerPlayerController* PC = Cast<AUIManagerPlayerController>(GetController());
-	if (PC)
+	if (!PC)
+		return;
+
+	PC->SetWidget(TEXT("PlayerHUDWidget"), true, EMessageTargetType::LocalClient);
+
+	if (IsLocallyControlled())
 	{
-		PC->SetWidget(TEXT("PlayerHUDWidget"), true, EMessageTargetType::LocalClient);
-		if (IsLocallyControlled())
-		{
-			PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
-			PlayerController->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
-			PlayerController->RegisterWidget(TEXT("CannotUseItem"), CreateWidget<UUserWidget>(GetWorld(), CannotUseItemWidgetClass));
-			PlayerController->RegisterWidget(TEXT("GameOver"), CreateWidget(GetWorld(), GameOverWidgetClass));
-			PlayerController->RegisterWidget(TEXT("Loading"), CreateWidget(GetWorld(), LoadingWidgetClass));
-
-			PlayerController->RegisterWidget(TEXT("ESC"), CreateWidget(GetWorld(), ESCWidgetClass));
-			PlayerController->RegisterWidget(TEXT("GameStop"), CreateWidget(GetWorld(), GameStopWidgetClass));
-			PlayerController->RegisterWidget(TEXT("ResumeCount"), CreateWidget(GetWorld(), ResumeCountWidgetClass));
-		}
+		//NULLCHECK_RETURN_LOG(RecoveryWidgetClass, PlayerLog, Error, );
+		PC->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
+		//NULLCHECK_RETURN_LOG(KeyWidgetClass, PlayerLog, Error, );
+		PC->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
+		//NULLCHECK_RETURN_LOG(CannotUseItemWidgetClass, PlayerLog, Error, );
+		PC->RegisterWidget(TEXT("CannotUseItem"), CreateWidget<UUserWidget>(GetWorld(), CannotUseItemWidgetClass));
+		//NULLCHECK_RETURN_LOG(GameOverWidgetClass, PlayerLog, Error, );
+		PC->RegisterWidget(TEXT("GameOver"), CreateWidget(GetWorld(), GameOverWidgetClass));
+		//NULLCHECK_RETURN_LOG(LoadingWidgetClass, PlayerLog, Error, );
+		//PC->RegisterWidget(TEXT("Loading"), CreateWidget(GetWorld(), LoadingWidgetClass));
+		//NULLCHECK_RETURN_LOG(ESCWidgetClass, PlayerLog, Error, );
+		PC->RegisterWidget(TEXT("ESC"), CreateWidget(GetWorld(), ESCWidgetClass));
+		//NULLCHECK_RETURN_LOG(GameStopWidgetClass, PlayerLog, Error, );
+		PC->RegisterWidget(TEXT("GameStop"), CreateWidget(GetWorld(), GameStopWidgetClass));
+		//NULLCHECK_RETURN_LOG(ResumeCountWidgetClass, PlayerLog, Error, );
+		PC->RegisterWidget(TEXT("ResumeCount"), CreateWidget(GetWorld(), ResumeCountWidgetClass));
 	}
-
-	//UTPTSaveGameManager* Save = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-	//if (PC->HasAuthority())
-	//{
-	//	Save->ApplyPlayerSaveGame(PC);
-	//}
 }
 
 void APlayerCharacter::RemoveHeldItemMesh()
@@ -1173,8 +1251,13 @@ void APlayerCharacter::UpdateSprintCooldownCount()
 		FGameplayTag SprintTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Sprinting;
 		FGameplayTag CooldownTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_SprintCoolDown;
 
+		if (Effects.GetNumGameplayEffects() <= 0)
+			return;
+
 		for (auto It = Effects.CreateConstIterator(); It; ++It)
 		{
+			if (!It) continue;
+
 			const FActiveGameplayEffect& Effect = *It;
 			if (!Effect.Spec.Def) continue;
 
@@ -1230,11 +1313,16 @@ void APlayerCharacter::UpdateAuraCooldownCount()
 	{
 		const FActiveGameplayEffectsContainer& Effects = ASC->GetActiveGameplayEffects();
 
+		if (Effects.GetNumGameplayEffects() <= 0)
+			return;
+
 		FGameplayTag SprintTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_UsingOutLine;
 		FGameplayTag CooldownTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_OutLineCoolDown;
 
 		for (auto It = Effects.CreateConstIterator(); It; ++It)
 		{
+			if (!It) continue;
+
 			const FActiveGameplayEffect& Effect = *It;
 			if (!Effect.Spec.Def) continue;
 

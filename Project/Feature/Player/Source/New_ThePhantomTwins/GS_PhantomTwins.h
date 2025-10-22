@@ -9,11 +9,14 @@
 
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCollectedItemCountChanged, int32);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDynamicOnCollectedItemCountChanged, int32, FragmentCount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBossSpawnedDynamic, AActor*, BossActor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCollectedItem, AActor*, DataFragment);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedGameStop, FName , LevelName, FName, PrintingMapName);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedRestart, bool, bIsHostClicked, bool, bIsClientClicked);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedAgreeWithGameStop, int32, HostSelect, int32, ClientSelect);
+
+class AStickerManager;
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API AGS_PhantomTwins : public AGameStateBase
@@ -39,7 +42,9 @@ public:
 	//~ End BossSpawn
 
 	//~ Begin MapData
+	UFUNCTION(BlueprintCallable)
 	EMapType GetMapData() const { return MapData; }
+	UFUNCTION(BlueprintCallable)
 	void SetMapData(EMapType mapType) { MapData = mapType; }
 	//~ End MapData
 
@@ -98,6 +103,12 @@ public:
 	UPROPERTY(Replicated = true)
 	int32 ClientSelect = 0;
 	//~ End Stop game
+
+	//~ Begin StickerManager
+	UFUNCTION(BlueprintCallable)
+	AStickerManager* GetStickerManager();
+	//~ End StickerManager
+
 protected:
 	//~ Begin DataFragment
 	UPROPERTY(BlueprintAssignable, Category = "DataFragment")
@@ -106,6 +117,9 @@ protected:
 
 	//~ Begin BossSpawn
 	FOnCollectedItemCountChanged CollectedItemCountChanged;
+	UPROPERTY(BlueprintAssignable, Category = "DataFragment")
+
+	FDynamicOnCollectedItemCountChanged DynamicCollectedItemCountChanged;
 	UFUNCTION()
 	void OnRep_BossSpawned();
 	UFUNCTION()
@@ -115,6 +129,11 @@ protected:
 	//~ Begin MapData
 	EMapType MapData;
 	//~ End MapData
+
+	//~ Begin StickerManager
+	UPROPERTY()
+	TWeakObjectPtr<AStickerManager> StickerManager;
+	//~ End StickerManager
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out) const override;
 };

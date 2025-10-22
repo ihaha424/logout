@@ -4,7 +4,7 @@
 #include "DialogManager/DialogTreeBuilder.h"
 #include "Log/TPTLog.h"
 
-FDialogNode* UDialogTreeBuilder::AddLeafByPath(FDialogNode* Root, const TArray<int32>& InLevelPath, int32 LeafID, bool bUnique, bool bAllowPromoteLeafToInternal)
+FDialogNode* UDialogTreeBuilder::AddLeafByPath(FDialogNode* Root, const TArray<int32>& InLevelPath, int32 LeafID, int64 LogicalID, bool bUnique, bool bAllowPromoteLeafToInternal)
 {
 	if (!Root)
     {
@@ -36,7 +36,7 @@ FDialogNode* UDialogTreeBuilder::AddLeafByPath(FDialogNode* Root, const TArray<i
         for (int32 i = OldNum; i < Target->LeafList.Num(); ++i) 
             Target->LeafList[i] = -1;
     }
-    Target->LeafList[LeafID] = LeafID;
+    Target->LeafList[LeafID] = LogicalID;
 
     // 선택 인덱스 보정(필요 시)
     EnsureSequenceValid(*Target);
@@ -44,7 +44,7 @@ FDialogNode* UDialogTreeBuilder::AddLeafByPath(FDialogNode* Root, const TArray<i
     return Target;
 }
 
-FDialogNode* UDialogTreeBuilder::AddTriggerEventByPath(FDialogNode* Root, const TArray<int32>& InLevelPath, int32 TriggerKey, bool bUnique, bool bAllowPromoteLeafToInternal)
+FDialogNode* UDialogTreeBuilder::AddTriggerEventByPath(FDialogNode* Root, const TArray<int32>& InLevelPath, int32 TriggerKey, int64 LogicalID, bool bUnique, bool bAllowPromoteLeafToInternal)
 {
     if (!Root)
     {
@@ -70,7 +70,7 @@ FDialogNode* UDialogTreeBuilder::AddTriggerEventByPath(FDialogNode* Root, const 
         for (int32 i = OldNum; i < Target->TriggerList.Num(); ++i)
             Target->TriggerList[i] = -1;
     }
-    Target->TriggerList[TriggerKey] = TriggerKey;
+    Target->TriggerList[TriggerKey] = LogicalID;
 
     // 선택 인덱스 보정(필요 시)
     EnsureSequenceValid(*Target);

@@ -12,6 +12,15 @@
 #include "SaveGame/TPTSaveGame.h"
 #include "SaveGame/TPTSaveGameHelperLibrary.h"
 
+#include "Decal/StickerManager.h"
+
+AStickerManager* AGS_PhantomTwins::GetStickerManager()
+{
+    if(!StickerManager.IsValid())
+        StickerManager = GetWorld()->SpawnActor<AStickerManager>();
+    return StickerManager.Get();
+}
+
 void AGS_PhantomTwins::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -35,6 +44,7 @@ void AGS_PhantomTwins::AddCollectedItem(AActor* DataFragment, int32 Delta)
     CoreCount = FMath::Max(0, CoreCount + Delta);
 
     CollectedItemCountChanged.Broadcast(CoreCount);
+    DynamicCollectedItemCountChanged.Broadcast(CoreCount);
     DataFragmentChanged.Broadcast(DataFragment);
 }
 
@@ -121,4 +131,5 @@ void AGS_PhantomTwins::OnRep_BossSpawned()
 void AGS_PhantomTwins::OnRep_CollectedItemCount()
 {
     CollectedItemCountChanged.Broadcast(CoreCount);
+    DynamicCollectedItemCountChanged.Broadcast(CoreCount);
 }

@@ -32,10 +32,9 @@ void UGA_Key::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	if (KeyInteractActor && KeyInteractActor->ActorHasTag(TEXT("KeyInteract")))
 	{
 		KeyInteractActor->bKeyUsed = true;
+		bUseKey = true;
+		TPT_LOG(GALog, Log, TEXT("asdasd"));
 	}
-
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-
 
 	// TargetActor 정보 출력
 	if (TargetActor)
@@ -47,6 +46,12 @@ void UGA_Key::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	PlayDrinkMontageTask->OnCompleted.AddDynamic(this, &UGA_Key::OnMontageComplete);
 
 	PlayDrinkMontageTask->ReadyForActivation();
+}
+
+void UGA_Key::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+	bUseKey = false;
 }
 
 void UGA_Key::OnMontageComplete()
