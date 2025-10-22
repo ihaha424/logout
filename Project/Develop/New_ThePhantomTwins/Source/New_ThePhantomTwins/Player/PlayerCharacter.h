@@ -346,7 +346,7 @@ protected:
 	// ½ºÅÝ À§Á¬
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UPlayerHUDWidget> PlayerHUDWidgetClass;
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TObjectPtr<UPlayerHUDWidget> PlayerHUDWidget;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
