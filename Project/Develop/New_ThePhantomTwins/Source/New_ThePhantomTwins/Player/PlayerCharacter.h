@@ -49,7 +49,8 @@ enum class EVignetteType : uint8
 	HitVignette UMETA(DisplayName = "HitVignette"),
 	DownedVignette UMETA(DisplayName = "DownedVignette"),
 	Confused3rdVignette UMETA(DisplayName = "Confused3rdVignette"),
-	TrapVignette UMETA(DisplayName = "TrapVignette")
+	TrapVignette UMETA(DisplayName = "TrapVignette"),
+	MentalAttackVignette UMETA(DisplayName = "MentalAttackVignette")
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSprintSkillUI, float, SprintPercent, float, CooldownPercent);
@@ -128,6 +129,8 @@ public:
 	TObjectPtr<UMaterialInterface> TrapVignette;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
 	TObjectPtr<UMaterialInterface> Confused3rdVignette;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
+	TObjectPtr<UMaterialInterface> MentalAttackVignette;
 	UPROPERTY(BlueprintReadWrite)
 	FWeightedBlendable HitBlendable;
 	UPROPERTY(BlueprintReadWrite)
@@ -136,6 +139,8 @@ public:
 	FWeightedBlendable Confused3rdBlendable;
 	UPROPERTY(BlueprintReadWrite)
 	FWeightedBlendable TrapBlendable;
+	UPROPERTY(BlueprintReadWrite)
+	FWeightedBlendable MentalAttackBlendable;
 
 	UFUNCTION(BlueprintCallable)
 	void SettingPostProcessComponentBlendable(EVignetteType Type, float Weight);
@@ -220,6 +225,8 @@ protected:
 	void InputESC(const FInputActionValue& Value);
 	UFUNCTION(BlueprintCallable)
 	void InputTab(const FInputActionValue& Value);
+	UFUNCTION(BlueprintCallable)
+	void DroneWidgetOnOff(bool Visibility);
 	void InputPressedUseItem(int32 InputID);
 	void InputReleased(int32 InputID);
 

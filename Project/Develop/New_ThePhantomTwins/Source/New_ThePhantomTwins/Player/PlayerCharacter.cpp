@@ -345,11 +345,13 @@ void APlayerCharacter::InitPostProcessComponent()
 	NULLCHECK_RETURN_LOG(DownedVignette, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(Confused3rdVignette, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(TrapVignette, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(MentalAttackVignette, PlayerLog, Error, );
 
 	UMaterialInstanceDynamic* HitMID = UMaterialInstanceDynamic::Create(HitVignette, this);
 	UMaterialInstanceDynamic* LowHPMID = UMaterialInstanceDynamic::Create(DownedVignette, this);
 	UMaterialInstanceDynamic* Confused3rdMID = UMaterialInstanceDynamic::Create(Confused3rdVignette, this);
 	UMaterialInstanceDynamic* TrapMID = UMaterialInstanceDynamic::Create(TrapVignette, this);
+	UMaterialInstanceDynamic* MentalAttackMID = UMaterialInstanceDynamic::Create(MentalAttackVignette, this);
 
 	HitBlendable.Object = HitMID;
 	HitBlendable.Weight = 0.0f;
@@ -363,10 +365,14 @@ void APlayerCharacter::InitPostProcessComponent()
 	TrapBlendable.Object = TrapMID;
 	TrapBlendable.Weight = 0.0f;
 
+	MentalAttackBlendable.Object = MentalAttackMID;
+	MentalAttackBlendable.Weight = 0.0f;
+
 	PostProcessComp->Settings.WeightedBlendables.Array.Add(HitBlendable);
 	PostProcessComp->Settings.WeightedBlendables.Array.Add(DownedBlendable);
 	PostProcessComp->Settings.WeightedBlendables.Array.Add(TrapBlendable);
 	PostProcessComp->Settings.WeightedBlendables.Array.Add(Confused3rdBlendable);
+	PostProcessComp->Settings.WeightedBlendables.Array.Add(MentalAttackBlendable);
 }
 
 void APlayerCharacter::SetHP(int32 value)
@@ -413,6 +419,11 @@ void APlayerCharacter::SettingPostProcessComponentBlendable(EVignetteType Type, 
 		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 3) return;
 		NewSettings.WeightedBlendables.Array[3].Object = Confused3rdBlendable.Object;
 		NewSettings.WeightedBlendables.Array[3].Weight = Weight;
+		break;
+	case EVignetteType::MentalAttackVignette:
+		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 4) return;
+		NewSettings.WeightedBlendables.Array[4].Object = MentalAttackBlendable.Object;
+		NewSettings.WeightedBlendables.Array[4].Weight = Weight;
 		break;
 	default:
 		break;
@@ -757,15 +768,29 @@ void APlayerCharacter::InputESC(const FInputActionValue& Value)
 void APlayerCharacter::InputTab(const FInputActionValue& Value)
 {
 	NULLCHECK_RETURN_LOG(DroneWidget, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(DroneUserWidget, PlayerLog, Error, );
+
 	if (!IsLocallyControlled()) return;
 
 	if (DroneWidget->GetUserWidgetObject()->GetVisibility() == ESlateVisibility::Visible)
 	{
-		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+		DroneUserWidget->CloseAnimation(this);
 	}
 	else if (DroneWidget->GetUserWidgetObject()->GetVisibility() == ESlateVisibility::Hidden)
 	{
+		DroneUserWidget->OpenAnimation(this);
+	}
+}
+
+void APlayerCharacter::DroneWidgetOnOff(bool Visibility)
+{
+	if (Visibility)
+	{
 		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+	}
+	else
+	{
+		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 
