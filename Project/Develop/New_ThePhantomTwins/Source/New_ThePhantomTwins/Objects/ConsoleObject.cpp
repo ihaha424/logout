@@ -56,6 +56,7 @@ void AConsoleObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AConsoleObject, HasPlayerNum);
+	DOREPLIFETIME(AConsoleObject, bFinish);
 }
 
 bool AConsoleObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
@@ -130,11 +131,14 @@ void AConsoleObject::SetWidgetVisible(bool bVisible)
 	if (bAllTriggersActive && bHasEnoughPlayers)
 	{
 		// 모두 모였을 때는 InteractWidgetComp만 노출
+		bFinish = true;
 		InteractWidgetComp->SetVisibility(true);
 		LockWidgetComp->SetVisibility(false);
 	}
 	else
 	{
+		bFinish = false;
+
 		// 조건 만족 못 하면 InteractWidgetComp 숨기고 LockWidgetComp 노출
 		InteractWidgetComp->SetVisibility(false);
 		LockWidgetComp->SetVisibility(true);
@@ -208,5 +212,19 @@ void AConsoleObject::OnRep_bIsActived()
 	if (bIsActived)
 	{
 		ShowOverlayOutline(!bIsActived);
+	}
+}
+
+void AConsoleObject::OnRep_bFinish()
+{
+	if (bFinish)
+	{
+		InteractWidgetComp->SetVisibility(true);
+		LockWidgetComp->SetVisibility(false);
+	}
+	else
+	{
+		InteractWidgetComp->SetVisibility(false);
+		LockWidgetComp->SetVisibility(true);
 	}
 }
