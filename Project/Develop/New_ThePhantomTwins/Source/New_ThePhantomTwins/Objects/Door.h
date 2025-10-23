@@ -38,8 +38,8 @@ public:
 protected:
     // trigger들이 모두 활성화되었는지 확인 (AInteractableObject의 bActived를 사용하는게 아니라면 override해서 작성)
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Door")
-	bool AreAllTriggerActived() const;
-	bool AreAllTriggerActived_Implementation() const;
+	bool AreAllTriggerActived();
+	bool AreAllTriggerActived_Implementation();
 
 	virtual void OnRep_bIsActived() override;
 
@@ -57,6 +57,10 @@ protected:
 	// 블루프린트에서 문을 닫는 동작을 구현할 수 있도록 선언
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Door")
     void CloseDoor();
+
+	// 블루프린트에서 잠긴 문과 상호작용할 때, 구현할 수 있도록 선언
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Door")
+	void ShowLockedDoorDialog();
 
 
 public:

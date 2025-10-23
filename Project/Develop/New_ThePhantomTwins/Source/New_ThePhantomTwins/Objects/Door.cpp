@@ -154,7 +154,7 @@ void ADoor::CheckAndUpdateDoorState()
 	}
 }
 
-bool ADoor::AreAllTriggerActived_Implementation() const
+bool ADoor::AreAllTriggerActived_Implementation()
 {	// 제거
 	// 활성화된 trigger 수를 세기 위한 변수
 	int32 triggerActive = 0;
@@ -183,6 +183,7 @@ bool ADoor::AreAllTriggerActived_Implementation() const
 		}
 		else
 		{
+			ShowLockedDoorDialog();
 			return false;
 		}
 	}
