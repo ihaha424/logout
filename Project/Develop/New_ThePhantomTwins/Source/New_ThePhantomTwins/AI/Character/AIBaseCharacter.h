@@ -8,6 +8,7 @@
 #include "GameplayTagContainer.h"
 #include "AI/AIEventReceiver.h"
 #include "AI/Utility/AIBaseState.h"
+#include "AI/Utility/GameplayEventDataExistByTag.h"
 #include "AIBaseCharacter.generated.h"
 
 class UGameplayAbility;
@@ -121,7 +122,7 @@ protected:
 	float CurSpeed = 0.f;
 	//~ End AI Attribute
 
-
+	//~ Begin GAS
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
 	TMap<FGameplayTag, TSubclassOf<UGameplayAbility>>Abilities;
 
@@ -133,6 +134,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
 	TSubclassOf<UGameplayEffect> DamageEffectClass;
+	//~ End GAS
 
 protected:
 	//~ Begin State Control
