@@ -33,6 +33,12 @@ public:
 
     FDelegateHandle ItemChangedHandle;
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OpenAnimation(AActor* Owner);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void CloseAnimation(AActor* Owner);
+
 protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> TEXT_ClearItem;

@@ -100,12 +100,51 @@ void AItemObject::DestroyItem()
 
 void AItemObject::OnRep_bIsActived()
 {
-	if (UStaticMeshComponent* FoundMesh = FindComponentByClass<UStaticMeshComponent>())
+	// 이 액터 내 모든 UStaticMeshComponent를 찾아서 처리
+	TArray<UStaticMeshComponent*> StaticMeshComponents;
+	GetComponents<UStaticMeshComponent>(StaticMeshComponents);
+
+	for (UStaticMeshComponent* MeshComp : StaticMeshComponents)
 	{
-		FoundMesh->SetHiddenInGame(true);
-		FoundMesh->SetVisibility(false);
-		FoundMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		if (MeshComp)
+		{
+			MeshComp->SetHiddenInGame(true);
+			MeshComp->SetVisibility(false);
+			MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
 	}
+
+	// 이 액터 내 모든 UNiagaraComponent를 찾아서 처리
+	TArray<UNiagaraComponent*> NiagaraComponents;
+	GetComponents<UNiagaraComponent>(NiagaraComponents);
+
+	for (UNiagaraComponent* NiagaraComp : NiagaraComponents)
+	{
+		if (NiagaraComp)
+		{
+			NiagaraComp->SetHiddenInGame(true);
+			NiagaraComp->Deactivate();
+			NiagaraComp->SetVisibility(false);
+			NiagaraComp->SetComponentTickEnabled(false);
+		}
+	}
+
+	TArray<UGeometryCacheComponent*> GeometryCacheComponents;
+	GetComponents<UGeometryCacheComponent>(GeometryCacheComponents);
+
+	for (UGeometryCacheComponent* GCComp : GeometryCacheComponents)
+	{
+		if (GCComp)
+		{
+			GCComp->SetHiddenInGame(true);
+			GCComp->SetVisibility(false);
+			GCComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			GCComp->Stop(); // 재생 중지
+			GCComp->SetComponentTickEnabled(false);
+		}
+	}
+
+	SetActorEnableCollision(false);	// 더이상 이벤트가 일어나지 않도록 false
 }
 
 void AItemObject::ApplyEffectToTarget(const APawn* Interactor)

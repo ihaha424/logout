@@ -177,7 +177,6 @@ void AAIBaseCharacter::ApplyDestroy_Implementation()
     }
 }
 
-
 void AAIBaseCharacter::ResetDataForState(const FGameplayTag Tag, int32 TagCount)
 {
     S2A_ResetDataForState(Tag, TagCount);
@@ -257,17 +256,20 @@ void AAIBaseCharacter::CheckCombatRangeInActor()
         //SweepResult를 이용해서도 확인 가능, 만약 레이케스팅이 부적절하면 Sweep의 정보를 이용해서 사용
         FVector MyLoc = GetActorLocation();
         FVector TargetLoc = actor->GetActorLocation();
+
         FHitResult HitResult;
         FCollisionQueryParams Params;
         Params.AddIgnoredActor(this);
 
-        bool bHit = GetWorld()->LineTraceSingleByChannel(
-            HitResult,
-            MyLoc,
-            TargetLoc,
-            ECC_Pawn,
-            Params
+        FCollisionObjectQueryParams ObjParams;
+        ObjParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+        ObjParams.AddObjectTypesToQuery(ECC_Pawn);
+        ObjParams.AddObjectTypesToQuery(ECC_Visibility);
+
+        const bool bHit = GetWorld()->LineTraceSingleByObjectType(
+            HitResult, MyLoc, TargetLoc, ObjParams, Params
         );
+
     #if WITH_EDITOR
         //DrawDebugLine(
         //    GetWorld(),

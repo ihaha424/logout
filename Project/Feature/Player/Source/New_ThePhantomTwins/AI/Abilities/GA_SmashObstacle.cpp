@@ -30,7 +30,11 @@ void UGA_SmashObstacle::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 {
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-    Target = TriggerEventData ? const_cast<AActor*>(TriggerEventData->Target.Get()) : nullptr;
+    NULLCHECK_CODE_RETURN_LOG(TriggerEventData, AILog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
+    
+    Target = const_cast<AActor*>(TriggerEventData->Target.Get());
+    Count = TriggerEventData->EventMagnitude;
+    CurCount = 0;
     if (Target && Target->GetClass()->ImplementsInterface(UDestroyable::StaticClass()))
     {
         AAIBaseCharacter* Owner = Cast<AAIBaseCharacter>(ActorInfo->AvatarActor.Get());
@@ -54,7 +58,6 @@ void UGA_SmashObstacle::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
             return;
         }
     }
-
     EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
 
@@ -81,10 +84,9 @@ void UGA_SmashObstacle::OnCompleteCallback()
 {
     bool bReplicateEndAbility = true; // 서버에서 실행되는 어빌리티는 클라이언트에게도 복제되어야 한다.
     bool bWasCancelled = false; // 몽타주가 끝나면 취소되지 않았으므로 false로 설정한다.
-
-    if (CurCount <= Count)
+    CurCount++;
+    if (CurCount < Count)
     {
-        CurCount++;
         UAbilityTask_PlayMontageAndWait* PlayAttackTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
             this, TEXT("PlayAttack"), AttackMontage, 1.0f, TEXT("Attack"));
         NULLCHECK_CODE_RETURN_LOG(PlayAttackTask, AILog, Warning, EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, bWasCancelled);, );
@@ -94,7 +96,7 @@ void UGA_SmashObstacle::OnCompleteCallback()
         return;
     }
 
-    if (OwnerPawn)
+    if (IsValid(OwnerPawn) && IsValid(Target))
     {
         IDestroyable::Execute_OnDestroy(Target, OwnerPawn);
     }

@@ -47,6 +47,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
 	TObjectPtr<UAnimMontage> RecoveryMontage;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SFX")
+	USoundBase* SoundCue;
+
+	UPROPERTY()
+	UAudioComponent* ActiveAudioComponent = nullptr;
+
 	UPROPERTY()
 	UAbilityTask_PlayMontageAndWait* PlayInteractMontageTask = nullptr;
 	UPROPERTY()

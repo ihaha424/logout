@@ -43,6 +43,12 @@ bool UGA_SceneAura::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, 
         {
             UE_LOG(LogTemp, Warning, TEXT("Activation failed due to Cost."));
         }*/
+
+        APlayerCharacter* Avatar = Cast<APlayerCharacter>(ActorInfo->AvatarActor);
+        if (Avatar && Avatar->IsLocallyControlled())
+        {
+            const_cast<UGA_SceneAura*>(this)->CallCoreEnergyZeroDialog(Avatar);
+        }
     }
     return bCanActivate;
 }

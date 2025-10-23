@@ -4,6 +4,8 @@
 #include "GA/Action/GA_Interact.h"
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Components/AudioComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Player/PlayerCharacter.h"
 #include "Log/TPTLog.h"
 #include "Player/FocusTraceComponent.h"
@@ -64,6 +66,11 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 		float Time = IHolding::Execute_GetTime(TargetActor);
 		IHolding::Execute_SetHoldingGaugeUI(TargetActor, Character, true);
 
+		if (SoundCue && (!ActiveAudioComponent || ActiveAudioComponent->IsPlaying())) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함
+		{
+			ActiveAudioComponent = UGameplayStatics::SpawnSoundAttached(SoundCue, Character->GetRootComponent());
+		}
+
 		FTimerDelegate TimerDel;
 		TimerDel.BindLambda([this, Time]()
 			{
@@ -107,6 +114,12 @@ void UGA_Interact::InputPressed(const FGameplayAbilitySpecHandle Handle, const F
 void UGA_Interact::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+
+	if (ActiveAudioComponent)
+	{
+		ActiveAudioComponent->Stop();
+		ActiveAudioComponent = nullptr;
+	}
 }
 
 void UGA_Interact::OnMontageComplete()

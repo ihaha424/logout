@@ -21,6 +21,13 @@ public:
 	UFUNCTION()
 	void OnCoolDownTagChanged(const FGameplayTag InputTag, int32 TagCount);
 
+	UFUNCTION(Client, Reliable)
+	void S2C_ShowZeroEnergyDialog(APlayerController* PC);
+	void S2C_ShowZeroEnergyDialog_Implementation(APlayerController* PC);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void CallCoreEnergyZeroDialog(const APlayerController* PC) const;
+
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayEffect> SprintEffect;
 

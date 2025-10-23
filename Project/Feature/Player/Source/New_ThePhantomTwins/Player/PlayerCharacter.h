@@ -49,7 +49,8 @@ enum class EVignetteType : uint8
 	HitVignette UMETA(DisplayName = "HitVignette"),
 	DownedVignette UMETA(DisplayName = "DownedVignette"),
 	Confused3rdVignette UMETA(DisplayName = "Confused3rdVignette"),
-	TrapVignette UMETA(DisplayName = "TrapVignette")
+	TrapVignette UMETA(DisplayName = "TrapVignette"),
+	MentalAttackVignette UMETA(DisplayName = "MentalAttackVignette")
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSprintSkillUI, float, SprintPercent, float, CooldownPercent);
@@ -127,6 +128,8 @@ public:
 	TObjectPtr<UMaterialInterface> TrapVignette;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
 	TObjectPtr<UMaterialInterface> Confused3rdVignette;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
+	TObjectPtr<UMaterialInterface> MentalAttackVignette;
 	UPROPERTY(BlueprintReadWrite)
 	FWeightedBlendable HitBlendable;
 	UPROPERTY(BlueprintReadWrite)
@@ -135,6 +138,8 @@ public:
 	FWeightedBlendable Confused3rdBlendable;
 	UPROPERTY(BlueprintReadWrite)
 	FWeightedBlendable TrapBlendable;
+	UPROPERTY(BlueprintReadWrite)
+	FWeightedBlendable MentalAttackBlendable;
 
 	UFUNCTION(BlueprintCallable)
 	void SettingPostProcessComponentBlendable(EVignetteType Type, float Weight);
@@ -193,19 +198,6 @@ public:
 	};
 	void EnsureSetting(EnsureCreateElement Element);
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound");
-	USoundBase* StaminaDrainSound;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound");
-	USoundBase* StaminaRegenSound_Dana;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound");
-	USoundBase* StaminaRegenSound_Bell;
-	// 스테미나 감소 사운드 재생
-	void PlayStaminaDrainSound();
-	void PlayStaminaRegenSound();
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void PlayStaminaRegenSoundByCharacterType();
 protected:
 	// 플레이어 인풋 바인딩
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -235,6 +227,8 @@ protected:
 	void InputESC(const FInputActionValue& Value);
 	UFUNCTION(BlueprintCallable)
 	void InputTab(const FInputActionValue& Value);
+	UFUNCTION(BlueprintCallable)
+	void DroneWidgetOnOff(bool Visibility);
 	void InputPressedUseItem(int32 InputID);
 	void InputReleased(int32 InputID);
 
@@ -305,6 +299,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GAS")
 	APC_Player* PlayerController;
 
+	APlayerCharacter* OtherPlayer = nullptr;
+
 	// GAS
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TObjectPtr<UAbilitySystemComponent> ASC;
@@ -348,7 +344,7 @@ protected:
 	// 스텟 위젯
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UPlayerHUDWidget> PlayerHUDWidgetClass;
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
 	TObjectPtr<UPlayerHUDWidget> PlayerHUDWidget;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")

@@ -7,11 +7,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "../IPEncryption.h"
 
-
+#include "kismet/KismetSystemLibrary.h"
 void UW_Title::NativeConstruct()
 {
     Super::NativeConstruct();
-
 }
 
 void UW_Title::StartLobby(const FName LevelName)
@@ -25,7 +24,6 @@ void UW_Title::ConnectLobby(const FName LevelName)
     {
         FString Code = LevelName.ToString();
         FString IP = UIPEncryption::Code2IP(Code);
-
         PC->ClientTravel(IP, ETravelType::TRAVEL_Absolute);
     }
 }

@@ -17,7 +17,6 @@ enum class EHubMapState : uint8
 	Title			UMETA(DisplayName = "Title"),
 	Lobby			UMETA(DisplayName = "Select Character"),
 	Hub_Main		UMETA(DisplayName = "HubMap Main"),
-	Hub_Map			UMETA(DisplayName = "HubMap Map Select"),
 	Hub_Skill		UMETA(DisplayName = "HubMap Skill Select"),
 	Hub_Table		UMETA(DisplayName = "HubMap Table"),
 	Hub_DataMaze	UMETA(DisplayName = "HubMap DataMaze")

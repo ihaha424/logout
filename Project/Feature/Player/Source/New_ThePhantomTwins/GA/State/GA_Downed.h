@@ -27,5 +27,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	float DownedSpeed = 30.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SFX")
+	USoundBase* SoundCue;
+
+	UPROPERTY()
+	UAudioComponent* ActiveAudioComponent = nullptr;
+
 	FVector DefaultSocketOffset;
 };

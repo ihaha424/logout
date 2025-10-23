@@ -40,6 +40,14 @@ EBTNodeResult::Type UBTT_PlayAbility::Execute_Task(UBehaviorTreeComponent& Owner
     }
 
     FGameplayEventData EventData;
+    if (AIPawn->GetClass()->ImplementsInterface(UGameplayEventDataExistByTag::StaticClass()))
+    {
+        FGameplayEventData TempData;
+        if (IGameplayEventDataExistByTag::Execute_GetGameplayEventData(AIPawn, AbilityTag, TempData, TargetActor))
+        {
+            EventData = TempData;
+        }
+    }
     EventData.Instigator = AIPawn;
     EventData.Target = TargetActor;
     if (!StringData.IsNone())

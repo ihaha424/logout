@@ -56,6 +56,7 @@ void AConsoleObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AConsoleObject, HasPlayerNum);
+	DOREPLIFETIME(AConsoleObject, bFinish);
 }
 
 bool AConsoleObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
@@ -106,12 +107,6 @@ void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 
 void AConsoleObject::SetWidgetVisible(bool bVisible)
 {
-	// UDecalComponent 가 있고 이름이 FName("InteractDecal") 이라면 bVisible 상태에 따라 아래 로직 실행
-	if (InteractDecalComp)
-	{
-		InteractDecalComp->SetHiddenInGame(!bVisible);
-	}
-
 	if (!InteractWidgetComp || !LockWidgetComp) return;
 
 	// 아웃라인 코드
@@ -136,11 +131,14 @@ void AConsoleObject::SetWidgetVisible(bool bVisible)
 	if (bAllTriggersActive && bHasEnoughPlayers)
 	{
 		// 모두 모였을 때는 InteractWidgetComp만 노출
+		bFinish = true;
 		InteractWidgetComp->SetVisibility(true);
 		LockWidgetComp->SetVisibility(false);
 	}
 	else
 	{
+		bFinish = false;
+
 		// 조건 만족 못 하면 InteractWidgetComp 숨기고 LockWidgetComp 노출
 		InteractWidgetComp->SetVisibility(false);
 		LockWidgetComp->SetVisibility(true);
@@ -214,5 +212,19 @@ void AConsoleObject::OnRep_bIsActived()
 	if (bIsActived)
 	{
 		ShowOverlayOutline(!bIsActived);
+	}
+}
+
+void AConsoleObject::OnRep_bFinish()
+{
+	if (bFinish)
+	{
+		InteractWidgetComp->SetVisibility(true);
+		LockWidgetComp->SetVisibility(false);
+	}
+	else
+	{
+		InteractWidgetComp->SetVisibility(false);
+		LockWidgetComp->SetVisibility(true);
 	}
 }

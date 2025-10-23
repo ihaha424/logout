@@ -251,6 +251,7 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 
 	SetSelectSkill(PS);
 
+	InitPostProcessComponent();
 	UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
 	SaveGameManager->ApplyAuthorityPlayerSaveGame(PlayerController);
 
