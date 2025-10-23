@@ -11,30 +11,12 @@
 
 #include "Log/TPTLog.h"
 #include "Player/PC_Player.h"
+#include "SaveGame/TPTSaveGameManager.h"
 
 AGM_PhantomTwins::AGM_PhantomTwins()
 {
 	PlayerControllerClass = APC_Player::StaticClass();
 	GameStateClass = AGS_PhantomTwins::StaticClass();
-    PrimaryActorTick.bCanEverTick = true;
-    PrimaryActorTick.bStartWithTickEnabled = true;
-    PrimaryActorTick.bTickEvenWhenPaused = true;
-}
-
-void AGM_PhantomTwins::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
-{
-    Super::InitGame(MapName, Options, ErrorMessage);
-}
-
-void AGM_PhantomTwins::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-    ElapsedTime += DeltaSeconds;
-
-    if (ElapsedTime >= 5.0f)
-    {
-        // 원하는 행동 수행
-    }
 }
 
 void AGM_PhantomTwins::BeginPlay()
@@ -69,12 +51,23 @@ void AGM_PhantomTwins::BeginPlay()
         GS->OnClickedGameStopChanged.AddDynamic(this, &ThisClass::NotifyPlayerClickedGameStop);
         GS->OnClickedAgreeWithGameStopChanged.AddDynamic(this, &ThisClass::NotifyPlayerAgreeWithGameStop);
     }
+    FTimerHandle TimerHandle;
+    GetWorldTimerManager().SetTimer(TimerHandle,this, &ThisClass::DelayedInitializeSaveTargets, 0.1f, false);
+}
+
+void AGM_PhantomTwins::DelayedInitializeSaveTargets()
+{
+    UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+	SaveGameManager->InitializeSaveTargets();
+    SaveGameManager->ApplyActorSaveGame();
 }
 
 void AGM_PhantomTwins::PostLogin(APlayerController* NewPlayer)
 {
-    Super::PostLogin(NewPlayer);
+    UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+    SaveGameManager->InitializeSavePlayer();
 
+    Super::PostLogin(NewPlayer);
     TotalPlayerCount++;
 }
 
@@ -186,9 +179,16 @@ void AGM_PhantomTwins::ShowGameOverUI()
 {
     SetAllPlayerUIMode(true);
     // 게임 시간을 정지하는 방법... 게임시간 여기에서 정지시키니까 트래블도 안됨.
-    APlayerController* PC = GetWorld()->GetFirstPlayerController();
-    APC_Player* ServerPC = Cast< APC_Player>(PC);
-    ServerPC->SetWidget(TEXT("GameOver"), true, EMessageTargetType::Multicast);
+    FTimerHandle TimerHandle;
+    GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+        {
+            APlayerController* PC = GetWorld()->GetFirstPlayerController();
+    		APC_Player* ServerPC = Cast< APC_Player>(PC);
+            ServerPC->SetWidget(TEXT("GameOver"), true, EMessageTargetType::Multicast);
+        },
+        1.f,
+        false
+    );
 }
 
 void AGM_PhantomTwins::NotifyPlayerClickRestart(bool bIsHostClicked, bool bIsClientClicked)
@@ -215,9 +215,14 @@ void AGM_PhantomTwins::RestartWithDelay(float Delay)
     GetWorldTimerManager().SetTimer(TimerHandle, [this]()
         {
             ShowLoadingScene();
-    		FString MapName = GetWorld()->GetOutermost()->GetName();
-            FString LevelPathWithListen = MapName + TEXT("?listen");
-            GetWorld()->ServerTravel(LevelPathWithListen, false);
+            FString PackageName = GetWorld()->GetOutermost()->GetName();
+            FString CleanPath = FPackageName::GetLongPackagePath(PackageName);
+            FString MapBaseName = FPackageName::GetShortName(PackageName);
+
+
+            FString TravelURL = CleanPath + TEXT("/") + MapBaseName + TEXT("?listen");
+            GetWorld()->ServerTravel(TravelURL, false);
+
         }, Delay, false);
 }
 

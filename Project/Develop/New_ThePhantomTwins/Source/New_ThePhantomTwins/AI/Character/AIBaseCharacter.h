@@ -50,7 +50,7 @@ public:
 	//~ End IAIEventReceiver
 
 	//~ Begin GameplayCueNotify
-	TArray<UGameplayCueInterface> GamePlayCueNotifys;
+	TArray<UGameplayCueInterface> GamePlayCueNotifies;
 	//~ End GameplayCueNotify
 
 	//~ Begin State Control
@@ -69,7 +69,9 @@ public:
 	//~ End AI Control(Patrol)
 
 	//~ Begin AI Control(Combat)
+	UPROPERTY(EditAnywhere, Category = "AI")
 	TArray<AActor*> CombatRangeInActor;
+
 	FTimerHandle CombatRangeInActorTimerHandle;
 	virtual bool MatchingChaseActorType(AActor* OtherActor) const;
 	UFUNCTION()

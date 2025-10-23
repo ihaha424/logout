@@ -3,9 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemComponent.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "TPTSaveGameManager.generated.h"
 
+class UGameplayEffect;
+struct FDoorState;
 class UTPTLocalPlayerSaveGame;
 class UTPTSaveGame;
 
@@ -14,23 +17,50 @@ class NEW_THEPHANTOMTWINS_API UTPTSaveGameManager : public UGameInstanceSubsyste
 {
 	GENERATED_BODY()
 public:
-    //// 플레이어별 세이브 게임 객체 배열 (2명 분)
-    //UPROPERTY()
-    //TArray<UTPTLocalPlayerSaveGame*> PlayerSaveGames;
+    UTPTSaveGameManager();
+    virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+    virtual void Deinitialize() override;
 
-    //// 전체 게임 세이브 게임 객체
-    //UPROPERTY()
-    //UTPTSaveGame* GameSaveGame;
-    //virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+    UFUNCTION()
+    void SaveUpdate();
+    // 게임 시작 시 모든 저장 대상 액터 정보 초기화하는 함수
+    UFUNCTION()
+    void InitializeSaveTargets();
+    // 상태 변화 발생 시 Guid로 임시 저장함수 호출
+    UFUNCTION(BlueprintCallable)
+	void TempSaveByID(const FGuid& ObjectID, const bool bIsExist);
 
+    UFUNCTION()
+    void TempSavePlayer(const APlayerController* PC);
 
-    //// 저장 함수 예시: 특정 시점에 호출
-    //UFUNCTION()
-    //void SaveAll();
+	UFUNCTION()
+    void SaveRestartPoint(const FVector& PlayerLocation, const FRotator& PlayerRotation);
 
+    UFUNCTION()
+	void ApplyActorSaveGame();
+	void InitializeSavePlayer();
 
-    //// 불러오기 함수 예시
-    //UFUNCTION()
-    //void LoadAll();
+	UFUNCTION()
+	void ApplyAuthorityPlayerSaveGame(APlayerController* PC);
+	void ApplyPlayerEffect(UAbilitySystemComponent* ASC, int32 Data);
 
+	bool bActorsInitialized = false;
+	bool bPlayerInitialized = false;
+
+    TSubclassOf<UGameplayEffect> CoreEnergyEffect;
+private:
+    UPROPERTY()
+    TArray<UTPTLocalPlayerSaveGame*> PlayerSaveGames;
+    UPROPERTY()
+    UTPTSaveGame* GameSaveGame;
+    UPROPERTY()
+    TMap<FGuid, AActor*> DoorActorsMap;
+    UPROPERTY()
+    TMap<FGuid, AActor*> ItemActorsMap;
+    UPROPERTY()
+    TMap<FGuid, AActor*> HideObjectActorsMap;
+    UPROPERTY()
+    TMap<FGuid, AActor*> ItemBoxActorsMap;
+    UPROPERTY()
+    TMap<FGuid, AActor*> AIActorsMap;
 };

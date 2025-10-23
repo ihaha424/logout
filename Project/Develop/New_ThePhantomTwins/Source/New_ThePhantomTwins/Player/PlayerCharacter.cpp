@@ -33,6 +33,7 @@
 #include "Components/PostProcessComponent.h"
 #include "Components/BoxComponent.h"
 #include "Data/DT_Skill.h"
+#include "SaveGame/TPTSaveGameManager.h"
 #include "UI/DroneStatWidget.h"
 
 APlayerCharacter::APlayerCharacter()
@@ -151,7 +152,7 @@ void APlayerCharacter::BeginPlay()
 		}
 	}
 
-	//InitPostProcessComponent();
+	InitPostProcessComponent();
 
 	// RecoveryGauge Time
 	Time = RecoveryTime;
@@ -251,6 +252,8 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	SetSelectSkill(PS);
 
 	InitPostProcessComponent();
+	UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+	SaveGameManager->ApplyAuthorityPlayerSaveGame(PlayerController);
 
 	EnsureSetting(EnsureCreateElement::EnsurePlayerController);
 	EnsureSetting(EnsureCreateElement::EnsurePlayerState);
@@ -283,11 +286,7 @@ void APlayerCharacter::OnRep_PlayerState()
 	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
 	BindAttributeDelegates(AttributeSet);
 
-	InitPostProcessComponent();
-
 	InitHUDWidget(AttributeSet);
-	UPlayerAnimInstance* AnimInstance = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
-	AnimInstance->InitializeWithAbilitySystem(ASC);
 
 	EnsureSetting(EnsureCreateElement::EnsurePlayerState);
 }
@@ -349,13 +348,11 @@ void APlayerCharacter::InitPostProcessComponent()
 	NULLCHECK_RETURN_LOG(DownedVignette, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(Confused3rdVignette, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(TrapVignette, PlayerLog, Error, );
-	NULLCHECK_RETURN_LOG(MentalAttackVignette, PlayerLog, Error, );
 
 	UMaterialInstanceDynamic* HitMID = UMaterialInstanceDynamic::Create(HitVignette, this);
 	UMaterialInstanceDynamic* LowHPMID = UMaterialInstanceDynamic::Create(DownedVignette, this);
 	UMaterialInstanceDynamic* Confused3rdMID = UMaterialInstanceDynamic::Create(Confused3rdVignette, this);
 	UMaterialInstanceDynamic* TrapMID = UMaterialInstanceDynamic::Create(TrapVignette, this);
-	UMaterialInstanceDynamic* MentalAttackMID = UMaterialInstanceDynamic::Create(MentalAttackVignette, this);
 
 	HitBlendable.Object = HitMID;
 	HitBlendable.Weight = 0.0f;
@@ -369,14 +366,10 @@ void APlayerCharacter::InitPostProcessComponent()
 	TrapBlendable.Object = TrapMID;
 	TrapBlendable.Weight = 0.0f;
 
-	MentalAttackBlendable.Object = MentalAttackMID;
-	MentalAttackBlendable.Weight = 0.0f;
-
 	PostProcessComp->Settings.WeightedBlendables.Array.Add(HitBlendable);
 	PostProcessComp->Settings.WeightedBlendables.Array.Add(DownedBlendable);
 	PostProcessComp->Settings.WeightedBlendables.Array.Add(TrapBlendable);
 	PostProcessComp->Settings.WeightedBlendables.Array.Add(Confused3rdBlendable);
-	PostProcessComp->Settings.WeightedBlendables.Array.Add(MentalAttackBlendable);
 }
 
 void APlayerCharacter::SetHP(int32 value)
@@ -400,10 +393,35 @@ void APlayerCharacter::SettingPostProcessComponentBlendable(EVignetteType Type, 
 	if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 0)
 		return;
 
-	//FPostProcessSettings& NewSettings = PostProcessComp->Settings;
-	const int32 index = static_cast<int32>(Type) - 1;
-	if (!PostProcessComp->Settings.WeightedBlendables.Array.IsValidIndex(index)) return;
-	PostProcessComp->AddOrUpdateBlendable(PostProcessComp->Settings.WeightedBlendables.Array[index].Object, Weight);
+	FPostProcessSettings NewSettings;
+	NewSettings = PostProcessComp->Settings;
+
+	switch (Type)
+	{
+	case EVignetteType::HitVignette:
+		NewSettings.WeightedBlendables.Array[0].Object = HitBlendable.Object;
+		NewSettings.WeightedBlendables.Array[0].Weight = Weight;
+		break;
+	case EVignetteType::DownedVignette:
+		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 1) return;
+		NewSettings.WeightedBlendables.Array[1].Object = DownedBlendable.Object;
+		NewSettings.WeightedBlendables.Array[1].Weight = Weight;
+		break;
+	case EVignetteType::TrapVignette:
+		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 2) return;
+		NewSettings.WeightedBlendables.Array[2].Object = TrapBlendable.Object;
+		NewSettings.WeightedBlendables.Array[2].Weight = Weight;
+		break;
+	case EVignetteType::Confused3rdVignette:
+		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 3) return;
+		NewSettings.WeightedBlendables.Array[3].Object = Confused3rdBlendable.Object;
+		NewSettings.WeightedBlendables.Array[3].Weight = Weight;
+		break;
+	default:
+		break;
+	}
+
+	PostProcessComp->Settings = NewSettings;
 }
 
 void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
@@ -412,14 +430,12 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 
 	if (!IsLocallyControlled())
 	{
-		TPT_LOG(HUDLog, Warning, TEXT("InitHUDWidget: Not locally controlled, skipping widget creation (Actor: %s)"), *GetName());
 		return;
 	}
 
 	if (!PlayerHUDWidget)
 	{
 		AUIManagerPlayerController* PC = Cast<AUIManagerPlayerController>(GetController());
-
 		if (PC && PlayerHUDWidgetClass)
 		{
 			PC->RegisterWidget(TEXT("PlayerHUDWidget"), CreateWidget<UPlayerHUDWidget>(GetWorld(), PlayerHUDWidgetClass));
@@ -436,14 +452,31 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 	int32 HP = AttributeSet->GetMaxHP();
 	int32 Mental = AttributeSet->GetMaxMentalPoint();
 	int32 Stamina = AttributeSet->GetMaxStamina();
-	int32 CoreEnergy = AttributeSet->GetMaxCoreEnergy();
+	int32 CoreEnergy = AttributeSet->GetCoreEnergy();
 
 	PlayerHUDWidget->InitializeWidgets(HP, Mental, Stamina, CoreEnergy);
 
 	HealthPoint = HP;
 	MentalPoint = Mental;
 
-	PS->InventoryComp->SetPlayerHUDWidget(PlayerHUDWidget);
+	bool bIsComplete = PS->InventoryComp->SetPlayerHUDWidget(PlayerHUDWidget);
+
+	if (bIsComplete)
+	{
+		PS->InventoryComp->RefreshUIFromInventory();
+	}
+}
+
+void APlayerCharacter::DroneWidgetOnOff(bool Visibility)
+{
+	if (Visibility)
+	{
+		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+	}
+	else
+	{
+		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
 void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
@@ -492,28 +525,30 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	TPTInput->BindAction(ESC, ETriggerEvent::Started, this, &ThisClass::InputESC);
 	TPTInput->BindAction(TabAction, ETriggerEvent::Started, this, &APlayerCharacter::InputTab);
 
-
 	SetupPlayerInputByTag(TPTInput);
 }
 
 void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInput)
 {
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Started, this, &ThisClass::InputPressed);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
+	if (IsValid(TPTInput))
+	{
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch, ETriggerEvent::Triggered, this, &ThisClass::InputPressed);
 
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Started, this, &ThisClass::InputPressed);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Interact, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_LookBack, ETriggerEvent::Started, this, &ThisClass::InputPressed);
 
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_Q, ETriggerEvent::Started, this, &ThisClass::InputPressed);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_E, ETriggerEvent::Started, this, &ThisClass::InputPressed);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 1);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 2);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 3);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 4);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 5);
-	TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_UseItem, ETriggerEvent::Started, this, &ThisClass::InputPressedUseItem);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_Q, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ActiveSkill_E, ETriggerEvent::Started, this, &ThisClass::InputPressed);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_1st, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 1);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_2nd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 2);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_3rd, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 3);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_4th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 4);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_ItemSlot_5th, ETriggerEvent::Started, this, &ThisClass::InputPressedWithNum, 5);
+		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_UseItem, ETriggerEvent::Started, this, &ThisClass::InputPressedUseItem);
+	}
 }
 
 void APlayerCharacter::OnAbilityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureTags)
@@ -628,7 +663,6 @@ void APlayerCharacter::OnRecoveryCompleted()
 		if (AGM_PhantomTwins* GM = GetWorld()->GetAuthGameMode<AGM_PhantomTwins>())
 		{
 			GM->NotifyPlayerDied(false);
-			PS->bIsDowned = false;
 		}
 	}
 
@@ -740,29 +774,15 @@ void APlayerCharacter::InputESC(const FInputActionValue& Value)
 void APlayerCharacter::InputTab(const FInputActionValue& Value)
 {
 	NULLCHECK_RETURN_LOG(DroneWidget, PlayerLog, Error, );
-	NULLCHECK_RETURN_LOG(DroneUserWidget, PlayerLog, Error, );
-
 	if (!IsLocallyControlled()) return;
 
 	if (DroneWidget->GetUserWidgetObject()->GetVisibility() == ESlateVisibility::Visible)
 	{
-		DroneUserWidget->CloseAnimation(this);
+		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 	}
 	else if (DroneWidget->GetUserWidgetObject()->GetVisibility() == ESlateVisibility::Hidden)
 	{
-		DroneUserWidget->OpenAnimation(this);
-	}
-}
-
-void APlayerCharacter::DroneWidgetOnOff(bool Visibility)
-{
-	if (Visibility)
-	{
 		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
-	}
-	else
-	{
-		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 
@@ -1108,6 +1128,7 @@ void APlayerCharacter::EnsureGameStart_Implementation()
 		//NULLCHECK_RETURN_LOG(ResumeCountWidgetClass, PlayerLog, Error, );
 		PC->RegisterWidget(TEXT("ResumeCount"), CreateWidget(GetWorld(), ResumeCountWidgetClass));
 	}
+
 }
 
 void APlayerCharacter::RemoveHeldItemMesh()

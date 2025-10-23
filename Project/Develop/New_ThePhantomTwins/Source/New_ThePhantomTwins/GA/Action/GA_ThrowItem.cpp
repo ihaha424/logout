@@ -47,6 +47,7 @@ void UGA_ThrowItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 	}
 	UAbilityTask_PlayMontageAndWait* PlayThrowItemMontageeTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("ThrowItemMontage"), ThrowItemMontage, 1.0f);
 	PlayThrowItemMontageeTask->OnCompleted.AddDynamic(this, &ThisClass::OnMontageComplete);
+	PlayThrowItemMontageeTask->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageComplete);
 
 	PlayThrowItemMontageeTask->ReadyForActivation();
 }

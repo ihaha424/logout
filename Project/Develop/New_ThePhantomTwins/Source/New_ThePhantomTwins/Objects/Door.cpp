@@ -7,6 +7,8 @@
 #include "Blueprint/UserWidget.h"
 #include "../Player/PlayerCharacter.h"
 #include "../Log/TPTLog.h"
+#include "SaveGame/SaveIDComponent.h"
+#include "SaveGame/TPTSaveGameManager.h"
 
 ADoor::ADoor() : AInteractableObject()
 {
@@ -172,6 +174,8 @@ bool ADoor::AreAllTriggerActived_Implementation()
 
 	if (triggerActive >= MinRequiredCount)
 	{
+		UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+		SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
 		return true;
 	}
 	else
@@ -179,6 +183,8 @@ bool ADoor::AreAllTriggerActived_Implementation()
 		// 오브젝트가 만약 열쇠를 사용했다면 true
 		if (ActorHasTag(TEXT("KeyInteract")) && bKeyUsed)
 		{
+			UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+			SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
 			return true;
 		}
 		else

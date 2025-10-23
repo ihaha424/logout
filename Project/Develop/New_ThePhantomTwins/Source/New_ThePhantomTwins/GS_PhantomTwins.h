@@ -62,6 +62,7 @@ public:
 
 	UPROPERTY(Replicated = true)
 	bool bIsHostClickedRestart = false;
+
 	UPROPERTY(Replicated = true)
 	bool bIsClientClickedRestart = false;
 	//~ End Restart
@@ -69,16 +70,22 @@ public:
 	// ~ Begin Stop game
 	UPROPERTY(BlueprintAssignable)
 	FOnClickedGameStop OnClickedGameStopChanged;
+
 	UPROPERTY(BlueprintAssignable)
 	FOnClickedAgreeWithGameStop OnClickedAgreeWithGameStopChanged;
 
+	UFUNCTION(BlueprintCallable)
 	void SetCharacterClickedGameStop(FName LevelName, FName PrintingName);
+
 	UFUNCTION()
 	void OnRep_SetCharacterClickedGameStop();
+
 	UFUNCTION(BlueprintCallable)
 	FName GetPrintingMapName() const { return PrintingMapName; }
+
 	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterClickedGameStop)
 	FName DestinationLevelName;
+
 	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterClickedGameStop)
 	FName PrintingMapName;
 
@@ -89,8 +96,10 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_SetCharacterAgreeWithGameStop(int32 Select, bool bIsHost);
 	void S2A_SetCharacterAgreeWithGameStop_Implementation(int32 Select, bool bIsHost);
+
 	UPROPERTY(Replicated = true)
 	int32 HostSelect = 0;
+
 	UPROPERTY(Replicated = true)
 	int32 ClientSelect = 0;
 	//~ End Stop game
@@ -108,8 +117,8 @@ protected:
 
 	//~ Begin BossSpawn
 	FOnCollectedItemCountChanged CollectedItemCountChanged;
-	UPROPERTY(BlueprintAssignable, Category = "DataFragment")
 
+	UPROPERTY(BlueprintAssignable, Category = "DataFragment")
 	FDynamicOnCollectedItemCountChanged DynamicCollectedItemCountChanged;
 	UFUNCTION()
 	void OnRep_BossSpawned();

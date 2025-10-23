@@ -67,10 +67,12 @@ public:
 	virtual FGenericTeamId GetGenericTeamId() const override;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
+
 	UPlayerHUDWidget* GetPlayerHUDWidget() const { return PlayerHUDWidget; }
 	UFocusTraceComponent* GetFocusTrace() const { return FocusTrace; }
 	USpringArmComponent* GetSpringArm() const { return SpringArm; }
 	UCameraComponent* GetCamera() const { return Camera; }
+
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -87,9 +89,6 @@ public:
 	virtual float GetTime_Implementation() override;
 	virtual void CalculateGaugePercent_Implementation(float Elapsed) override;
 	virtual void SetHoldingGaugeUI_Implementation(const APawn* Interactor, bool bVisible) override;
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnRep_RecoveryPercent();
 
 public:
 	// 플레이어 캐릭터 속도
@@ -154,6 +153,11 @@ public:
 public:
 	// 위젯 설정
 	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);
+	UFUNCTION(BlueprintCallable)
+	void DroneWidgetOnOff(bool Visibility);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnRep_RecoveryPercent();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SetFadeVFX(EVignetteType Type, int32 StartValue);
@@ -225,8 +229,6 @@ protected:
 	void InputESC(const FInputActionValue& Value);
 	UFUNCTION(BlueprintCallable)
 	void InputTab(const FInputActionValue& Value);
-	UFUNCTION(BlueprintCallable)
-	void DroneWidgetOnOff(bool Visibility);
 	void InputPressedUseItem(int32 InputID);
 	void InputReleased(int32 InputID);
 

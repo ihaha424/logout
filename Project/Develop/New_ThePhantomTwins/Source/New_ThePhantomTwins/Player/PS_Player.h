@@ -10,6 +10,7 @@
 #include "Data/CharacterType.h"
 #include "PS_Player.generated.h"
 
+struct FItemSlot;
 class UPlayerAttributeSet;
 
 UCLASS()
@@ -21,6 +22,7 @@ public:
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const override;
+	//virtual void CopyProperties(APlayerState* PlayerState)override;
 	virtual FGenericTeamId GetGenericTeamId() const override { return TeamID; }
 	void SetIdentifyCharacterData();
 
@@ -32,12 +34,9 @@ public:
 
 	UPROPERTY(Replicated)
 	TObjectPtr<UPlayerAttributeSet> AttributeSet;
-
-	UPROPERTY(Replicated, EditAnywhere, Category = "Recovery")
-	bool bIsRecovery = false;
-
-	UPROPERTY(Replicated, EditAnywhere, Category = "Recovery")
-	bool bIsDowned = false;
+	// 인벤토리 스냅샷(값): 네트워크로 유지/이관될 데이터
+	UPROPERTY(Replicated, EditAnywhere, Category = "Inventory")
+	TArray<FItemSlot> InventorySnapshot;
 
 private:
 	UPROPERTY(Replicated)

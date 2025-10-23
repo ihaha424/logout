@@ -18,6 +18,7 @@
 #include "Log/TPTLog.h"
 
 
+
 AAIBaseCharacter::AAIBaseCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
@@ -76,7 +77,7 @@ void AAIBaseCharacter::BeginPlay()
             AbilitySystem->GiveAbility(StartSpec);
         }
 
-        for (const auto& CueNotify : GamePlayCueNotifys)
+        for (const auto& CueNotify : GamePlayCueNotifies)
         {
             // If you Want to Cue Register, Here.
         }
@@ -100,6 +101,7 @@ void AAIBaseCharacter::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
 
 }
+
 void AAIBaseCharacter::PostInitializeComponents()
 {
     Super::PostInitializeComponents();

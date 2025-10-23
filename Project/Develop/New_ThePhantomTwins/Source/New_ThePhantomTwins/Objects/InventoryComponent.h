@@ -28,6 +28,7 @@ public:
     UInventoryComponent();
 
 protected:
+    virtual void InitializeComponent() override;
     virtual void BeginPlay() override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -67,6 +68,8 @@ public:
     UFUNCTION()
     bool CanAddToInventory(EItemType eItemType);
 
+
+    void RefreshUIFromInventory();
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     int32 MaxInventorySlots = 5;
@@ -77,10 +80,10 @@ public:
     UPROPERTY(EditDefaultsOnly, Replicated)
     FText QuestionBoxText;
 
-protected:
     UPROPERTY(EditDefaultsOnly, ReplicatedUsing=OnRep_InventorySlots)
     TArray<FItemSlot> InventorySlots;
 
+protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
     TObjectPtr<UDataTable> ItemAbilityTable;
 
@@ -123,7 +126,6 @@ private:
         return (Slot.ItemType == EItemType::None || Slot.ItemQuantity <= 0);
     }
 
-    void RefreshUIFromInventory();
     void VisibleInventory();
 
     UFUNCTION()

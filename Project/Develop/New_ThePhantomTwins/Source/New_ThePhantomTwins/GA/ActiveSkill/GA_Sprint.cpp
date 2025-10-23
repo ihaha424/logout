@@ -52,6 +52,8 @@ void UGA_Sprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
         EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
         return;
     }
+
+    Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
     UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 
     // 스프린트가 실행되는 시간만큼 태그를 붙여줄 이펙트 실행. ( = 5초)

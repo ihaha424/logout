@@ -19,6 +19,7 @@ UGA_ExecuteActiveSkill::UGA_ExecuteActiveSkill()
 
 void UGA_ExecuteActiveSkill::ActivateAbility(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,const FGameplayEventData* TriggerEventData)
 {
+	TPT_LOG(GALog, Error, TEXT("Start"));
 	if (!Super::CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
@@ -28,7 +29,6 @@ void UGA_ExecuteActiveSkill::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 
 	SkillNumber = TriggerEventData->EventMagnitude;
 	UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
-	ApplyEffect();
 
 	//스프린트 스킬
 	if (SkillNumber == 1)
@@ -60,16 +60,6 @@ void UGA_ExecuteActiveSkill::OnCoolDownTagChanged(const FGameplayTag InputTag, i
 	bHasCoolDownTag = TagCount > 0; // 태그가 붙었으면 true, 없으면 false
 	if (!bHasCoolDownTag)
 	{
-		//SkillValue = -1.0f;
-		OutLineSkillValue = -1.0f;
-		//ApplyEffect();
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	}
-}
-
-void UGA_ExecuteActiveSkill::ApplyEffect()
-{
-	FGameplayEffectSpecHandle ExecuteOutLineSkillEffectSpecHandle = MakeOutgoingGameplayEffectSpec(ExecuteOutLineSkillEffect, 1.f);
-	ExecuteOutLineSkillEffectSpecHandle.Data->SetSetByCallerMagnitude(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_UseSkill, OutLineSkillValue);
-	ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, ExecuteOutLineSkillEffectSpecHandle);
 }
