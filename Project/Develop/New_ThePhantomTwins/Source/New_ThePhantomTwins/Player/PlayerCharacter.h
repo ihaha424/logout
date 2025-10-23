@@ -88,16 +88,11 @@ public:
 	virtual void CalculateGaugePercent_Implementation(float Elapsed) override;
 	virtual void SetHoldingGaugeUI_Implementation(const APawn* Interactor, bool bVisible) override;
 
-	void UpdatePlayerDist();
-	float PlayerDist = 0;
-
-	TArray<AActor*> Players;
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void CallPlayerDistDialog();
-
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnRep_RecoveryPercent();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnCoreEnergyZeroDialog();
 
 public:
 	// 플레이어 캐릭터 속도
@@ -304,6 +299,8 @@ protected:
 	TObjectPtr<APS_Player> PS;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GAS")
 	APC_Player* PlayerController;
+
+	APlayerCharacter* OtherPlayer = nullptr;
 
 	// GAS
 	UPROPERTY(EditAnywhere, Category = "GAS")

@@ -111,8 +111,6 @@ void APlayerCharacter::BeginPlay()
 	NULLCHECK_RETURN_LOG(InteractWidgetClass, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(DownWidgetClass, PlayerLog, Error, );
 
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ThisClass::StaticClass(), Players);
-
 	UUserWidget* Interact = CreateWidget(GetWorld(), InteractWidgetClass);
 	InteractWidget->SetWidget(Interact);
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
@@ -162,8 +160,6 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-
 
 	if (IsLocallyControlled() && PlayerController && FocusTrace)
 	{
@@ -345,24 +341,6 @@ void APlayerCharacter::SetHoldingGaugeUI_Implementation(const APawn* Interactor,
 	APC_Player* PC = APC_Player::GetLocalPlayerController(Interactor->GetController());
 
 	PC->SetWidget(TEXT("RecoveryGauge"), bVisible, EMessageTargetType::Multicast);
-}
-
-void APlayerCharacter::UpdatePlayerDist()
-{
-	if (Players.Num() == 2)
-	{
-		APlayerCharacter* SelfActor = this;
-		APlayerCharacter* Other = (Cast<APlayerCharacter>(Players[0]) == SelfActor) ? Cast<APlayerCharacter>(Players[1]) : Cast<APlayerCharacter>(Players[0]);
-		NULLCHECK_RETURN_LOG(SelfActor, GALog, Error, );
-		NULLCHECK_RETURN_LOG(Other, GALog, Error, );
-
-		PlayerDist = FVector::Dist(SelfActor->GetActorLocation(), Other->GetActorLocation());
-
-		if (PlayerDist > 300.f)
-		{
-			CallPlayerDistDialog();
-		}
-	}
 }
 
 void APlayerCharacter::InitPostProcessComponent()
