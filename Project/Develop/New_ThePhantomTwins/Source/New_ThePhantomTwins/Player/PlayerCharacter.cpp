@@ -648,6 +648,7 @@ void APlayerCharacter::OnRecoveryCompleted()
 
 void APlayerCharacter::InputPressed(int32 InputID)
 {
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Warning, );
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
 	NULLCHECK_RETURN_LOG(Spec,PlayerLog, Warning,);
 

@@ -272,7 +272,7 @@ protected:
 	void EnsureGameStart();
 	void EnsureGameStart_Implementation();
 
-	int32 HealthPoint = 200.f;
+	int32 HealthPoint = 100.f;
 	int32 MentalPoint = 100.f;
 
 private:
