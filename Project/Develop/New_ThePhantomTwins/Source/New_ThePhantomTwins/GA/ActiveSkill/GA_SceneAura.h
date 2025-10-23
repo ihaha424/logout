@@ -40,6 +40,9 @@ protected:
     UFUNCTION()
     void OnCoolDownTagChanged(const FGameplayTag InputTag, int32 TagCount);
 
+    UFUNCTION(BlueprintImplementableEvent)
+	void CallCoreEnergyZeroDialog(const APlayerCharacter* Player) const;
+
     // 블루프린트에서 지정할 수 있도록
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Scan Effect")
     TSubclassOf<AActor> ScanEffectActorClass;

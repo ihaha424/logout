@@ -43,6 +43,12 @@ bool UGA_SceneAura::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, 
         {
             UE_LOG(LogTemp, Warning, TEXT("Activation failed due to Cost."));
         }*/
+
+        APlayerCharacter* Avatar = Cast<APlayerCharacter>(ActorInfo->AvatarActor);
+        if (Avatar && Avatar->IsLocallyControlled())
+        {
+            const_cast<UGA_SceneAura*>(this)->CallCoreEnergyZeroDialog(Avatar);
+        }
     }
     return bCanActivate;
 }
@@ -146,7 +152,7 @@ void UGA_SceneAura::ScanTargets()
 		{
 			if (!Target || Target == OwnerActor) continue;
 
-            if (IsValidAuraTarget(Target))
+            if (IsValid(Target) && IsValidAuraTarget(Target))
             {
 				ApplyAuraToTarget(Target, 3);
 				NewTargets.Add(Target);

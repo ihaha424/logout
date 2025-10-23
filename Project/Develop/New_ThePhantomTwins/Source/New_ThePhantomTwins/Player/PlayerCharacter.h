@@ -91,9 +91,6 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnRep_RecoveryPercent();
 
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnCoreEnergyZeroDialog();
-
 public:
 	// 플레이어 캐릭터 속도
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
