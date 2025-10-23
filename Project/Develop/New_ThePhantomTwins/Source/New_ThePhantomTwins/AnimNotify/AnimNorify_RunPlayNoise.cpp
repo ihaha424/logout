@@ -35,7 +35,10 @@ void UAnimNorify_RunPlayNoise::Notify(USkeletalMeshComponent* MeshComp, UAnimSeq
 		// 사운드 재생
 		UGameplayStatics::PlaySoundAtLocation(Owner, StepSound, Owner->GetActorLocation());
 
-		// 노이즈 발생
-		Owner->MakeNoise(WalkNoise, Owner, Owner->GetActorLocation(), 0.f, "PlayerWalk");
+		if (!ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch))
+		{
+			// 노이즈 발생
+			Owner->MakeNoise(WalkNoise, Owner, Owner->GetActorLocation(), 0.f, "PlayerWalk");
+		}
 	}
 }
