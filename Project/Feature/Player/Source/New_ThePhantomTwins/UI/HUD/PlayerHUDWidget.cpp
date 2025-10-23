@@ -22,6 +22,7 @@ void UPlayerHUDWidget::NativeConstruct()
     {
         ItemChangedHandle = GS->OnCollectedItemCountChanged().AddUObject(
             this, &UPlayerHUDWidget::UpdateClearItem);
+        UpdateClearItem(GS->CoreCount);
     }
 }
 

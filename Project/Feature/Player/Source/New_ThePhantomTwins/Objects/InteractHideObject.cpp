@@ -22,6 +22,8 @@
 #include "GameplayEffect.h"
 
 #include "Components/StaticMeshComponent.h"
+#include "SaveGame/SaveIDComponent.h"
+#include "SaveGame/TPTSaveGameManager.h"
 #include "Tags/TPTGameplayTags.h"
 
 

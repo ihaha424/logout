@@ -342,6 +342,7 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
             if (Box)
             {
                 Box->SetActive(bIsOpened);
+                Box->InitBoxOpen(bIsOpened);
             }
         }
     }
@@ -376,8 +377,13 @@ void UTPTSaveGameManager::InitializeSavePlayer()
 
     bPlayerInitialized = true;
 }
-void UTPTSaveGameManager::ApplyPlayerSaveGame(APlayerController* PC)
+void UTPTSaveGameManager::ApplyAuthorityPlayerSaveGame(APlayerController* PC)
 {
+    if(!PC->HasAuthority())
+    {
+        return;
+    }
+
 	APlayerCharacter* Player = Cast<APlayerCharacter>(PC->GetPawn());
     NULLCHECK_RETURN_LOG(Player, SaveGameLog, Error, );
 
@@ -387,6 +393,7 @@ void UTPTSaveGameManager::ApplyPlayerSaveGame(APlayerController* PC)
 
     UAbilitySystemComponent* ASC = PlayerPS->GetAbilitySystemComponent();
     NULLCHECK_RETURN_LOG(ASC, SaveGameLog, Error, );
+    TPT_LOG(SaveGameLog, Warning, TEXT("PC HasAuthority : %d , PC IsLocalControlled : %d)"), PC->HasAuthority(), PC->IsLocalController());
 
     if (PC->IsLocalController())
     {
@@ -395,7 +402,7 @@ void UTPTSaveGameManager::ApplyPlayerSaveGame(APlayerController* PC)
         const int32 MaxSlots = 5;
         for (int32 SlotIdx = 0; SlotIdx < MaxSlots; ++SlotIdx)
         {
-            const FItemSlot& Slot = PlayerSaveGames[0]->InventorySlots[SlotIdx];
+            FItemSlot Slot = PlayerSaveGames[0]->InventorySlots[SlotIdx];
             if (Slot.ItemType == EItemType::None || Slot.ItemQuantity <= 0)
             {
                 continue;
@@ -406,6 +413,7 @@ void UTPTSaveGameManager::ApplyPlayerSaveGame(APlayerController* PC)
                 Inventory->AddItem(Slot.ItemType);
             }
         }
+        TPT_LOG(SaveGameLog, Warning, TEXT("Host Apply)"));
     }
     else
     {
@@ -413,7 +421,7 @@ void UTPTSaveGameManager::ApplyPlayerSaveGame(APlayerController* PC)
         const int32 MaxSlots = 5;
         for (int32 SlotIdx = 0; SlotIdx < MaxSlots; ++SlotIdx)
         {
-            const FItemSlot& Slot = PlayerSaveGames[1]->InventorySlots[SlotIdx];
+            FItemSlot Slot = PlayerSaveGames[1]->InventorySlots[SlotIdx];
             if (Slot.ItemType == EItemType::None || Slot.ItemQuantity <= 0)
             {
                 continue;
@@ -424,6 +432,7 @@ void UTPTSaveGameManager::ApplyPlayerSaveGame(APlayerController* PC)
                 Inventory->AddItem(Slot.ItemType);
             }
         }
+        TPT_LOG(SaveGameLog, Warning, TEXT("Client Apply"));
     }
 }
 

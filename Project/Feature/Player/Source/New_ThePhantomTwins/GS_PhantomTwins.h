@@ -117,8 +117,8 @@ protected:
 
 	//~ Begin BossSpawn
 	FOnCollectedItemCountChanged CollectedItemCountChanged;
-	UPROPERTY(BlueprintAssignable, Category = "DataFragment")
 
+	UPROPERTY(BlueprintAssignable, Category = "DataFragment")
 	FDynamicOnCollectedItemCountChanged DynamicCollectedItemCountChanged;
 	UFUNCTION()
 	void OnRep_BossSpawned();

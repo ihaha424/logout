@@ -156,7 +156,7 @@ void UGA_SceneAura::CancelAbility(const FGameplayAbilitySpecHandle Handle, const
 		{
 			if (!Target || Target == OwnerActor) continue;
 
-            if (IsValidAuraTarget(Target))
+            if (IsValid(Target) && IsValidAuraTarget(Target))
             {
 				ApplyAuraToTarget(Target, 3);
 				NewTargets.Add(Target);
@@ -264,7 +264,7 @@ bool UGA_SceneAura::IsValidAuraTarget(AActor* Target) const
 	Params
 	);
 
-	return Target != Hit.GetActor() ? true : false;
+	return Target != Hit.GetActor();
 }
 
 bool UGA_SceneAura::IsCameraBlocked()

@@ -16,14 +16,18 @@ UInventoryComponent::UInventoryComponent()
 {
     PrimaryComponentTick.bCanEverTick = false;
     SetIsReplicatedByDefault(true);
+    bWantsInitializeComponent = true;
+}
+
+void UInventoryComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+    InventorySlots.Init(FItemSlot(), MaxInventorySlots);
 }
 
 void UInventoryComponent::BeginPlay()
 {
     Super::BeginPlay();
-
-    InventorySlots.Init(FItemSlot(), MaxInventorySlots);
-
     if (QuestionBoxTextWidgetclass)
     {
         APS_Player* PS = Cast<APS_Player>(GetOwner());
@@ -310,7 +314,19 @@ EItemType UInventoryComponent::UseItem_ServerAuth(int32 SlotIndex)
 
 void UInventoryComponent::RefreshUIFromInventory()
 {
-    if (!PlayerHUDWidget) return;
+    APS_Player* PS = Cast<APS_Player>(GetOwner());
+    NULLCHECK_RETURN_LOG(PS, SaveGameLog, Error, );
+
+	APC_Player* PC = Cast<APC_Player>(PS->GetOwner());
+    NULLCHECK_RETURN_LOG(PC, SaveGameLog, Error, );
+
+    if (!PlayerHUDWidget)
+    {
+        TPT_LOG(SaveGameLog, Warning, TEXT("No PlayerHUDWidget!!! : PC HasAuthority : %d , PC IsLocalControlled : %d)"), PC->HasAuthority(), PC->IsLocalController());
+        return;
+    }
+
+    TPT_LOG(SaveGameLog, Warning, TEXT("Exist PlayerHUDWidget~~~ : PC HasAuthority : %d , PC IsLocalControlled : %d)"), PC->HasAuthority(), PC->IsLocalController());
 
     for (int32 i = 0; i < InventorySlots.Num(); ++i)
     {

@@ -60,13 +60,14 @@ void AGM_PhantomTwins::DelayedInitializeSaveTargets()
     UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
 	SaveGameManager->InitializeSaveTargets();
     SaveGameManager->ApplyActorSaveGame();
-    SaveGameManager->InitializeSavePlayer();
 }
 
 void AGM_PhantomTwins::PostLogin(APlayerController* NewPlayer)
 {
-    Super::PostLogin(NewPlayer);
+    UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+    SaveGameManager->InitializeSavePlayer();
 
+    Super::PostLogin(NewPlayer);
     TotalPlayerCount++;
 }
 

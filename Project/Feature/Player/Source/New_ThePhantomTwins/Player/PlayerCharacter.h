@@ -89,9 +89,6 @@ public:
 	virtual void CalculateGaugePercent_Implementation(float Elapsed) override;
 	virtual void SetHoldingGaugeUI_Implementation(const APawn* Interactor, bool bVisible) override;
 
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnRep_RecoveryPercent();
-
 public:
 	// 플레이어 캐릭터 속도
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -151,6 +148,9 @@ public:
 public:
 	// 위젯 설정
 	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnRep_RecoveryPercent();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SetFadeVFX(EVignetteType Type, int32 StartValue);

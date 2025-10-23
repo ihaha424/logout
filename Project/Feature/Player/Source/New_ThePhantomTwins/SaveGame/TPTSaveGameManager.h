@@ -41,7 +41,7 @@ public:
 	void InitializeSavePlayer();
 
 	UFUNCTION()
-	void ApplyPlayerSaveGame(APlayerController* PC);
+	void ApplyAuthorityPlayerSaveGame(APlayerController* PC);
 	void ApplyPlayerEffect(UAbilitySystemComponent* ASC, int32 Data);
 
 	bool bActorsInitialized = false;

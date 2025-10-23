@@ -88,7 +88,6 @@ void ADataFragment::SaveToGameState()
 	{
 		GS->AddCollectedItem(this);
 	}
-
 }
 
 void ADataFragment::SetDataFragmentPickupWidget()
