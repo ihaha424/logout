@@ -29,8 +29,4 @@ protected:
 	USoundBase* SoundCue2nd;
 	UPROPERTY()
 	UAudioComponent* ActiveAudioComponent2nd = nullptr;
-
-	TObjectPtr<UPostProcessComponent> PPComp;
-	// Fade 관련 함수 및 변수
-	void VignetteEffectOff();
 };

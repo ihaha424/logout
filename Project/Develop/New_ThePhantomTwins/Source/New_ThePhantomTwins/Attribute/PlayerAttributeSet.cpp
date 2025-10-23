@@ -100,6 +100,14 @@ void UPlayerAttributeSet::OnRep_HP(const FGameplayAttributeData& OldValue)
 		OnPlayerDowned.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 	}
 	bPlayerDowned = GetHP() < 0.1f;
+
+	const float OldHP = OldValue.GetCurrentValue();
+	const float NewHP = GetHP();
+
+	if (NewHP < OldHP)
+	{
+		OnPlayerDamaged.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit);
+	}
 }
 void UPlayerAttributeSet::OnRep_MaxHP(const FGameplayAttributeData& OldValue) { GAMEPLAYATTRIBUTE_REPNOTIFY(UPlayerAttributeSet, MaxHP, OldValue); }
 void UPlayerAttributeSet::OnRep_Stamina(const FGameplayAttributeData& OldValue)

@@ -23,7 +23,8 @@ public:
 	void StaminaDrain();
 	void StaminaRegen();
 	void SetSpeed(float Speed, const FGameplayAbilityActorInfo* ActorInfo);
-	void OnSprintTagChanged(const FGameplayTag Tag, int32 TotalCount);
+	void OnSprintTagChanged(const FGameplayTag Tag, int32 TagCount);
+	void OnConfusedTagChanged(const FGameplayTag Tag, int32 TagCount);
 	void OffSound(const FGameplayTag Tag, int32 TagCount);
 
 protected:
