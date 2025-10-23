@@ -812,6 +812,7 @@ void APlayerCharacter::InputPressedUseItem(int32 InputID)
 
 void APlayerCharacter::InputReleased(int32 InputID)
 {
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
 	Spec->InputPressed = false;
 	if (!HasAuthority())
