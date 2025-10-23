@@ -68,6 +68,10 @@ void UTPTSaveGameManager::InitializeSaveTargets()
         {
             ADoor* Door = Cast<ADoor>(Actor);
             USaveIDComponent* SaveIDComp = Door->FindComponentByClass<USaveIDComponent>();
+            if (!IsValid(SaveIDComp))
+            {
+                continue;
+            }
             FGuid DoorID = SaveIDComp->SaveId;
 
             if (DoorActorsMap.Contains(DoorID))
@@ -95,6 +99,10 @@ void UTPTSaveGameManager::InitializeSaveTargets()
         {
 			AItemObject* Item = Cast<AItemObject>(Actor);
             USaveIDComponent* SaveIDComp = Item->FindComponentByClass<USaveIDComponent>();
+            if (!IsValid(SaveIDComp))
+            {
+                continue;
+            }
             FGuid ItemID = SaveIDComp->SaveId;
 
             if (ItemActorsMap.Contains(ItemID))
@@ -119,6 +127,10 @@ void UTPTSaveGameManager::InitializeSaveTargets()
         {
             AInteractHideObject* HideObject = Cast<AInteractHideObject>(Actor);
             USaveIDComponent* SaveIDComp = HideObject->FindComponentByClass<USaveIDComponent>();
+            if (!IsValid(SaveIDComp))
+            {
+                continue;
+            }
             FGuid HideObjectID = SaveIDComp->SaveId;
 
             if (HideObjectActorsMap.Contains(HideObjectID))
@@ -143,6 +155,10 @@ void UTPTSaveGameManager::InitializeSaveTargets()
         {
             ABoxObject* Box = Cast<ABoxObject>(Actor);
             USaveIDComponent* SaveIDComp = Box->FindComponentByClass<USaveIDComponent>();
+            if (!IsValid(SaveIDComp))
+            {
+                continue;
+            }
             FGuid BoxID = SaveIDComp->SaveId;
 
             if (ItemBoxActorsMap.Contains(BoxID))
