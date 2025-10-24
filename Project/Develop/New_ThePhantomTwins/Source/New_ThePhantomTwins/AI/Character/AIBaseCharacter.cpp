@@ -499,7 +499,7 @@ void AAIBaseCharacter::ResetDataForEscapeCombatState_Implementation()
     BB->SetValueAsObject("TargetActor", nullptr);
     CurSpeed = MoveSpeed;
     GetCharacterMovement()->MaxWalkSpeed = CurSpeed;
-
+    SetAttackCollision(false);
     CancleChaseActorGA();
 }
 
