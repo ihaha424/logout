@@ -60,7 +60,7 @@ protected:
 
 	// 블루프린트에서 잠긴 문과 상호작용할 때, 구현할 수 있도록 선언
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Door")
-	void ShowLockedDoorDialog();
+	void ShowLockedDoorDialog(const APawn* Interactor);
 
 
 public:

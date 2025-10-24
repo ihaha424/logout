@@ -103,7 +103,12 @@ bool ADoor::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected
 void ADoor::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	// 모든 트리거가 활성화 되지 않으면 return
-	if (!AreAllTriggerActived()) return;
+	if (!AreAllTriggerActived())
+	{
+		ShowLockedDoorDialog(Interactor);
+		return;
+	}
+
 
 	UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
 	SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
@@ -201,7 +206,6 @@ bool ADoor::AreAllTriggerActived_Implementation()
 		}
 		else
 		{
-			ShowLockedDoorDialog();
 			bIsAllTriggered = false;
 
 			return false;
