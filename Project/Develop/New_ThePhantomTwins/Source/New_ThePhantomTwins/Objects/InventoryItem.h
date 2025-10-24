@@ -31,7 +31,7 @@ public:
 
 	// 블루프린트에서 인벤토리 꽉 찼을 때의 로직 구현
     UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "InventoryItem")
-	void OnInventoryFull();
+	void OnInventoryFull(const APawn* Interactor);
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InventoryItem")

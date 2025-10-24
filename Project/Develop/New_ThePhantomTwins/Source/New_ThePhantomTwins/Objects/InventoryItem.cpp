@@ -90,9 +90,21 @@ void AInventoryItem::SetWidgetVisible(const APawn* Interactor, bool bVisible, EI
 
 void AInventoryItem::OnInteractServer_Implementation(const APawn* Interactor)
 {
+    // 안전하게 PlayerState 캐스트 (nullptr 검사)
+    const APS_Player* PS = nullptr;
+    if (Interactor)
+    {
+        PS = Interactor->GetPlayerState<APS_Player>();
+    }
+
+    if (PS && PS->InventoryComp)
+    {
+        bInventoryFull = !(PS->InventoryComp->CanAddToInventory(ItemType));
+    }
+
     if (bInventoryFull)
     {
-        OnInventoryFull();
+        OnInventoryFull(Interactor);
         return;
     }
 
@@ -101,13 +113,10 @@ void AInventoryItem::OnInteractServer_Implementation(const APawn* Interactor)
 	// 상호작용한 플레이어의 Inventory에 EItemType 넘김.
     if (Interactor)
     {
-        if (APS_Player* PS = Interactor->GetPlayerState<APS_Player>())
-        {
-            if (PS->InventoryComp)
-            {
-                PS->InventoryComp->AddItem(ItemType);
-            }
-        }
+		if (PS->InventoryComp)
+		{
+			PS->InventoryComp->AddItem(ItemType);
+		}
     }
 
     UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
