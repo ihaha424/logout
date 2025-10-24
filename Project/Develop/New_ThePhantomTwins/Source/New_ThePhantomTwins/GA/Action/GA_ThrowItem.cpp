@@ -105,33 +105,92 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 	}
 	else
 	{
-		// 2) DT에 LaunchVelocity가 없으면 TargetLocation을 사용하여 궤적 계산 -> SuggestProjectileVelocity_CustomArc
-		SpawnRotation = GetThrowRotation(SpawnLocation, TargetLocation);
-
+		// 2) DT에 LaunchVelocity가 없으면 '고정 발사 각도' 방식으로 속도 계산 (카메라 피치 무시 — 수평 거리 고정)
 		UWorld* World = GetWorld();
 		if (World)
 		{
-			bHaveVelocity = UGameplayStatics::SuggestProjectileVelocity_CustomArc(
-				World,
-				LaunchVelocity,
-				SpawnLocation,
-				TargetLocation,
-				ThrowItemData->OverrideGravityZ, // 커스텀 중력 (DT에 실제 중력값을 넣는 것을 권장, 예: -980)
-				Arc
-			);
-
-			if (bHaveVelocity)
+			// 목표 수평 거리: DT의 ThrowDistance 우선, 없으면 Spawn->Target 수평 거리 사용
+			float DesiredRange = ThrowItemData->ThrowDistance;
+			if (FMath::IsNearlyZero(DesiredRange))
 			{
-				TPT_LOG(GALog, Log, TEXT("UGA_ThrowItem: Calculated LaunchVelocity via SuggestProjectileVelocity: %s"), *LaunchVelocity.ToString());
+				FVector Delta = TargetLocation - SpawnLocation;
+				Delta.Z = 0.f;
+				DesiredRange = Delta.Size();
+				if (FMath::IsNearlyZero(DesiredRange))
+				{
+					DesiredRange = 1000.f; // 안전 fallback
+				}
+			}
+
+			// 중력 값 결정 (DT의 OverrideGravityZ가 있으면 사용, 없으면 월드 중력)
+			float GravityZ = 0.f;
+			if (!FMath::IsNearlyZero(ThrowItemData->OverrideGravityZ))
+			{
+				GravityZ = ThrowItemData->OverrideGravityZ;
 			}
 			else
 			{
-				// 실패시 fallback: SpawnRotation 기준 forward * default speed
-				const float FallbackSpeed = 1000.f;
-				LaunchVelocity = SpawnRotation.Vector() * FallbackSpeed;
-				TPT_LOG(GALog, Warning, TEXT("UGA_ThrowItem: SuggestProjectileVelocity failed, using fallback LaunchVelocity: %s"), *LaunchVelocity.ToString());
-				bHaveVelocity = true;
+				GravityZ = World ? World->GetGravityZ() : -980.f;
 			}
+			float g = FMath::Abs(GravityZ);
+			if (g <= KINDA_SMALL_NUMBER)
+			{
+				g = 980.f; // 안전 fallback
+			}
+
+			// 각도 -> 라디안
+			float ThetaDeg = FixedLaunchAngleDegrees;
+			float ThetaRad = FMath::DegreesToRadians(ThetaDeg);
+
+			// sin(2θ) 검증
+			float Sin2Theta = FMath::Sin(2.f * ThetaRad);
+			if (FMath::Abs(Sin2Theta) < KINDA_SMALL_NUMBER)
+			{
+				// 각도가 불안정하면 fallback 사용
+				const float FallbackSpeed = 1000.f;
+				SpawnRotation = GetThrowRotation(SpawnLocation, TargetLocation);
+				LaunchVelocity = SpawnRotation.Vector() * FallbackSpeed;
+				bHaveVelocity = true;
+				TPT_LOG(GALog, Warning, TEXT("UGA_ThrowItem: Fixed-angle calc unstable (sin2θ ~ 0). Using fallback velocity: %s"), *LaunchVelocity.ToString());
+			}
+			else
+			{
+				// 초기 속도 크기 계산: v = sqrt(R * g / sin(2θ))
+				float RequiredSpeed = FMath::Sqrt(FMath::Max(0.f, DesiredRange * g / Sin2Theta));
+
+				// 수평 방향(방위각)만 사용 -> 카메라 피치 무시
+				FVector ToTarget = TargetLocation - SpawnLocation;
+				FVector DirXY = ToTarget;
+				DirXY.Z = 0.f;
+				if (DirXY.IsNearlyZero())
+				{
+					// 방향을 못구하면 액터의 forward 사용
+					DirXY = OwnerActor ? OwnerActor->GetActorForwardVector() : FVector::ForwardVector;
+					DirXY.Z = 0.f;
+				}
+				DirXY = DirXY.GetSafeNormal();
+
+				// Launch vector 구성: (cosθ * horizontal) + (sinθ * up) scaled by speed
+				float CosTheta = FMath::Cos(ThetaRad);
+				float SinTheta = FMath::Sin(ThetaRad);
+
+				LaunchVelocity = DirXY * (CosTheta * RequiredSpeed) + FVector::UpVector * (SinTheta * RequiredSpeed);
+
+				// SpawnRotation도 발사 방향으로 맞춤
+				SpawnRotation = LaunchVelocity.Rotation();
+
+				bHaveVelocity = true;
+
+				TPT_LOG(GALog, Log, TEXT("UGA_ThrowItem: Fixed-angle LaunchVelocity calculated. Angle %f deg, Speed %f, Velocity %s"), ThetaDeg, RequiredSpeed, *LaunchVelocity.ToString());
+			}
+		}
+		else
+		{
+			// 월드가 없으면 fallback
+			const float FallbackSpeed = 1000.f;
+			LaunchVelocity = SpawnRotation.Vector() * FallbackSpeed;
+			bHaveVelocity = true;
+			TPT_LOG(GALog, Warning, TEXT("UGA_ThrowItem: World missing, using fallback LaunchVelocity: %s"), *LaunchVelocity.ToString());
 		}
 	}
 
@@ -217,6 +276,7 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 		break;
 	}
 }
+
 
 FVector UGA_ThrowItem::CalculateTargetLocation(const FThrowItemDT* ThrowItemData, const FVector& StartLocation) const
 {
