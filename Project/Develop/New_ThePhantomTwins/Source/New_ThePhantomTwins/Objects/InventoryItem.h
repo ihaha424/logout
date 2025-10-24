@@ -33,6 +33,10 @@ public:
     UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "InventoryItem")
 	void OnInventoryFull(const APawn* Interactor);
 
+	// 블루프린트에서 아이템 획득했을 때의 로직 구현
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "InventoryItem")
+	void ShowItemPickupDialog(const APawn* Interactor);
+
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InventoryItem")
     EItemType ItemType;

@@ -116,6 +116,7 @@ void AInventoryItem::OnInteractServer_Implementation(const APawn* Interactor)
 		if (PS->InventoryComp)
 		{
 			PS->InventoryComp->AddItem(ItemType);
+            ShowItemPickupDialog(Interactor);
 		}
     }
 
