@@ -67,20 +67,23 @@ void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(AInteractHideObject, HidePlayer);
 }
 
-void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
+void AInteractHideObject::S2A_OnDestroy_Implementation()
 {
 	if (!HidePlayer)
 	{
 		return;
 	}
-	// 플레이어 컨트롤러 가져오기
-	APlayerController* InteractorPC = CastChecked<APlayerController>(HidePlayer->GetController());
 
+	// 플레이어 컨트롤러 가져오기
+	APlayerController* InteractorPC = Cast<APlayerController>(HidePlayer->GetController());
 	if (!InteractorPC) return;
-	
+
 	// PlayerState 가져옴
 	APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
+	if (!PS) return;
+
 	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+	if (!ASC) return;
 
 	// 플레이어에 Hide 태그가 있다면
 	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
@@ -89,11 +92,29 @@ void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
 		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 	}
 
-	// 클라이언트에게 입력 활성화 명령 전달
-	SetInputState(InteractorPC, false);
+	// 로컬 컨트롤러에서만 입력/카메라 제어
+	if (InteractorPC->IsLocalController())
+	{
+		// 클라이언트에게 입력 활성화 명령 전달
+		SetInputState(InteractorPC, false);
 
-	// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
-	SetViewTarget(InteractorPC, HidePlayer);
+		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
+		SetViewTarget(InteractorPC, HidePlayer);
+	}
+}
+
+void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
+{
+	if (!HidePlayer)
+	{
+		return;
+	}
+
+	// 서버에서만 NetMulticast 호출
+	if (HasAuthority())
+	{
+		S2A_OnDestroy();
+	}
 }
 
 bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
