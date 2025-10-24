@@ -13,9 +13,6 @@ struct FTriggerDialogData : public FDialogDataTableBase
     GENERATED_BODY()
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialog")
-    FText Speaker;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialog")
     FText Text;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dialog")
