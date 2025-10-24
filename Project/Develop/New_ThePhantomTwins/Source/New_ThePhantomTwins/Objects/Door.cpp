@@ -207,7 +207,6 @@ bool ADoor::AreAllTriggerActived_Implementation()
 		else
 		{
 			bIsAllTriggered = false;
-
 			return false;
 		}
 	}

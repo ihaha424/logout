@@ -287,7 +287,8 @@ void APlayerCharacter::OnRep_PlayerState()
 	BindAttributeDelegates(AttributeSet);
 
 	InitHUDWidget(AttributeSet);
-
+	UPlayerAnimInstance* AnimInstance = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
+	AnimInstance->InitializeWithAbilitySystem(ASC);
 	EnsureSetting(EnsureCreateElement::EnsurePlayerState);
 }
 
