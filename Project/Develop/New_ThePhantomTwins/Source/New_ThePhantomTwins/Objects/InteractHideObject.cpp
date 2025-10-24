@@ -101,6 +101,10 @@ void AInteractHideObject::S2A_OnDestroy_Implementation()
 		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
 		SetViewTarget(InteractorPC, HidePlayer);
 	}
+
+	// 플레이어 옷장 반대방향으로 바라보게 하기
+	FRotator NewRotation = OutPosBox->GetComponentRotation();
+	InteractorPC->SetControlRotation(NewRotation);
 }
 
 void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
@@ -269,6 +273,10 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
 		SetViewTarget(InteractorPC, HidePlayer);
 
+		// 플레이어 옷장 반대방향으로 바라보게 하기
+		FRotator NewRotation = OutPosBox->GetComponentRotation();
+		InteractorPC->SetControlRotation(NewRotation);
+
 		EnableVignetteEffect(false);
 
 		if (HideTagGE)
@@ -327,10 +335,14 @@ void AInteractHideObject::ExitObject()
 			// 플레이어 Hide 태그 제거
 			ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 		}
-		
+
+
+
+
 		FVector NewLocation = OutPosBox->GetComponentLocation();
 		FRotator NewRotation = OutPosBox->GetComponentRotation();
 		HidePlayer->SetActorLocationAndRotation(NewLocation, NewRotation);
+		InteractorPC->SetControlRotation(NewRotation);
 
 		S2A_PlayEffect(NewLocation);
 
