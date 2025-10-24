@@ -9,7 +9,7 @@
 #include "Player/PS_Player.h"
 
 UPlayerAttributeSet::UPlayerAttributeSet() :
-	MaxHP(100),
+	MaxHP(200),
 	MaxMentalPoint(100),
 	MaxCoreEnergy(5),
 	MaxStamina(100),

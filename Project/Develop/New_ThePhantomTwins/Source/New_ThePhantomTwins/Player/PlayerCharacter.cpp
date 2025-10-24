@@ -466,6 +466,13 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 	{
 		PS->InventoryComp->RefreshUIFromInventory();
 	}
+
+	if (DroneUserWidget)
+	{
+		SetHP(HealthPoint);
+		SetMP(MentalPoint);
+	}
+
 }
 
 void APlayerCharacter::DroneWidgetOnOff(bool Visibility)
