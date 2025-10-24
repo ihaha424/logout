@@ -41,11 +41,10 @@ public:
 protected:
     UPROPERTY(EditDefaultsOnly, Category = "Animation")
     TObjectPtr<UAnimMontage> AttackMontage;
-    UPROPERTY(EditDefaultsOnly, Category = "Animation")
-    int32 Count = 0;
 private:
     bool bActiveAbility = false;
     AActor* Target = nullptr;
     APawn* OwnerPawn = nullptr;
     int32 CurCount = 0;
+    int32 Count = 0;
 };

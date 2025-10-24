@@ -28,6 +28,10 @@ public:
 
 	virtual void OnDestroy_Implementation(const APawn* Interactor) override;
 
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_OnDestroy();
+	void S2A_OnDestroy_Implementation();
+
 protected:
 	void CamLogicServer(const APawn* Interactor);
 	void CamLogicClient(const APawn* Interactor);

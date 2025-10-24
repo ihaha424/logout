@@ -4,12 +4,12 @@
 #include "Blueprint/UserWidget.h"
 #include "../Player/PC_Player.h"
 #include "../Player/PlayerCharacter.h"
-#include "../UI/HUD/PlayerHUDWidget.h"
 #include "../UI/DataFragmentPickupWidget.h"
 #include "GS_PhantomTwins.h"
+#include "Kismet/GameplayStatics.h"
 #include "Log/TPTLog.h"
-#include "SaveGame/TPTSaveGame.h"
-#include "SaveGame/TPTSaveGameHelperLibrary.h"
+#include "SaveGame/SaveIDComponent.h"
+#include "SaveGame/TPTSaveGameManager.h"
 
 ADataFragment::ADataFragment()
 {
@@ -41,27 +41,60 @@ void ADataFragment::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	bIsActived = true;
 
+	const APlayerCharacter* Player = Cast<APlayerCharacter>(Interactor);
+	NULLCHECK_RETURN_LOG(Player, ItemLog, Warning, );
+
+	UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+	SaveGameManager->SaveRestartPoint(Player->GetActorLocation(), Player->GetActorRotation());
+	SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, false);
+
+	UWorld* World = GetWorld();
+	NULLCHECK_RETURN_LOG(World, ItemLog, Warning, );
+
+	if (HasAuthority())
+	{
+		for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
+		{
+			if (APlayerController* PC = It->Get())
+			{
+				SaveGameManager->TempSavePlayer(PC);
+			}
+		}
+	}
+	
 	InvokeGameplayCue(Interactor);
 	ApplyEffectToTarget(Interactor);
+
 
 	SetDataFragmentPickupWidget();
 
 	DestroyItem();
+
+	SaveGameManager->SaveUpdate();
+}
+
+void ADataFragment::DestroyItem()
+{
+	HideFragmentMesh();
+	SetActorEnableCollision(false);
+	SaveToGameState();
+	Super::DestroyItem();
+}
+
+void ADataFragment::SaveToGameState()
+{
+	AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>();
+	if (GS)
+	{
+		GS->AddCollectedItem(this);
+	}
 }
 
 void ADataFragment::SetDataFragmentPickupWidget()
 {
-	HideFragmentMesh();
-	SetActorEnableCollision(false);
 
 	if (APC_Player* PC_Player = Cast<APC_Player>(GetWorld()->GetFirstPlayerController()))
 	{
-		AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>();
-		if (GS)
-		{
-			GS->AddCollectedItem(this);
-		}
-		
 		// 팝업 위젯
 		PC_Player->SetWidget(TEXT("DataFragmentPickupWidget"), true, EMessageTargetType::Multicast);
 
@@ -85,20 +118,11 @@ void ADataFragment::SetDataFragmentPickupWidget()
 			WidgetDuration,
 			false
 		);
-
-		APlayerCharacter* MyCharacter = Cast<APlayerCharacter>(PC_Player->GetPawn());
-		NULLCHECK_RETURN_LOG(MyCharacter, ItemLog, Warning, );
-		UTPTSaveGame* TPTSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
-		TPTSaveGame->PlayerLocation = MyCharacter->GetActorLocation();
-		TPTSaveGame->PlayerRotation = MyCharacter->GetActorRotation();
-		UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTSaveGame>(TPTSaveGame);
 	}
 }
 
 void ADataFragment::OnRep_bIsActived()
 {
-	SetDataFragmentPickupWidget();
-
 	DestroyItem();
 }
 

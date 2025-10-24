@@ -22,6 +22,8 @@
 #include "GameplayEffect.h"
 
 #include "Components/StaticMeshComponent.h"
+#include "SaveGame/SaveIDComponent.h"
+#include "SaveGame/TPTSaveGameManager.h"
 #include "Tags/TPTGameplayTags.h"
 
 
@@ -65,16 +67,23 @@ void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(AInteractHideObject, HidePlayer);
 }
 
-void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
+void AInteractHideObject::S2A_OnDestroy_Implementation()
 {
-	// 플레이어 컨트롤러 가져오기
-	APlayerController* InteractorPC = CastChecked<APlayerController>(HidePlayer->GetController());
+	if (!HidePlayer)
+	{
+		return;
+	}
 
+	// 플레이어 컨트롤러 가져오기
+	APlayerController* InteractorPC = Cast<APlayerController>(HidePlayer->GetController());
 	if (!InteractorPC) return;
-	
+
 	// PlayerState 가져옴
 	APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
+	if (!PS) return;
+
 	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+	if (!ASC) return;
 
 	// 플레이어에 Hide 태그가 있다면
 	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
@@ -83,11 +92,33 @@ void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
 		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 	}
 
-	// 클라이언트에게 입력 활성화 명령 전달
-	SetInputState(InteractorPC, false);
+	// 로컬 컨트롤러에서만 입력/카메라 제어
+	if (InteractorPC->IsLocalController())
+	{
+		// 클라이언트에게 입력 활성화 명령 전달
+		SetInputState(InteractorPC, false);
 
-	// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
-	SetViewTarget(InteractorPC, HidePlayer);
+		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
+		SetViewTarget(InteractorPC, HidePlayer);
+	}
+
+	// 플레이어 옷장 반대방향으로 바라보게 하기
+	FRotator NewRotation = OutPosBox->GetComponentRotation();
+	InteractorPC->SetControlRotation(NewRotation);
+}
+
+void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
+{
+	if (!HidePlayer)
+	{
+		return;
+	}
+
+	// 서버에서만 NetMulticast 호출
+	if (HasAuthority())
+	{
+		S2A_OnDestroy();
+	}
 }
 
 bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
@@ -242,6 +273,10 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
 		SetViewTarget(InteractorPC, HidePlayer);
 
+		// 플레이어 옷장 반대방향으로 바라보게 하기
+		FRotator NewRotation = OutPosBox->GetComponentRotation();
+		InteractorPC->SetControlRotation(NewRotation);
+
 		EnableVignetteEffect(false);
 
 		if (HideTagGE)
@@ -256,6 +291,18 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 
 void AInteractHideObject::EnterObject(const APawn* Interactor)
 {
+	// PlayerState 가져옴
+	APlayerController* InteractorPC = CastChecked<APlayerController>(Interactor->GetController());
+	APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
+	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+
+	// 플레이어에 Hide 태그가 없다면
+	if (!ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
+	{
+		// 플레이어 Hide 태그 추가
+		ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+	}
+
 	bIsActived = true;
 	HidePlayer = const_cast<APawn*>(Interactor);
 
@@ -277,9 +324,25 @@ void AInteractHideObject::ExitObject()
 {
 	if (OutPosBox && HidePlayer)
 	{
+		// PlayerState 가져옴
+		APlayerController* InteractorPC = CastChecked<APlayerController>(HidePlayer->GetController());
+		APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
+		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+
+		// 플레이어에 Hide 태그가 있다면
+		if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
+		{
+			// 플레이어 Hide 태그 제거
+			ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+		}
+
+
+
+
 		FVector NewLocation = OutPosBox->GetComponentLocation();
 		FRotator NewRotation = OutPosBox->GetComponentRotation();
 		HidePlayer->SetActorLocationAndRotation(NewLocation, NewRotation);
+		InteractorPC->SetControlRotation(NewRotation);
 
 		S2A_PlayEffect(NewLocation);
 

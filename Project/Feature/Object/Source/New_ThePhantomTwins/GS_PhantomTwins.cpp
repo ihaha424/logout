@@ -43,10 +43,6 @@ void AGS_PhantomTwins::AddCollectedItem(AActor* DataFragment, int32 Delta)
 
     CoreCount = FMath::Max(0, CoreCount + Delta);
 
-    UTPTSaveGame* TPTSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
-    TPTSaveGame->DataFragmentNum = CoreCount;
-    UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTSaveGame>(TPTSaveGame);
-
     CollectedItemCountChanged.Broadcast(CoreCount);
     DynamicCollectedItemCountChanged.Broadcast(CoreCount);
     DataFragmentChanged.Broadcast(DataFragment);
@@ -80,6 +76,14 @@ void AGS_PhantomTwins::C2S_SetCharacterClickedRestart_Implementation(bool bIsCli
 
 void AGS_PhantomTwins::S2A_SetCharacterClickedRestart_Implementation(bool bIsClicked, bool bIsHost)
 {
+    if (bIsHost)
+    {
+        bIsHostClickedRestart = bIsClicked;
+    }
+    else
+    {
+        bIsClientClickedRestart = bIsClicked;
+    }
     OnClickedRestartChanged.Broadcast(bIsHostClickedRestart, bIsClientClickedRestart);
 }
 

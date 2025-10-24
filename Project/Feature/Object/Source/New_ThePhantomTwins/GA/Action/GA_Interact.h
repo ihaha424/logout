@@ -18,6 +18,7 @@ public:
 	UGA_Interact();
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility) override;
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	
@@ -25,11 +26,14 @@ public:
 	UFUNCTION(Server, Reliable)
 	void C2S_Interact(UObject* interact, AActor* Owner);
 	void C2S_Interact_Implementation(UObject* interact, AActor* Owner);
-	UFUNCTION()
+
+	UFUNCTION(BlueprintCallable)
 	void OnMontageComplete();
 	void InteractExecute();
+
 	UPROPERTY()
 	APlayerCharacter* Character = nullptr;
+
 	UPROPERTY()
 	AActor* TargetActor = nullptr;
 

@@ -75,6 +75,9 @@ void UBTS_PriorityStimulus::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 			return;
 		}
 	}
+	AAIController* AIController = OwnerComp.GetAIOwner();
+	FVector TargetLoc = BB->GetValueAsVector(StimulusLocationKey.SelectedKeyName);
+	AIController->MoveTo(TargetLoc);
 }
 
 FString UBTS_PriorityStimulus::GetStaticDescription() const

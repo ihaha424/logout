@@ -5,6 +5,8 @@
 #include "TimerManager.h"
 #include "Components/ChildActorComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "SaveGame/SaveIDComponent.h"
+#include "SaveGame/TPTSaveGameManager.h"
 
 ABoxObject::ABoxObject() : AInteractableObject()
 {
@@ -12,10 +14,15 @@ ABoxObject::ABoxObject() : AInteractableObject()
 	bReplicates = true;
 }
 
+void ABoxObject::InitBoxOpen_Implementation(bool bIsActive)
+{
+
+}
+
 void ABoxObject::BeginPlay()
 {
 	Super::BeginPlay();
-
+	InitBoxOpen(bIsActived);
 	//// Child Actor ComponentÀÇ Warning Actor¸¦ Ã£¾Æ¼­ ¼û±è
 	//AActor* WarningActor = FindWarningActor();
 	//if (WarningActor)
@@ -23,6 +30,11 @@ void ABoxObject::BeginPlay()
 	//	WarningActor->SetActorHiddenInGame(true);
 	//	WarningActor->SetActorEnableCollision(false);
 	//}
+}
+
+void ABoxObject::SetActive(bool bIsActive)
+{
+	Super::SetActive(bIsActive);
 }
 
 //AActor* ABoxObject::FindWarningActor()

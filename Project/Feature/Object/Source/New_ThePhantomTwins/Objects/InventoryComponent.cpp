@@ -16,14 +16,18 @@ UInventoryComponent::UInventoryComponent()
 {
     PrimaryComponentTick.bCanEverTick = false;
     SetIsReplicatedByDefault(true);
+    bWantsInitializeComponent = true;
+}
+
+void UInventoryComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+    InventorySlots.Init(FItemSlot(), MaxInventorySlots);
 }
 
 void UInventoryComponent::BeginPlay()
 {
     Super::BeginPlay();
-
-    InventorySlots.Init(FItemSlot(), MaxInventorySlots);
-
     if (QuestionBoxTextWidgetclass)
     {
         APS_Player* PS = Cast<APS_Player>(GetOwner());
@@ -310,7 +314,17 @@ EItemType UInventoryComponent::UseItem_ServerAuth(int32 SlotIndex)
 
 void UInventoryComponent::RefreshUIFromInventory()
 {
-    if (!PlayerHUDWidget) return;
+    APS_Player* PS = Cast<APS_Player>(GetOwner());
+    NULLCHECK_RETURN_LOG(PS, SaveGameLog, Error, );
+
+	APC_Player* PC = Cast<APC_Player>(PS->GetOwner());
+    NULLCHECK_RETURN_LOG(PC, SaveGameLog, Error, );
+
+    if (!PlayerHUDWidget)
+    {
+        NULLCHECK_RETURN_LOG(PlayerHUDWidget, SaveGameLog, Log, );
+        return;
+    }
 
     for (int32 i = 0; i < InventorySlots.Num(); ++i)
     {

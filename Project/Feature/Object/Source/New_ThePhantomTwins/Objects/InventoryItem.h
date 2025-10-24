@@ -22,14 +22,20 @@ protected:
 
 public:
 	virtual bool CanInteract_Implementation(const APawn* Interactor, bool bIsDetected) override;
+
 	void SetWidgetVisible(const APawn* Interactor, bool bVisible, EItemType eItemType);
+
 	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
 
 	EItemType GetEItemType(){return ItemType;}
 
 	// 블루프린트에서 인벤토리 꽉 찼을 때의 로직 구현
     UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "InventoryItem")
-	void OnInventoryFull();
+	void OnInventoryFull(const APawn* Interactor);
+
+	// 블루프린트에서 아이템 획득했을 때의 로직 구현
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "InventoryItem")
+	void ShowItemPickupDialog(const APawn* Interactor);
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InventoryItem")

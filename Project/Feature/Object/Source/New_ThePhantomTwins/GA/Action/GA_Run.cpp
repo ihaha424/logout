@@ -13,7 +13,6 @@
 UGA_Run::UGA_Run()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 	CancelTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch);
 
 	FGameplayTagContainer DefaultTags;
@@ -144,9 +143,18 @@ void UGA_Run::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGame
 
 	StaminaRegen();
 
+	//UKismetSystemLibrary::PrintString(this, TEXT("CancelAbility"));
+	//TPT_LOG(GALog, Log, TEXT("Fucking"));
+
 	// 다운드 되면 SetSpeed를 하지않아도 됨.
 	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
-	if (MyASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed)|| MyASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd))
+	if (MyASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
+	{
+		Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+		return;
+	}
+
+	if (MyASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd))
 	{
 		Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 		return;

@@ -11,6 +11,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "AIController.h"
+#include "GameplayEventDataExistByTag.h"
 #include "Log/TPTLog.h"
 
 UGameplayTagNavLinkComponent::UGameplayTagNavLinkComponent()
@@ -58,6 +59,16 @@ void UGameplayTagNavLinkComponent::HandleSmartLinkReached(UNavLinkCustomComponen
     FGameplayEventData EventData;
     EventData.Instigator = MovingActor;
     EventData.Target = TargetActor;
+
+    if (MovingActor->GetClass()->ImplementsInterface(UGameplayEventDataExistByTag::StaticClass()))
+    {
+        FGameplayEventData TempData;
+        if (IGameplayEventDataExistByTag::Execute_GetGameplayEventData(MovingActor, AbilityTag, TempData, TargetActor))
+        {
+            EventData.EventMagnitude = TempData.EventMagnitude;
+        }
+    }
+
     ASC->HandleGameplayEvent(AbilityTag, &EventData);
 }
 

@@ -33,6 +33,7 @@
 #include "Components/PostProcessComponent.h"
 #include "Components/BoxComponent.h"
 #include "Data/DT_Skill.h"
+#include "SaveGame/TPTSaveGameManager.h"
 #include "UI/DroneStatWidget.h"
 
 APlayerCharacter::APlayerCharacter()
@@ -250,6 +251,10 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 
 	SetSelectSkill(PS);
 
+	InitPostProcessComponent();
+	UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+	SaveGameManager->ApplyAuthorityPlayerSaveGame(PlayerController);
+
 	EnsureSetting(EnsureCreateElement::EnsurePlayerController);
 	EnsureSetting(EnsureCreateElement::EnsurePlayerState);
 }
@@ -284,7 +289,6 @@ void APlayerCharacter::OnRep_PlayerState()
 	InitHUDWidget(AttributeSet);
 	UPlayerAnimInstance* AnimInstance = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	AnimInstance->InitializeWithAbilitySystem(ASC);
-
 	EnsureSetting(EnsureCreateElement::EnsurePlayerState);
 }
 
@@ -427,14 +431,12 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 
 	if (!IsLocallyControlled())
 	{
-		TPT_LOG(HUDLog, Warning, TEXT("InitHUDWidget: Not locally controlled, skipping widget creation (Actor: %s)"), *GetName());
 		return;
 	}
 
 	if (!PlayerHUDWidget)
 	{
 		AUIManagerPlayerController* PC = Cast<AUIManagerPlayerController>(GetController());
-
 		if (PC && PlayerHUDWidgetClass)
 		{
 			PC->RegisterWidget(TEXT("PlayerHUDWidget"), CreateWidget<UPlayerHUDWidget>(GetWorld(), PlayerHUDWidgetClass));
@@ -451,14 +453,38 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 	int32 HP = AttributeSet->GetMaxHP();
 	int32 Mental = AttributeSet->GetMaxMentalPoint();
 	int32 Stamina = AttributeSet->GetMaxStamina();
-	int32 CoreEnergy = AttributeSet->GetMaxCoreEnergy();
+	int32 CoreEnergy = AttributeSet->GetCoreEnergy();
 
 	PlayerHUDWidget->InitializeWidgets(HP, Mental, Stamina, CoreEnergy);
 
 	HealthPoint = HP;
 	MentalPoint = Mental;
 
-	PS->InventoryComp->SetPlayerHUDWidget(PlayerHUDWidget);
+	bool bIsComplete = PS->InventoryComp->SetPlayerHUDWidget(PlayerHUDWidget);
+
+	if (bIsComplete)
+	{
+		PS->InventoryComp->RefreshUIFromInventory();
+	}
+
+	if (DroneUserWidget)
+	{
+		SetHP(HealthPoint);
+		SetMP(MentalPoint);
+	}
+
+}
+
+void APlayerCharacter::DroneWidgetOnOff(bool Visibility)
+{
+	if (Visibility)
+	{
+		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+	}
+	else
+	{
+		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
 void APlayerCharacter::PlayerHUDStaminaSet(int32 value)
@@ -507,13 +533,12 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	TPTInput->BindAction(ESC, ETriggerEvent::Started, this, &ThisClass::InputESC);
 	TPTInput->BindAction(TabAction, ETriggerEvent::Started, this, &APlayerCharacter::InputTab);
 
-
 	SetupPlayerInputByTag(TPTInput);
 }
 
 void APlayerCharacter::SetupPlayerInputByTag(UTPTEnhancedInputComponent* TPTInput)
 {
-	if (IsValid(ASC) && IsValid(TPTInput))
+	if (IsValid(TPTInput))
 	{
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Started, this, &ThisClass::InputPressed);
 		TPTInput->BindActionByTag(InputConfig, FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Run, ETriggerEvent::Completed, this, &ThisClass::InputReleased);
@@ -646,7 +671,6 @@ void APlayerCharacter::OnRecoveryCompleted()
 		if (AGM_PhantomTwins* GM = GetWorld()->GetAuthGameMode<AGM_PhantomTwins>())
 		{
 			GM->NotifyPlayerDied(false);
-			PS->bIsDowned = false;
 		}
 	}
 
@@ -666,6 +690,7 @@ void APlayerCharacter::OnRecoveryCompleted()
 
 void APlayerCharacter::InputPressed(int32 InputID)
 {
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Warning, );
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
 	NULLCHECK_RETURN_LOG(Spec,PlayerLog, Warning,);
 
@@ -815,6 +840,7 @@ void APlayerCharacter::InputPressedUseItem(int32 InputID)
 
 void APlayerCharacter::InputReleased(int32 InputID)
 {
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
 	Spec->InputPressed = false;
 	if (!HasAuthority())
@@ -1051,6 +1077,7 @@ void APlayerCharacter::UpdateWallSound()
 	default: break;
 	}
 
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Warning, );
 	if (ToPlay && !ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd))
 	{
 		WallAudioComponent = UGameplayStatics::SpawnSoundAttached(ToPlay, GetRootComponent());
@@ -1110,6 +1137,7 @@ void APlayerCharacter::EnsureGameStart_Implementation()
 		//NULLCHECK_RETURN_LOG(ResumeCountWidgetClass, PlayerLog, Error, );
 		PC->RegisterWidget(TEXT("ResumeCount"), CreateWidget(GetWorld(), ResumeCountWidgetClass));
 	}
+
 }
 
 void APlayerCharacter::RemoveHeldItemMesh()

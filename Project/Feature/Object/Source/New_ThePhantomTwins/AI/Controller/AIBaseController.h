@@ -23,6 +23,7 @@ public:
     //~ Begin AI Perceptions
     void AddPerceptionSightList(AActor* Actor);
     void RemovePerceptionSightList(AActor* Actor);
+    void ResetSightList();
     //~ End AI Perceptions
 
 protected:

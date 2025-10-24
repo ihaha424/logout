@@ -29,10 +29,6 @@ void UGA_InteractActor::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
     UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
     if (ASC)
     {
-        FGameplayEventData EventData;
-        EventData.Instigator = TriggerEventData->Instigator.Get();
-        EventData.Target = TriggerEventData->Target.Get();
-
         if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_Combat))
             ASC->HandleGameplayEvent(FTPTGameplayTags::Get().TPTGameplay_Character_Action_SmashObstacle, TriggerEventData);
         else

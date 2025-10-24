@@ -18,6 +18,7 @@
 #include "Log/TPTLog.h"
 
 
+
 AAIBaseCharacter::AAIBaseCharacter()
 {
     PrimaryActorTick.bCanEverTick = true;
@@ -76,7 +77,7 @@ void AAIBaseCharacter::BeginPlay()
             AbilitySystem->GiveAbility(StartSpec);
         }
 
-        for (const auto& CueNotify : GamePlayCueNotifys)
+        for (const auto& CueNotify : GamePlayCueNotifies)
         {
             // If you Want to Cue Register, Here.
         }
@@ -100,6 +101,7 @@ void AAIBaseCharacter::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
 
 }
+
 void AAIBaseCharacter::PostInitializeComponents()
 {
     Super::PostInitializeComponents();
@@ -174,7 +176,6 @@ void AAIBaseCharacter::ApplyDestroy_Implementation()
        SetLifeSpan(0.01f);
     }
 }
-
 
 void AAIBaseCharacter::ResetDataForState(const FGameplayTag Tag, int32 TagCount)
 {
@@ -255,17 +256,20 @@ void AAIBaseCharacter::CheckCombatRangeInActor()
         //SweepResult를 이용해서도 확인 가능, 만약 레이케스팅이 부적절하면 Sweep의 정보를 이용해서 사용
         FVector MyLoc = GetActorLocation();
         FVector TargetLoc = actor->GetActorLocation();
+
         FHitResult HitResult;
         FCollisionQueryParams Params;
         Params.AddIgnoredActor(this);
 
-        bool bHit = GetWorld()->LineTraceSingleByChannel(
-            HitResult,
-            MyLoc,
-            TargetLoc,
-            ECC_Pawn,
-            Params
+        FCollisionObjectQueryParams ObjParams;
+        ObjParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+        ObjParams.AddObjectTypesToQuery(ECC_Pawn);
+        ObjParams.AddObjectTypesToQuery(ECC_Visibility);
+
+        const bool bHit = GetWorld()->LineTraceSingleByObjectType(
+            HitResult, MyLoc, TargetLoc, ObjParams, Params
         );
+
     #if WITH_EDITOR
         //DrawDebugLine(
         //    GetWorld(),
@@ -407,7 +411,7 @@ void AAIBaseCharacter::ResetDataForDefaultState_Implementation()
     if (!HasAuthority())
         return;
 
-    AAIController* AIController = Cast<AAIController>(GetController());
+    AAIBaseController* AIController = Cast<AAIBaseController>(GetController());
     NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
     UBlackboardComponent* BB = AIController->GetBlackboardComponent();
     NULLCHECK_RETURN_LOG(BB, AILog, Warning, );
@@ -422,6 +426,7 @@ void AAIBaseCharacter::ResetDataForDefaultState_Implementation()
     BB->SetValueAsFloat("HearingSum", 0.f);
     BB->SetValueAsFloat("LastHearingTime", -1.f);
     BB->SetValueAsInt("Priority", std::numeric_limits<int32>::max());
+    AIController->ResetSightList();
 }
 
 void AAIBaseCharacter::ResetDataForSuspicionState_Implementation()
@@ -494,7 +499,7 @@ void AAIBaseCharacter::ResetDataForEscapeCombatState_Implementation()
     BB->SetValueAsObject("TargetActor", nullptr);
     CurSpeed = MoveSpeed;
     GetCharacterMovement()->MaxWalkSpeed = CurSpeed;
-
+    SetAttackCollision(false);
     CancleChaseActorGA();
 }
 

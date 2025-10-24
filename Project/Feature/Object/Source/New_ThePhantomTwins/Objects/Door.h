@@ -38,8 +38,8 @@ public:
 protected:
     // trigger들이 모두 활성화되었는지 확인 (AInteractableObject의 bActived를 사용하는게 아니라면 override해서 작성)
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Door")
-	bool AreAllTriggerActived() const;
-	bool AreAllTriggerActived_Implementation() const;
+	bool AreAllTriggerActived();
+	bool AreAllTriggerActived_Implementation();
 
 	virtual void OnRep_bIsActived() override;
 
@@ -58,6 +58,10 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Door")
     void CloseDoor();
 
+	// 블루프린트에서 잠긴 문과 상호작용할 때, 구현할 수 있도록 선언
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Door")
+	void ShowLockedDoorDialog(const APawn* Interactor);
+
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")
@@ -74,10 +78,14 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
     int32 MinRequiredCount = 0;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Door", ReplicatedUsing = OnRep_bKeyUsed)
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Door", ReplicatedUsing = OnRep_bKeyUsed)  
 	bool bKeyUsed = false;
+	UPROPERTY(ReplicatedUsing = OnRep_CheckAllTriggered)
+	bool bIsAllTriggered = false;
 
 	UFUNCTION()
 	virtual void OnRep_bKeyUsed();
+	UFUNCTION()
+	void OnRep_CheckAllTriggered();
 };
 // Door 클래스 함수 중 블프에서 수정할 수 있는 함수 : AreAllTriggerActived(), OpenDoor(), CloseDoor()

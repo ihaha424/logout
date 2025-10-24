@@ -55,6 +55,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "ConsoleObject")
 	int32 MaxPlayerNum = 2;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ConsoleObject", ReplicatedUsing = OnRep_bFinish)
+	bool bFinish = false;
+
+	UFUNCTION()
+	virtual void OnRep_bFinish();
+
 	// 문이 열리기 위해 필요한 Actor 목록
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject")
 	TArray<AActor*> RequiredList;

@@ -12,11 +12,14 @@ class NEW_THEPHANTOMTWINS_API ABoxObject : public AInteractableObject
 	
 public:
 	ABoxObject();
+	UFUNCTION(BlueprintNativeEvent)
+	void InitBoxOpen(bool bIsActive);
+	void InitBoxOpen_Implementation(bool bIsActive);
 
 protected:
 	virtual void BeginPlay() override;
-
 public:
+	virtual void SetActive(bool bIsActive) override;
 	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
 
 	// 모든 클라이언트에게 복제되는 함수들 추가

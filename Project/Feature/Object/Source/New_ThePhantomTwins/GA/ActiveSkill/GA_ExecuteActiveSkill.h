@@ -19,14 +19,6 @@ public:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	UFUNCTION()
 	void OnCoolDownTagChanged(const FGameplayTag InputTag, int32 TagCount);
-	UFUNCTION()
-	void ApplyEffect();
-
-	UPROPERTY(EditAnywhere, Category = "GAS")
-	TSubclassOf<UGameplayEffect> ExecuteSprintSkillEffect;
-
-	UPROPERTY(EditAnywhere, Category = "GAS")
-	TSubclassOf<UGameplayEffect> ExecuteOutLineSkillEffect;
 
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayEffect> CoolDownEffect;

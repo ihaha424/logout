@@ -61,6 +61,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ThrowItem")
 	float Arc = 0.5f;
 
+	// 고정 발사 각도(도 단위). 필요하면 에디터에서 조정 가능
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ThrowItem")
+	float FixedLaunchAngleDegrees = 30.0f;
+
 
 private:
 	/** Spawn the throwable corresponding to the item type */

@@ -53,6 +53,7 @@ bool UBTD_CheckDistanceToTarget::CalculateRawConditionValue(UBehaviorTreeCompone
 		FCollisionObjectQueryParams ObjParams;
 		ObjParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
 		ObjParams.AddObjectTypesToQuery(ECC_Pawn);
+		ObjParams.AddObjectTypesToQuery(ECC_Visibility);
 
 		const bool bHit = GetWorld()->LineTraceSingleByObjectType(
 			HitResult, MyLoc, TargetLoc, ObjParams, Params

@@ -18,10 +18,10 @@ struct FDoorState
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadWrite)
-	bool bIsOpened;
+	bool bIsUnLocked;
 
 	UPROPERTY(BlueprintReadWrite)
-	bool bIsDestroyed;
+	bool bIsExist;
 };
 
 UCLASS()
@@ -40,17 +40,23 @@ public:
 	FRotator PlayerRotation = FRotator::ZeroRotator;
 
 	UPROPERTY()
-	int32 DataFragmentNum;
-	// 부서지는 오브젝트 상태 (오브젝트 ID → 숨김 여부)
+	int32 DataFragmentNum = 0;
+	// 숨는 오브젝트 상태 (오브젝트 ID → 존재여부)
 	UPROPERTY()
-	TMap<int32, bool> DestructibleObjectStates;
-	// 문 상태 (문 ID → 잠김(true)/ 잠금 해제(false))
+	TMap<FGuid, bool> HideObjectStates;
+	// 문 상태 (문 ID → 잠김여부, 존재여부)
 	UPROPERTY()
-	TMap<int32, FDoorState> DoorStates;
-	// 아이템 박스 상태 (아이템박스 ID → 열림 여부)
+	TMap<FGuid, FDoorState> DoorStates;
+	// 아이템 박스 존재 상태 (아이템박스 ID → 열림여부)
 	UPROPERTY()
-	TMap<int32, bool> ItemBoxStates;
-	// 맵 내 아이템 획득 상태 (아이템 ID → 획득 여부)
+	TMap<FGuid, bool> ItemBoxStates;
+	// 맵 내 아이템 존재여부 (아이템 ID → 존재여부)
 	UPROPERTY()
-	TMap<int32, bool> ItemPickupStates; 
+	TMap<FGuid, bool> ItemStates;
+	// AI 스폰 상태 (AI ID → 존재여부)
+	UPROPERTY()
+	TMap<FGuid, bool> AIStates;
+	// 스캐너 상태(스캐너 ID → 활성화여부)
+	UPROPERTY()
+	bool ScannerStates = false;
 };

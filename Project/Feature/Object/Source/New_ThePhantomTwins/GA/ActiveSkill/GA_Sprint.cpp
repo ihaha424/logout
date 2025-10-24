@@ -32,6 +32,14 @@ bool UGA_Sprint::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, con
         {
             UE_LOG(LogTemp, Warning, TEXT("Activation failed due to Cost."));
         }*/
+
+        if (AActor* Owner = Cast<AActor>(ActorInfo->AvatarActor))
+        {
+            if (APlayerController* PlayerController = Cast<APlayerController>(Owner->GetInstigatorController()))
+            {
+                const_cast<UGA_Sprint*>(this)->S2C_ShowZeroEnergyDialog(PlayerController);
+            }
+        }
     }
     return bCanActivate;
 }
@@ -44,6 +52,8 @@ void UGA_Sprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
         EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
         return;
     }
+
+    Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
     UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 
     // 스프린트가 실행되는 시간만큼 태그를 붙여줄 이펙트 실행. ( = 5초)
@@ -68,4 +78,9 @@ void UGA_Sprint::OnCoolDownTagChanged(const FGameplayTag InputTag, int32 TagCoun
     {
         EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
     }
+}
+
+void UGA_Sprint::S2C_ShowZeroEnergyDialog_Implementation(APlayerController* PC)
+{
+    CallCoreEnergyZeroDialog(PC);
 }
