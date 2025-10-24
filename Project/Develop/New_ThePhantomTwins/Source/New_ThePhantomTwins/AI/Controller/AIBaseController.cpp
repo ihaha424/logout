@@ -189,6 +189,11 @@ void AAIBaseController::RemovePerceptionSightList(AActor* Actor)
         GetWorld()->GetTimerManager().ClearTimer(SightTimerHandle);
 }
 
+void AAIBaseController::ResetSightList()
+{
+    PerceptionSightList.Reset();
+}
+
 void AAIBaseController::FindCloseActor()
 {
     AActor* OwnerActor = GetPawn();
@@ -240,6 +245,7 @@ void AAIBaseController::FindCloseActor()
                         AAIBaseCharacter* AIBaseCharacter = Cast<AAIBaseCharacter>(GetPawn());
                         AIBaseCharacter->CancleChaseActorGA();
                         AIBaseCharacter->ExcuteChaseActorGA(ClosestActor);
+                        break;
                     }
                 }
             }
@@ -248,7 +254,6 @@ void AAIBaseController::FindCloseActor()
         if (!HasSight)
         {
             BB->SetValueAsVector(TEXT("StimulusLocation"), ClosestActor->GetActorLocation());
-            BB->SetValueAsFloat(TEXT("LastSightTime"), CurrentTime);
 
             AActor* CurTargetActor = Cast<AActor>(BB->GetValueAsObject(TEXT("TargetActor")));
             if (CurTargetActor != ClosestActor)

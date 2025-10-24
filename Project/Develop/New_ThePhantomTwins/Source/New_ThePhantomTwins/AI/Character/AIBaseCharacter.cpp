@@ -411,7 +411,7 @@ void AAIBaseCharacter::ResetDataForDefaultState_Implementation()
     if (!HasAuthority())
         return;
 
-    AAIController* AIController = Cast<AAIController>(GetController());
+    AAIBaseController* AIController = Cast<AAIBaseController>(GetController());
     NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
     UBlackboardComponent* BB = AIController->GetBlackboardComponent();
     NULLCHECK_RETURN_LOG(BB, AILog, Warning, );
@@ -426,6 +426,7 @@ void AAIBaseCharacter::ResetDataForDefaultState_Implementation()
     BB->SetValueAsFloat("HearingSum", 0.f);
     BB->SetValueAsFloat("LastHearingTime", -1.f);
     BB->SetValueAsInt("Priority", std::numeric_limits<int32>::max());
+    AIController->ResetSightList();
 }
 
 void AAIBaseCharacter::ResetDataForSuspicionState_Implementation()
