@@ -76,6 +76,14 @@ void AGS_PhantomTwins::C2S_SetCharacterClickedRestart_Implementation(bool bIsCli
 
 void AGS_PhantomTwins::S2A_SetCharacterClickedRestart_Implementation(bool bIsClicked, bool bIsHost)
 {
+    if (bIsHost)
+    {
+        bIsHostClickedRestart = bIsClicked;
+    }
+    else
+    {
+        bIsClientClickedRestart = bIsClicked;
+    }
     OnClickedRestartChanged.Broadcast(bIsHostClickedRestart, bIsClientClickedRestart);
 }
 

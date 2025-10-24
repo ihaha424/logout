@@ -178,10 +178,11 @@ void AGM_PhantomTwins::NotifyPlayerDied(bool isDead)
 void AGM_PhantomTwins::ShowGameOverUI()
 {
     SetAllPlayerUIMode(true);
-    // 게임 시간을 정지하는 방법... 게임시간 여기에서 정지시키니까 트래블도 안됨.
+    
     FTimerHandle TimerHandle;
     GetWorldTimerManager().SetTimer(TimerHandle, [this]()
         {
+            UGameplayStatics::SetGamePaused(GetWorld(), true);
             APlayerController* PC = GetWorld()->GetFirstPlayerController();
     		APC_Player* ServerPC = Cast< APC_Player>(PC);
             ServerPC->SetWidget(TEXT("GameOver"), true, EMessageTargetType::Multicast);
@@ -211,19 +212,18 @@ void AGM_PhantomTwins::NotifyPlayerClickRestart(bool bIsHostClicked, bool bIsCli
 
 void AGM_PhantomTwins::RestartWithDelay(float Delay)
 {
-    FTimerHandle TimerHandle;
-    GetWorldTimerManager().SetTimer(TimerHandle, [this]()
-        {
-            ShowLoadingScene();
+    //UGameplayStatics::SetGamePaused(GetWorld(), false);
+    //FTimerHandle TimerHandle;
+    //GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+    //    {
             FString PackageName = GetWorld()->GetOutermost()->GetName();
             FString CleanPath = FPackageName::GetLongPackagePath(PackageName);
             FString MapBaseName = FPackageName::GetShortName(PackageName);
 
-
             FString TravelURL = CleanPath + TEXT("/") + MapBaseName + TEXT("?listen");
             GetWorld()->ServerTravel(TravelURL, false);
 
-        }, Delay, false);
+     //   }, Delay, false);
 }
 
 void AGM_PhantomTwins::OnItemCountChanged(int32 NewCount)
@@ -274,7 +274,6 @@ void AGM_PhantomTwins::SetAllPlayerUIMode(bool bIsUIMode)
 
 void AGM_PhantomTwins::ShowLoadingScene()
 {
-    SetAllPlayerUIMode(true);
     NULLCHECK_RETURN_LOG(GetWorld(), OutGameLog, Error, );
     APlayerController* PC = GetWorld()->GetFirstPlayerController();
     APC_Player* ServerPC = Cast< APC_Player>(PC);
