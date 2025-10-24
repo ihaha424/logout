@@ -143,7 +143,7 @@ void UGA_Run::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGame
 
 	StaminaRegen();
 
-	UKismetSystemLibrary::PrintString(this, TEXT("CancelAbility"));
+	//UKismetSystemLibrary::PrintString(this, TEXT("CancelAbility"));
 	//TPT_LOG(GALog, Log, TEXT("Fucking"));
 
 	// 다운드 되면 SetSpeed를 하지않아도 됨.
