@@ -18,7 +18,7 @@ struct FDoorState
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadWrite)
-	bool bIsOpened;
+	bool bIsUnLocked;
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsExist;

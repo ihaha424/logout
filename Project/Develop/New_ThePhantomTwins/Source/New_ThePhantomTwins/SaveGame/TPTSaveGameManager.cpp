@@ -83,7 +83,7 @@ void UTPTSaveGameManager::InitializeSaveTargets()
             {
                 DoorActorsMap.Add(DoorID, Door);
             	FDoorState DoorState;
-				DoorState.bIsOpened = Door->bIsActived;
+				DoorState.bIsUnLocked = Door->bIsActived;
 				DoorState.bIsExist = true;
                 GameSaveGame->DoorStates.FindOrAdd(DoorID, DoorState);
             }
@@ -212,7 +212,7 @@ void UTPTSaveGameManager::TempSaveByID(const FGuid& ObjectID, const bool bIsExis
         if (Door)
         {
             FDoorState DoorState;
-            DoorState.bIsOpened = Door->bIsActived;
+            DoorState.bIsUnLocked = Door->bIsAllTriggered;
             DoorState.bIsExist = bIsExist;
             GameSaveGame->DoorStates[ObjectID] = DoorState;
             return;
@@ -309,7 +309,7 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
             {
 				Door->Destroy();
             }
-        	Door->SetActive(DoorState.bIsOpened);
+        	Door->bIsAllTriggered = DoorState.bIsUnLocked;
         }
     }
 

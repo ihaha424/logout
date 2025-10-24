@@ -73,6 +73,7 @@ void ADoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ADoor, bKeyUsed);
+	DOREPLIFETIME(ADoor, bIsAllTriggered);
 }
 
 bool ADoor::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
@@ -104,6 +105,8 @@ void ADoor::OnInteractServer_Implementation(const APawn* Interactor)
 	// 모든 트리거가 활성화 되지 않으면 return
 	if (!AreAllTriggerActived()) return;
 
+	UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+	SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
 	// Interactor가 APlayerCharacter 타입이 아니면 동작하지 않음 (문 닫기에만 해당)
 	const APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(const_cast<APawn*>(Interactor));
 
@@ -129,6 +132,8 @@ void ADoor::OnInteractClient_Implementation(const APawn* Interactor)
 {
 	if (AreAllTriggerActived())
 	{
+		UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+		SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
 		InteractWidgetComp->SetVisibility(false);
 		LockWidgetComp->SetVisibility(false);
 	}
@@ -146,10 +151,6 @@ void ADoor::CheckAndUpdateDoorState()
 	if (AreAllTriggerActived() && !bIsActived)
 	{
 		bIsActived = true;
-
-		UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-		SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
-
 		S2A_OpenDoor();
 	}
 	// 트리거가 비활성화되었고 문이 열려있다면
@@ -163,6 +164,10 @@ void ADoor::CheckAndUpdateDoorState()
 bool ADoor::AreAllTriggerActived_Implementation()
 {	// 제거
 	// 활성화된 trigger 수를 세기 위한 변수
+	if (bIsAllTriggered)
+	{
+		return true;
+	}
 	int32 triggerActive = 0;
 
 	// Door와 연결된 모든 trigger를 하나씩 순회
@@ -178,6 +183,10 @@ bool ADoor::AreAllTriggerActived_Implementation()
 
 	if (triggerActive >= MinRequiredCount)
 	{
+		bIsAllTriggered = true;
+		UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+		SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
+
 		return true;
 	}
 	else
@@ -185,11 +194,16 @@ bool ADoor::AreAllTriggerActived_Implementation()
 		// 오브젝트가 만약 열쇠를 사용했다면 true
 		if (ActorHasTag(TEXT("KeyInteract")) && bKeyUsed)
 		{
+			bIsAllTriggered = true;
+			UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+			SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
 			return true;
 		}
 		else
 		{
 			ShowLockedDoorDialog();
+			bIsAllTriggered = false;
+
 			return false;
 		}
 	}
@@ -233,5 +247,17 @@ void ADoor::OnRep_bKeyUsed()
 	{
 		InteractWidgetComp->SetVisibility(true);
 		LockWidgetComp->SetVisibility(false);
+	}
+}
+
+void ADoor::OnRep_CheckAllTriggered()
+{
+	if (!AreAllTriggerActived())
+	{
+		bIsAllTriggered = false;
+	}
+	if (AreAllTriggerActived())
+	{
+		bIsAllTriggered = true;
 	}
 }

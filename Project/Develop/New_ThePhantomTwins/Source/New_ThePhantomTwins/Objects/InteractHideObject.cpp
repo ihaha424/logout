@@ -69,6 +69,10 @@ void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
 {
+	if (!HidePlayer)
+	{
+		return;
+	}
 	// 플레이어 컨트롤러 가져오기
 	APlayerController* InteractorPC = CastChecked<APlayerController>(HidePlayer->GetController());
 
