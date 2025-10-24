@@ -51,6 +51,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = GAS, Meta=(Categories=GameplayCue))
 	FGameplayTag GameplayCueTag;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InventoryItem | Destroy")
+    bool bNotDestroy = false;
 };
 
 // AItemObject : 즉발이든 인벤토리 들어가든 interact하면 무조건 파괴되는 오브젝트
