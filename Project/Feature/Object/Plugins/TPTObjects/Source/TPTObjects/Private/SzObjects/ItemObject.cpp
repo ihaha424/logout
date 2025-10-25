@@ -35,7 +35,10 @@ void AItemObject::OnInteractServer_Implementation(const APawn* Interactor)
 
 	UseItemEffectServer(Interactor);
 
-	DestroyItem();
+	if (!bNotDestroy)
+	{
+		DestroyItem();
+	}
 }
 
 void AItemObject::OnInteractClient_Implementation(const APawn* Interactor)
@@ -47,6 +50,7 @@ void AItemObject::OnInteractClient_Implementation(const APawn* Interactor)
 
 void AItemObject::DestroyItem()
 {
+	if (bNotDestroy) return;
 
 	bIsActived = true;
 
