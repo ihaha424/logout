@@ -92,6 +92,5 @@ bool UBTD_CheckDistanceToTarget::CalculateRawConditionValue(UBehaviorTreeCompone
 			}
 		}
 	}
-
 	return false;
 }
