@@ -59,19 +59,18 @@ bool UBTD_CheckDistanceToTarget::CalculateRawConditionValue(UBehaviorTreeCompone
 			HitResult, MyLoc, TargetLoc, ObjParams, Params
 		);
 
-#if WITH_EDITOR
-		DrawDebugLine(
-			GetWorld(),
-			MyLoc,
-			TargetLoc,
-			FColor::Red,
-			false,
-			2.0f,
-			0,
-			5.0f
-		);
-#endif
-		TPT_LOG(LogTemp, Error, TEXT("Hit: %d"), bHit);
+//#if WITH_EDITOR
+//		DrawDebugLine(
+//			GetWorld(),
+//			MyLoc,
+//			TargetLoc,
+//			FColor::Red,
+//			false,
+//			2.0f,
+//			0,
+//			5.0f
+//		);
+//#endif
 		if (bHit)
 		{
 			AActor* HitActor = HitResult.GetActor();
@@ -80,8 +79,6 @@ bool UBTD_CheckDistanceToTarget::CalculateRawConditionValue(UBehaviorTreeCompone
 
 				if (HitActor && HitActor->GetClass()->ImplementsInterface(UDestroyable::StaticClass()))
 				{
-					TPT_LOG(LogTemp, Error, TEXT("3333333"));
-
 					BB->SetValueAsObject(ObjectActorKey.SelectedKeyName, HitActor);
 					BB->SetValueAsBool(bSmashObjectKey.SelectedKeyName, true);
 					return true;

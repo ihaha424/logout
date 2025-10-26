@@ -31,7 +31,7 @@ void UGA_SmashObstacle::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
     NULLCHECK_CODE_RETURN_LOG(TriggerEventData, AILog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
-    
+
     Target = const_cast<AActor*>(TriggerEventData->Target.Get());
     Count = TriggerEventData->EventMagnitude;
     CurCount = 0;
