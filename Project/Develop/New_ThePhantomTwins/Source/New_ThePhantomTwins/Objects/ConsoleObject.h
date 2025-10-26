@@ -52,7 +52,7 @@ protected:
 	UPROPERTY(Replicated)
 	int32 HasPlayerNum = 0;
 
-	UPROPERTY(EditAnywhere, Category = "ConsoleObject")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject")
 	int32 MaxPlayerNum = 2;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ConsoleObject", ReplicatedUsing = OnRep_bFinish)
