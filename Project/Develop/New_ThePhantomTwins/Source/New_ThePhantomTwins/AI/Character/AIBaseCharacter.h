@@ -99,9 +99,11 @@ public:
 		, bool bFromSweep
 		, const FHitResult& SweepResult
 	);
+	UFUNCTION(BlueprintCallable)
+	bool AttackTargetByEffect(AActor* OtherActor);
 	UFUNCTION(BlueprintNativeEvent)
-	void AttackCollisionEvent(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	void AttackCollisionEvent_Implementation(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {};
+	void AttackCollisionEvent(AActor* OtherActor);
+	void AttackCollisionEvent_Implementation(AActor* OtherActor) {};
 	void ExcuteChaseActorGA(AActor* TargetActor);
 	void CancleChaseActorGA();
 	//~ End AI Control(Combat)
