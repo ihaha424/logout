@@ -43,6 +43,11 @@ void UGA_AIHitPlayer::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 
 		Character->SetFadeVFX(EVignetteType::HitVignette, 0);
 	}
+	FGameplayEffectSpecHandle SprintSpecHandle = MakeOutgoingGameplayEffectSpec(HitDurationEffect, 1.0f);
+	if (SprintSpecHandle.IsValid())
+	{
+		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SprintSpecHandle);
+	}
 
 	HitMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("HitMontage"), HitMontage, 1.0f);
 	HitMontageTask->OnCompleted.AddDynamic(this, &ThisClass::OnMontageComplete);
