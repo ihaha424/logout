@@ -67,34 +67,6 @@ void AConsoleObject::BeginPlay()
 	// GameMode 접근해서 레벨에 접근
 	// 서버에서만 실행: 각 플레이어 컨트롤러에 Client RPC로 위젯 등록 요청
 
-	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-	{
-		APlayerController* PC = It->Get();
-		if (!PC) continue;
-
-		APC_Player* MyPC = Cast<APC_Player>(PC);
-		if (MyPC)
-		{
-			if (ExitTimerWidgetClass)
-			{
-				// 위젯 등록 및 캐싱
-				MyPC->RegisterWidget(TEXT("ExitTimerWidget"),
-					CreateWidget<UUserWidget>(MyPC, ExitTimerWidgetClass));
-
-				ExitTimerWidget = Cast<UUserWidget>(
-					MyPC->GetWidget(TEXT("ExitTimerWidget")));
-			}
-
-			if (ElseExitTimerWidgetClass)
-			{
-				MyPC->RegisterWidget(TEXT("ElseExitTimerWidget"),
-					CreateWidget<UUserWidget>(MyPC, ElseExitTimerWidgetClass));
-
-				ElseExitTimerWidget = Cast<UUserWidget>(
-					MyPC->GetWidget(TEXT("ElseExitTimerWidget")));
-			}
-		}
-	}
 }
 
 void AConsoleObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -146,13 +118,6 @@ void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 	bIsActived = true;
 
 	S2A_ShowWaitingPlayerWidget(true);
-
-	if (APC_Player* PC_Player = Cast<APC_Player>(Interactor->GetController()))
-	{
-		// 팝업 위젯
-		PC_Player->SetWidget(TEXT("ExitTimerWidget"), true, EMessageTargetType::LocalClient);
-		PC_Player->SetWidget(TEXT("ElseExitTimerWidget"), true, EMessageTargetType::AllExceptSelf);
-	}
 }
 
 
@@ -160,6 +125,12 @@ void AConsoleObject::OnInteractClient_Implementation(const APawn* Interactor)
 {
 	Super::OnInteractClient_Implementation(Interactor);
 
+	if (APC_Player* PC_Player = Cast<APC_Player>(Interactor->GetController()))
+	{
+		// 팝업 위젯
+		PC_Player->SetWidget(TEXT("Wait5Seconds"), true, EMessageTargetType::LocalClient);
+		PC_Player->SetWidget(TEXT("AskExit"), true, EMessageTargetType::AllExceptSelf);
+	}
 }
 
 void AConsoleObject::SetWidgetVisible(bool bVisible)

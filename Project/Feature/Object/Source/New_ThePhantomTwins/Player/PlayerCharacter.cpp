@@ -1137,6 +1137,10 @@ void APlayerCharacter::EnsureGameStart_Implementation()
 		PC->RegisterWidget(TEXT("GameStop"), CreateWidget(GetWorld(), GameStopWidgetClass));
 		//NULLCHECK_RETURN_LOG(ResumeCountWidgetClass, PlayerLog, Error, );
 		PC->RegisterWidget(TEXT("ResumeCount"), CreateWidget(GetWorld(), ResumeCountWidgetClass));
+
+		//콘솔오브젝트
+		PC->RegisterWidget(TEXT("Wait5Seconds"), CreateWidget<UUserWidget>(GetWorld(), Wait5SecondsClass));
+		PC->RegisterWidget(TEXT("AskExit"), CreateWidget<UUserWidget>(GetWorld(), AskExitClass));
 	}
 
 }

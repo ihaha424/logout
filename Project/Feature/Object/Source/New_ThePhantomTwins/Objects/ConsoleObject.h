@@ -65,15 +65,9 @@ protected:
 	TObjectPtr<class UWidgetComponent> ExitTimerWidgetComp;
 
 	// 2D 위젯
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ConsoleObject | Widget")
-	TSubclassOf<class UUserWidget> ExitTimerWidgetClass;
+	//UPROPERTY()
+	//TObjectPtr<class UUserWidget> Wait5SecondsWidget;
 
-	UPROPERTY()
-	TObjectPtr<class UUserWidget> ExitTimerWidget;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ConsoleObject | Widget")
-	TSubclassOf<class UUserWidget> ElseExitTimerWidgetClass;
-
-	UPROPERTY()
-	TObjectPtr<class UUserWidget> ElseExitTimerWidget;
+	//UPROPERTY()
+	//TObjectPtr<class UUserWidget> AskExitWidget;
 }; 
