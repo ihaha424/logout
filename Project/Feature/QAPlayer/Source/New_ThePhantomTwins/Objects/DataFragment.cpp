@@ -13,6 +13,17 @@
 
 ADataFragment::ADataFragment()
 {
+	RootLocation = CreateDefaultSubobject<USceneComponent>(TEXT("RootLocation"));
+	RootLocation->SetupAttachment(RootSceneComp);
+
+	HostPlayerLocation = CreateDefaultSubobject<USceneComponent>(TEXT("HostPlayerLocation"));
+	HostPlayerLocation->SetupAttachment(RootLocation);
+
+	ClientPlayerLocation = CreateDefaultSubobject<USceneComponent>(TEXT("ClientPlayerLocation"));
+	ClientPlayerLocation->SetupAttachment(RootLocation);
+
+	PlayersLocation.Add(HostPlayerLocation);
+	PlayersLocation.Add(ClientPlayerLocation);
 }
 
 void ADataFragment::BeginPlay()
@@ -45,8 +56,8 @@ void ADataFragment::OnInteractServer_Implementation(const APawn* Interactor)
 	NULLCHECK_RETURN_LOG(Player, ItemLog, Warning, );
 
 	UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-	SaveGameManager->SaveRestartPoint(Player->GetActorLocation(), Player->GetActorRotation());
 	SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, false);
+	SaveGameManager->SetRestartPoint(this);
 
 	UWorld* World = GetWorld();
 	NULLCHECK_RETURN_LOG(World, ItemLog, Warning, );

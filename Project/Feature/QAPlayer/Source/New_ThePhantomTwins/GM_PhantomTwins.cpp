@@ -2,10 +2,13 @@
 
 
 #include "GM_PhantomTwins.h"
+
+#include "EngineUtils.h"
 #include "GS_PhantomTwins.h"
 #include "PhantomTwinsInstance.h"
 #include "AI/Utility/BossSpawner.h"
 #include "Blueprint/UserWidget.h"
+#include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerState.h"
 #include "SaveGame/TPTSaveGameHelperLibrary.h"
 
@@ -86,10 +89,42 @@ void AGM_PhantomTwins::EndPlay(const EEndPlayReason::Type EndPlayReason)
     Super::EndPlay(EndPlayReason);
 }
 
-AActor* AGM_PhantomTwins::ChoosePlayerStart_Implementation(AController* Player)
+void AGM_PhantomTwins::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
 {
+    const bool bIsHost = NewPlayer->IsLocalController();
+    UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+    const FTransform StartPoint = SaveGameManager->GetRestartPoint(bIsHost);
+    if (StartPoint.Equals(FTransform::Identity, 1e-3f))
+    {
+        return Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+    }
+    // 로깅: 디버그 확인용
+    UE_LOG(LogSpawn, Warning, TEXT("[HandleStartingNewPlayer] PC=%s  IsHost=%s  StartPoint L=%s R=%s S=%s"),
+        *GetNameSafe(NewPlayer),
+        bIsHost ? TEXT("true") : TEXT("false"),
+        *StartPoint.GetLocation().ToString(),
+        *StartPoint.GetRotation().Rotator().ToString(),
+        *StartPoint.GetScale3D().ToString());
 
-	return Super::ChoosePlayerStart_Implementation(Player);
+    // 유효성 검사: 기본값이면 기존 엔진 흐름 사용
+    const float Tol = 1e-3f;
+    if (StartPoint.Equals(FTransform::Identity, Tol))
+    {
+        Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+        return;
+    }
+
+    // 최종 스폰: PlayerStart를 수정하지 않고 바로 원하는 위치로 스폰
+    RestartPlayerAtTransform(NewPlayer, StartPoint);
+
+    // 검증 로깅: 실제 Pawn 위치 확인
+    if (APawn* P = NewPlayer->GetPawn())
+    {
+        UE_LOG(LogSpawn, Warning, TEXT("[SpawnedPawn] %s L=%s R=%s"),
+            *GetNameSafe(P),
+            *P->GetActorLocation().ToString(),
+            *P->GetActorRotation().ToString());
+    }
 }
 
 void AGM_PhantomTwins::NotifyPlayerClickedGameStop(FName LevelName,FName PrintingName)
