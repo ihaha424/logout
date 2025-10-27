@@ -49,13 +49,21 @@ void UGA_SmashObstacle::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                 MyASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
             }
 
-            UAbilityTask_PlayMontageAndWait* PlayAttackTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
-                this, TEXT("PlayAttack"), AttackMontage, 1.0f, TEXT("Attack"));
-            NULLCHECK_CODE_RETURN_LOG(PlayAttackTask, AILog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
-            PlayAttackTask->OnCompleted.AddDynamic(this, &UGA_SmashObstacle::OnCompleteCallback);
-            PlayAttackTask->OnInterrupted.AddDynamic(this, &UGA_SmashObstacle::OnInterruptedCallback);
-            PlayAttackTask->ReadyForActivation();
-            return;
+            if (CurCount < Count)
+            {
+                UAbilityTask_PlayMontageAndWait* PlayAttackTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+                    this, TEXT("PlayAttack"), AttackMontage, 1.0f, TEXT("Attack"));
+                NULLCHECK_CODE_RETURN_LOG(PlayAttackTask, AILog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
+                PlayAttackTask->OnCompleted.AddDynamic(this, &UGA_SmashObstacle::OnCompleteCallback);
+                PlayAttackTask->OnInterrupted.AddDynamic(this, &UGA_SmashObstacle::OnInterruptedCallback);
+                PlayAttackTask->ReadyForActivation();
+                return;
+            }
+
+            if (IsValid(OwnerPawn) && IsValid(Target))
+            {
+                IDestroyable::Execute_OnDestroy(Target, OwnerPawn);
+            }
         }
     }
     EndAbility(Handle, ActorInfo, ActivationInfo, true, false);

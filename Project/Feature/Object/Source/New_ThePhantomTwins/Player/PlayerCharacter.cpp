@@ -192,6 +192,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 
 		// 회전 적용
 		DroneWidget->SetWorldRotation(LookAtRot);
+		ApplyDroneWidgetRotation(LookAtRot);
 
 		//TPT_LOG(PlayerLog, Log, TEXT("%.2f"), -DroneWidget->GetRelativeRotation().Yaw);
 
