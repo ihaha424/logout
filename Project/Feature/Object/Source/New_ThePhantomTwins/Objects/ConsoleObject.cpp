@@ -141,8 +141,8 @@ void AConsoleObject::OnInteractClient_Implementation(const APawn* Interactor)
 	if (APC_Player* PC_Player = Cast<APC_Player>(Interactor->GetController()))
 	{
 		// 팝업 위젯
-		PC_Player->SetWidget(TEXT("Wait5Seconds"), true, EMessageTargetType::LocalClient);
-		PC_Player->SetWidget(TEXT("AskExit"), true, EMessageTargetType::AllExceptSelf);
+		PC_Player->SetWidget(TEXT("Wait5Seconds_InteractO"), true, EMessageTargetType::LocalClient);
+		PC_Player->SetWidget(TEXT("Wait5Seconds_InteractX"), true, EMessageTargetType::AllExceptSelf);
 	}
 }
 

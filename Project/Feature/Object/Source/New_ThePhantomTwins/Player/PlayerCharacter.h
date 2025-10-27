@@ -353,8 +353,9 @@ protected:
 	TSubclassOf<UUserWidget> CannotUseItemWidgetClass;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Console")
-	TSubclassOf<UUserWidget> Wait5SecondsClass;
-
+	TSubclassOf<UUserWidget> Wait5Seconds_InteractO_Class;
+	UPROPERTY(EditDefaultsOnly, Category = "Console")
+	TSubclassOf<UUserWidget> Wait5Seconds_InteractX_Class;
 	UPROPERTY(EditDefaultsOnly, Category = "Console")
 	TSubclassOf<UUserWidget> AskExitClass;
 
