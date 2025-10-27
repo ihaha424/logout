@@ -3,13 +3,15 @@
 
 #include "ConsoleObject.h"
 #include "Net/UnrealNetwork.h"
-#include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "player/PlayerCharacter.h"
 #include "Log/TPTLog.h"
 #include "Door.h"
 #include "Components/DecalComponent.h"
+#include "Objects/DataFragment.h"
+#include "Kismet/GameplayStatics.h"
 
 
 AConsoleObject::AConsoleObject() : AInteractableObject()
@@ -17,46 +19,56 @@ AConsoleObject::AConsoleObject() : AInteractableObject()
 	bReplicates = true;
 
 	// player 체크 할 trigger
-	Trigger = CreateDefaultSubobject<USphereComponent>(TEXT("TriggerComponent"));
-	Trigger->SetCollisionProfileName(TEXT("OverlapAll"));
-	Trigger->SetGenerateOverlapEvents(true);
-	Trigger->SetupAttachment(RootSceneComp);
+	SafeZoneTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("SafeZoneTriggerComponent"));
+	SafeZoneTrigger->SetCollisionProfileName(TEXT("OverlapAll"));
+	SafeZoneTrigger->SetGenerateOverlapEvents(true);
+	SafeZoneTrigger->SetupAttachment(RootSceneComp);
 
-	// Lock Widget
-	LockWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("LockWidget"));
-	LockWidgetComp->SetupAttachment(RootComponent);
-	LockWidgetComp->SetWidgetSpace(EWidgetSpace::Screen);
-	LockWidgetComp->SetDrawSize(FVector2D(10, 10));
-	LockWidgetComp->SetRelativeLocation(FVector(0, 0, 100));
-	LockWidgetComp->SetVisibility(false);
+	WaitingPlayerWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("WaitingPlayerWidget"));
+	WaitingPlayerWidgetComp->SetupAttachment(RootComponent);
+	WaitingPlayerWidgetComp->SetWidgetSpace(EWidgetSpace::World);
+
 }
 
 void AConsoleObject::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (LockWidgetComp)
+	if (WaitingPlayerWidgetComp)
 	{
-		if (LockWidgetClass)
+		WaitingPlayerWidgetComp->SetVisibility(false);
+	}
+
+	if (SafeZoneTrigger)
+	{
+		SafeZoneTrigger->OnComponentBeginOverlap.AddDynamic(this, &AConsoleObject::OnTriggerBeginOverlap);
+		SafeZoneTrigger->OnComponentEndOverlap.AddDynamic(this, &AConsoleObject::OnTriggerEndOverlap);
+	}
+
+	//	레벨에 존재하는 DataFragments들 찾아서 LevelDataFragments배열에 추가
+	TArray<AActor*> FoundFragments;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ADataFragment::StaticClass(), FoundFragments);
+	LevelDataFragments.Empty();
+	for (AActor* Actor : FoundFragments)
+	{
+		if (ADataFragment* DataFragment = Cast<ADataFragment>(Actor))
 		{
-			LockWidgetComp->SetWidgetClass(LockWidgetClass);
-			LockWidgetComp->SetVisibility(false);
+			if (!LevelDataFragments.Contains(DataFragment))
+			{
+				LevelDataFragments.Add(DataFragment);
+			}
 		}
 	}
 
-	if (Trigger)
-	{
-		Trigger->OnComponentBeginOverlap.AddDynamic(this, &AConsoleObject::OnTriggerBeginOverlap);
-		Trigger->OnComponentEndOverlap.AddDynamic(this, &AConsoleObject::OnTriggerEndOverlap);
-	}
+
 }
 
 void AConsoleObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AConsoleObject, HasPlayerNum);
-	DOREPLIFETIME(AConsoleObject, bFinish);
+	DOREPLIFETIME(AConsoleObject, LevelDataFragments);
+	DOREPLIFETIME(AConsoleObject, InteractPlayers);
 }
 
 bool AConsoleObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
@@ -83,31 +95,41 @@ bool AConsoleObject::CanInteract_Implementation(const APawn* Interactor, bool bI
 
 void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 {
-	if (!bCanInteract) return;
-	if (!AreAllTriggerActived() || HasPlayerNum != MaxPlayerNum) return;
-
-	// 여기서 3초 지났는지 확인
-
 	//TPT_LOG(ObjectLog, Log, TEXT("AConsoleObject :: OnInteractServer"));
+
+	if (!bCanInteract) return;
+	
+	// 1. APlayerCharacter인지 체크
+	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(const_cast<APawn*>(Interactor));
+	if (!PlayerChar) return;
+
+	// 이미 들어와 있다면 무시
+	if (!InteractPlayers.Contains(PlayerChar))
+	{
+		InteractPlayers.Add(PlayerChar);
+	}
+
 
 	bIsActived = true;
 
-	// 연결된 Door에 상태 변경 알림
-	if (HasAuthority())
-	{
-		if (ConnectedDoor && bIsActived)
-		{
-			ConnectedDoor->CheckAndUpdateDoorState();
-			ConnectedDoor->bCanInteract = false;
-		}
-	}
 
-	bCanInteract = false;
+}
+
+
+void AConsoleObject::OnInteractClient_Implementation(const APawn* Interactor)
+{
+	Super::OnInteractClient_Implementation(Interactor);
+
+	// 모든 플레이어한테 3D UI WBP_WaitingPlayer 띄움
+	if (WaitingPlayerWidgetComp)
+	{
+		WaitingPlayerWidgetComp->SetVisibility(true);
+	}
 }
 
 void AConsoleObject::SetWidgetVisible(bool bVisible)
 {
-	if (!InteractWidgetComp || !LockWidgetComp) return;
+	if (!InteractWidgetComp) return;
 
 	// 아웃라인 코드
 	if (bIsActived)
@@ -119,84 +141,37 @@ void AConsoleObject::SetWidgetVisible(bool bVisible)
 	{
 		// 감지 안 되었거나 명시적으로 숨길 때는 둘 다 숨김
 		InteractWidgetComp->SetVisibility(false);
-		LockWidgetComp->SetVisibility(false);
-
-		return;
-	}
-
-	// AreAllTriggerActived 와 HasPlayerNum 조건을 체크해서 InteractWidgetComp 표시 결정
-	const bool bAllTriggersActive = AreAllTriggerActived();
-	const bool bHasEnoughPlayers = (HasPlayerNum == MaxPlayerNum);
-
-	if (bAllTriggersActive && bHasEnoughPlayers)
-	{
-		// 모두 모였을 때는 InteractWidgetComp만 노출
-		bFinish = true;
-		InteractWidgetComp->SetVisibility(true);
-		LockWidgetComp->SetVisibility(false);
 	}
 	else
 	{
-		bFinish = false;
-
-		// 조건 만족 못 하면 InteractWidgetComp 숨기고 LockWidgetComp 노출
-		InteractWidgetComp->SetVisibility(false);
-		LockWidgetComp->SetVisibility(true);
+		InteractWidgetComp->SetVisibility(true);
 	}
+
+
 }
 
 void AConsoleObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// 1. APlayerCharacter인지 체크
-	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(OtherActor);
-	if (!PlayerChar) return;
+	//// 1. APlayerCharacter인지 체크
+	//APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(OtherActor);
+	//if (!PlayerChar) return;
 
-	// 이미 들어와 있다면 무시
-	if (OverlappingPlayers.Contains(PlayerChar))
-	{
-		return;
-	}
-
-	OverlappingPlayers.Add(PlayerChar);
-
-	HasPlayerNum = FMath::Clamp(HasPlayerNum + 1, 0, MaxPlayerNum);
-	//TPT_LOG(ObjectLog, Log, TEXT("Enter :: %s, HasPlayerNum = %d"), *PlayerChar->GetName(), HasPlayerNum);
-
-	bCanInteract = (AreAllTriggerActived() && HasPlayerNum == MaxPlayerNum);
+	//// 이미 들어와 있다면 무시
+	//if (!InteractPlayers.Contains(PlayerChar))
+	//{
+	//	InteractPlayers.Add(PlayerChar);
+	//}
 }
 
 void AConsoleObject::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(OtherActor);
 	if (!PlayerChar) return;
-
-	if (OverlappingPlayers.Contains(PlayerChar))
+	
+	if (InteractPlayers.Contains(PlayerChar))
 	{
-		OverlappingPlayers.Remove(PlayerChar);
-		HasPlayerNum = FMath::Clamp(HasPlayerNum - 1, 0, MaxPlayerNum);
-		//TPT_LOG(ObjectLog, Log, TEXT("Exit :: %s, HasPlayerNum = %d"), *PlayerChar->GetName(), HasPlayerNum);
+		InteractPlayers.Remove(PlayerChar);
 	}
-
-	bCanInteract = (AreAllTriggerActived() && HasPlayerNum == MaxPlayerNum);
-}
-
-bool AConsoleObject::AreAllTriggerActived() const
-{
-	// 활성화된 trigger 수를 세기 위한 변수
-	int32 triggerActive = 0;
-
-	// ConsoleObject와 연결된 모든 trigger를 하나씩 순회
-	for (auto* trigger : RequiredList)
-	{
-		AInteractableObject* RequiredTrigger = Cast<AInteractableObject>(trigger);
-
-		if (RequiredTrigger && RequiredTrigger->bIsActived)
-		{
-			triggerActive++;
-		}
-	}
-
-	return triggerActive >= MinRequiredCount;
 }
 
 void AConsoleObject::OnRep_bIsActived()
@@ -212,19 +187,5 @@ void AConsoleObject::OnRep_bIsActived()
 	if (bIsActived)
 	{
 		ShowOverlayOutline(!bIsActived);
-	}
-}
-
-void AConsoleObject::OnRep_bFinish()
-{
-	if (bFinish)
-	{
-		InteractWidgetComp->SetVisibility(true);
-		LockWidgetComp->SetVisibility(false);
-	}
-	else
-	{
-		InteractWidgetComp->SetVisibility(false);
-		LockWidgetComp->SetVisibility(true);
 	}
 }

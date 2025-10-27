@@ -25,6 +25,7 @@ public:
 
 	virtual bool CanInteract_Implementation(const APawn* Interactor, bool bIsDetected) override;
 	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
+	virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
 
 	virtual void SetWidgetVisible(bool bVisible) override;
 
@@ -34,47 +35,25 @@ public:
     UFUNCTION()
     void OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	UFUNCTION()
-	bool AreAllTriggerActived() const;
-
 	virtual void OnRep_bIsActived() override;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | ObjectWidget")
-	TObjectPtr<class UWidgetComponent> LockWidgetComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | ObjectWidget")
-	TSubclassOf<class UUserWidget> LockWidgetClass;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | Hide")
-	TObjectPtr<class USphereComponent> Trigger;
-
-	UPROPERTY(Replicated)
-	int32 HasPlayerNum = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject")
-	int32 MaxPlayerNum = 2;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ConsoleObject", ReplicatedUsing = OnRep_bFinish)
-	bool bFinish = false;
-
-	UFUNCTION()
-	virtual void OnRep_bFinish();
-
-	// 문이 열리기 위해 필요한 Actor 목록
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject")
-	TArray<AActor*> RequiredList;
-
-	// 필요 활성화 수 (0이면 RequiredList의 전체 수가 기본값)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject")
-    int32 MinRequiredCount = 0;
+	TObjectPtr<class UBoxComponent> SafeZoneTrigger;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | Door")
 	TObjectPtr<class ADoor> ConnectedDoor;
 
-private:
-	// 트리거 안에 있는 플레이어 추적
-	UPROPERTY()
-	TSet<AActor*> OverlappingPlayers;
+protected:
+	// 현재 레벨에 존재하는 LevelDataFragments
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated)
+	TArray<TObjectPtr<class ADataFragment>> LevelDataFragments;
 
-};
+	// 트리거 안에 있는 플레이어 추적	(추가, 삭제는 Overlap될때 함)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated)
+	TArray<TObjectPtr<class APlayerCharacter>> InteractPlayers;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ConsoleObject | Widget")
+	TObjectPtr<class UWidgetComponent> WaitingPlayerWidgetComp;
+}; 
