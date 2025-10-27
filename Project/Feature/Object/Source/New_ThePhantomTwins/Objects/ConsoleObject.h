@@ -57,16 +57,27 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated)
 	TArray<TObjectPtr<class APlayerCharacter>> InteractPlayers;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ConsoleObject", ReplicatedUsing = OnRep_bCanUse)
+	bool bCanUse = false;
 
+	UFUNCTION()
+	virtual void OnRep_bCanUse();
+
+
+	// 데이터조각 수집 전, 콘솔 잠금
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | ObjectWidget")
+	TObjectPtr<class UWidgetComponent> LockWidgetComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | ObjectWidget")
+	TSubclassOf<class UUserWidget> LockWidgetClass;
+
+	// 한명이라도 콘솔과 상호작용하면, 콘솔 위에 뜨는 위젯
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ConsoleObject | Widget")
 	TObjectPtr<class UWidgetComponent> WaitingPlayerWidgetComp;
 
-
-	TObjectPtr<class UWidgetComponent> ExitTimerWidgetComp;
-
 	// 2D 위젯
 	//UPROPERTY()
-	//TObjectPtr<class UUserWidget> Wait5SecondsWidget;
+	//TObjectPtr<class UPlayerStaminaWidget> Wait5SecondsWidget;
 
 	//UPROPERTY()
 	//TObjectPtr<class UUserWidget> AskExitWidget;
