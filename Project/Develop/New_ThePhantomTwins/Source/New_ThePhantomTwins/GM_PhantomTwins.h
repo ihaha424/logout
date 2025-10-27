@@ -21,8 +21,8 @@ public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     //~ End AGameModeBase
+    virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 
-    virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
 
 	// ~ Begin PlayerDied

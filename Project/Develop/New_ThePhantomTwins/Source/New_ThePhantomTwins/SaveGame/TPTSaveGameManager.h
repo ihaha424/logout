@@ -7,6 +7,7 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "TPTSaveGameManager.generated.h"
 
+class ADataFragment;
 class UGameplayEffect;
 struct FDoorState;
 class UTPTLocalPlayerSaveGame;
@@ -34,7 +35,9 @@ public:
     void TempSavePlayer(const APlayerController* PC);
 
 	UFUNCTION()
-    void SaveRestartPoint(const FVector& PlayerLocation, const FRotator& PlayerRotation);
+    void SetRestartPoint(const ADataFragment* DataFragment);
+	UFUNCTION()
+    FTransform GetRestartPoint(const bool bIsHost);
 
     UFUNCTION()
 	void ApplyActorSaveGame();

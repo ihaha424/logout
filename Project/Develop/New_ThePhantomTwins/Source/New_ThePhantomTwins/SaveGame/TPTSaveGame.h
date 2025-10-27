@@ -33,14 +33,12 @@ public:
 	FIdentifyCharacterData IdentifyCharacterData;
 	UPROPERTY()
 	FIdentifyMapData IdentifyMapData;
-	// 데이터 조각을 획득한 플레이어의 위치
-	UPROPERTY()
-	FVector PlayerLocation = FVector::ZeroVector;
-	UPROPERTY()
-	FRotator PlayerRotation = FRotator::ZeroRotator;
 
 	UPROPERTY()
-	int32 DataFragmentNum = 0;
+	FTransform HostPlayerStart;
+	UPROPERTY()
+	FTransform ClientPlayerStart;
+
 	// 숨는 오브젝트 상태 (오브젝트 ID → 존재여부)
 	UPROPERTY()
 	TMap<FGuid, bool> HideObjectStates;

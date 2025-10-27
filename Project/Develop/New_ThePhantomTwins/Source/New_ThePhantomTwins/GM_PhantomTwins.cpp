@@ -2,10 +2,13 @@
 
 
 #include "GM_PhantomTwins.h"
+
+#include "EngineUtils.h"
 #include "GS_PhantomTwins.h"
 #include "PhantomTwinsInstance.h"
 #include "AI/Utility/BossSpawner.h"
 #include "Blueprint/UserWidget.h"
+#include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerState.h"
 #include "SaveGame/TPTSaveGameHelperLibrary.h"
 
@@ -86,10 +89,24 @@ void AGM_PhantomTwins::EndPlay(const EEndPlayReason::Type EndPlayReason)
     Super::EndPlay(EndPlayReason);
 }
 
-AActor* AGM_PhantomTwins::ChoosePlayerStart_Implementation(AController* Player)
+void AGM_PhantomTwins::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
 {
+    const bool bIsHost = NewPlayer->IsLocalController();
+    UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+    const FTransform StartPoint = SaveGameManager->GetRestartPoint(bIsHost);
+    if (StartPoint.Equals(FTransform::Identity, 1e-3f))
+    {
+        return Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+    }
 
-	return Super::ChoosePlayerStart_Implementation(Player);
+    const float Tol = 1e-3f;
+    if (StartPoint.Equals(FTransform::Identity, Tol))
+    {
+        Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+        return;
+    }
+
+    RestartPlayerAtTransform(NewPlayer, StartPoint);
 }
 
 void AGM_PhantomTwins::NotifyPlayerClickedGameStop(FName LevelName,FName PrintingName)

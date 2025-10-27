@@ -16,6 +16,7 @@
 #include "Log/TPTLog.h"
 #include "Math/UnitConversion.h"
 #include "Objects/BoxObject.h"
+#include "Objects/DataFragment.h"
 #include "Objects/Door.h"
 #include "Objects/InteractHideObject.h"
 #include "Objects/InventoryComponent.h"
@@ -285,10 +286,25 @@ void UTPTSaveGameManager::TempSavePlayer(const APlayerController* PC)
 	}
 }
 
-void UTPTSaveGameManager::SaveRestartPoint(const FVector& PlayerLocation, const FRotator& PlayerRotation)
+void UTPTSaveGameManager::SetRestartPoint(const ADataFragment* DataFragment)
 {
-	GameSaveGame->PlayerLocation = PlayerLocation;
-	GameSaveGame->PlayerRotation = PlayerRotation;
+    if (!DataFragment)
+    {
+        TPT_LOG(SaveGameLog, Error, TEXT("no DataFragment"));
+            return;
+    }
+
+    GameSaveGame->HostPlayerStart = DataFragment->HostPlayerLocation->GetComponentTransform();
+    GameSaveGame->ClientPlayerStart = DataFragment->ClientPlayerLocation->GetComponentTransform();
+}
+
+FTransform UTPTSaveGameManager::GetRestartPoint(const bool bIsHost)
+{
+    if (bIsHost)
+    {
+        return GameSaveGame->HostPlayerStart;
+    }
+    return GameSaveGame->ClientPlayerStart;
 }
 
 void UTPTSaveGameManager::ApplyActorSaveGame()
