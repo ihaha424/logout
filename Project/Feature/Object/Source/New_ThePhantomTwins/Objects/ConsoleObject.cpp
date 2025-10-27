@@ -128,7 +128,22 @@ void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 
 	bIsActived = true;
 
-	S2A_ShowWaitingPlayerWidget(bCanUse);
+	// 모든 플레이어에게 3D 위젯 보이기
+	S2A_ShowWaitingPlayerWidget(true);
+
+
+
+	// (선택) 서버에서 5초 후 WaitingPlayerWidget 숨기기
+	GetWorld()->GetTimerManager().ClearTimer(Wait5SecTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(
+		Wait5SecTimerHandle,
+		FTimerDelegate::CreateWeakLambda(this, [this]()
+			{
+				S2A_ShowWaitingPlayerWidget(false);
+			}),
+		5.0f, // Duration
+		false
+	);
 }
 
 
@@ -143,6 +158,9 @@ void AConsoleObject::OnInteractClient_Implementation(const APawn* Interactor)
 		// 팝업 위젯
 		PC_Player->SetWidget(TEXT("Wait5Seconds_InteractO"), true, EMessageTargetType::LocalClient);
 		PC_Player->SetWidget(TEXT("Wait5Seconds_InteractX"), true, EMessageTargetType::AllExceptSelf);
+
+		// 위젯에 '5초 타이머 시작'을 알림 (위젯이 자체적으로 카운트다운을 관리)
+		NotifyStartCountdownToWidget(Interactor, 5.0f);
 	}
 }
 
@@ -204,29 +222,29 @@ void AConsoleObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedCompon
 
 void AConsoleObject::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(OtherActor);
-	if (!PlayerChar) return;
-	
-	if (InteractPlayers.Contains(PlayerChar))
-	{
-		InteractPlayers.Remove(PlayerChar);
-	}
+	//APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(OtherActor);
+	//if (!PlayerChar) return;
+	//
+	//if (InteractPlayers.Contains(PlayerChar))
+	//{
+	//	InteractPlayers.Remove(PlayerChar);
+	//}
 }
 
 void AConsoleObject::OnRep_bIsActived()
 {
-	if (!HasAuthority())
-	{
-		if (ConnectedDoor)
-		{
-			ConnectedDoor->CheckAndUpdateDoorState();
-		}
-	}
+	//if (!HasAuthority())
+	//{
+	//	if (ConnectedDoor)
+	//	{
+	//		ConnectedDoor->CheckAndUpdateDoorState();
+	//	}
+	//}
 
-	if (bIsActived)
-	{
-		ShowOverlayOutline(!bIsActived);
-	}
+	//if (bIsActived)
+	//{
+	//	ShowOverlayOutline(!bIsActived);
+	//}
 }
 
 void AConsoleObject::S2A_ShowWaitingPlayerWidget_Implementation(bool bVisible)
@@ -235,6 +253,33 @@ void AConsoleObject::S2A_ShowWaitingPlayerWidget_Implementation(bool bVisible)
 	if (WaitingPlayerWidgetComp)
 	{
 		WaitingPlayerWidgetComp->SetVisibility(bVisible);
+	}
+}
+
+void AConsoleObject::NotifyStartCountdownToWidget(const APawn* Interactor, float Duration)
+{
+	if (!Interactor) return;
+
+	// Controller에서 위젯 참조 가져와서 StartCountdown 호출
+	if (APC_Player* PC_Player = Cast<APC_Player>(Interactor->GetController()))
+	{
+		// 클라이언트 로컬 팝업(오른쪽 플레이어용)
+		if (UUserWidget* W_O = PC_Player->GetWidget(TEXT("Wait5Seconds_InteractO")))
+		{
+			if (UWait5SecondsWidget* InteractO_UI = Cast<UWait5SecondsWidget>(W_O))
+			{
+				InteractO_UI->StartCountdown(Duration);
+			}
+		}
+
+		// 모든 플레이어용(또는 AllExceptSelf) 팝업
+		if (UUserWidget* W_X = PC_Player->GetWidget(TEXT("Wait5Seconds_InteractX")))
+		{
+			if (UWait5SecondsWidget* InteractX_UI = Cast<UWait5SecondsWidget>(W_X))
+			{
+				InteractX_UI->StartCountdown(Duration);
+			}
+		}
 	}
 }
 

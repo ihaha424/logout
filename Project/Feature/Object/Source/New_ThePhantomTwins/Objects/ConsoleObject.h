@@ -42,12 +42,15 @@ protected:
 	void S2A_ShowWaitingPlayerWidget(bool bVisible);
 	void S2A_ShowWaitingPlayerWidget_Implementation(bool bVisible);
 
-protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | Hide")
-	TObjectPtr<class UBoxComponent> SafeZoneTrigger;
+	// 기존 NotifyTimeLefttoWidget와는 별개로 '카운트다운 시작' 신호용 함수
+	void NotifyStartCountdownToWidget(const APawn* Interactor, float Duration);
 
+protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | Door")
 	TObjectPtr<class ADoor> ConnectedDoor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | Hide")
+	TObjectPtr<class UBoxComponent> SafeZoneTrigger;
 
 	// 현재 레벨에 존재하는 LevelDataFragments
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated)
@@ -75,10 +78,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ConsoleObject | Widget")
 	TObjectPtr<class UWidgetComponent> WaitingPlayerWidgetComp;
 
-	// 2D 위젯
-	//UPROPERTY()
-	//TObjectPtr<class UPlayerStaminaWidget> Wait5SecondsWidget;
+	// 상호작용 후, 5초 기다리는 타이머
+	FTimerHandle Wait5SecTimerHandle;
 
-	//UPROPERTY()
-	//TObjectPtr<class UUserWidget> AskExitWidget;
+
 }; 
