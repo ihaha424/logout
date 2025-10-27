@@ -185,7 +185,10 @@ void UGA_SceneAura::CancelAbility(const FGameplayAbilitySpecHandle Handle, const
         for (auto& Result : Overlaps)
         {
             AActor* Target = Result.GetActor();
-            if (!Target || Target == OwnerActor) continue;
+
+            if(!IsValid(Target)) continue;
+
+            if (Target == OwnerActor) continue;
 
             if (Target->ActorHasTag("Enemy"))
             {
@@ -247,7 +250,7 @@ void UGA_SceneAura::RemoveAuraFromTarget(AActor* Target)
 
     for (UMeshComponent* Mesh : Meshes)
     {
-        if (!Mesh) continue;
+        if (!IsValid(Mesh)) continue;
 
         Mesh->SetRenderCustomDepth(false);
     }
