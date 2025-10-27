@@ -783,15 +783,17 @@ void APlayerCharacter::InputESC(const FInputActionValue& Value)
 void APlayerCharacter::InputTab(const FInputActionValue& Value)
 {
 	NULLCHECK_RETURN_LOG(DroneWidget, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(DroneUserWidget, PlayerLog, Error, );
+
 	if (!IsLocallyControlled()) return;
 
 	if (DroneWidget->GetUserWidgetObject()->GetVisibility() == ESlateVisibility::Visible)
 	{
-		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+		DroneUserWidget->CloseAnimation(this);
 	}
 	else if (DroneWidget->GetUserWidgetObject()->GetVisibility() == ESlateVisibility::Hidden)
 	{
-		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+		DroneUserWidget->OpenAnimation(this);
 	}
 }
 
