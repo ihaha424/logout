@@ -7,11 +7,13 @@
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "player/PlayerCharacter.h"
+#include "player/PC_Player.h"
 #include "Log/TPTLog.h"
 #include "Door.h"
 #include "Components/DecalComponent.h"
 #include "Objects/DataFragment.h"
 #include "Kismet/GameplayStatics.h"
+#include "GM_PhantomTwins.h"
 
 
 AConsoleObject::AConsoleObject() : AInteractableObject()
@@ -24,10 +26,10 @@ AConsoleObject::AConsoleObject() : AInteractableObject()
 	SafeZoneTrigger->SetGenerateOverlapEvents(true);
 	SafeZoneTrigger->SetupAttachment(RootSceneComp);
 
+	// Console 위에 뜨는 3D 위젯
 	WaitingPlayerWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("WaitingPlayerWidget"));
 	WaitingPlayerWidgetComp->SetupAttachment(RootComponent);
 	WaitingPlayerWidgetComp->SetWidgetSpace(EWidgetSpace::World);
-
 }
 
 void AConsoleObject::BeginPlay()
@@ -61,6 +63,38 @@ void AConsoleObject::BeginPlay()
 	}
 
 
+	// 2D 위젯
+	// GameMode 접근해서 레벨에 접근
+	// 서버에서만 실행: 각 플레이어 컨트롤러에 Client RPC로 위젯 등록 요청
+
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		APlayerController* PC = It->Get();
+		if (!PC) continue;
+
+		APC_Player* MyPC = Cast<APC_Player>(PC);
+		if (MyPC)
+		{
+			if (ExitTimerWidgetClass)
+			{
+				// 위젯 등록 및 캐싱
+				MyPC->RegisterWidget(TEXT("ExitTimerWidget"),
+					CreateWidget<UUserWidget>(MyPC, ExitTimerWidgetClass));
+
+				ExitTimerWidget = Cast<UUserWidget>(
+					MyPC->GetWidget(TEXT("ExitTimerWidget")));
+			}
+
+			if (ElseExitTimerWidgetClass)
+			{
+				MyPC->RegisterWidget(TEXT("ElseExitTimerWidget"),
+					CreateWidget<UUserWidget>(MyPC, ElseExitTimerWidgetClass));
+
+				ElseExitTimerWidget = Cast<UUserWidget>(
+					MyPC->GetWidget(TEXT("ElseExitTimerWidget")));
+			}
+		}
+	}
 }
 
 void AConsoleObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -109,10 +143,16 @@ void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 		InteractPlayers.Add(PlayerChar);
 	}
 
-
 	bIsActived = true;
 
+	S2A_ShowWaitingPlayerWidget(true);
 
+	if (APC_Player* PC_Player = Cast<APC_Player>(Interactor->GetController()))
+	{
+		// 팝업 위젯
+		PC_Player->SetWidget(TEXT("ExitTimerWidget"), true, EMessageTargetType::LocalClient);
+		PC_Player->SetWidget(TEXT("ElseExitTimerWidget"), true, EMessageTargetType::AllExceptSelf);
+	}
 }
 
 
@@ -120,11 +160,6 @@ void AConsoleObject::OnInteractClient_Implementation(const APawn* Interactor)
 {
 	Super::OnInteractClient_Implementation(Interactor);
 
-	// 모든 플레이어한테 3D UI WBP_WaitingPlayer 띄움
-	if (WaitingPlayerWidgetComp)
-	{
-		WaitingPlayerWidgetComp->SetVisibility(true);
-	}
 }
 
 void AConsoleObject::SetWidgetVisible(bool bVisible)
@@ -187,5 +222,14 @@ void AConsoleObject::OnRep_bIsActived()
 	if (bIsActived)
 	{
 		ShowOverlayOutline(!bIsActived);
+	}
+}
+
+void AConsoleObject::S2A_ShowWaitingPlayerWidget_Implementation(bool bVisible)
+{
+	// 모든 플레이어한테 3D UI WBP_WaitingPlayer 띄움
+	if (WaitingPlayerWidgetComp)
+	{
+		WaitingPlayerWidgetComp->SetVisibility(bVisible);
 	}
 }

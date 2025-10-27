@@ -38,13 +38,17 @@ public:
 	virtual void OnRep_bIsActived() override;
 
 protected:
+    UFUNCTION(NetMulticast, Reliable)
+	void S2A_ShowWaitingPlayerWidget(bool bVisible);
+	void S2A_ShowWaitingPlayerWidget_Implementation(bool bVisible);
+
+protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | Hide")
 	TObjectPtr<class UBoxComponent> SafeZoneTrigger;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | Door")
 	TObjectPtr<class ADoor> ConnectedDoor;
 
-protected:
 	// 현재 레벨에 존재하는 LevelDataFragments
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated)
 	TArray<TObjectPtr<class ADataFragment>> LevelDataFragments;
@@ -56,4 +60,20 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ConsoleObject | Widget")
 	TObjectPtr<class UWidgetComponent> WaitingPlayerWidgetComp;
+
+
+	TObjectPtr<class UWidgetComponent> ExitTimerWidgetComp;
+
+	// 2D 위젯
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ConsoleObject | Widget")
+	TSubclassOf<class UUserWidget> ExitTimerWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<class UUserWidget> ExitTimerWidget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ConsoleObject | Widget")
+	TSubclassOf<class UUserWidget> ElseExitTimerWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<class UUserWidget> ElseExitTimerWidget;
 }; 
