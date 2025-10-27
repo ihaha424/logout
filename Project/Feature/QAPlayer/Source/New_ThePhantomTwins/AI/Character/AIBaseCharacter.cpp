@@ -309,12 +309,13 @@ void AAIBaseCharacter::SetAttackCollision(bool bIsActive)
         AttackCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
         AttackCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
         AttackCollision->SetCollisionResponseToChannel(ECC_Visibility, ECR_Overlap);
-        //AttackCollision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
-        //AttackCollision->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+        AttackCollision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
+        AttackCollision->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
 
         AAIController* AIController = Cast<AAIController>(GetController());
         NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
         AIController->StopMovement();
+
     }
     else
     {

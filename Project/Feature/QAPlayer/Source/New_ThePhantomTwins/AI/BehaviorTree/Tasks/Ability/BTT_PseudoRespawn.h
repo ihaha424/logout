@@ -27,5 +27,5 @@ public:
 	float RespawnDelay = 5.f;
 
 private:
-	void CompleteRespawn(ACharacter* Character, UBehaviorTreeComponent* OwnerComp);
+	void CompleteRespawn(ACharacter* Character, UBehaviorTreeComponent* OwnerComp, FVector Location);
 };

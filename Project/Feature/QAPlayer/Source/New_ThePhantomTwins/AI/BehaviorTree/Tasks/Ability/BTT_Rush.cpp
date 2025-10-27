@@ -37,6 +37,9 @@ EBTNodeResult::Type UBTT_Rush::Execute_Task(UBehaviorTreeComponent& OwnerComp, u
     AAIBaseCharacter* AIBaseCharacter = Cast<AAIBaseCharacter>(Pawn);
     NULLCHECK_RETURN_LOG(AIBaseCharacter, AILog, Warning, EBTNodeResult::Failed);
 
+    AAIController* AIController = OwnerComp.GetAIOwner();
+    NULLCHECK_RETURN_LOG(AIController, AILog, Warning, EBTNodeResult::Failed);
+
     AIBaseCharacter->SetAttackCollision(true);
     AIBaseCharacter->GetAttackCollision().OnComponentBeginOverlap.AddDynamic(this, &UBTT_Rush::OnHit);
 
@@ -52,6 +55,7 @@ EBTNodeResult::Type UBTT_Rush::Execute_Task(UBehaviorTreeComponent& OwnerComp, u
     NULLCHECK_RETURN_LOG(BB, AILog, Warning, EBTNodeResult::Failed);
 
     BB->SetValueAsBool(HitDetectedKey.SelectedKeyName, false);
+    AIController->StopMovement();
 
     return EBTNodeResult::InProgress;
 }
@@ -60,16 +64,17 @@ void UBTT_Rush::Execute_TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeM
 {
     UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
     NULLCHECK_RETURN_LOG(BB, AILog, Warning, );
+    AAIController* AIController = OwnerComp.GetAIOwner();
+    NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
 
     bool bHitDetected = BB->GetValueAsBool(HitDetectedKey.SelectedKeyName);
     if (bHitDetected)
     {
         FinishLatentTask(*CachedOwnerComp, EBTNodeResult::Succeeded);
+        AIController->StopMovement();
         return;
     }
 
-    AAIController* AIController = OwnerComp.GetAIOwner();
-    NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
 
     APawn* Pawn = AIController->GetPawn();
     NULLCHECK_RETURN_LOG(Pawn, AILog, Warning, );
@@ -128,7 +133,7 @@ void UBTT_Rush::OnHit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, U
         return;
 
     ECollisionChannel OtherChannel = SweepResult.Component->GetCollisionObjectType();
-    if (OtherChannel == ECC_Pawn || OtherChannel == ECC_WorldStatic) // TODO: 플레이어 케릭터 또는 오브젝트로 변환햐여함.
+    if (OtherChannel == ECC_Pawn || OtherChannel == ECC_WorldStatic || OtherChannel == ECC_WorldDynamic) // TODO: 플레이어 케릭터 또는 오브젝트로 변환햐여함.
     {
         AActor* Target = OtherActor;
         if (Target && Target->GetClass()->ImplementsInterface(UDestroyable::StaticClass()))

@@ -21,18 +21,14 @@ EBTNodeResult::Type UBTT_PseudoRespawn::Execute_Task(UBehaviorTreeComponent& Own
     ACharacter* Character = AICon ? Cast<ACharacter>(AICon->GetPawn()) : nullptr;
     NULLCHECK_RETURN_LOG(Character, AILog, Warning, EBTNodeResult::Failed);
     
-
     UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
     NULLCHECK_RETURN_LOG(BB, AILog, Warning, EBTNodeResult::Failed);
 
     FVector RespawnLocation = BB->GetValueAsVector(RespawnLocationKey.SelectedKeyName);
 
-    Character->SetActorLocation(RespawnLocation);
-    Character->SetActorHiddenInGame(true);
     Character->SetActorEnableCollision(false);
-
     FTimerDelegate RespawnDelegate = FTimerDelegate::CreateUObject(
-        this, &UBTT_PseudoRespawn::CompleteRespawn, Character, &OwnerComp);
+        this, &UBTT_PseudoRespawn::CompleteRespawn, Character, &OwnerComp, RespawnLocation);
 
     FTimerHandle RespawnTimerHandle;
 
@@ -51,13 +47,12 @@ FString UBTT_PseudoRespawn::GetStaticDescription() const
     return FString("PseudoRespawn");
 }
 
-void UBTT_PseudoRespawn::CompleteRespawn(ACharacter* Character, UBehaviorTreeComponent* OwnerComp)
+void UBTT_PseudoRespawn::CompleteRespawn(ACharacter* Character, UBehaviorTreeComponent* OwnerComp, FVector Location)
 {
     NULLCHECK_RETURN_LOG(Character, AILog, Warning, );
     NULLCHECK_RETURN_LOG(OwnerComp, AILog, Warning, );
 
-    Character->SetActorHiddenInGame(false);
     Character->SetActorEnableCollision(true);
-
+    Character->SetActorLocation(Location);
     FinishLatentTask(*OwnerComp, EBTNodeResult::Succeeded);
 }
