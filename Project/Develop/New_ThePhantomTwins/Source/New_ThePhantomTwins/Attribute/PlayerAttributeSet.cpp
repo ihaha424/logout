@@ -61,6 +61,15 @@ bool UPlayerAttributeSet::PreGameplayEffectExecute(struct FGameplayEffectModCall
 				return false; // 이 이펙트의 실행을 전부 중지시키기 위해서 false 반환.
 			}
 		}
+		if (Data.EvaluatedData.Magnitude < 0.0f)
+		{
+			// 맞고 있는 중이라면 데미지가 안받게 조정.
+			if (Data.Target.HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_HitDuration))
+			{
+				Data.EvaluatedData.Magnitude = 0.0f;
+				return false;
+			}
+		}
 	}
 	return true;
 }

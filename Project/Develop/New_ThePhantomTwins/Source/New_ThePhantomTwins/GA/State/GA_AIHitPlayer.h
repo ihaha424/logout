@@ -30,6 +30,9 @@ public:
 	UPROPERTY()
 	UAbilityTask_PlayMontageAndWait* HitMontageTask = nullptr;
 
+	UPROPERTY(EditAnywhere, Category = "GAS")
+	TSubclassOf<UGameplayEffect> HitDurationEffect;
+
 	TObjectPtr<UPostProcessComponent> PPComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VFX")
