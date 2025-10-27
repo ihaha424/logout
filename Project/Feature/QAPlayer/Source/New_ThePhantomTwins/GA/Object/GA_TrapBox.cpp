@@ -22,7 +22,6 @@ void UGA_TrapBox::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	TPT_LOG(GALog, Log, TEXT("UGA_TrapBox::ActivateAbility"));
     UAbilityTask_WaitDelay* WaitTask = UAbilityTask_WaitDelay::WaitDelay(this, 0.3f);
     WaitTask->OnFinish.AddDynamic(this, &UGA_TrapBox::OnDelayFinished);
     WaitTask->ReadyForActivation();
