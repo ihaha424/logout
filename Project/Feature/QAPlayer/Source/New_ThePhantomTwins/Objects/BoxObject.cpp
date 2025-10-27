@@ -7,6 +7,7 @@
 #include "Net/UnrealNetwork.h"
 #include "SaveGame/SaveIDComponent.h"
 #include "SaveGame/TPTSaveGameManager.h"
+#include "Tags/TPTGameplayTags.h"
 
 ABoxObject::ABoxObject() : AInteractableObject()
 {
@@ -144,9 +145,10 @@ void ABoxObject::ExecuteTrapBoxGA(const APawn* Interactor)
 	if (!TargetASC) return;
 
 	FGameplayEventData EventData;
+	EventData.EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_OpenTrapBox;
 	EventData.Instigator = Interactor;
 	EventData.Target = Interactor;
+	EventData.OptionalObject = this;
 
-	FGameplayAbilitySpec AbilitySpec(UGA_TrapBox::StaticClass(), 1);
-	TargetASC->GiveAbilityAndActivateOnce(AbilitySpec, &EventData);
+	TargetASC->HandleGameplayEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_OpenTrapBox, &EventData);
 }
