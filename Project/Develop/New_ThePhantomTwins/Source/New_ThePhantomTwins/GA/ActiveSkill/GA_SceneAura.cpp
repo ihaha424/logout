@@ -160,9 +160,11 @@ void UGA_SceneAura::CancelAbility(const FGameplayAbilitySpecHandle Handle, const
     {
 		for (AActor* Target : UnlimitedObjects)
 		{
-			if (!Target || Target == OwnerActor) continue;
+            if (!IsValid(Target)) continue;
 
-            if (IsValid(Target) && IsValidAuraTarget(Target))
+			if (Target == OwnerActor) continue;
+
+            if (IsValidAuraTarget(Target))
             {
 				ApplyAuraToTarget(Target, 3);
 				NewTargets.Add(Target);
