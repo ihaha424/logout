@@ -78,6 +78,17 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 				{
 					float Elapsed = GetWorld()->GetTimerManager().GetTimerElapsed(CompleteHandle);
 					IHolding::Execute_CalculateGaugePercent(TargetActor, Elapsed);
+
+					const AActor* Interact = CurrentActorInfo->AvatarActor.Get();
+					const AActor* Target = TargetActor;
+					if (!Interact || !Target) return;
+
+					const float Dist = FVector::Dist(Interact->GetActorLocation(), Target->GetActorLocation());
+
+					if (!bEnding && Dist >= Distance)
+					{
+						CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
+					}
 				}
 			});
 
@@ -113,13 +124,23 @@ void UGA_Interact::InputPressed(const FGameplayAbilitySpecHandle Handle, const F
 
 void UGA_Interact::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
-	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+	if (bEnding)return;
+	bEnding = true;
+
+	if (TargetActor->GetClass()->ImplementsInterface(UHolding::StaticClass()))
+	{
+		IHolding::Execute_SetHoldingGaugeUI(TargetActor, Character, false);
+		IHolding::Execute_CalculateGaugePercent(TargetActor, 0.0f);
+	}
+
+	ClearAllTimers();
 
 	if (ActiveAudioComponent)
 	{
 		ActiveAudioComponent->Stop();
 		ActiveAudioComponent = nullptr;
 	}
+	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 }
 
 void UGA_Interact::OnMontageComplete()
@@ -134,14 +155,16 @@ void UGA_Interact::InputReleased(const FGameplayAbilitySpecHandle Handle, const 
 
 	if (TargetActor->GetClass()->ImplementsInterface(UHolding::StaticClass()))
 	{
-		TargetActor->GetWorld()->GetTimerManager().ClearTimer(CompleteHandle);
-		TargetActor->GetWorld()->GetTimerManager().ClearTimer(UpdateHandle);
-
-		IHolding::Execute_SetHoldingGaugeUI(TargetActor, Character, false);
-		IHolding::Execute_CalculateGaugePercent(TargetActor, 0.0f);
-
 		CancelAbility(Handle, ActorInfo, ActivationInfo, true);
 	}
+}
+
+void UGA_Interact::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	ClearAllTimers();
+	bEnding = false;
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UGA_Interact::C2S_Interact_Implementation(UObject* interact, AActor* Owner)
@@ -180,4 +203,16 @@ void UGA_Interact::InteractExecute()
 			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 		}
 	}
+}
+
+void UGA_Interact::ClearAllTimers()
+{
+	UWorld* WorldForTimers = nullptr;
+	if (TargetActor) { WorldForTimers = TargetActor->GetWorld(); }
+	if (!WorldForTimers) { WorldForTimers = GetWorld(); }
+	if (!WorldForTimers) return;
+
+	FTimerManager& TM = WorldForTimers->GetTimerManager();
+	TM.ClearTimer(UpdateHandle);
+	TM.ClearTimer(CompleteHandle);
 }
