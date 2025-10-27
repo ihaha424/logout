@@ -176,6 +176,8 @@ public:
 	void ExecuteAbilityByTag(FGameplayTag InputTag);
 	UFUNCTION(BlueprintCallable)
 	void GivePassiveSkillBySkillType(ESkillType Type);
+	UFUNCTION(BlueprintImplementableEvent)
+	void ApplyDroneWidgetRotation(FRotator Type);
 
 	// Player Skill Cool Gauge Func
 	UFUNCTION(BlueprintCallable)

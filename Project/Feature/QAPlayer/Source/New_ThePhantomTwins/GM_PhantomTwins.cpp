@@ -98,15 +98,7 @@ void AGM_PhantomTwins::HandleStartingNewPlayer_Implementation(APlayerController*
     {
         return Super::HandleStartingNewPlayer_Implementation(NewPlayer);
     }
-    // 로깅: 디버그 확인용
-    UE_LOG(LogSpawn, Warning, TEXT("[HandleStartingNewPlayer] PC=%s  IsHost=%s  StartPoint L=%s R=%s S=%s"),
-        *GetNameSafe(NewPlayer),
-        bIsHost ? TEXT("true") : TEXT("false"),
-        *StartPoint.GetLocation().ToString(),
-        *StartPoint.GetRotation().Rotator().ToString(),
-        *StartPoint.GetScale3D().ToString());
 
-    // 유효성 검사: 기본값이면 기존 엔진 흐름 사용
     const float Tol = 1e-3f;
     if (StartPoint.Equals(FTransform::Identity, Tol))
     {
@@ -114,17 +106,7 @@ void AGM_PhantomTwins::HandleStartingNewPlayer_Implementation(APlayerController*
         return;
     }
 
-    // 최종 스폰: PlayerStart를 수정하지 않고 바로 원하는 위치로 스폰
     RestartPlayerAtTransform(NewPlayer, StartPoint);
-
-    // 검증 로깅: 실제 Pawn 위치 확인
-    if (APawn* P = NewPlayer->GetPawn())
-    {
-        UE_LOG(LogSpawn, Warning, TEXT("[SpawnedPawn] %s L=%s R=%s"),
-            *GetNameSafe(P),
-            *P->GetActorLocation().ToString(),
-            *P->GetActorRotation().ToString());
-    }
 }
 
 void AGM_PhantomTwins::NotifyPlayerClickedGameStop(FName LevelName,FName PrintingName)

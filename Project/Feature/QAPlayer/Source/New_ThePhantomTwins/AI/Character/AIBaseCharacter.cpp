@@ -305,16 +305,16 @@ void AAIBaseCharacter::SetAttackCollision(bool bIsActive)
     NULLCHECK_RETURN_LOG(AttackCollision, AILog, Warning, );
     if (bIsActive)
     {
-        AAIController* AIController = Cast<AAIController>(GetController());
-        NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
-        AIController->StopMovement();
-
         AttackCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
         AttackCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
         AttackCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
         AttackCollision->SetCollisionResponseToChannel(ECC_Visibility, ECR_Overlap);
         //AttackCollision->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
         //AttackCollision->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+
+        AAIController* AIController = Cast<AAIController>(GetController());
+        NULLCHECK_RETURN_LOG(AIController, AILog, Warning, );
+        AIController->StopMovement();
     }
     else
     {
@@ -333,24 +333,30 @@ void AAIBaseCharacter::AttackCollisionBeginOverlap(UPrimitiveComponent* Overlapp
         return;
     NULLCHECK_RETURN_LOG(DamageEffectClass, AILog, Log, );
 
-    UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
-    NULLCHECK_RETURN_LOG(TargetASC, AILog, Log, );
+    AttackTargetByEffect(OtherActor);
+}
 
-    UAbilitySystemComponent* SourceASC = GetAbilitySystemComponent(); 
-    NULLCHECK_RETURN_LOG(SourceASC, AILog, Log, );
+bool AAIBaseCharacter::AttackTargetByEffect(AActor* OtherActor)
+{
+    UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OtherActor);
+    NULLCHECK_RETURN_LOG(TargetASC, AILog, Log, false);
+
+    UAbilitySystemComponent* SourceASC = GetAbilitySystemComponent();
+    NULLCHECK_RETURN_LOG(SourceASC, AILog, Log, false);
 
     FGameplayEffectContextHandle EffectContext = SourceASC->MakeEffectContext();
     EffectContext.AddSourceObject(this);
 
     FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, 1.0f, EffectContext);
     if (!SpecHandle.IsValid())
-        return;
+        return false;
     SpecHandle.Data->SetContext(EffectContext);
     SpecHandle.Data->SetSetByCallerMagnitude(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_MentalPoint, -AttackValue);
     SpecHandle.Data->SetSetByCallerMagnitude(FTPTGameplayTags::Get().TPTGameplay_Data_Effect_HP, -AttackValue);
     TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 
-    AttackCollisionEvent(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+    AttackCollisionEvent(OtherActor);
+    return true;
 }
 
 void AAIBaseCharacter::ExcuteChaseActorGA(AActor* TargetActor)

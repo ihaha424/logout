@@ -231,7 +231,7 @@ void UGA_SceneAura::ApplyAuraToTarget(AActor* Target, int32 Value)
 
     for (UMeshComponent* Mesh : Meshes)
     {
-        if (!Mesh) continue;
+        if (!IsValid(Mesh)) continue;
 
         Mesh->SetCustomDepthStencilValue(Value);
         Mesh->SetRenderCustomDepth(true);

@@ -6,9 +6,8 @@
 #include "Abilities/GameplayAbility.h"
 #include "GA_SmashObstacle.generated.h"
 
-/**
- * 
- */
+class AAIBaseCharacter;
+
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UGA_SmashObstacle : public UGameplayAbility
 {
@@ -44,7 +43,7 @@ protected:
 private:
     bool bActiveAbility = false;
     AActor* Target = nullptr;
-    APawn* OwnerPawn = nullptr;
+    AAIBaseCharacter* OwnerPawn = nullptr;
     int32 CurCount = 0;
     int32 Count = 0;
 };
