@@ -612,6 +612,14 @@ void UInventoryComponent::PlayItemSound(FItemDataTable* ItemData)
 
 void UInventoryComponent::PlayItemSound(EItemType ItemType)
 {
+    APS_Player* PS = Cast<APS_Player>(GetOwner());
+    if (!PS) return;
+
+    APC_Player* PC = Cast<APC_Player>(PS->GetPlayerController());
+    if (!PC) return;
+
+    if (!PC->IsLocalPlayerController()) return;
+
     if (!ItemAbilityTable || !GetOwner()) return;
 
     FItemDataTable* ItemData = GetItemAbilityData(ItemType);
@@ -622,5 +630,15 @@ void UInventoryComponent::PlayItemSound(EItemType ItemType)
 
 void UInventoryComponent::S2C_PlayItemSound_Implementation(EItemType ItemType)
 {
-    PlayItemSound(ItemType); // 로컬에서 재생
+    APS_Player* PS = Cast<APS_Player>(GetOwner());
+    if (!PS) return;
+
+    APC_Player* PC = Cast<APC_Player>(PS->GetPlayerController());
+    if (!PC) return;
+
+
+    if (PC->IsLocalPlayerController())
+    {
+        PlayItemSound(ItemType); // 로컬에서 재생
+    }
 }
