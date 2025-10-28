@@ -50,6 +50,23 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Wait5Seconds")
 	void PlayTrueEnding();
 
+	// 1인 탈출 : 1인엔딩 실행(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Wait5Seconds")
+	void PlaySoloEnding();
+
+	// 상태 리셋 함수 추가
+    UFUNCTION(NetMulticast, Reliable)
+    void S2A_ResetConsoleState();
+    void S2A_ResetConsoleState_Implementation();
+
+private:
+	void ShowAndAutoRemoveWaitWidgets(class APC_Player* PC_Player);
+
+	// 맵 전체에서 LogOutReady 태그를 가진 플레이어 수를 계산하는 헬퍼
+	int32 CountPlayersWithLogOutReadyTag() const;
+
+	// 모든 플레이어의 LogOutReady 태그 제거
+	void ClearAllLogOutReadyTags();
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | Door")
@@ -66,11 +83,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated)
 	TArray<TObjectPtr<class APlayerCharacter>> InteractPlayers;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ConsoleObject", ReplicatedUsing = OnRep_bCanUse)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ConsoleObject", Replicated)
 	bool bCanUse = false;
-
-	UFUNCTION()
-	virtual void OnRep_bCanUse();
 
 
 	// 데이터조각 수집 전, 콘솔 잠금
@@ -86,6 +100,4 @@ protected:
 
 	// 상호작용 후, 5초 기다리는 타이머
 	FTimerHandle Wait5SecTimerHandle;
-
-
 }; 

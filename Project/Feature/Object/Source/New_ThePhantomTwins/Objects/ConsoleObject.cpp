@@ -8,6 +8,7 @@
 #include "Blueprint/UserWidget.h"
 #include "player/PlayerCharacter.h"
 #include "player/PC_Player.h"
+#include "player/PS_Player.h"
 #include "Log/TPTLog.h"
 #include "Door.h"
 #include "Components/DecalComponent.h"
@@ -15,6 +16,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "UI/Wait5SecondsWidget.h"
 #include "GS_PhantomTwins.h"
+#include "AbilitySystemComponent.h"
+#include "Tags/TPTGameplayTags.h"
+
 
 AConsoleObject::AConsoleObject() : AInteractableObject()
 {
@@ -113,47 +117,67 @@ bool AConsoleObject::CanInteract_Implementation(const APawn* Interactor, bool bI
 void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	//TPT_LOG(ObjectLog, Log, TEXT("AConsoleObject :: OnInteractServer"));
-
 	if (!bCanUse) return;
-	
-	// 1. APlayerCharacter인지 체크
+
 	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(const_cast<APawn*>(Interactor));
-	if (!PlayerChar) return;
+	NULLCHECK_RETURN_LOG(PlayerChar, ObjectLog, Error, );
+	APlayerController* InteractorPC = Cast<APlayerController>(PlayerChar->GetController());
+	NULLCHECK_RETURN_LOG(InteractorPC, ObjectLog, Error, );
+	APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
+	NULLCHECK_RETURN_LOG(PS, ObjectLog, Error, );
+	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+	NULLCHECK_RETURN_LOG(ASC, ObjectLog, Error, );
 
-	// 이미 들어와 있다면 무시
-	if (!InteractPlayers.Contains(PlayerChar))
+	// 플레이어에 LogOutReady 태그가 없다면 붙임
+	if (!ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LogOutReady))
 	{
-		InteractPlayers.Add(PlayerChar);
+		ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LogOutReady);
 	}
-
-	bIsActived = true;
 
 	// 모든 플레이어에게 3D 위젯 보이기
 	S2A_ShowWaitingPlayerWidget(true);
 
-	// 서버에서 5초 후 엔딩 체크
-	GetWorld()->GetTimerManager().ClearTimer(Wait5SecTimerHandle);
-	GetWorld()->GetTimerManager().SetTimer(
-		Wait5SecTimerHandle,
-		this,
-		&AConsoleObject::CheckEndingCondition,
-		5.0f,
-		false
-	);
+	// --- 변경된 검사: 맵 전체에서 LogOutReady 태그를 가진 플레이어 수를 센다
+	int32 NumReady = CountPlayersWithLogOutReadyTag();
+
+	if (NumReady >= 2)
+	{
+		// 이미 다른 플레이어(혹은 적어도 2명 이상)가 상호작용 상태라면 즉시 진엔딩 실행
+		// 위젯 숨기고 타이머 정리
+		S2A_ShowWaitingPlayerWidget(false);
+		GetWorld()->GetTimerManager().ClearTimer(Wait5SecTimerHandle);
+
+		PlayTrueEnding();
+	}
+	else
+	{
+		// 아무도 상호작용하지 않았다면(첫 상호작용자라면)
+		// 서버에서 5초 후 엔딩 체크
+		GetWorld()->GetTimerManager().ClearTimer(Wait5SecTimerHandle);
+		GetWorld()->GetTimerManager().SetTimer(
+			Wait5SecTimerHandle,
+			this,
+			&AConsoleObject::CheckEndingCondition,
+			5.0f,
+			false
+		);
+	}
 }
 
 
 void AConsoleObject::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	Super::OnInteractClient_Implementation(Interactor);
-
 	if (!bCanUse) return;
 
 	if (APC_Player* PC_Player = Cast<APC_Player>(Interactor->GetController()))
 	{
-		// 팝업 위젯
-		PC_Player->SetWidget(TEXT("Wait5Seconds_InteractO"), true, EMessageTargetType::LocalClient);
-		PC_Player->SetWidget(TEXT("Wait5Seconds_InteractX"), true, EMessageTargetType::AllExceptSelf);
+		// 팝업 위젯 (5초 뒤 자동 제거)
+		if (!bIsActived)
+		{
+			ShowAndAutoRemoveWaitWidgets(PC_Player);
+		}
+
+		bIsActived = true;
 	}
 }
 
@@ -216,28 +240,26 @@ void AConsoleObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedCompon
 void AConsoleObject::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(OtherActor);
-	if (!PlayerChar) return;
+	NULLCHECK_RETURN_LOG(PlayerChar, ObjectLog, Error, );
 
 	if (InteractPlayers.Contains(PlayerChar))
 	{
 		InteractPlayers.Remove(PlayerChar);
 	}
-}
 
-void AConsoleObject::OnRep_bIsActived()
-{
-	//if (!HasAuthority())
-	//{
-	//	if (ConnectedDoor)
-	//	{
-	//		ConnectedDoor->CheckAndUpdateDoorState();
-	//	}
-	//}
+	APlayerController* InteractorPC = Cast<APlayerController>(PlayerChar->GetController());
+	NULLCHECK_RETURN_LOG(InteractorPC, ObjectLog, Error, );
+	APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
+	NULLCHECK_RETURN_LOG(PS, ObjectLog, Error, );
+	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+	NULLCHECK_RETURN_LOG(ASC, ObjectLog, Error, );
 
-	//if (bIsActived)
-	//{
-	//	ShowOverlayOutline(!bIsActived);
-	//}
+	// 플레이어에 LogOutReady 태그가 있다면
+	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LogOutReady))
+	{
+		// LogOutReady 태그 제거
+		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LogOutReady);
+	}
 }
 
 void AConsoleObject::S2A_ShowWaitingPlayerWidget_Implementation(bool bVisible)
@@ -257,10 +279,132 @@ void AConsoleObject::CheckEndingCondition()
 	// WaitingPlayerWidget 숨기기
 	S2A_ShowWaitingPlayerWidget(false);
 
-	
+	// 맵 전체에서 LogOutReady 태그 가진 플레이어 수 확인
+	int32 NumReady = CountPlayersWithLogOutReadyTag();
+
+	if (NumReady >= 2)
+	{
+		// 둘 이상이면 진엔딩
+		PlayTrueEnding();
+	}
+	else
+	{
+		// 아니면 솔로 엔딩
+		PlaySoloEnding();
+
+		// 솔로 엔딩 후 상태 리셋 (다시 상호작용 가능하도록)
+		S2A_ResetConsoleState();
+	}
+
+	// 타이머는 이미 콜백이므로 필요시 정리 (안전장치)
+	GetWorld()->GetTimerManager().ClearTimer(Wait5SecTimerHandle);
 }
 
-void AConsoleObject::OnRep_bCanUse()
+void AConsoleObject::S2A_ResetConsoleState_Implementation()
+{
+	// 모든 클라이언트에서 실행됨
+
+	// bIsActived를 false로 리셋
+	bIsActived = false;
+
+	// 서버에서만 태그 제거 로직 실행
+	if (HasAuthority())
+	{
+		ClearAllLogOutReadyTags();
+	}
+
+	// 위젯 상태 초기화
+	if (WaitingPlayerWidgetComp)
+	{
+		WaitingPlayerWidgetComp->SetVisibility(false);
+	}
+}
+
+void AConsoleObject::ShowAndAutoRemoveWaitWidgets(class APC_Player* PC_Player)
+{
+	if (!PC_Player) return;
+
+	// 위젯 표시
+	PC_Player->SetWidget(TEXT("Wait5Seconds_InteractO"), true, EMessageTargetType::LocalClient);
+	PC_Player->SetWidget(TEXT("Wait5Seconds_InteractX"), true, EMessageTargetType::AllExceptSelf);
+
+	// 5초 뒤 위젯 제거 (타이머 등록)
+	FTimerHandle RemoveWidgetTimerHandle;
+	FTimerDelegate RemoveWidgetDelegate;
+
+	RemoveWidgetDelegate.BindLambda([PC_Player]()
+		{
+			if (PC_Player)
+			{
+				PC_Player->SetWidget(TEXT("Wait5Seconds_InteractO"), false, EMessageTargetType::LocalClient);
+				PC_Player->SetWidget(TEXT("Wait5Seconds_InteractX"), false, EMessageTargetType::AllExceptSelf);
+			}
+		});
+
+	PC_Player->GetWorldTimerManager().SetTimer(
+		RemoveWidgetTimerHandle,
+		RemoveWidgetDelegate,
+		5.0f,
+		false
+	);
+}
+
+int32 AConsoleObject::CountPlayersWithLogOutReadyTag() const
+{
+	int32 Count = 0;
+
+	UWorld* World = GetWorld();
+	if (!World) return 0;
+
+	AGameStateBase* GSBase = World->GetGameState();
+	if (!GSBase) return 0;
+
+	for (APlayerState* PSBase : GSBase->PlayerArray)
+	{
+		if (!PSBase) continue;
+
+		APS_Player* PS = Cast<APS_Player>(PSBase);
+		if (!PS) continue;
+
+		UAbilitySystemComponent* OtherASC = PS->GetAbilitySystemComponent();
+		if (!OtherASC) continue;
+
+		if (OtherASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LogOutReady))
+		{
+			++Count;
+		}
+	}
+
+	return Count;
+}
+
+void AConsoleObject::ClearAllLogOutReadyTags()
+{
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	AGameStateBase* GSBase = World->GetGameState();
+	if (!GSBase) return;
+
+	for (APlayerState* PSBase : GSBase->PlayerArray)
+	{
+		if (!PSBase) continue;
+
+		APS_Player* PS = Cast<APS_Player>(PSBase);
+		if (!PS) continue;
+
+		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+		if (!ASC) continue;
+
+		// LogOutReady 태그가 있으면 제거
+		if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LogOutReady))
+		{
+			ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LogOutReady);
+		}
+	}
+}
+
+void AConsoleObject::OnRep_bIsActived()
 {
 
 }
