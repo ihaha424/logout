@@ -28,4 +28,7 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AIEvent")
 	void ApplyDestroy();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "AIEvent")
+	void ApplyRespawn();
 };

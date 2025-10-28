@@ -6,6 +6,10 @@
 #include "AIController.h"
 #include "GameFramework/Character.h"
 #include "TimerManager.h"
+#include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISense_Sight.h"
+#include "Perception/AISense_Hearing.h"
+#include "AI/AIEventReceiver.h"
 
 #include "Log/TPTLog.h"
 
@@ -25,10 +29,16 @@ EBTNodeResult::Type UBTT_PseudoRespawn::Execute_Task(UBehaviorTreeComponent& Own
     NULLCHECK_RETURN_LOG(BB, AILog, Warning, EBTNodeResult::Failed);
 
     FVector RespawnLocation = BB->GetValueAsVector(RespawnLocationKey.SelectedKeyName);
-
     Character->SetActorEnableCollision(false);
+    UAIPerceptionComponent* Perception = AICon->GetPerceptionComponent();
+    Perception->SetSenseEnabled(UAISense_Sight::StaticClass(), false);
+    Perception->SetSenseEnabled(UAISense_Hearing::StaticClass(), false);
+
+    Perception->RequestStimuliListenerUpdate();
+    Perception->ForgetAll();
+
     FTimerDelegate RespawnDelegate = FTimerDelegate::CreateUObject(
-        this, &UBTT_PseudoRespawn::CompleteRespawn, Character, &OwnerComp, RespawnLocation);
+        this, &UBTT_PseudoRespawn::CompleteRespawn, Character, &OwnerComp, RespawnLocation, Perception);
 
     FTimerHandle RespawnTimerHandle;
 
@@ -47,12 +57,20 @@ FString UBTT_PseudoRespawn::GetStaticDescription() const
     return FString("PseudoRespawn");
 }
 
-void UBTT_PseudoRespawn::CompleteRespawn(ACharacter* Character, UBehaviorTreeComponent* OwnerComp, FVector Location)
+void UBTT_PseudoRespawn::CompleteRespawn(ACharacter* Character, UBehaviorTreeComponent* OwnerComp, FVector Location, UAIPerceptionComponent* Perception)
 {
     NULLCHECK_RETURN_LOG(Character, AILog, Warning, );
     NULLCHECK_RETURN_LOG(OwnerComp, AILog, Warning, );
 
     Character->SetActorEnableCollision(true);
     Character->SetActorLocation(Location);
+    Perception->SetSenseEnabled(UAISense_Sight::StaticClass(), true);
+    Perception->SetSenseEnabled(UAISense_Hearing::StaticClass(), true);
+    Perception->RequestStimuliListenerUpdate();
+    if (Character->GetClass()->ImplementsInterface(UAIEventReceiver::StaticClass()))
+    {
+        IAIEventReceiver::Execute_ApplyRespawn(Character);
+    }
+
     FinishLatentTask(*OwnerComp, EBTNodeResult::Succeeded);
 }

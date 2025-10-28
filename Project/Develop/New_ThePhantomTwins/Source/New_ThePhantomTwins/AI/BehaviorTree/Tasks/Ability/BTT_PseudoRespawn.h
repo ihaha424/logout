@@ -6,9 +6,8 @@
 #include "AI/BehaviorTree/Tasks/BTT_GASBaseTask.h"
 #include "BTT_PseudoRespawn.generated.h"
 
-/**
- * 
- */
+class UAIPerceptionComponent;
+
 UCLASS(meta = (DisplayName = "TPTTask | Ability | PseudoRespawn"))
 class NEW_THEPHANTOMTWINS_API UBTT_PseudoRespawn : public UBTT_GASBaseTask
 {
@@ -27,5 +26,5 @@ public:
 	float RespawnDelay = 5.f;
 
 private:
-	void CompleteRespawn(ACharacter* Character, UBehaviorTreeComponent* OwnerComp, FVector Location);
+	void CompleteRespawn(ACharacter* Character, UBehaviorTreeComponent* OwnerComp, FVector Location, UAIPerceptionComponent* Perception);
 };
