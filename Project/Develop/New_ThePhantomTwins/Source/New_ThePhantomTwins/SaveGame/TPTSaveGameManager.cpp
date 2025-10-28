@@ -184,6 +184,10 @@ void UTPTSaveGameManager::InitializeSaveTargets()
         {
             AAIBaseCharacter* AI = Cast<AAIBaseCharacter>(Actor);
             USaveIDComponent* SaveIDComp = AI->FindComponentByClass<USaveIDComponent>();
+            if (!IsValid(SaveIDComp))
+            {
+                continue;
+            }
             FGuid AIID = SaveIDComp->SaveId;
 
             if (AIActorsMap.Contains(AIID))
@@ -321,6 +325,10 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
         if (AActor** ActorPtr = DoorActorsMap.Find(DoorID))
         {
             ADoor* Door = Cast<ADoor>(*ActorPtr);
+            if (!IsValid(Door))
+            {
+                return;
+            }
             if (!DoorPair.Value.bIsExist)
             {
 				Door->Destroy();
@@ -338,6 +346,10 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
         if (AActor** ActorPtr = ItemActorsMap.Find(ItemID))
         {
             AItemObject* Item = Cast<AItemObject>(*ActorPtr);
+            if (!IsValid(Item))
+            {
+                return;
+            }
             if (!bIsExist)
             {
                 Item->DestroyItem();
@@ -354,6 +366,10 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
         if (AActor** ActorPtr = HideObjectActorsMap.Find(HideID))
         {
             AInteractHideObject* HideObj = Cast<AInteractHideObject>(*ActorPtr);
+            if (!IsValid(HideObj))
+            {
+                return;
+            }
             if (!bIsExist)
             {
                 HideObj->Destroy();
@@ -370,6 +386,10 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
         if (AActor** ActorPtr = ItemBoxActorsMap.Find(BoxID))
         {
             ABoxObject* Box = Cast<ABoxObject>(*ActorPtr);
+            if (!IsValid(Box))
+            {
+                return;
+            }
             if (Box)
             {
                 Box->SetActive(bIsOpened);
@@ -387,6 +407,10 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
         if (AActor** ActorPtr = AIActorsMap.Find(AIID))
         {
             AAIBaseCharacter* AI = Cast<AAIBaseCharacter>(*ActorPtr);
+            if (!IsValid(AI))
+            {
+                return;
+            }
             if (!bIsExist)
             {
                 AI->Destroy();
