@@ -81,7 +81,7 @@ void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
     }
     ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_UsingOutLine).AddUObject(this, &ThisClass::OnSceneAuraTagChanged);
 
-    OwnerActor = GetAvatarActorFromActorInfo();
+    OwnerActor = ActorInfo->AvatarActor.Get();
 	NULLCHECK_RETURN_LOG(OwnerActor, GALog, Warning, );
 
     APlayerCharacter* Character = Cast<APlayerCharacter>(OwnerActor);
@@ -127,9 +127,6 @@ void UGA_SceneAura::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, co
     UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("AuraObject"), UnlimitedObjects);
 }
 
-
-
-
 void UGA_SceneAura::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
@@ -138,7 +135,41 @@ void UGA_SceneAura::CancelAbility(const FGameplayAbilitySpecHandle Handle, const
     {
 		ASC->RemoveActiveEffectsWithGrantedTags(FGameplayTagContainer(FTPTGameplayTags::Get().TPTGameplay_Character_State_UsingOutLine));
     }
-}void UGA_SceneAura::ScanTargets()
+
+    Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+}
+
+void UGA_SceneAura::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+    if (UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().ClearTimer(ScanTimerHandle);
+    }
+    else
+    {
+	    TPT_LOG(GALog, Error, TEXT("World Is Null!"));
+    }
+
+    if (!CurrentAuraTargets.IsEmpty())
+    {
+        for (auto& TargetPtr : CurrentAuraTargets)
+        {
+            if (AActor* Target = TargetPtr.Get())
+            {
+                RemoveAuraFromTarget(Target);
+            }
+        }
+
+        CurrentAuraTargets.Empty();
+    }
+
+    RemoveAuraFromTarget(OwnerActor);
+
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UGA_SceneAura::ScanTargets()
 {
     NULLCHECK_RETURN_LOG(OwnerActor, GALog, Warning, )
 
@@ -339,17 +370,7 @@ void UGA_SceneAura::OnSceneAuraTagChanged(const FGameplayTag InputTag, int32 Tag
 {
     if (TagCount <= 0)
     {
-        GetWorld()->GetTimerManager().ClearTimer(ScanTimerHandle);
-        for (auto& TargetPtr : CurrentAuraTargets)
-        {
-            if (AActor* Target = TargetPtr.Get())
-            {
-                RemoveAuraFromTarget(Target);
-            }
-        }
-        CurrentAuraTargets.Empty();
-
-		RemoveAuraFromTarget(OwnerActor);
+        EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
     }
 }
 

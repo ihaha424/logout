@@ -267,7 +267,7 @@ void UGA_Run::OffSound(const FGameplayTag Tag, int32 TagCount)
 	APlayerCharacter* Character = Cast<APlayerCharacter>(GAActorInfo->AvatarActor.Get());
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
 
-	NULLCHECK_RETURN_LOG(DrainAudioComponent, GALog, Warning, );
+	if (!DrainAudioComponent) return;
 
 	if (!bHasDownedTag)
 	{
