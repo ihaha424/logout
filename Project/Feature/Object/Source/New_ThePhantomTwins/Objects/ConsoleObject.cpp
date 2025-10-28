@@ -18,7 +18,7 @@
 #include "GS_PhantomTwins.h"
 #include "AbilitySystemComponent.h"
 #include "Tags/TPTGameplayTags.h"
-
+#include "Kismet/KismetSystemLibrary.h"
 
 AConsoleObject::AConsoleObject() : AInteractableObject()
 {
@@ -154,10 +154,13 @@ void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 		// 아무도 상호작용하지 않았다면(첫 상호작용자라면)
 		// 서버에서 5초 후 엔딩 체크
 		GetWorld()->GetTimerManager().ClearTimer(Wait5SecTimerHandle);
+
+		FTimerDelegate TimerDel;
+		TimerDel.BindUObject(this, &AConsoleObject::CheckEndingCondition, Interactor);
+
 		GetWorld()->GetTimerManager().SetTimer(
 			Wait5SecTimerHandle,
-			this,
-			&AConsoleObject::CheckEndingCondition,
+			TimerDel,
 			5.0f,
 			false
 		);
@@ -271,7 +274,7 @@ void AConsoleObject::S2A_ShowWaitingPlayerWidget_Implementation(bool bVisible)
 	}
 }
 
-void AConsoleObject::CheckEndingCondition()
+void AConsoleObject::CheckEndingCondition(const APawn* Interactor)
 {
 	// 서버에서만 실행되어야 함
 	if (!HasAuthority()) return;
@@ -290,7 +293,7 @@ void AConsoleObject::CheckEndingCondition()
 	else
 	{
 		// 아니면 솔로 엔딩
-		PlaySoloEnding();
+		PlaySoloEnding(Interactor);
 
 		// 솔로 엔딩 후 상태 리셋 (다시 상호작용 가능하도록)
 		S2A_ResetConsoleState();
@@ -299,6 +302,13 @@ void AConsoleObject::CheckEndingCondition()
 	// 타이머는 이미 콜백이므로 필요시 정리 (안전장치)
 	GetWorld()->GetTimerManager().ClearTimer(Wait5SecTimerHandle);
 }
+
+//void AConsoleObject::S2C_PlaySoloEnding_Implementation(const APawn* Interactor)
+//{
+//	UKismetSystemLibrary::PrintString(this, TEXT("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
+//	bSolo = true;
+//	PlaySoloEnding(Interactor);
+//}
 
 void AConsoleObject::S2A_ResetConsoleState_Implementation()
 {

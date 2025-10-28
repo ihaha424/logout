@@ -44,15 +44,19 @@ protected:
 
 	// 타이머 종료 시 엔딩 체크
     UFUNCTION()
-    void CheckEndingCondition();
+    void CheckEndingCondition(const APawn* Interactor);
 
 	// 2인 탈출 : 진엔딩 실행(BlueprintImplementableEvent)
 	UFUNCTION(BlueprintImplementableEvent, Category = "Wait5Seconds")
 	void PlayTrueEnding();
 
-	// 1인 탈출 : 1인엔딩 실행(BlueprintImplementableEvent)
+	// 1인 탈출 : 1인 엔딩 실행(BlueprintImplementableEvent)
+	//UFUNCTION(Client, Reliable)
+	//void S2C_PlaySoloEnding(const APawn* Interactor);
+	//void S2C_PlaySoloEnding_Implementation(const APawn* Interactor);
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "Wait5Seconds")
-	void PlaySoloEnding();
+	void PlaySoloEnding(const APawn* Interactor);
 
 	// 상태 리셋 함수 추가
     UFUNCTION(NetMulticast, Reliable)
@@ -85,7 +89,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ConsoleObject", Replicated)
 	bool bCanUse = false;
-
 
 	// 데이터조각 수집 전, 콘솔 잠금
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | ObjectWidget")
