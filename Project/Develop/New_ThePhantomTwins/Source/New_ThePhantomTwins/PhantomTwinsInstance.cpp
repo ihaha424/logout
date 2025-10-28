@@ -15,8 +15,8 @@ void UPhantomTwinsInstance::Init()
 	// 전체화면 모드 적용
 	if (UGameUserSettings* Settings = GEngine->GetGameUserSettings())
 	{
-		TPT_LOG(LogTemp, Log, TEXT(""));
-		Settings->SetScreenResolution(FInt32Point(2560, 1440));
+		FIntPoint DesktopRes = Settings->GetDesktopResolution();
+		Settings->SetScreenResolution(DesktopRes);
 		Settings->SetFullscreenMode(EWindowMode::Fullscreen);  // 또는 WindowedFullscreen / Windowed
 		Settings->ApplySettings(false); // 즉시 적용 (true로 하면 저장 포함)
 	}
