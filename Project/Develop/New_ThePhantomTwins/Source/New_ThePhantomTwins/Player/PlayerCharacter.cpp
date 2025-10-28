@@ -99,14 +99,6 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HasAuthority())
-	{
-		if (IsLocallyControlled())
-		{
-			SetSelectSkill(PS);
-		}
-	}
-
 	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(DownedWidget, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(InteractWidgetClass, PlayerLog, Error, );
@@ -116,41 +108,7 @@ void APlayerCharacter::BeginPlay()
 	InteractWidget->SetWidget(Interact);
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
-	UUserWidget* Down = CreateWidget(GetWorld(), DownWidgetClass);
-	DownedWidget->SetWidget(Down);
-	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-
-	DroneMesh = FindComponentByTag<USkeletalMeshComponent>(TEXT("DroneMesh"));
-	if (DroneMesh)
-	{
-		DroneWidget->AttachToComponent(DroneMesh, FAttachmentTransformRules::KeepRelativeTransform);
-		TPT_LOG(PlayerLog, Log, TEXT("Attach Complete! : %s"), *DroneWidget->GetAttachParent()->GetName());
-	}
-
-	UUserWidget* Drone = CreateWidget(GetWorld(), DroneWidgetClass);
-	DroneWidget->SetWidget(Drone);
-	DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-	DroneWidget->SetCastShadow(false);
-
-	if (Drone)
-	{
-		DroneUserWidget = Cast<UDroneStatWidget>(Drone);
-	}
-
 	FocusTrace->SetIsReplicated(true);
-
-	if (IsLocallyControlled())
-	{
-		if (DroneUserWidget)
-		{
-			SetHP(HealthPoint);
-			SetMP(MentalPoint);
-		}
-		else
-		{
-			TPT_LOG(HUDLog, Error, TEXT("InitHUDWidget: DroneUserWidget is null"));
-		}
-	}
 
 	InitPostProcessComponent();
 
@@ -249,8 +207,6 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	InitHUDWidget(AttributeSet);
 	UPlayerAnimInstance* AnimInstance = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	AnimInstance->InitializeWithAbilitySystem(ASC);
-
-	SetSelectSkill(PS);
 
 	InitPostProcessComponent();
 	UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
@@ -376,14 +332,14 @@ void APlayerCharacter::InitPostProcessComponent()
 
 void APlayerCharacter::SetHP(int32 value)
 {
-	NULLCHECK_RETURN_LOG(DroneUserWidget, HUDLog, Error, );
+	NULLCHECK_RETURN_LOG(DroneUserWidget, PlayerLog, Error, );
 	//TPT_LOG(HUDLog, Log, TEXT("HP : %d"), value);
 	DroneUserWidget->SetHP(value);
 }
 
 void APlayerCharacter::SetMP(int32 value)
 {
-	NULLCHECK_RETURN_LOG(DroneUserWidget, HUDLog, Error, );
+	NULLCHECK_RETURN_LOG(DroneUserWidget, PlayerLog, Error, );
 	//TPT_LOG(HUDLog, Log, TEXT("MP : %d"), value);
 	DroneUserWidget->SetMP(value);
 }
@@ -1115,32 +1071,69 @@ void APlayerCharacter::EnsureSetting(EnsureCreateElement Element)
 
 void APlayerCharacter::EnsureGameStart_Implementation()
 {
-	AUIManagerPlayerController* PC = Cast<AUIManagerPlayerController>(GetController());
-	if (!PC)
-		return;
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(DownedWidget, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(DownWidgetClass, PlayerLog, Error, );
 
-	PC->SetWidget(TEXT("PlayerHUDWidget"), true, EMessageTargetType::LocalClient);
+	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
+	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
+
+	SetSelectSkill(PS);
+
+	PlayerController->SetWidget(TEXT("PlayerHUDWidget"), true, EMessageTargetType::LocalClient);
+
+	UUserWidget* Down = CreateWidget(GetWorld(), DownWidgetClass);
+	DownedWidget->SetWidget(Down);
+	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+
+	DroneMesh = FindComponentByTag<USkeletalMeshComponent>(TEXT("DroneMesh"));
+	if (DroneMesh)
+	{
+		DroneWidget->AttachToComponent(DroneMesh, FAttachmentTransformRules::KeepRelativeTransform);
+		TPT_LOG(PlayerLog, Log, TEXT("Attach Complete! : %s"), *DroneWidget->GetAttachParent()->GetName());
+	}
+
+	UUserWidget* Drone = CreateWidget(GetWorld(), DroneWidgetClass);
+	DroneWidget->SetWidget(Drone);
+	DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	DroneWidget->SetCastShadow(false);
+
+	if (Drone)
+	{
+		DroneUserWidget = Cast<UDroneStatWidget>(Drone);
+	}
 
 	if (IsLocallyControlled())
 	{
 		//NULLCHECK_RETURN_LOG(RecoveryWidgetClass, PlayerLog, Error, );
-		PC->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
+		PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
 		//NULLCHECK_RETURN_LOG(KeyWidgetClass, PlayerLog, Error, );
-		PC->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
+		PlayerController->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
 		//NULLCHECK_RETURN_LOG(CannotUseItemWidgetClass, PlayerLog, Error, );
-		PC->RegisterWidget(TEXT("CannotUseItem"), CreateWidget<UUserWidget>(GetWorld(), CannotUseItemWidgetClass));
+		PlayerController->RegisterWidget(TEXT("CannotUseItem"), CreateWidget<UUserWidget>(GetWorld(), CannotUseItemWidgetClass));
 		//NULLCHECK_RETURN_LOG(GameOverWidgetClass, PlayerLog, Error, );
-		PC->RegisterWidget(TEXT("GameOver"), CreateWidget(GetWorld(), GameOverWidgetClass));
+		PlayerController->RegisterWidget(TEXT("GameOver"), CreateWidget(GetWorld(), GameOverWidgetClass));
 		//NULLCHECK_RETURN_LOG(LoadingWidgetClass, PlayerLog, Error, );
 		//PC->RegisterWidget(TEXT("Loading"), CreateWidget(GetWorld(), LoadingWidgetClass));
 		//NULLCHECK_RETURN_LOG(ESCWidgetClass, PlayerLog, Error, );
-		PC->RegisterWidget(TEXT("ESC"), CreateWidget(GetWorld(), ESCWidgetClass));
+		PlayerController->RegisterWidget(TEXT("ESC"), CreateWidget(GetWorld(), ESCWidgetClass));
 		//NULLCHECK_RETURN_LOG(GameStopWidgetClass, PlayerLog, Error, );
-		PC->RegisterWidget(TEXT("GameStop"), CreateWidget(GetWorld(), GameStopWidgetClass));
+		PlayerController->RegisterWidget(TEXT("GameStop"), CreateWidget(GetWorld(), GameStopWidgetClass));
 		//NULLCHECK_RETURN_LOG(ResumeCountWidgetClass, PlayerLog, Error, );
-		PC->RegisterWidget(TEXT("ResumeCount"), CreateWidget(GetWorld(), ResumeCountWidgetClass));
-	}
+		PlayerController->RegisterWidget(TEXT("ResumeCount"), CreateWidget(GetWorld(), ResumeCountWidgetClass));
 
+		if (DroneUserWidget)
+		{
+			SetHP(AttributeSet->GetMaxHP());
+			SetMP(AttributeSet->GetMaxMentalPoint());
+		}
+		else
+		{
+			TPT_LOG(PlayerLog, Error, TEXT("InitHUDWidget: DroneUserWidget is null"));
+		}
+	}
 }
 
 void APlayerCharacter::RemoveHeldItemMesh()
@@ -1200,9 +1193,8 @@ void APlayerCharacter::S2A_OnDownedWidget_Implementation(bool Visible)
 void APlayerCharacter::GivePassiveSkillBySkillType(ESkillType Type)
 {
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
-	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
-
-	TPT_LOG(PlayerLog, Log, TEXT("Give Skill"));
+	
+	UKismetSystemLibrary::PrintString(this, TEXT("Give Skill"));
 
 	FGameplayEventData Payload;
 	Payload.EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_Skill_StarterKit;
