@@ -358,6 +358,8 @@ protected:
 	TSubclassOf<UUserWidget> Wait5Seconds_InteractX_Class;
 	UPROPERTY(EditDefaultsOnly, Category = "Console")
 	TSubclassOf<UUserWidget> AskExitClass;
+	UPROPERTY(EditDefaultsOnly, Category = "Console")
+	TSubclassOf<UUserWidget> SoloLogoutClass;
 
 	// 상호작용 위젯
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")

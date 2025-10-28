@@ -1142,6 +1142,7 @@ void APlayerCharacter::EnsureGameStart_Implementation()
 		PC->RegisterWidget(TEXT("Wait5Seconds_InteractO"), CreateWidget<UUserWidget>(GetWorld(), Wait5Seconds_InteractO_Class));
 		PC->RegisterWidget(TEXT("Wait5Seconds_InteractX"), CreateWidget<UUserWidget>(GetWorld(), Wait5Seconds_InteractX_Class));
 		PC->RegisterWidget(TEXT("AskExit"), CreateWidget<UUserWidget>(GetWorld(), AskExitClass));
+		PC->RegisterWidget(TEXT("SoloLogout"), CreateWidget<UUserWidget>(GetWorld(), SoloLogoutClass));
 	}
 
 }
