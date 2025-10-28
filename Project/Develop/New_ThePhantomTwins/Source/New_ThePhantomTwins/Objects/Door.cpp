@@ -55,7 +55,7 @@ void ADoor::SetWidgetVisible(bool bVisible)
 	}
 
 	// bVisible == true이고 트리거들이 활성화되지 않은 경우 → LockWidget
-	if (!AreAllTriggerActived())
+	if (!bIsAllTriggered)
 	{
 		InteractWidgetComp->SetVisibility(false);
 		LockWidgetComp->SetVisibility(true);
@@ -102,7 +102,7 @@ bool ADoor::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected
 void ADoor::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	// 모든 트리거가 활성화 되지 않으면 return
-	if (!AreAllTriggerActived())
+	if (!bIsAllTriggered)
 	{
 		return;
 	}
@@ -133,7 +133,7 @@ void ADoor::OnInteractServer_Implementation(const APawn* Interactor)
 
 void ADoor::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	if (AreAllTriggerActived())
+	if (bIsAllTriggered)
 	{
 		InteractWidgetComp->SetVisibility(false);
 		LockWidgetComp->SetVisibility(false);
@@ -153,13 +153,13 @@ bool ADoor::CanBeDestroyed_Implementation(const APawn* Interactor)
 void ADoor::CheckAndUpdateDoorState()
 {
 	// 모든 트리거가 활성화되었고 문이 아직 열리지 않았다면
-	if (AreAllTriggerActived() && !bIsActived)
+	if (bIsAllTriggered && !bIsActived)
 	{
 		bIsActived = true;
 		S2A_OpenDoor();
 	}
 	// 트리거가 비활성화되었고 문이 열려있다면
-	else if (!AreAllTriggerActived() && bIsActived)
+	else if (!bIsAllTriggered && bIsActived)
 	{
 		bIsActived = false;
 		S2A_CloseDoor();
@@ -192,6 +192,7 @@ bool ADoor::AreAllTriggerActived_Implementation()
 		UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
 		SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
 
+		CheckAllTriggered();
 		return true;
 	}
 	else
@@ -202,6 +203,8 @@ bool ADoor::AreAllTriggerActived_Implementation()
 			bIsAllTriggered = true;
 			UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
 			SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
+
+			CheckAllTriggered();
 			return true;
 		}
 		else
@@ -214,7 +217,7 @@ bool ADoor::AreAllTriggerActived_Implementation()
 
 void ADoor::OnRep_bIsActived()
 {
-	if (AreAllTriggerActived())
+	if (bIsAllTriggered)
 	{
 		if (bIsActived)
 		{
@@ -241,7 +244,7 @@ void ADoor::S2A_CloseDoor_Implementation()
 
 void ADoor::OnRep_bKeyUsed()
 {
-	if (!AreAllTriggerActived())
+	if (!bIsAllTriggered)
 	{
 		InteractWidgetComp->SetVisibility(false);
 		LockWidgetComp->SetVisibility(true);
@@ -250,17 +253,5 @@ void ADoor::OnRep_bKeyUsed()
 	{
 		InteractWidgetComp->SetVisibility(true);
 		LockWidgetComp->SetVisibility(false);
-	}
-}
-
-void ADoor::OnRep_CheckAllTriggered()
-{
-	if (!AreAllTriggerActived())
-	{
-		bIsAllTriggered = false;
-	}
-	if (AreAllTriggerActived())
-	{
-		bIsAllTriggered = true;
 	}
 }
