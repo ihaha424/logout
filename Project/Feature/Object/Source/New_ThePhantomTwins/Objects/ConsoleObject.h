@@ -6,9 +6,8 @@
 #include "SzObjects/InteractableObject.h"
 #include "ConsoleObject.generated.h"
 
-/**
- * 
- */
+class APS_Player;
+
 UCLASS()
 class NEW_THEPHANTOMTWINS_API AConsoleObject : public AInteractableObject
 {
@@ -38,23 +37,25 @@ public:
 	virtual void OnRep_bIsActived() override;
 
 protected:
+	// 모든 클라이언트에 위젯 보이기/숨기기 (서버 호출 -> 멀티캐스트로 전파)
     UFUNCTION(NetMulticast, Reliable)
 	void S2A_ShowWaitingPlayerWidget(bool bVisible);
 	void S2A_ShowWaitingPlayerWidget_Implementation(bool bVisible);
 
-	// 타이머 종료 시 엔딩 체크
-    UFUNCTION()
-    void CheckEndingCondition(const APawn* Interactor);
+	// 안전한 타이머 콜백: PlayerState 기반으로 엔딩 검사
+	UFUNCTION()
+	void CheckEndingConditionByPlayerState(APS_Player* InteractorPlayerState);
+
+	// 멀티캐스트: 서버가 호출 -> 모든 클라이언트에서 실행, 각 클라이언트는 Interactor가 자신인지 검사
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_InvokePlaySoloEnding(APawn* Interactor);
+	void S2A_InvokePlaySoloEnding_Implementation(APawn* Interactor);
 
 	// 2인 탈출 : 진엔딩 실행(BlueprintImplementableEvent)
 	UFUNCTION(BlueprintImplementableEvent, Category = "Wait5Seconds")
 	void PlayTrueEnding();
 
 	// 1인 탈출 : 1인 엔딩 실행(BlueprintImplementableEvent)
-	//UFUNCTION(Client, Reliable)
-	//void S2C_PlaySoloEnding(const APawn* Interactor);
-	//void S2C_PlaySoloEnding_Implementation(const APawn* Interactor);
-
 	UFUNCTION(BlueprintImplementableEvent, Category = "Wait5Seconds")
 	void PlaySoloEnding(const APawn* Interactor);
 
@@ -103,4 +104,4 @@ protected:
 
 	// 상호작용 후, 5초 기다리는 타이머
 	FTimerHandle Wait5SecTimerHandle;
-}; 
+};

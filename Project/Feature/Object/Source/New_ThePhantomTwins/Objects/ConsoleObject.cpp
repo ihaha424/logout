@@ -1,6 +1,5 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "ConsoleObject.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/BoxComponent.h"
@@ -152,11 +151,12 @@ void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 	else
 	{
 		// 아무도 상호작용하지 않았다면(첫 상호작용자라면)
-		// 서버에서 5초 후 엔딩 체크
+		// 서버에서 5초 후 엔딩 체크 (PlayerState 기반으로 안전하게 처리)
 		GetWorld()->GetTimerManager().ClearTimer(Wait5SecTimerHandle);
 
 		FTimerDelegate TimerDel;
-		TimerDel.BindUObject(this, &AConsoleObject::CheckEndingCondition, Interactor);
+		// PlayerState (PS)를 저장하여 타이머 콜백에서 사용 — Pawn이 사라져도 PlayerState는 보통 유지됨
+		TimerDel.BindUObject(this, &AConsoleObject::CheckEndingConditionByPlayerState, PS);
 
 		GetWorld()->GetTimerManager().SetTimer(
 			Wait5SecTimerHandle,
@@ -182,6 +182,8 @@ void AConsoleObject::OnInteractClient_Implementation(const APawn* Interactor)
 
 		bIsActived = true;
 	}
+
+	UKismetSystemLibrary::PrintString(this, TEXT("BBBBBBBBBBBBBBBBBBBBB"));
 }
 
 void AConsoleObject::SetWidgetVisible(bool bVisible)
@@ -274,8 +276,10 @@ void AConsoleObject::S2A_ShowWaitingPlayerWidget_Implementation(bool bVisible)
 	}
 }
 
-void AConsoleObject::CheckEndingCondition(const APawn* Interactor)
+void AConsoleObject::CheckEndingConditionByPlayerState(APS_Player* InteractorPlayerState)
 {
+	UKismetSystemLibrary::PrintString(this, TEXT("CheckEndingConditionByPlayerState called (server)"));
+
 	// 서버에서만 실행되어야 함
 	if (!HasAuthority()) return;
 
@@ -293,7 +297,14 @@ void AConsoleObject::CheckEndingCondition(const APawn* Interactor)
 	else
 	{
 		// 아니면 솔로 엔딩
-		PlaySoloEnding(Interactor);
+		APawn* InteractorPawn = nullptr;
+		if (InteractorPlayerState)
+		{
+			InteractorPawn = InteractorPlayerState->GetPawn();
+		}
+
+		// 멀티캐스트로 모든 클라이언트에게 알리고, 각 클라이언트는 자기인지 검사 후 로컬 엔딩 실행
+		S2A_InvokePlaySoloEnding(InteractorPawn);
 
 		// 솔로 엔딩 후 상태 리셋 (다시 상호작용 가능하도록)
 		S2A_ResetConsoleState();
@@ -303,12 +314,23 @@ void AConsoleObject::CheckEndingCondition(const APawn* Interactor)
 	GetWorld()->GetTimerManager().ClearTimer(Wait5SecTimerHandle);
 }
 
-//void AConsoleObject::S2C_PlaySoloEnding_Implementation(const APawn* Interactor)
-//{
-//	UKismetSystemLibrary::PrintString(this, TEXT("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
-//	bSolo = true;
-//	PlaySoloEnding(Interactor);
-//}
+void AConsoleObject::S2A_InvokePlaySoloEnding_Implementation(APawn* Interactor)
+{
+	// 모든 클라이언트에서 실행됨 (서버가 호출)
+	if (!Interactor)
+		return;
+
+	// 각 클라이언트의 로컬 플레이어 Pawn 가져오기 (index 0이 로컬 플레이어)
+	APawn* LocalPawn = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (!LocalPawn) return;
+
+	// 만약 Interactor가 로컬 Pawn과 같다면, 이 클라이언트는 대상 플레이어
+	if (LocalPawn == Interactor)
+	{
+		// 로컬에서 블루프린트 이벤트 호출 (UI 등 로컬 처리)
+		PlaySoloEnding(Interactor);
+	}
+}
 
 void AConsoleObject::S2A_ResetConsoleState_Implementation()
 {
