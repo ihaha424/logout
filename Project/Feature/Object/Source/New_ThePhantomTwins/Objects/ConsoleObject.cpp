@@ -131,17 +131,13 @@ void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 	// 모든 플레이어에게 3D 위젯 보이기
 	S2A_ShowWaitingPlayerWidget(true);
 
-
-
-	// (선택) 서버에서 5초 후 WaitingPlayerWidget 숨기기
+	// 서버에서 5초 후 엔딩 체크
 	GetWorld()->GetTimerManager().ClearTimer(Wait5SecTimerHandle);
 	GetWorld()->GetTimerManager().SetTimer(
 		Wait5SecTimerHandle,
-		FTimerDelegate::CreateWeakLambda(this, [this]()
-			{
-				S2A_ShowWaitingPlayerWidget(false);
-			}),
-		5.0f, // Duration
+		this,
+		&AConsoleObject::CheckEndingCondition,
+		5.0f,
 		false
 	);
 }
@@ -206,12 +202,26 @@ void AConsoleObject::SetWidgetVisible(bool bVisible)
 
 void AConsoleObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	// 1. APlayerCharacter인지 체크
+	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(OtherActor);
+	if (!PlayerChar) return;
 
+	// 이미 들어와 있다면 무시
+	if (!InteractPlayers.Contains(PlayerChar))
+	{
+		InteractPlayers.Add(PlayerChar);
+	}
 }
 
 void AConsoleObject::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(OtherActor);
+	if (!PlayerChar) return;
 
+	if (InteractPlayers.Contains(PlayerChar))
+	{
+		InteractPlayers.Remove(PlayerChar);
+	}
 }
 
 void AConsoleObject::OnRep_bIsActived()
@@ -237,6 +247,17 @@ void AConsoleObject::S2A_ShowWaitingPlayerWidget_Implementation(bool bVisible)
 	{
 		WaitingPlayerWidgetComp->SetVisibility(bVisible);
 	}
+}
+
+void AConsoleObject::CheckEndingCondition()
+{
+	// 서버에서만 실행되어야 함
+	if (!HasAuthority()) return;
+
+	// WaitingPlayerWidget 숨기기
+	S2A_ShowWaitingPlayerWidget(false);
+
+	
 }
 
 void AConsoleObject::OnRep_bCanUse()

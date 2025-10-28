@@ -42,8 +42,14 @@ protected:
 	void S2A_ShowWaitingPlayerWidget(bool bVisible);
 	void S2A_ShowWaitingPlayerWidget_Implementation(bool bVisible);
 
-	// 기존 NotifyTimeLefttoWidget와는 별개로 '카운트다운 시작' 신호용 함수
-	void NotifyStartCountdownToWidget(const APawn* Interactor, float Duration);
+	// 타이머 종료 시 엔딩 체크
+    UFUNCTION()
+    void CheckEndingCondition();
+
+	// 2인 탈출 : 진엔딩 실행(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, Category = "Wait5Seconds")
+	void PlayTrueEnding();
+
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | Door")
