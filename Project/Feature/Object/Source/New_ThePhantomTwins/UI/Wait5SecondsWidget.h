@@ -17,10 +17,6 @@ public:
     // 기존 함수 유지(필요하면 사용)
     void SetTime(int32 time);
 
-    // 새로 추가: 위젯 스스로 카운트다운을 시작하게 함 (초 단위, float 지원)
-    UFUNCTION(BlueprintCallable)
-    void StartCountdown(float Duration);
-
 public:
     UPROPERTY()
     float MaxTime = 5.0f;
@@ -36,6 +32,6 @@ protected:
     bool bIsCounting = false; // 카운트다운 진행중 여부
 
     // 카운트다운이 끝났을 때 블루프린트로 후처리할 수 있게 이벤트 제공
-    UFUNCTION(BlueprintImplementableEvent, Category = "Wait5Seconds")
-    void OnCountdownFinished();
+    //UFUNCTION(BlueprintImplementableEvent, Category = "Wait5Seconds")
+    //void OnCountdownFinished();
 };
