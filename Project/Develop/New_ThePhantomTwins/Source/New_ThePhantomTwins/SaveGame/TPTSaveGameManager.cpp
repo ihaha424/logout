@@ -327,7 +327,7 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
             ADoor* Door = Cast<ADoor>(*ActorPtr);
             if (!IsValid(Door))
             {
-                return;
+                continue;
             }
             if (!DoorPair.Value.bIsExist)
             {
@@ -348,7 +348,7 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
             AItemObject* Item = Cast<AItemObject>(*ActorPtr);
             if (!IsValid(Item))
             {
-                return;
+                continue;
             }
             if (!bIsExist)
             {
@@ -368,7 +368,7 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
             AInteractHideObject* HideObj = Cast<AInteractHideObject>(*ActorPtr);
             if (!IsValid(HideObj))
             {
-                return;
+                continue;
             }
             if (!bIsExist)
             {
@@ -388,7 +388,7 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
             ABoxObject* Box = Cast<ABoxObject>(*ActorPtr);
             if (!IsValid(Box))
             {
-                return;
+                continue;
             }
             if (Box)
             {
@@ -409,7 +409,7 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
             AAIBaseCharacter* AI = Cast<AAIBaseCharacter>(*ActorPtr);
             if (!IsValid(AI))
             {
-                return;
+                continue;
             }
             if (!bIsExist)
             {
