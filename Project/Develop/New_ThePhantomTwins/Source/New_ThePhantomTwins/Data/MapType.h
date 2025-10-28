@@ -18,6 +18,6 @@ struct NEW_THEPHANTOMTWINS_API FIdentifyMapData
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadWrite)
 	EMapType MapType = EMapType::None;
 };
