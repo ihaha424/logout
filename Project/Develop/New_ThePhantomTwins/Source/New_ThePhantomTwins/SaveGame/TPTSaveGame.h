@@ -21,6 +21,9 @@ struct FDoorState
 	bool bIsUnLocked;
 
 	UPROPERTY(BlueprintReadWrite)
+	bool bIsOpen;
+
+	UPROPERTY(BlueprintReadWrite)
 	bool bIsExist;
 };
 
