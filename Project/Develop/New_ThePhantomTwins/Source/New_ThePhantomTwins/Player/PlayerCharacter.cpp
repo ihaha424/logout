@@ -310,11 +310,13 @@ void APlayerCharacter::InitPostProcessComponent()
 	NULLCHECK_RETURN_LOG(DownedVignette, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(Confused3rdVignette, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(TrapVignette, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(MentalAttackVignette, PlayerLog, Error, );
 
 	UMaterialInstanceDynamic* HitMID = UMaterialInstanceDynamic::Create(HitVignette, this);
 	UMaterialInstanceDynamic* LowHPMID = UMaterialInstanceDynamic::Create(DownedVignette, this);
 	UMaterialInstanceDynamic* Confused3rdMID = UMaterialInstanceDynamic::Create(Confused3rdVignette, this);
 	UMaterialInstanceDynamic* TrapMID = UMaterialInstanceDynamic::Create(TrapVignette, this);
+	UMaterialInstanceDynamic* MentalAttackMID = UMaterialInstanceDynamic::Create(MentalAttackVignette, this);
 
 	HitBlendable.Object = HitMID;
 	HitBlendable.Weight = 0.0f;
@@ -328,10 +330,14 @@ void APlayerCharacter::InitPostProcessComponent()
 	TrapBlendable.Object = TrapMID;
 	TrapBlendable.Weight = 0.0f;
 
+	MentalAttackBlendable.Object = MentalAttackMID;
+	MentalAttackBlendable.Weight = 0.0f;
+
 	PostProcessComp->Settings.WeightedBlendables.Array.Add(HitBlendable);
 	PostProcessComp->Settings.WeightedBlendables.Array.Add(DownedBlendable);
 	PostProcessComp->Settings.WeightedBlendables.Array.Add(TrapBlendable);
 	PostProcessComp->Settings.WeightedBlendables.Array.Add(Confused3rdBlendable);
+	PostProcessComp->Settings.WeightedBlendables.Array.Add(MentalAttackBlendable);
 }
 
 void APlayerCharacter::SetHP(int32 value)
@@ -355,35 +361,9 @@ void APlayerCharacter::SettingPostProcessComponentBlendable(EVignetteType Type, 
 	if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 0)
 		return;
 
-	FPostProcessSettings NewSettings;
-	NewSettings = PostProcessComp->Settings;
-
-	switch (Type)
-	{
-	case EVignetteType::HitVignette:
-		NewSettings.WeightedBlendables.Array[0].Object = HitBlendable.Object;
-		NewSettings.WeightedBlendables.Array[0].Weight = Weight;
-		break;
-	case EVignetteType::DownedVignette:
-		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 1) return;
-		NewSettings.WeightedBlendables.Array[1].Object = DownedBlendable.Object;
-		NewSettings.WeightedBlendables.Array[1].Weight = Weight;
-		break;
-	case EVignetteType::TrapVignette:
-		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 2) return;
-		NewSettings.WeightedBlendables.Array[2].Object = TrapBlendable.Object;
-		NewSettings.WeightedBlendables.Array[2].Weight = Weight;
-		break;
-	case EVignetteType::Confused3rdVignette:
-		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 3) return;
-		NewSettings.WeightedBlendables.Array[3].Object = Confused3rdBlendable.Object;
-		NewSettings.WeightedBlendables.Array[3].Weight = Weight;
-		break;
-	default:
-		break;
-	}
-
-	PostProcessComp->Settings = NewSettings;
+	const int32 index = static_cast<int32>(Type) - 1;
+	if (!PostProcessComp->Settings.WeightedBlendables.Array.IsValidIndex(index)) return;
+	PostProcessComp->AddOrUpdateBlendable(PostProcessComp->Settings.WeightedBlendables.Array[index].Object, Weight);
 }
 
 void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
