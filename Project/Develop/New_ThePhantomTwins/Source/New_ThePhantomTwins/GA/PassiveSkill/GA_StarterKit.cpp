@@ -12,7 +12,7 @@
 UGA_StarterKit::UGA_StarterKit()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor; 
-	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 }
 
 void UGA_StarterKit::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
