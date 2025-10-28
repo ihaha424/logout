@@ -43,6 +43,7 @@ UTPTSaveGameManager::UTPTSaveGameManager()
 void UTPTSaveGameManager::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
+    FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &ThisClass::InitializeSaveTargets);
 }
 void UTPTSaveGameManager::Deinitialize()
 {
@@ -58,7 +59,7 @@ void UTPTSaveGameManager::SaveUpdate()
     UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTLocalPlayerSaveGame>(PlayerSaveGames[1]);
 }
 
-void UTPTSaveGameManager::InitializeSaveTargets()
+void UTPTSaveGameManager::InitializeSaveTargets(UWorld* LoadedWorld)
 {
     TArray<AActor*> TempActors;
     // ¹® ¾×ÅÍ
@@ -203,6 +204,8 @@ void UTPTSaveGameManager::InitializeSaveTargets()
         }
     }
     bActorsInitialized = true;
+
+    ApplyActorSaveGame();
 }
 
 void UTPTSaveGameManager::TempSaveByID(const FGuid& ObjectID, const bool bIsExist)

@@ -26,7 +26,7 @@ public:
     void SaveUpdate();
     // 게임 시작 시 모든 저장 대상 액터 정보 초기화하는 함수
     UFUNCTION()
-    void InitializeSaveTargets();
+    void InitializeSaveTargets(UWorld* LoadedWorld);
     // 상태 변화 발생 시 Guid로 임시 저장함수 호출
     UFUNCTION(BlueprintCallable)
 	void TempSaveByID(const FGuid& ObjectID, const bool bIsExist);

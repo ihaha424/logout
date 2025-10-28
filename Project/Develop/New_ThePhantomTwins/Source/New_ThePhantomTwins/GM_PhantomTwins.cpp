@@ -23,7 +23,6 @@ void AGM_PhantomTwins::BeginPlay()
     Super::BeginPlay();
 
     if (!HasAuthority()) return;
-
     if (TimeLimitSeconds > 0.f)
     {
         GetWorldTimerManager().SetTimer(
@@ -50,15 +49,16 @@ void AGM_PhantomTwins::BeginPlay()
         GS->OnClickedGameStopChanged.AddDynamic(this, &ThisClass::NotifyPlayerClickedGameStop);
         GS->OnClickedAgreeWithGameStopChanged.AddDynamic(this, &ThisClass::NotifyPlayerAgreeWithGameStop);
     }
-    FTimerHandle TimerHandle;
-    GetWorldTimerManager().SetTimer(TimerHandle,this, &ThisClass::DelayedInitializeSaveTargets, 0.1f, false);
+
+    //FTimerHandle TimerHandle;
+    //GetWorldTimerManager().SetTimer(TimerHandle,this, &ThisClass::DelayedInitializeSaveTargets, 0.1f, false);
 }
 
 void AGM_PhantomTwins::DelayedInitializeSaveTargets()
 {
-    UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-	SaveGameManager->InitializeSaveTargets();
-    SaveGameManager->ApplyActorSaveGame();
+ //   UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+	//SaveGameManager->InitializeSaveTargets();
+ //   SaveGameManager->ApplyActorSaveGame();
 }
 
 void AGM_PhantomTwins::PostLogin(APlayerController* NewPlayer)
