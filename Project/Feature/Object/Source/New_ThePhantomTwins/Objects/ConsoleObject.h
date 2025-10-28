@@ -37,6 +37,10 @@ public:
 	virtual void OnRep_bIsActived() override;
 
 protected:
+	// LevelDataFragments 개수와 현재 수집 개수를 비교하여 bIsCollectionCompleted 를 설정
+	UFUNCTION()
+	void UpdateCollectionCompletionState();
+
 	// 모든 클라이언트에 위젯 보이기/숨기기 (서버 호출 -> 멀티캐스트로 전파)
     UFUNCTION(NetMulticast, Reliable)
 	void S2A_ShowWaitingPlayerWidget(bool bVisible);
@@ -64,6 +68,8 @@ protected:
     void S2A_ResetConsoleState();
     void S2A_ResetConsoleState_Implementation();
 
+
+
 private:
 	void ShowAndAutoRemoveWaitWidgets(class APC_Player* PC_Player);
 
@@ -89,7 +95,7 @@ protected:
 	TArray<TObjectPtr<class APlayerCharacter>> InteractPlayers;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ConsoleObject", Replicated)
-	bool bCanUse = false;
+	bool bIsCollectionCompleted = false;
 
 	// 데이터조각 수집 전, 콘솔 잠금
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | ObjectWidget")

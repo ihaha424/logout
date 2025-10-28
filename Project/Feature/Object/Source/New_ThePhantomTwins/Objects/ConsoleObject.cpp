@@ -88,17 +88,18 @@ void AConsoleObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 	DOREPLIFETIME(AConsoleObject, LevelDataFragments);
 	DOREPLIFETIME(AConsoleObject, InteractPlayers);
-	DOREPLIFETIME(AConsoleObject, bCanUse);
+	DOREPLIFETIME(AConsoleObject, bIsCollectionCompleted);
 }
 
 bool AConsoleObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
 	if (!Interactor->IsLocallyControlled()) return bIsDetected;
 
+	UpdateCollectionCompletionState();
+
 	// 거리가 멀어져 감지되지 않은 경우
 	if (!bIsDetected)
 	{
-		bCanUse = false;
 		SetWidgetVisible(false);
 		return false;
 	}
@@ -115,8 +116,11 @@ bool AConsoleObject::CanInteract_Implementation(const APawn* Interactor, bool bI
 
 void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 {
-	//TPT_LOG(ObjectLog, Log, TEXT("AConsoleObject :: OnInteractServer"));
-	if (!bCanUse) return;
+	UKismetSystemLibrary::PrintString(this, TEXT("AConsoleObject :: OnInteractServer"));
+
+	UpdateCollectionCompletionState();
+
+	if (!bIsCollectionCompleted) return;
 
 	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(const_cast<APawn*>(Interactor));
 	NULLCHECK_RETURN_LOG(PlayerChar, ObjectLog, Error, );
@@ -170,7 +174,11 @@ void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 
 void AConsoleObject::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	if (!bCanUse) return;
+	UKismetSystemLibrary::PrintString(this, TEXT("AConsoleObject :: OnInteractClient"));
+	
+	SetWidgetVisible(false);
+
+	if (!bIsCollectionCompleted) return;
 
 	if (APC_Player* PC_Player = Cast<APC_Player>(Interactor->GetController()))
 	{
@@ -183,7 +191,6 @@ void AConsoleObject::OnInteractClient_Implementation(const APawn* Interactor)
 		bIsActived = true;
 	}
 
-	UKismetSystemLibrary::PrintString(this, TEXT("BBBBBBBBBBBBBBBBBBBBB"));
 }
 
 void AConsoleObject::SetWidgetVisible(bool bVisible)
@@ -201,31 +208,20 @@ void AConsoleObject::SetWidgetVisible(bool bVisible)
 		// 감지 안 되었거나 명시적으로 숨길 때는 둘 다 숨김
 		InteractWidgetComp->SetVisibility(false);
 		LockWidgetComp->SetVisibility(false);
-		bCanUse = false;
 	}
 
-	// GS에서 OnCollectedItemCountChanged() 가져옴
-	AGS_PhantomTwins* GS = Cast<AGS_PhantomTwins>(GetWorld()->GetGameState());
-	int32 currDataFragments = 0;
-	if (GS)
+	// 위젯 가시성 결정:
+	if (!bIsCollectionCompleted)
 	{
-		currDataFragments = GS->CoreCount;
-	}
-
-	// currDataFragments가 LevelDataFragments보다 작으면
-	if (currDataFragments < LevelDataFragments.Num())
-	{
-		// 잠금 위젯
+		// 잠금 위젯 보여주고 상호작용 위젯 숨김
 		InteractWidgetComp->SetVisibility(false);
 		LockWidgetComp->SetVisibility(true);
-		bCanUse = false;
 	}
 	else
 	{
-		// currDataFragments가 LevelDataFragments같거나 많으면 상호작용 위젯
+		// 상호작용 가능: 상호작용 위젯 보여주고 잠금 위젯 숨김
 		InteractWidgetComp->SetVisibility(true);
 		LockWidgetComp->SetVisibility(false);
-		bCanUse = true;
 	}
 }
 
@@ -265,6 +261,22 @@ void AConsoleObject::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponen
 		// LogOutReady 태그 제거
 		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LogOutReady);
 	}
+}
+
+void AConsoleObject::UpdateCollectionCompletionState()
+{
+	// GS에서 OnCollectedItemCountChanged() 가져옴
+	AGS_PhantomTwins* GS = Cast<AGS_PhantomTwins>(GetWorld()->GetGameState());
+	int32 currDataFragments = 0;
+	if (GS)
+	{
+		currDataFragments = GS->CoreCount;
+	}
+
+	// currDataFragments가 LevelDataFragments보다 작으면 bIsCollectionCompleted = false;
+	// 같거나 크면 true
+	bool bNewCollectionCompleted = (currDataFragments >= LevelDataFragments.Num());
+	bIsCollectionCompleted = bNewCollectionCompleted;
 }
 
 void AConsoleObject::S2A_ShowWaitingPlayerWidget_Implementation(bool bVisible)
@@ -316,19 +328,22 @@ void AConsoleObject::CheckEndingConditionByPlayerState(APS_Player* InteractorPla
 
 void AConsoleObject::S2A_InvokePlaySoloEnding_Implementation(APawn* Interactor)
 {
-	// 모든 클라이언트에서 실행됨 (서버가 호출)
 	if (!Interactor)
 		return;
 
-	// 각 클라이언트의 로컬 플레이어 Pawn 가져오기 (index 0이 로컬 플레이어)
-	APawn* LocalPawn = UGameplayStatics::GetPlayerPawn(this, 0);
-	if (!LocalPawn) return;
+	// 로컬 클라이언트의 PlayerController 가져오기
+	APlayerController* LocalPC = GetWorld()->GetFirstPlayerController();
+	if (!LocalPC) return;
 
-	// 만약 Interactor가 로컬 Pawn과 같다면, 이 클라이언트는 대상 플레이어
-	if (LocalPawn == Interactor)
+	// Interactor의 Controller가 로컬 PlayerController인지 확인
+	APlayerController* InteractorPC = Cast<APlayerController>(Interactor->GetController());
+	if (InteractorPC && LocalPC->IsLocalPlayerController())
 	{
-		// 로컬에서 블루프린트 이벤트 호출 (UI 등 로컬 처리)
-		PlaySoloEnding(Interactor);
+		// 로컬 클라이언트 환경에서만 실행
+		if (InteractorPC == LocalPC)  // 로컬 클라이언트의 Pawn인지 재확인
+		{
+			PlaySoloEnding(Interactor);
+		}
 	}
 }
 
