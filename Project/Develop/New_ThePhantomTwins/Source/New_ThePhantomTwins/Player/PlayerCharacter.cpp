@@ -108,6 +108,10 @@ void APlayerCharacter::BeginPlay()
 	InteractWidget->SetWidget(Interact);
 	InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
+	UUserWidget* Down = CreateWidget(GetWorld(), DownWidgetClass);
+	DownedWidget->SetWidget(Down);
+	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+
 	FocusTrace->SetIsReplicated(true);
 
 	InitPostProcessComponent();
@@ -532,6 +536,8 @@ void APlayerCharacter::OnAbilityFailed(const UGameplayAbility* Ability, const FG
 
 void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 {
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Warning, );
+
 	ASC->AddLooseGameplayTag(InputTag);// 로컬에게 비네팅 적용 됨. 다운드 애니메이션 적용 안됨. 서버에선 엎어짐. 서버에만 태그가 붙음.(당연함)
 	ASC->AddReplicatedLooseGameplayTag(InputTag);// 리플리케이트로 붙이면 서버에서는 아무것도 적용안됨. 로컬에서는 다 됨. 태그도 로컬에만 존재함.
 
@@ -1074,8 +1080,8 @@ void APlayerCharacter::EnsureGameStart_Implementation()
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
-	NULLCHECK_RETURN_LOG(DownedWidget, PlayerLog, Error, );
-	NULLCHECK_RETURN_LOG(DownWidgetClass, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(DroneWidget, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(DroneWidgetClass, PlayerLog, Error, );
 
 	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
 	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
@@ -1083,10 +1089,6 @@ void APlayerCharacter::EnsureGameStart_Implementation()
 	SetSelectSkill(PS);
 
 	PlayerController->SetWidget(TEXT("PlayerHUDWidget"), true, EMessageTargetType::LocalClient);
-
-	UUserWidget* Down = CreateWidget(GetWorld(), DownWidgetClass);
-	DownedWidget->SetWidget(Down);
-	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
 	DroneMesh = FindComponentByTag<USkeletalMeshComponent>(TEXT("DroneMesh"));
 	if (DroneMesh)
@@ -1180,6 +1182,8 @@ void APlayerCharacter::S2A_RemoveHeldItemMesh_Implementation()
 
 void APlayerCharacter::S2A_OnDownedWidget_Implementation(bool Visible)
 {
+	NULLCHECK_RETURN_LOG(DownedWidget, PlayerLog, Warning, );
+
 	if (Visible)
 	{
 		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
@@ -1193,8 +1197,6 @@ void APlayerCharacter::S2A_OnDownedWidget_Implementation(bool Visible)
 void APlayerCharacter::GivePassiveSkillBySkillType(ESkillType Type)
 {
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
-	
-	UKismetSystemLibrary::PrintString(this, TEXT("Give Skill"));
 
 	FGameplayEventData Payload;
 	Payload.EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_Skill_StarterKit;

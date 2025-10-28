@@ -51,6 +51,7 @@ void UGA_Downed::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 	NULLCHECK_RETURN_LOG(PC, GALog, Warning, );
 	PC->SetWidget(TEXT("WASD"), true, EMessageTargetType::LocalClient);
 
+	NULLCHECK_RETURN_LOG(Character->DownedWidget, GALog, Warning, );
 	Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
 	DefaultSocketOffset = Character->GetSpringArm()->SocketOffset;
 	if (USpringArmComponent* SpringArm = Character->GetSpringArm())
