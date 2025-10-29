@@ -34,5 +34,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "GAS")
 	TSubclassOf<UGameplayEffect> CoolDownEffect;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SFX")
+	USoundBase* SoundCue;
+
+	UPROPERTY()
+	UAudioComponent* ActiveAudioComponent = nullptr;
+
 	bool bHasCoolDownTag = false;
 };

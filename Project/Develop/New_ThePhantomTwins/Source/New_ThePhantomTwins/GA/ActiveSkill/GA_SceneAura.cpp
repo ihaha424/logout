@@ -4,7 +4,6 @@
 #include "GA/ActiveSkill/GA_SceneAura.h"
 
 #include "AbilitySystemComponent.h"
-#include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/SphereComponent.h"
 #include "Engine/World.h"
@@ -17,6 +16,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "Engine/OverlapResult.h"
 #include "Player/PlayerCharacter.h"
+#include "Components/AudioComponent.h"
 
 UGA_SceneAura::UGA_SceneAura()
 {
@@ -88,6 +88,11 @@ void UGA_SceneAura::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 
     if (Character && Character->IsLocallyControlled())
     {
+        if (SoundCue) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함
+        {
+            ActiveAudioComponent = UGameplayStatics::SpawnSoundAttached(SoundCue, Character->GetRootComponent());
+        }
+
         TArray<AActor*> Players;
 
         UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("PlayerAura"), Players);
@@ -370,6 +375,12 @@ void UGA_SceneAura::OnSceneAuraTagChanged(const FGameplayTag InputTag, int32 Tag
 {
     if (TagCount <= 0)
     {
+        if (ActiveAudioComponent)
+        {
+            ActiveAudioComponent->Stop();
+            ActiveAudioComponent = nullptr;
+        }
+
         EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
     }
 }

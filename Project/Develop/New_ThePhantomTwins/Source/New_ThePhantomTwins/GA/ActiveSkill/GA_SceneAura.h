@@ -62,6 +62,12 @@ protected:
 
     TSet<TWeakObjectPtr<AActor>> NewTargets;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SFX")
+	USoundBase* SoundCue;
+
+	UPROPERTY()
+	UAudioComponent* ActiveAudioComponent = nullptr;
+
     // === Configurable Variables ===
 
     UPROPERTY(EditAnywhere, Category = "GAS")

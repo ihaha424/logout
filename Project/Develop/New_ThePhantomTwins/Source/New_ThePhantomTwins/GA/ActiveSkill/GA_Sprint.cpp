@@ -5,6 +5,9 @@
 #include "AbilitySystemComponent.h"
 #include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
+#include "Player/PlayerCharacter.h"
 
 UGA_Sprint::UGA_Sprint()
 {
@@ -56,6 +59,16 @@ void UGA_Sprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
     Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
     UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 
+    APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
+
+    if (Character && Character->IsLocallyControlled())
+    {
+        if (SoundCue) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함
+        {
+            ActiveAudioComponent = UGameplayStatics::SpawnSoundAttached(SoundCue, Character->GetRootComponent());
+        }
+    }
+
     // 스프린트가 실행되는 시간만큼 태그를 붙여줄 이펙트 실행. ( = 5초)
     FGameplayEffectSpecHandle SprintSpecHandle = MakeOutgoingGameplayEffectSpec(SprintEffect, 1.0f);
     if (SprintSpecHandle.IsValid())
@@ -76,6 +89,12 @@ void UGA_Sprint::OnCoolDownTagChanged(const FGameplayTag InputTag, int32 TagCoun
     bHasCoolDownTag = TagCount > 0; // 태그가 붙었으면 true, 없으면 false
     if (!bHasCoolDownTag)
     {
+        if (ActiveAudioComponent)
+        {
+            ActiveAudioComponent->Stop();
+            ActiveAudioComponent = nullptr;
+        }
+
         EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
     }
 }
