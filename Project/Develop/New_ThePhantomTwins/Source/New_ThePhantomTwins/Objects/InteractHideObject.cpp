@@ -26,7 +26,8 @@
 #include "SaveGame/TPTSaveGameManager.h"
 #include "Tags/TPTGameplayTags.h"
 
-
+#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
 
 AInteractHideObject::AInteractHideObject() : AInteractableObject()
 {
@@ -160,6 +161,7 @@ void AInteractHideObject::OnInteractServer_Implementation(const APawn* Interacto
 	if (!HasAuthority()) return;
 
 	//TPT_LOG(ObjectLog, Log, TEXT("InteractHideObject::OnInteract Server"));
+	PlayHideInSound(Interactor, true);
 
 	CamLogicServer(Interactor);
 }
@@ -171,6 +173,8 @@ void AInteractHideObject::OnInteractClient_Implementation(const APawn* Interacto
 	if (!Interactor->IsLocallyControlled()) return;
 
 	//TPT_LOG(ObjectLog, Log, TEXT("InteractHideObject::OnInteract Client"));
+
+	PlayHideInSound(Interactor, true);
 
 	SetWidgetVisible(false);
 
@@ -224,6 +228,8 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 
 		EnableVignetteEffect(false);
 
+		PlayHideInSound(Interactor, false);
+
 		if (HideTagGE)
 		{
 			FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
@@ -276,6 +282,8 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 		// 플레이어 옷장 반대방향으로 바라보게 하기
 		FRotator NewRotation = OutPosBox->GetComponentRotation();
 		InteractorPC->SetControlRotation(NewRotation);
+
+		PlayHideInSound(Interactor, false);
 
 		EnableVignetteEffect(false);
 
@@ -376,6 +384,27 @@ void AInteractHideObject::SetViewTarget(APlayerController* InteractorPC, AActor*
 
 		//TPT_LOG(ObjectLog, Log, TEXT("Client: SetViewTarget called with actor: %s"),
 		//	*NewViewTarget->GetName());
+	}
+}
+
+void AInteractHideObject::PlayHideInSound(const APawn* Interactor, bool Visible)
+{
+	if (!HideInPlayerSoundCue) return;
+
+	if (Visible)
+	{
+		if (!ActiveAudioComponent) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함
+		{
+			ActiveAudioComponent = UGameplayStatics::SpawnSoundAttached(HideInPlayerSoundCue, Interactor->GetRootComponent());
+		}
+	}
+	else
+	{
+		if (ActiveAudioComponent) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함
+		{
+			ActiveAudioComponent->Stop();
+			ActiveAudioComponent = nullptr;
+		}
 	}
 }
 
