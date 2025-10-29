@@ -52,6 +52,10 @@ void AGM_PhantomTwins::BeginPlay()
 
     //FTimerHandle TimerHandle;
     //GetWorldTimerManager().SetTimer(TimerHandle,this, &ThisClass::DelayedInitializeSaveTargets, 0.1f, false);
+    UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+    GetWorld()->GetTimerManager().SetTimerForNextTick(
+        FTimerDelegate::CreateUObject(SaveGameManager, &UTPTSaveGameManager::BeginWorldRestoreSequence, GetWorld()));
+
 }
 
 void AGM_PhantomTwins::DelayedInitializeSaveTargets()
