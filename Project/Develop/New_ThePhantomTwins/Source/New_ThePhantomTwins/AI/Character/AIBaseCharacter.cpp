@@ -332,6 +332,15 @@ void AAIBaseCharacter::AttackCollisionBeginOverlap(UPrimitiveComponent* Overlapp
 {
     if (this == OtherActor)
         return;
+
+    ACharacter* Char = Cast<ACharacter>(OtherActor);
+    NULLCHECK_RETURN_LOG(Char, AILog, Log, );
+
+    if (OtherComp != Char->GetCapsuleComponent())
+    {
+        return;
+    }
+
     NULLCHECK_RETURN_LOG(DamageEffectClass, AILog, Log, );
 
     AttackTargetByEffect(OtherActor);

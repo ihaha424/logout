@@ -7,6 +7,7 @@
 #include "Navigation/PathFollowingComponent.h"
 #include "Log/TPTLog.h"
 
+#include "Kismet/KismetSystemLibrary.h"
 
 struct FPriorityStimulusStruct
 {
@@ -29,7 +30,7 @@ void UBTS_PriorityStimulus::OnBecomeRelevant(UBehaviorTreeComponent& OwnerComp, 
 
 	FPriorityStimulusStruct* PriorityStimulusStruct = (FPriorityStimulusStruct*)NodeMemory;
 	PriorityStimulusStruct->CurTargetActor = BB->GetValueAsObject(TargetActorKey.SelectedKeyName);
-	PriorityStimulusStruct->CurPriority = BB->GetValueAsFloat(PriorityKey.SelectedKeyName);
+	PriorityStimulusStruct->CurPriority = BB->GetValueAsInt(PriorityKey.SelectedKeyName);
 }
 
 void UBTS_PriorityStimulus::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -38,7 +39,7 @@ void UBTS_PriorityStimulus::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 	NULLCHECK_RETURN_LOG(BB, AILog, Warning, );
 
 	FPriorityStimulusStruct* PriorityStimulusStruct = (FPriorityStimulusStruct*)NodeMemory;
-	int32 Priority = BB->GetValueAsFloat(PriorityKey.SelectedKeyName);
+	int32 Priority = BB->GetValueAsInt(PriorityKey.SelectedKeyName);
 	UObject* TargetActor = BB->GetValueAsObject(TargetActorKey.SelectedKeyName);
 	if (TargetActor == PriorityStimulusStruct->CurTargetActor)
 		return;
