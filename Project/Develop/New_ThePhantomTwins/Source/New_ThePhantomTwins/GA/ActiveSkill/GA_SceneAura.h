@@ -48,6 +48,7 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Scan Effect")
     TSubclassOf<AActor> ScanEffectActorClass;
 
+    UPROPERTY()
     TArray<AActor*> UnlimitedObjects;
 
     AActor* OtherPlayer = nullptr;

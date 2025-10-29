@@ -297,7 +297,7 @@ void UGA_SceneAura::RemoveAuraFromTarget(AActor* Target)
 bool UGA_SceneAura::IsValidAuraTarget(AActor* Target) const
 {
     FVector Start = OwnerActor->GetActorLocation();
-    FVector End = Target->GetActorLocation();
+    FVector End = Target->GetActorLocation(); 
 
 	FHitResult Hit;
     FCollisionQueryParams Params;
