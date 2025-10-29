@@ -31,7 +31,6 @@ void UGameplayTagNavLinkComponent::BeginPlay()
     SetLinkData(LinkStartPos, LinkEndPos, ENavLinkDirection::BothWays);
     SetMoveReachedLink(this, &UGameplayTagNavLinkComponent::HandleSmartLinkReached);
 }
-#include "Kismet/KismetSystemLibrary.h"
 
 void UGameplayTagNavLinkComponent::HandleSmartLinkReached(UNavLinkCustomComponent* LinkComp, UObject* PathingAgent, const FVector& DestPoint)
 {
@@ -71,7 +70,6 @@ void UGameplayTagNavLinkComponent::HandleSmartLinkReached(UNavLinkCustomComponen
             EventData.EventMagnitude = TempData.EventMagnitude;
         }
     }
-    UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Actor: %s"), *MovingActor->GetName()));
 
     ASC->HandleGameplayEvent(AbilityTag, &EventData);
 }
