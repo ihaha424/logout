@@ -7,7 +7,6 @@
 #include "Navigation/PathFollowingComponent.h"
 #include "Log/TPTLog.h"
 
-#include "Kismet/KismetSystemLibrary.h"
 
 struct FPriorityStimulusStruct
 {

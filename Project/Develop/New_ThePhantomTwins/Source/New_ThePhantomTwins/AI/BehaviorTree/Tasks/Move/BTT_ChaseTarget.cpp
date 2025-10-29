@@ -56,6 +56,7 @@ void UBTT_ChaseTarget::Execute_TickTask(UBehaviorTreeComponent& OwnerComp, uint8
 {
 	FChaseTargetTaskData* TaskData = (FChaseTargetTaskData*)NodeMemory;
 	AAIController* AIController = OwnerComp.GetAIOwner();
+
 	NULLCHECK_CODE_RETURN_LOG(AIController, AILog, Warning, FinishLatentTask(OwnerComp, EBTNodeResult::Failed);, );
 	EPathFollowingStatus::Type Status = AIController->GetPathFollowingComponent()->GetStatus();
 	if (Status == EPathFollowingStatus::Idle 

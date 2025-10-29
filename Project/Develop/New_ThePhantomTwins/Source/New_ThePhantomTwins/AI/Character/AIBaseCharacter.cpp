@@ -261,27 +261,31 @@ void AAIBaseCharacter::CheckCombatRangeInActor()
         FCollisionQueryParams Params;
         Params.AddIgnoredActor(this);
 
-        FCollisionObjectQueryParams ObjParams;
-        ObjParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
-        ObjParams.AddObjectTypesToQuery(ECC_Pawn);
-        ObjParams.AddObjectTypesToQuery(ECC_Visibility);
+        FCollisionObjectQueryParams ObjParams = FCollisionObjectQueryParams(
+            ECC_TO_BITFIELD(ECC_GameTraceChannel1) 
+            | ECC_TO_BITFIELD(ECC_Pawn) 
+            | ECC_TO_BITFIELD(ECC_WorldStatic) 
+            | ECC_TO_BITFIELD(ECC_WorldDynamic)
+        );
 
         const bool bHit = GetWorld()->LineTraceSingleByObjectType(
             HitResult, MyLoc, TargetLoc, ObjParams, Params
         );
 
     #if WITH_EDITOR
-        //DrawDebugLine(
-        //    GetWorld(),
-        //    MyLoc,
-        //    TargetLoc,
-        //    FColor::Red,
-        //    false,
-        //    2.0f,
-        //    0,
-        //    2.0f
-        //);
+        //if(bHit)
+        //    DrawDebugLine(
+        //        GetWorld(),
+        //        MyLoc,
+        //        HitResult.ImpactPoint,
+        //        FColor::Red,
+        //        false,
+        //        2.0f,
+        //        0,
+        //        2.0f
+        //    );
     #endif
+        
         if (bHit && HitResult.GetActor() == actor)
         {
             AAIController* AIController = Cast<AAIController>(GetController());
