@@ -269,6 +269,7 @@ void AThrowEMP::DisableGlitchTrap()
         if (GlitchTrap && GlitchTrap->Tags.Contains(FName("GlitchTrap")))
         {
             GlitchTrap->bEnableEffectAndCue = false;
+            GlitchTrap->Deactivate(GlitchTrapDisableDuration);
 
             // 일정 시간 뒤 다시 true로 복원
             FTimerHandle TimerHandle;
@@ -279,6 +280,7 @@ void AThrowEMP::DisableGlitchTrap()
                     if (GlitchTrap)
                     {
                         GlitchTrap->bEnableEffectAndCue = true;
+                        GlitchTrap->Activate();
                         //TPT_LOG(GALog, Log, TEXT("GlitchTrap re-enabled: %s"), *GlitchTrap->GetName());
                     }
                 },
