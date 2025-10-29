@@ -34,8 +34,6 @@ void UGameplayTagNavLinkComponent::BeginPlay()
 
 void UGameplayTagNavLinkComponent::HandleSmartLinkReached(UNavLinkCustomComponent* LinkComp, UObject* PathingAgent, const FVector& DestPoint)
 {
-    UKismetSystemLibrary::PrintString(this, TEXT("11111"));
-
     AActor* MovingActor = nullptr;
     UPathFollowingComponent* PathComp = Cast<UPathFollowingComponent>(PathingAgent);
     if (PathComp)
