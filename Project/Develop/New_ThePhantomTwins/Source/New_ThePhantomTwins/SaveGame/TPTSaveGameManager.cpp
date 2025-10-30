@@ -40,15 +40,28 @@ UTPTSaveGameManager::UTPTSaveGameManager()
     bPlayerInitialized = false;
 }
 
-void UTPTSaveGameManager::Initialize(FSubsystemCollectionBase& Collection)
+void UTPTSaveGameManager::ReInitialize()
 {
-    Super::Initialize(Collection);
-    //FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &ThisClass::InitializeSaveTargets);
+    bActorsInitialized = false;
+    bPlayerInitialized = false;
+
+    DoorActorsMap.Reset();
+    ItemActorsMap.Reset();
+    HideObjectActorsMap.Reset();
+    ItemBoxActorsMap.Reset();
+    AIActorsMap.Reset();
 }
+
 void UTPTSaveGameManager::Deinitialize()
 {
-    PlayerSaveGames.Empty();
+    PlayerSaveGames.Reset();
     GameSaveGame = nullptr;
+    DoorActorsMap.Reset();
+    ItemActorsMap.Reset();
+    HideObjectActorsMap.Reset();
+    ItemBoxActorsMap.Reset();
+    AIActorsMap.Reset();
+
     Super::Deinitialize();
 }
 
@@ -90,7 +103,7 @@ void UTPTSaveGameManager::InitializeSaveTargets()
                 continue;
             }*/
             FName DoorID = Door->GetFName();
-
+            TPT_LOG(SaveGameLog, Warning, TEXT("DataFragment : %s"), *DoorID.ToString())
             if (DoorActorsMap.Contains(DoorID))
             {
                 DoorActorsMap[DoorID] = Door;
@@ -121,24 +134,29 @@ void UTPTSaveGameManager::InitializeSaveTargets()
             //{
             //    continue;
             //}
-            FName ItemID = Actor->GetFName();
-            if (Cast < ADataFragment>(Item))
+            FName ItemID = Item->GetFName();
+            if (Cast <ADataFragment>(Item))
             {
 	            TPT_LOG(SaveGameLog,Warning,TEXT("DataFragment : %s"), *ItemID.ToString())
             }
             if (ItemActorsMap.Contains(ItemID))
             {
+                TPT_LOG(SaveGameLog, Warning, TEXT("DataFragment Actor Add: %s"), *ItemID.ToString())
                 ItemActorsMap[ItemID] = Item;
             }
 
             if (!bActorsInitialized)
             {
+                TPT_LOG(SaveGameLog, Warning, TEXT("DataFragment Initialized: %s"), *ItemID.ToString())
                 ItemActorsMap.Add(ItemID, Item);
                 GameSaveGame->ItemStates.FindOrAdd(ItemID, true);
             }
         }
     }
-
+    for (const auto& KVP : ItemActorsMap)
+    {
+        TPT_LOG(SaveGameLog, Warning, TEXT("ItemActorsMap: Key=%s, Value=%s"), *KVP.Key.ToString(), IsValid(KVP.Value) ? *KVP.Value->GetName() : TEXT("nullptr"));
+    }
     // 숨는 오브젝트 액터
     TempActors.Empty();
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), AInteractHideObject::StaticClass(), TempActors);
@@ -152,7 +170,7 @@ void UTPTSaveGameManager::InitializeSaveTargets()
             //{
             //    continue;
             //}
-            FName HideObjectID = Actor->GetFName();
+            FName HideObjectID = HideObject->GetFName();
 
             if (HideObjectActorsMap.Contains(HideObjectID))
             {
@@ -180,7 +198,7 @@ void UTPTSaveGameManager::InitializeSaveTargets()
             //{
             //    continue;
             //}
-            FName BoxID = Actor->GetFName();
+            FName BoxID = Box->GetFName();
 
             if (ItemBoxActorsMap.Contains(BoxID))
             {
@@ -208,7 +226,7 @@ void UTPTSaveGameManager::InitializeSaveTargets()
             //{
             //    continue;
             //}
-            FName AIID = Actor->GetFName();
+            FName AIID = AI->GetFName();
 
             if (AIActorsMap.Contains(AIID))
             {
@@ -349,16 +367,26 @@ void UTPTSaveGameManager::RegisterReadyTarget(AActor* Spawned)
     }
 }
 
-void UTPTSaveGameManager::TempSaveByID(const FName& ObjectID, const bool bIsExist)
+void UTPTSaveGameManager::TempSaveByID(const FName ObjectID, const bool bIsExist)
 {
     if (!GameSaveGame)
-        return;
-    TPT_LOG(SaveGameLog, Warning, TEXT("22DataFragment : %s"), *GetFName().ToString())
+    {
+	    return;
+    }
+    for (const auto& KVP : ItemActorsMap)
+    {
+        TPT_LOG(SaveGameLog, Warning, TEXT("ItemActorsMap: Key=%s, Value=%s"), *KVP.Key.ToString(), IsValid(KVP.Value) ? *KVP.Value->GetName() : TEXT("nullptr"));
+    }
+
+    TPT_LOG(SaveGameLog, Warning, TEXT("Current Object ID : %s"), *ObjectID.ToString());
 
     // 문 액터에서 매칭되는 ObjectID가 있으면 상태 업데이트
-    if (AActor** DoorActor = DoorActorsMap.Find(ObjectID))
+    if (DoorActorsMap.Contains(ObjectID))
     {
+        AActor** DoorActor = DoorActorsMap.Find(ObjectID);
         ADoor* Door = Cast<ADoor>(*DoorActor);
+        TPT_LOG(SaveGameLog, Warning, TEXT("DoorActor : %s"), *Door->GetFName().ToString());
+
         if (Door)
         {
             FDoorState DoorState;
@@ -369,14 +397,13 @@ void UTPTSaveGameManager::TempSaveByID(const FName& ObjectID, const bool bIsExis
             return;
         }
     }
-    TPT_LOG(SaveGameLog, Warning, TEXT("33DataFragment : %s"), *GetFName().ToString())
 
     // 아이템 액터 상태 업데이트
-    if (AActor** ItemActor = ItemActorsMap.Find(ObjectID))
+    if (ItemActorsMap.Contains(ObjectID))
     {
-        TPT_LOG(SaveGameLog, Warning, TEXT("66DataFragment : %s"), *GetFName().ToString())
-
+        AActor** ItemActor = ItemActorsMap.Find(ObjectID);
         AItemObject* Item = Cast<AItemObject>(*ItemActor);
+        TPT_LOG(SaveGameLog, Warning, TEXT("66DataFragment : %s"), *Item->GetFName().ToString());
         if (Cast<ADataFragment>(Item))
         {
             TPT_LOG(SaveGameLog, Warning, TEXT("44DataFragment : %s"), *ObjectID.ToString())
@@ -390,8 +417,9 @@ void UTPTSaveGameManager::TempSaveByID(const FName& ObjectID, const bool bIsExis
     }
 
     // 숨는 오브젝트 상태 업데이트
-    if (AActor** HideActor = HideObjectActorsMap.Find(ObjectID))
+    if (HideObjectActorsMap.Contains(ObjectID))
     {
+        AActor** HideActor = HideObjectActorsMap.Find(ObjectID);
         AInteractHideObject* HideObj = Cast<AInteractHideObject>(*HideActor);
         if (HideObj)
         {
@@ -401,8 +429,9 @@ void UTPTSaveGameManager::TempSaveByID(const FName& ObjectID, const bool bIsExis
     }
 
     // 아이템 박스 상태 업데이트
-    if (AActor** ItemBoxActor = ItemBoxActorsMap.Find(ObjectID))
+    if (ItemBoxActorsMap.Contains(ObjectID))
     {
+        AActor** ItemBoxActor = ItemBoxActorsMap.Find(ObjectID);
         ABoxObject* Box = Cast<ABoxObject>(*ItemBoxActor);
         if (Box)
         {
@@ -413,8 +442,9 @@ void UTPTSaveGameManager::TempSaveByID(const FName& ObjectID, const bool bIsExis
     }
 
     // AI 상태 업데이트
-    if (AActor** AIActor = AIActorsMap.Find(ObjectID))
+    if (AIActorsMap.Contains(ObjectID))
     {
+        AActor** AIActor = AIActorsMap.Find(ObjectID);
         AAIBaseCharacter* AI = Cast<AAIBaseCharacter>(*AIActor);
         if (AI)
         {

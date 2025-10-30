@@ -190,8 +190,12 @@ bool ADoor::AreAllTriggerActived_Implementation()
 	if (triggerActive >= MinRequiredCount)
 	{
 		bIsAllTriggered = true;
-		UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-		SaveGameManager->TempSaveByID(GetFName(), true);
+
+		if (MinRequiredCount > 0)
+		{
+			UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+			SaveGameManager->TempSaveByID(GetFName(), true);
+		}
 
 		CheckAllTriggered();
 		OnDoorLockStateChanged();

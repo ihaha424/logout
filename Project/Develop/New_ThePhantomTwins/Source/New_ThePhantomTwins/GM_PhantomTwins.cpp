@@ -50,19 +50,19 @@ void AGM_PhantomTwins::BeginPlay()
         GS->OnClickedAgreeWithGameStopChanged.AddDynamic(this, &ThisClass::NotifyPlayerAgreeWithGameStop);
     }
 
-    //FTimerHandle TimerHandle;
-    //GetWorldTimerManager().SetTimer(TimerHandle,this, &ThisClass::DelayedInitializeSaveTargets, 0.1f, false);
-    UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-    GetWorld()->GetTimerManager().SetTimerForNextTick(
-        FTimerDelegate::CreateUObject(SaveGameManager, &UTPTSaveGameManager::BeginWorldRestoreSequence, GetWorld()));
+    FTimerHandle TimerHandle;
+    GetWorldTimerManager().SetTimer(TimerHandle,this, &ThisClass::DelayedInitializeSaveTargets, 0.1f, false);
+    //UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+    //GetWorld()->GetTimerManager().SetTimerForNextTick(
+    //    FTimerDelegate::CreateUObject(SaveGameManager, &UTPTSaveGameManager::BeginWorldRestoreSequence, GetWorld()));
 
 }
 
 void AGM_PhantomTwins::DelayedInitializeSaveTargets()
 {
- //   UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-	//SaveGameManager->InitializeSaveTargets();
- //   SaveGameManager->ApplyActorSaveGame();
+    UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+	SaveGameManager->InitializeSaveTargets();
+    SaveGameManager->ApplyActorSaveGame();
 }
 
 void AGM_PhantomTwins::PostLogin(APlayerController* NewPlayer)
@@ -229,18 +229,13 @@ void AGM_PhantomTwins::NotifyPlayerClickRestart(bool bIsHostClicked, bool bIsCli
 
 void AGM_PhantomTwins::RestartWithDelay(float Delay)
 {
-    //UGameplayStatics::SetGamePaused(GetWorld(), false);
-    //FTimerHandle TimerHandle;
-    //GetWorldTimerManager().SetTimer(TimerHandle, [this]()
-    //    {
-            FString PackageName = GetWorld()->GetOutermost()->GetName();
-            FString CleanPath = FPackageName::GetLongPackagePath(PackageName);
-            FString MapBaseName = FPackageName::GetShortName(PackageName);
 
-            FString TravelURL = CleanPath + TEXT("/") + MapBaseName + TEXT("?listen");
-            GetWorld()->ServerTravel(TravelURL, false);
+    FString PackageName = GetWorld()->GetOutermost()->GetName();
+    FString CleanPath = FPackageName::GetLongPackagePath(PackageName);
+    FString MapBaseName = FPackageName::GetShortName(PackageName);
 
-     //   }, Delay, false);
+    FString TravelURL = CleanPath + TEXT("/") + MapBaseName + TEXT("?listen");
+    GetWorld()->ServerTravel(TravelURL, false);
 }
 
 void AGM_PhantomTwins::OnItemCountChanged(int32 NewCount)
@@ -302,6 +297,9 @@ void AGM_PhantomTwins::ShowLoadingScene()
 
 void AGM_PhantomTwins::SeverToLevel(const FName LevelName, bool bAbsolute, bool bIsListen)
 {
+    UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+    SaveGameManager->ReInitialize();
+
     APlayerController* PC = GetWorld()->GetFirstPlayerController();
     if (!PC->HasAuthority()) return;
 

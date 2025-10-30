@@ -19,7 +19,8 @@ class NEW_THEPHANTOMTWINS_API UTPTSaveGameManager : public UGameInstanceSubsyste
 	GENERATED_BODY()
 public:
     UTPTSaveGameManager();
-    virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+
+    void ReInitialize();
     virtual void Deinitialize() override;
 
     UFUNCTION()
@@ -29,7 +30,7 @@ public:
     UFUNCTION()
     void InitializeSaveTargets();
     UFUNCTION(BlueprintCallable)
-	void TempSaveByID(const FName& ObjectID, const bool bIsExist);
+	void TempSaveByID(const FName ObjectID, const bool bIsExist);
 
     UFUNCTION()
     void TempSavePlayer(const APlayerController* PC);
