@@ -38,6 +38,8 @@ void ADoor::BeginPlay()
 	{
 		MinRequiredCount = RequiredList.Num();
 	}
+
+	AreAllTriggerActived();
 }
 
 void ADoor::SetWidgetVisible(bool bVisible)
@@ -120,6 +122,7 @@ void ADoor::OnInteractServer_Implementation(const APawn* Interactor)
 		if (bIsActived)
 		{
 			S2A_OpenDoor();
+			OnDoorLockStateChanged();
 		}
 		else
 		{
@@ -192,6 +195,7 @@ bool ADoor::AreAllTriggerActived_Implementation()
 		SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
 
 		CheckAllTriggered();
+		OnDoorLockStateChanged();
 		return true;
 	}
 	else
@@ -204,6 +208,7 @@ bool ADoor::AreAllTriggerActived_Implementation()
 			SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
 
 			CheckAllTriggered();
+			OnDoorLockStateChanged();
 			return true;
 		}
 		else
@@ -247,10 +252,12 @@ void ADoor::OnRep_bKeyUsed()
 	{
 		InteractWidgetComp->SetVisibility(false);
 		LockWidgetComp->SetVisibility(true);
+		OnDoorLockStateChanged();
 	}
 	else // 트리거들이 활성화된 경우 → NearWidget
 	{
 		InteractWidgetComp->SetVisibility(true);
 		LockWidgetComp->SetVisibility(false);
+		OnDoorLockStateChanged();
 	}
 }

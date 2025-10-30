@@ -63,6 +63,8 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Door")
 	void ShowLockedDoorDialog(const APawn* Interactor);
 
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Door")
+	void OnDoorLockStateChanged();
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")
@@ -81,7 +83,7 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Door", ReplicatedUsing = OnRep_bKeyUsed)  
 	bool bKeyUsed = false;
-	UPROPERTY(Replicated, BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere, Replicated, BlueprintReadWrite, Category = "Door")
 	bool bIsAllTriggered = false;
 
 	UFUNCTION()
