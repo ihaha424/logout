@@ -118,6 +118,7 @@ void UFocusTraceComponent::PerformTrace()
 
     FCollisionObjectQueryParams ObjParams;
     ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
+    ObjParams.AddObjectTypesToQuery(ECC_WorldDynamic);
     ObjParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
  
     FCollisionShape Sphere = FCollisionShape::MakeSphere(SphereRadius);
