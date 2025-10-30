@@ -122,7 +122,6 @@ void ADoor::OnInteractServer_Implementation(const APawn* Interactor)
 		if (bIsActived)
 		{
 			S2A_OpenDoor();
-			OnDoorLockStateChanged();
 		}
 		else
 		{
