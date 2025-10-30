@@ -19,9 +19,15 @@ public:
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
     AActor* GetFocusedActor() const { return FocusedActor; }
 
+    UFUNCTION(BlueprintCallable)
     void SetStart(const FVector& Vector);
+    UFUNCTION(BlueprintCallable)
     void SetDirection(const FVector& Vector);
+    UFUNCTION(BlueprintCallable)
     void SetCollisionType(ECollisionChannel CollisionChannel);
+
+    UFUNCTION(BlueprintCallable)
+    void SetStartOfsset(const float Offset);
 
     UFUNCTION()
     void OnRep_FocusedActor();
@@ -40,8 +46,13 @@ private:
 
     UPROPERTY()
     AActor* PrevActor = nullptr;
-    UPROPERTY(EditAnywhere)
+    UPROPERTY(EditAnywhere, Category = "Trace | Trace Distance ")
     float TraceDistance = 1000.f;
+    UPROPERTY(EditAnywhere, Category = "Trace | Start Position Offset ")
+    float StartOffset = 100.f;
+
+    UPROPERTY(EditAnywhere, Category = "Trace | Debug Setting")
+    bool bOnDebug = false;
 
 	FVector Start;
 	FVector Direction;

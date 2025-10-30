@@ -28,6 +28,7 @@
 
 #include "Kismet/GameplayStatics.h"
 #include "Components/AudioComponent.h"
+#include "Player/FocusTraceComponent.h"
 
 AInteractHideObject::AInteractHideObject() : AInteractableObject()
 {
@@ -220,6 +221,11 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 
 		ExitObject();
 
+		if (const APlayerCharacter* Player = Cast<APlayerCharacter>(Interactor))
+		{
+			Player->GetFocusTrace()->SetStartOfsset(100.0f);
+		}
+
 		// 클라이언트에게 입력 활성화 명령 전달
 		SetInputState(InteractorPC, false);
 
@@ -320,6 +326,11 @@ void AInteractHideObject::EnterObject(const APawn* Interactor)
 	// 플레이어 위치가 InPosBox로 변경
 	if (InPosBox && HidePlayer)
 	{
+		if (const APlayerCharacter* Player = Cast<APlayerCharacter>(Interactor))
+		{
+			Player->GetFocusTrace()->SetStartOfsset(0.0f);
+		}
+
 		FVector NewLocation = InPosBox->GetComponentLocation();
 		FRotator NewRotation = InPosBox->GetComponentRotation();
 		HidePlayer->SetActorLocationAndRotation(NewLocation, NewRotation);
@@ -343,9 +354,6 @@ void AInteractHideObject::ExitObject()
 			// 플레이어 Hide 태그 제거
 			ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 		}
-
-
-
 
 		FVector NewLocation = OutPosBox->GetComponentLocation();
 		FRotator NewRotation = OutPosBox->GetComponentRotation();

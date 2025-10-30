@@ -54,6 +54,11 @@ void UFocusTraceComponent::SetCollisionType(ECollisionChannel CollisionChannel)
     CollisionType = CollisionChannel;
 }
 
+void UFocusTraceComponent::SetStartOfsset(const float Offset)
+{
+	StartOffset = Offset;
+}
+
 void UFocusTraceComponent::OnRep_FocusedActor()
 {
 	APlayerCharacter* Character = Cast<APlayerCharacter>(GetOwner());
@@ -119,7 +124,7 @@ void UFocusTraceComponent::PerformTrace()
 
     bool bHit = GetWorld()->SweepSingleByObjectType(
         Hit,
-        Start,
+        Start + (Direction * StartOffset),
         End,
         FQuat::Identity, // 회전 필요 없으면 Identity
         ObjParams,
@@ -134,17 +139,20 @@ void UFocusTraceComponent::PerformTrace()
 
 
 #if WITH_EDITOR
-   /* DrawDebugSphere(
-        GetWorld(),
-        Hit.ImpactPoint,
-        SphereRadius,
-        16,
-        (Hit.GetActor() == FocusedActor ? FColor::Blue : FColor::Silver),
-        false,
-        1.0f,
-        0,
-		3.0f
-    );*/
+    if (bOnDebug)
+    {
+		DrawDebugSphere(
+			GetWorld(),
+			Hit.ImpactPoint,
+			SphereRadius,
+			16,
+			(Hit.GetActor() == FocusedActor ? FColor::Yellow : FColor::Silver),
+			false,
+			1.0f,
+			0,
+			1.0f
+		);
+    }
 #endif
 
 	if (IsValid(PrevActor) && PrevActor != FocusedActor)
