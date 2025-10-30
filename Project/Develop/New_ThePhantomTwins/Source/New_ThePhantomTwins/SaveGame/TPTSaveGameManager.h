@@ -29,7 +29,7 @@ public:
     UFUNCTION()
     void InitializeSaveTargets();
     UFUNCTION(BlueprintCallable)
-	void TempSaveByID(const FGuid& ObjectID, const bool bIsExist);
+	void TempSaveByID(const FName& ObjectID, const bool bIsExist);
 
     UFUNCTION()
     void TempSavePlayer(const APlayerController* PC);
@@ -63,13 +63,13 @@ private:
     UPROPERTY()
     UTPTSaveGame* GameSaveGame;
     UPROPERTY()
-    TMap<FGuid, AActor*> DoorActorsMap;
+    TMap<FName, AActor*> DoorActorsMap;
     UPROPERTY()
-    TMap<FGuid, AActor*> ItemActorsMap;
+    TMap<FName, AActor*> ItemActorsMap;
     UPROPERTY()
-    TMap<FGuid, AActor*> HideObjectActorsMap;
+    TMap<FName, AActor*> HideObjectActorsMap;
     UPROPERTY()
-    TMap<FGuid, AActor*> ItemBoxActorsMap;
+    TMap<FName, AActor*> ItemBoxActorsMap;
     UPROPERTY()
-    TMap<FGuid, AActor*> AIActorsMap;
+    TMap<FName, AActor*> AIActorsMap;
 };

@@ -129,7 +129,7 @@ void ADoor::OnInteractServer_Implementation(const APawn* Interactor)
 			S2A_CloseDoor();
 		}
 		UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-		SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
+		SaveGameManager->TempSaveByID(GetFName(), true);
 	}
 }
 
@@ -192,7 +192,7 @@ bool ADoor::AreAllTriggerActived_Implementation()
 	{
 		bIsAllTriggered = true;
 		UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-		SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
+		SaveGameManager->TempSaveByID(GetFName(), true);
 
 		CheckAllTriggered();
 		OnDoorLockStateChanged();
@@ -205,7 +205,7 @@ bool ADoor::AreAllTriggerActived_Implementation()
 		{
 			bIsAllTriggered = true;
 			UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-			SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
+			SaveGameManager->TempSaveByID(GetFName(), true);
 
 			CheckAllTriggered();
 			OnDoorLockStateChanged();

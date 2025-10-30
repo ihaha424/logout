@@ -38,25 +38,6 @@ void ABoxObject::SetActive(bool bIsActive)
 	Super::SetActive(bIsActive);
 }
 
-//AActor* ABoxObject::FindWarningActor()
-//{
-//	TArray<UChildActorComponent*> ChildActorComponents;
-//	GetComponents<UChildActorComponent>(ChildActorComponents);
-//
-//	for (UChildActorComponent* ChildActorComp : ChildActorComponents)
-//	{
-//		if (ChildActorComp && ChildActorComp->GetChildActor())
-//		{
-//			AActor* ChildActor = ChildActorComp->GetChildActor();
-//			if (WarningClass && ChildActor->GetClass() == WarningClass)
-//			{
-//				return ChildActor;
-//			}
-//		}
-//	}
-//	return nullptr;
-//}
-
 void ABoxObject::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	if (bIsActived) return;
@@ -72,7 +53,7 @@ void ABoxObject::OnInteractServer_Implementation(const APawn* Interactor)
 	}
 
 	UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-	SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
+	SaveGameManager->TempSaveByID(GetFName(), true);
 }
 
 // 멀티캐스트 함수들 구현

@@ -36,7 +36,8 @@ public:
 	virtual void SetActive(bool bIsActive)
 	{
 		bIsActived = bIsActive;
-	}public:	
+	}
+public:	
 	// 가까운 오브젝트 확인용 위젯
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")
 	TObjectPtr<class UWidgetComponent> InteractWidgetComp;

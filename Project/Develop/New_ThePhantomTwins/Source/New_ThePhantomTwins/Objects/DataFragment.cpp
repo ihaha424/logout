@@ -56,7 +56,8 @@ void ADataFragment::OnInteractServer_Implementation(const APawn* Interactor)
 	NULLCHECK_RETURN_LOG(Player, ItemLog, Warning, );
 
 	UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-	SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, false);
+	TPT_LOG(SaveGameLog, Warning, TEXT("11DataFragment : %s"), *GetFName().ToString())
+	SaveGameManager->TempSaveByID(GetFName(), false);
 	SaveGameManager->SetRestartPoint(this);
 
 	UWorld* World = GetWorld();
@@ -75,7 +76,6 @@ void ADataFragment::OnInteractServer_Implementation(const APawn* Interactor)
 	
 	InvokeGameplayCue(Interactor);
 	ApplyEffectToTarget(Interactor);
-
 
 	SetDataFragmentPickupWidget();
 
