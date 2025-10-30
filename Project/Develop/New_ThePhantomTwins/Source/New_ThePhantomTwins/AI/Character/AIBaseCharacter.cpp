@@ -346,7 +346,6 @@ void AAIBaseCharacter::AttackCollisionBeginOverlap(UPrimitiveComponent* Overlapp
     }
 
     NULLCHECK_RETURN_LOG(DamageEffectClass, AILog, Log, );
-
     AttackTargetByEffect(OtherActor);
 }
 
