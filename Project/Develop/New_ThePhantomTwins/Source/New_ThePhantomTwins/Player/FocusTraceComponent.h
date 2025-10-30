@@ -35,24 +35,24 @@ public:
     void PerformTrace();
 
     // 라인의 두께
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float SphereRadius = 50.f;
 	UPROPERTY(ReplicatedUsing = OnRep_FocusedActor)
 	AActor* FocusedActor;
 protected:
     virtual void BeginPlay() override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TraceDistance = 1000.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float StartOffset = 100.f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    bool bOnDebug = false;
+
 private:
 
     UPROPERTY()
     AActor* PrevActor = nullptr;
-    UPROPERTY(EditAnywhere, Category = "Trace | Trace Distance ")
-    float TraceDistance = 1000.f;
-    UPROPERTY(EditAnywhere, Category = "Trace | Start Position Offset ")
-    float StartOffset = 100.f;
-
-    UPROPERTY(EditAnywhere, Category = "Trace | Debug Setting")
-    bool bOnDebug = false;
 
 	FVector Start;
 	FVector Direction;
