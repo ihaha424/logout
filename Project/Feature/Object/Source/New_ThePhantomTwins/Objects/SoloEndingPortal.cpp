@@ -18,6 +18,8 @@ void ASoloEndingPortal::BeginPlay()
 
 void ASoloEndingPortal::OnInteractClient_Implementation(const APawn* Interactor)
 {
+	Super::OnInteractClient_Implementation(Interactor);
+
 	APC_Player* PC_Player = Cast<APC_Player>(Interactor->GetController());
 	NULLCHECK_RETURN_LOG(PC_Player, ObjectLog, Error, );
 	PC_Player->SetWidget(TEXT("SoloLogout"), true, EMessageTargetType::LocalClient);

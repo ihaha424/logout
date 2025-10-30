@@ -24,10 +24,10 @@ AConsoleObject::AConsoleObject() : AInteractableObject()
 	bReplicates = true;
 
 	// player 체크 할 trigger
-	SafeZoneTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("SafeZoneTriggerComponent"));
-	SafeZoneTrigger->SetCollisionProfileName(TEXT("OverlapAll"));
-	SafeZoneTrigger->SetGenerateOverlapEvents(true);
-	SafeZoneTrigger->SetupAttachment(RootSceneComp);
+	//SafeZoneTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("SafeZoneTriggerComponent"));
+	//SafeZoneTrigger->SetCollisionProfileName(TEXT("OverlapAll"));
+	//SafeZoneTrigger->SetGenerateOverlapEvents(true);
+	//SafeZoneTrigger->SetupAttachment(RootSceneComp);
 
 	// Lock Widget
 	LockWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("LockWidget"));
@@ -46,11 +46,11 @@ void AConsoleObject::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (SafeZoneTrigger)
-	{
-		SafeZoneTrigger->OnComponentBeginOverlap.AddDynamic(this, &AConsoleObject::OnTriggerBeginOverlap);
-		SafeZoneTrigger->OnComponentEndOverlap.AddDynamic(this, &AConsoleObject::OnTriggerEndOverlap);
-	}
+	//if (SafeZoneTrigger)
+	//{
+	//	SafeZoneTrigger->OnComponentBeginOverlap.AddDynamic(this, &AConsoleObject::OnTriggerBeginOverlap);
+	//	SafeZoneTrigger->OnComponentEndOverlap.AddDynamic(this, &AConsoleObject::OnTriggerEndOverlap);
+	//}
 
 	if (LockWidgetComp)
 	{
@@ -87,7 +87,7 @@ void AConsoleObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AConsoleObject, LevelDataFragments);
-	DOREPLIFETIME(AConsoleObject, InteractPlayers);
+	//DOREPLIFETIME(AConsoleObject, InteractPlayers);
 	DOREPLIFETIME(AConsoleObject, bIsCollectionCompleted);
 }
 
@@ -225,43 +225,43 @@ void AConsoleObject::SetWidgetVisible(bool bVisible)
 	}
 }
 
-void AConsoleObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	// 1. APlayerCharacter인지 체크
-	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(OtherActor);
-	if (!PlayerChar) return;
-
-	// 이미 들어와 있다면 무시
-	if (!InteractPlayers.Contains(PlayerChar))
-	{
-		InteractPlayers.Add(PlayerChar);
-	}
-}
-
-void AConsoleObject::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(OtherActor);
-	NULLCHECK_RETURN_LOG(PlayerChar, ObjectLog, Error, );
-
-	if (InteractPlayers.Contains(PlayerChar))
-	{
-		InteractPlayers.Remove(PlayerChar);
-	}
-
-	APlayerController* InteractorPC = Cast<APlayerController>(PlayerChar->GetController());
-	NULLCHECK_RETURN_LOG(InteractorPC, ObjectLog, Error, );
-	APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
-	NULLCHECK_RETURN_LOG(PS, ObjectLog, Error, );
-	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
-	NULLCHECK_RETURN_LOG(ASC, ObjectLog, Error, );
-
-	// 플레이어에 LogOutReady 태그가 있다면
-	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LogOutReady))
-	{
-		// LogOutReady 태그 제거
-		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LogOutReady);
-	}
-}
+//void AConsoleObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+//{
+//	// 1. APlayerCharacter인지 체크
+//	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(OtherActor);
+//	if (!PlayerChar) return;
+//
+//	// 이미 들어와 있다면 무시
+//	if (!InteractPlayers.Contains(PlayerChar))
+//	{
+//		InteractPlayers.Add(PlayerChar);
+//	}
+//}
+//
+//void AConsoleObject::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+//{
+//	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(OtherActor);
+//	NULLCHECK_RETURN_LOG(PlayerChar, ObjectLog, Error, );
+//
+//	if (InteractPlayers.Contains(PlayerChar))
+//	{
+//		InteractPlayers.Remove(PlayerChar);
+//	}
+//
+//	APlayerController* InteractorPC = Cast<APlayerController>(PlayerChar->GetController());
+//	NULLCHECK_RETURN_LOG(InteractorPC, ObjectLog, Error, );
+//	APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
+//	NULLCHECK_RETURN_LOG(PS, ObjectLog, Error, );
+//	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+//	NULLCHECK_RETURN_LOG(ASC, ObjectLog, Error, );
+//
+//	// 플레이어에 LogOutReady 태그가 있다면
+//	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LogOutReady))
+//	{
+//		// LogOutReady 태그 제거
+//		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LogOutReady);
+//	}
+//}
 
 void AConsoleObject::UpdateCollectionCompletionState()
 {
@@ -331,19 +331,12 @@ void AConsoleObject::S2A_InvokePlaySoloEnding_Implementation(APawn* Interactor)
 	if (!Interactor)
 		return;
 
-	// 로컬 클라이언트의 PlayerController 가져오기
-	APlayerController* LocalPC = GetWorld()->GetFirstPlayerController();
-	if (!LocalPC) return;
 
 	// Interactor의 Controller가 로컬 PlayerController인지 확인
 	APlayerController* InteractorPC = Cast<APlayerController>(Interactor->GetController());
-	if (InteractorPC && LocalPC->IsLocalPlayerController())
+	if (InteractorPC && InteractorPC->IsLocalPlayerController())
 	{
-		// 로컬 클라이언트 환경에서만 실행
-		if (InteractorPC == LocalPC)  // 로컬 클라이언트의 Pawn인지 재확인
-		{
-			PlaySoloEnding(Interactor);
-		}
+		PlaySoloEnding(Interactor);
 	}
 }
 
