@@ -2,9 +2,12 @@
 
 
 #include "PhantomTwinsInstance.h"
+
+#include "AudioDevice.h"
 #include "Tags/TPTGameplayTags.h"
 #include "GameFramework/GameUserSettings.h"
 #include "Log/TPTLog.h"
+#include "Kismet/GameplayStatics.h"
 #include "DialogManager/DialogManager.h"
 
 void UPhantomTwinsInstance::Init()
@@ -24,4 +27,42 @@ void UPhantomTwinsInstance::Init()
 	DialogManager = NewObject<UDialogManager>(this);
 
 	DialogManager->Initialize(Initialize);
+}
+
+void UPhantomTwinsInstance::InitSound()
+{
+    if (!DuckSoundMix)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("DuckSoundMix not assigned."));
+        return;
+    }
+
+	//// 사운드 믹스를 활성화
+	//UGameplayStatics::PushSoundMixModifier(GetWorld(), DuckSoundMix);
+	//
+	//// 각각의 사운드 클래스에 오버라이드 적용
+	//auto ApplyVolume = [&](USoundClass* SoundClass, float Volume)
+	//    {
+	//        if (SoundClass)
+	//        {
+	//            UGameplayStatics::SetSoundMixClassOverride(
+	//                GetWorld(),
+	//                DuckSoundMix,
+	//                SoundClass,
+	//                Volume,
+	//                1.0f,        // Pitch
+	//                1.0f,        // FadeInTime
+	//                true         // ApplyToChildren
+	//            );
+	//        }
+	//    };
+	//
+	//ApplyVolume(MasterClass, 1.0f);
+	//ApplyVolume(MusicClass, 0.8f);
+	//ApplyVolume(SFXClass, 0.8f);
+	//ApplyVolume(CharacterVoiceClass, 1.0f);
+	//ApplyVolume(EnemyVoiceClass, 1.0f);
+	//
+	//// 변경사항을 커밋 (적용)
+	//UGameplayStatics::PushSoundMixModifier(GetWorld(), DuckSoundMix);
 }
