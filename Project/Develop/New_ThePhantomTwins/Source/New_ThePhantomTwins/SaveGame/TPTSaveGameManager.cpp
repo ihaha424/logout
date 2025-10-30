@@ -123,7 +123,10 @@ void UTPTSaveGameManager::InitializeSaveTargets()
                 continue;
             }
             FGuid ItemID = SaveIDComp->SaveId;
-
+            if (Cast < ADataFragment>(Item))
+            {
+	            TPT_LOG(SaveGameLog,Warning,TEXT("DataFragment : %s"), *ItemID.ToString())
+            }
             if (ItemActorsMap.Contains(ItemID))
             {
                 ItemActorsMap[ItemID] = Item;
@@ -247,15 +250,15 @@ void UTPTSaveGameManager::RegisterReadyTarget(AActor* Spawned)
                 Door->Destroy();
                 return;
             }
-            Door->bIsActived = State->bIsOpen;
             Door->bIsAllTriggered = State->bIsUnLocked;
+            Door->bIsActived = State->bIsOpen;
         }
         else
         {
             DoorActorsMap.Add(DoorID, Door);
             FDoorState DoorState;
-            DoorState.bIsOpen = Door->bIsActived;
             DoorState.bIsUnLocked = Door->bIsAllTriggered;
+            DoorState.bIsOpen = Door->bIsActived;
             DoorState.bIsExist = true;
             GameSaveGame->DoorStates.FindOrAdd(DoorID, DoorState);
         }
@@ -476,8 +479,9 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
             {
 				Door->Destroy();
             }
-            Door->bIsActived = DoorState.bIsOpen;
             Door->bIsAllTriggered = DoorState.bIsUnLocked;
+            Door->bIsActived = DoorState.bIsOpen;
+            Door->OnRep_bIsActived();
         }
     }
 

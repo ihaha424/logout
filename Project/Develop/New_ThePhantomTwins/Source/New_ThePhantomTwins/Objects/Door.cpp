@@ -107,9 +107,6 @@ void ADoor::OnInteractServer_Implementation(const APawn* Interactor)
 		return;
 	}
 
-
-	UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-	SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
 	// Interactor가 APlayerCharacter 타입이 아니면 동작하지 않음 (문 닫기에만 해당)
 	const APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(const_cast<APawn*>(Interactor));
 
@@ -128,6 +125,8 @@ void ADoor::OnInteractServer_Implementation(const APawn* Interactor)
 		{
 			S2A_CloseDoor();
 		}
+		UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+		SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
 	}
 }
 
