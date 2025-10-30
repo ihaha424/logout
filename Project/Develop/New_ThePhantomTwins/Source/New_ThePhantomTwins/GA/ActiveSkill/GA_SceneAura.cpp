@@ -147,30 +147,6 @@ void UGA_SceneAura::CancelAbility(const FGameplayAbilitySpecHandle Handle, const
 void UGA_SceneAura::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-    if (UWorld* World = GetWorld())
-    {
-        World->GetTimerManager().ClearTimer(ScanTimerHandle);
-    }
-    else
-    {
-	    TPT_LOG(GALog, Error, TEXT("World Is Null!"));
-    }
-
-    if (!CurrentAuraTargets.IsEmpty())
-    {
-        for (auto& TargetPtr : CurrentAuraTargets)
-        {
-            if (AActor* Target = TargetPtr.Get())
-            {
-                RemoveAuraFromTarget(Target);
-            }
-        }
-
-        CurrentAuraTargets.Empty();
-    }
-
-    RemoveAuraFromTarget(OwnerActor);
-
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -381,7 +357,31 @@ void UGA_SceneAura::OnSceneAuraTagChanged(const FGameplayTag InputTag, int32 Tag
             ActiveAudioComponent = nullptr;
         }
 
-        EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+        if (UWorld* World = GetWorld())
+        {
+            World->GetTimerManager().ClearTimer(ScanTimerHandle);
+        }
+        else
+        {
+            TPT_LOG(GALog, Error, TEXT("World Is Null!"));
+        }
+
+        if (!CurrentAuraTargets.IsEmpty())
+        {
+            for (auto& TargetPtr : CurrentAuraTargets)
+            {
+                if (AActor* Target = TargetPtr.Get())
+                {
+                    RemoveAuraFromTarget(Target);
+                }
+            }
+
+            CurrentAuraTargets.Empty();
+        }
+
+        RemoveAuraFromTarget(OwnerActor);
+
+        //EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
     }
 }
 

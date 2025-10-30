@@ -114,6 +114,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	float RecoveryTime = 5.0f;
 
+	// 스킬 관련 변수
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill")
+	float SkillCoolTime_E = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill")
+	float SkillCoolTime_Q = 0.f;
+
 	UFUNCTION()
 	void InitPostProcessComponent();
 

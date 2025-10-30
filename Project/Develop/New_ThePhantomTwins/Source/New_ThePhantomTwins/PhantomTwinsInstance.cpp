@@ -37,32 +37,32 @@ void UPhantomTwinsInstance::InitSound()
         return;
     }
 
-	//// 사운드 믹스를 활성화
-	//UGameplayStatics::PushSoundMixModifier(GetWorld(), DuckSoundMix);
-	//
-	//// 각각의 사운드 클래스에 오버라이드 적용
-	//auto ApplyVolume = [&](USoundClass* SoundClass, float Volume)
-	//    {
-	//        if (SoundClass)
-	//        {
-	//            UGameplayStatics::SetSoundMixClassOverride(
-	//                GetWorld(),
-	//                DuckSoundMix,
-	//                SoundClass,
-	//                Volume,
-	//                1.0f,        // Pitch
-	//                1.0f,        // FadeInTime
-	//                true         // ApplyToChildren
-	//            );
-	//        }
-	//    };
-	//
-	//ApplyVolume(MasterClass, 1.0f);
-	//ApplyVolume(MusicClass, 0.8f);
-	//ApplyVolume(SFXClass, 0.8f);
-	//ApplyVolume(CharacterVoiceClass, 1.0f);
-	//ApplyVolume(EnemyVoiceClass, 1.0f);
-	//
-	//// 변경사항을 커밋 (적용)
-	//UGameplayStatics::PushSoundMixModifier(GetWorld(), DuckSoundMix);
+	// 사운드 믹스를 활성화
+	UGameplayStatics::SetBaseSoundMix(GetWorld(), DuckSoundMix);
+	
+	// 각각의 사운드 클래스에 오버라이드 적용
+	auto ApplyVolume = [&](USoundClass* SoundClass, float Volume)
+	    {
+	        if (SoundClass)
+	        {
+	            UGameplayStatics::SetSoundMixClassOverride(
+	                GetWorld(),
+	                DuckSoundMix,
+	                SoundClass,
+	                Volume,
+	                1.0f,        // Pitch
+	                1.0f,        // FadeInTime
+	                true         // ApplyToChildren
+	            );
+	        }
+	    };
+	
+	ApplyVolume(MasterClass, 1.0f);
+	ApplyVolume(MusicClass, 0.8f);
+	ApplyVolume(SFXClass, 0.8f);
+	ApplyVolume(CharacterVoiceClass, 1.0f);
+	ApplyVolume(EnemyVoiceClass, 1.0f);
+	
+	// 변경사항을 커밋 (적용)
+	UGameplayStatics::PushSoundMixModifier(GetWorld(), DuckSoundMix);
 }

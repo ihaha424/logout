@@ -1267,7 +1267,7 @@ void APlayerCharacter::UpdateSprintCooldownCount()
 		}
 	}
 	
-	CooldownTotal -= 5;
+	CooldownTotal -= SkillCoolTime_Q;
 
 	//if (HasAuthority())
 		//TPT_LOG(LogTemp, Error, TEXT("SprintTotal: %.2f| SprintStartTime: %.2f| CooldownTotal: %.2f| CooldownStartTime: %.2f|"), SprintTotal, SprintStartTime, CooldownTotal, CooldownStartTime);
@@ -1332,7 +1332,7 @@ void APlayerCharacter::UpdateAuraCooldownCount()
 		}
 	}
 
-	CooldownTotal -= 20;
+	CooldownTotal -= SkillCoolTime_E;
 
 	//if (HasAuthority())
 		//TPT_LOG(LogTemp, Error, TEXT("AuraTotal: %.2f| AuraStartTime: %.2f| CooldownTotal: %.2f| CooldownStartTime: %.2f|"), SprintTotal, SprintStartTime, CooldownTotal, CooldownStartTime);

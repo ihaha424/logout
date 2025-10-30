@@ -57,10 +57,12 @@ protected:
     FTimerHandle ScanTimerHandle;
 
     // 현재 Aura가 적용된 대상들
+    UPROPERTY()
     TSet<TWeakObjectPtr<AActor>> CurrentAuraTargets;
 
 	AActor* OwnerActor = nullptr;
 
+    UPROPERTY()
     TSet<TWeakObjectPtr<AActor>> NewTargets;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SFX")
