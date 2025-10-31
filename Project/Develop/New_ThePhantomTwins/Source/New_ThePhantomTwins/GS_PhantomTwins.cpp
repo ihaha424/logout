@@ -33,6 +33,7 @@ void AGS_PhantomTwins::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
     DOREPLIFETIME(AGS_PhantomTwins, bIsClientClickedRestart);
     DOREPLIFETIME(AGS_PhantomTwins, DestinationLevelName);
     DOREPLIFETIME(AGS_PhantomTwins, PrintingMapName);
+    DOREPLIFETIME(AGS_PhantomTwins, WidgetTitleName);
     DOREPLIFETIME(AGS_PhantomTwins, HostSelect);
     DOREPLIFETIME(AGS_PhantomTwins, ClientSelect);
 }
@@ -87,16 +88,12 @@ void AGS_PhantomTwins::S2A_SetCharacterClickedRestart_Implementation(bool bIsCli
     OnClickedRestartChanged.Broadcast(bIsHostClickedRestart, bIsClientClickedRestart);
 }
 
-void AGS_PhantomTwins::SetCharacterClickedGameStop(FName LevelName, FName PrintingName)
+void AGS_PhantomTwins::S2A_SetCharacterClickedGameStop_Implementation(FName LevelName, FName PrintingName, FName WidgetTitle)
 {
     DestinationLevelName = LevelName;
     PrintingMapName = PrintingName;
-    OnClickedGameStopChanged.Broadcast(DestinationLevelName, PrintingMapName);
-}
-
-void AGS_PhantomTwins::OnRep_SetCharacterClickedGameStop()
-{
-    OnClickedGameStopChanged.Broadcast(DestinationLevelName, PrintingMapName);
+    this->WidgetTitleName = WidgetTitle;
+    OnClickedGameStopChanged.Broadcast(DestinationLevelName);
 }
 
 void AGS_PhantomTwins::C2S_SetCharacterAgreeWithGameStop_Implementation(int32 Select, bool bIsHost)

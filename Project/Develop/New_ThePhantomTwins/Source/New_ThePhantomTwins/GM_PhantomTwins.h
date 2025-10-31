@@ -68,7 +68,7 @@ public:
 
 	// ~ Begin Stop game
     UFUNCTION()
-    void NotifyPlayerClickedGameStop(FName LevelName, FName PrintingName);
+    void NotifyPlayerClickedGameStop(FName LevelName);
     void ShowGameStopUI();
 
     UFUNCTION()

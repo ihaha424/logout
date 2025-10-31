@@ -12,7 +12,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnCollectedItemCountChanged, int32);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDynamicOnCollectedItemCountChanged, int32, FragmentCount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBossSpawnedDynamic, AActor*, BossActor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCollectedItem, AActor*, DataFragment);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedGameStop, FName , LevelName, FName, PrintingMapName);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClickedGameStop, FName, LevelName);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedRestart, bool, bIsHostClicked, bool, bIsClientClicked);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnClickedAgreeWithGameStop, int32, HostSelect, int32, ClientSelect);
 
@@ -74,20 +74,24 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnClickedAgreeWithGameStop OnClickedAgreeWithGameStopChanged;
 
-	UFUNCTION(BlueprintCallable)
-	void SetCharacterClickedGameStop(FName LevelName, FName PrintingName);
-
-	UFUNCTION()
-	void OnRep_SetCharacterClickedGameStop();
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_SetCharacterClickedGameStop(FName LevelName, FName PrintingName, FName WidgetTitle);
+	void S2A_SetCharacterClickedGameStop_Implementation(FName LevelName, FName PrintingName, FName WidgetTitle);
 
 	UFUNCTION(BlueprintCallable)
 	FName GetPrintingMapName() const { return PrintingMapName; }
 
-	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterClickedGameStop)
+	UFUNCTION(BlueprintCallable)
+	FName GetWidgetTitleName() const { return WidgetTitleName; }
+
+	UPROPERTY(Replicated = true)
 	FName DestinationLevelName;
 
-	UPROPERTY(ReplicatedUsing = OnRep_SetCharacterClickedGameStop)
+	UPROPERTY(Replicated = true)
 	FName PrintingMapName;
+
+	UPROPERTY(Replicated = true)
+	FName WidgetTitleName;
 
 	UFUNCTION(Server, Reliable)
 	void C2S_SetCharacterAgreeWithGameStop(int32 bIsClicked, bool bIsHost);

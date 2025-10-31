@@ -51,11 +51,7 @@ void AGM_PhantomTwins::BeginPlay()
     }
 
     FTimerHandle TimerHandle;
-    GetWorldTimerManager().SetTimer(TimerHandle,this, &ThisClass::DelayedInitializeSaveTargets, 0.1f, false);
-    //UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-    //GetWorld()->GetTimerManager().SetTimerForNextTick(
-    //    FTimerDelegate::CreateUObject(SaveGameManager, &UTPTSaveGameManager::BeginWorldRestoreSequence, GetWorld()));
-
+    GetWorldTimerManager().SetTimer(TimerHandle, this, &ThisClass::DelayedInitializeSaveTargets, 0.1f, false);
 }
 
 void AGM_PhantomTwins::DelayedInitializeSaveTargets()
@@ -109,7 +105,7 @@ void AGM_PhantomTwins::HandleStartingNewPlayer_Implementation(APlayerController*
     RestartPlayerAtTransform(NewPlayer, StartPoint);
 }
 
-void AGM_PhantomTwins::NotifyPlayerClickedGameStop(FName LevelName,FName PrintingName)
+void AGM_PhantomTwins::NotifyPlayerClickedGameStop(FName LevelName)
 {
     DestinationLevelName = LevelName;
     ShowGameStopUI();

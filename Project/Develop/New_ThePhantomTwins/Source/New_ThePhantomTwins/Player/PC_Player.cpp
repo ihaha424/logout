@@ -99,7 +99,7 @@ void APC_Player::C2S_ClickedRestart_Implementation(const bool bIsClicked)
 	GS->C2S_SetCharacterClickedRestart(bIsClicked, bIsHost);
 }
 
-void APC_Player::C2S_ClickedGameStop_Implementation(const FName LevelName, const FName PrintingName)
+void APC_Player::C2S_ClickedGameStop_Implementation(const FName LevelName, const FName PrintingName, const FName WidgetTitleName)
 {
 	AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>();
 	if (!GS)
@@ -107,7 +107,7 @@ void APC_Player::C2S_ClickedGameStop_Implementation(const FName LevelName, const
 		TPT_LOG(OutGameLog, Error, TEXT("Cast to 'AGS_PhantomTwins' Fail"));
 		return;
 	}
-	GS->SetCharacterClickedGameStop(LevelName, PrintingName);
+	GS->S2A_SetCharacterClickedGameStop(LevelName, PrintingName, WidgetTitleName);
 }
 
 void APC_Player::C2S_ClickedAgreeWithGameStop_Implementation(const int32 SelectBtn)
