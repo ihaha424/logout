@@ -51,9 +51,13 @@ void ABoxObject::OnInteractServer_Implementation(const APawn* Interactor)
 		S2A_ExecuteTrapBox(Interactor);
 		S2A_ShowWarning();
 	}
+}
 
-	UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-	SaveGameManager->TempSaveByID(GetFName(), true);
+void ABoxObject::OnRep_bIsActived()
+{
+	Super::OnRep_bIsActived();
+
+	InitBoxOpen(bIsActived);
 }
 
 // 멀티캐스트 함수들 구현

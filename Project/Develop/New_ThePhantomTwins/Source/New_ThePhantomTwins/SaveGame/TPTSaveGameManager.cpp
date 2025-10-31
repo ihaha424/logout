@@ -97,11 +97,6 @@ void UTPTSaveGameManager::InitializeSaveTargets()
         if (Actor)
         {
             ADoor* Door = Cast<ADoor>(Actor);
-        	/*USaveIDComponent* SaveIDComp = Door->FindComponentByClass<USaveIDComponent>();
-            if (!IsValid(SaveIDComp))
-            {
-                continue;
-            }*/
             FName DoorID = Door->GetFName();
             TPT_LOG(SaveGameLog, Warning, TEXT("DataFragment : %s"), *DoorID.ToString())
             if (DoorActorsMap.Contains(DoorID))
@@ -129,34 +124,21 @@ void UTPTSaveGameManager::InitializeSaveTargets()
         if (Actor)
         {
 			AItemObject* Item = Cast<AItemObject>(Actor);
-            //USaveIDComponent* SaveIDComp = Item->FindComponentByClass<USaveIDComponent>();
-            //if (!IsValid(SaveIDComp))
-            //{
-            //    continue;
-            //}
             FName ItemID = Item->GetFName();
-            if (Cast <ADataFragment>(Item))
-            {
-	            TPT_LOG(SaveGameLog,Warning,TEXT("DataFragment : %s"), *ItemID.ToString())
-            }
+
             if (ItemActorsMap.Contains(ItemID))
             {
-                TPT_LOG(SaveGameLog, Warning, TEXT("DataFragment Actor Add: %s"), *ItemID.ToString())
                 ItemActorsMap[ItemID] = Item;
             }
 
             if (!bActorsInitialized)
             {
-                TPT_LOG(SaveGameLog, Warning, TEXT("DataFragment Initialized: %s"), *ItemID.ToString())
                 ItemActorsMap.Add(ItemID, Item);
                 GameSaveGame->ItemStates.FindOrAdd(ItemID, true);
             }
         }
     }
-    for (const auto& KVP : ItemActorsMap)
-    {
-        TPT_LOG(SaveGameLog, Warning, TEXT("ItemActorsMap: Key=%s, Value=%s"), *KVP.Key.ToString(), IsValid(KVP.Value) ? *KVP.Value->GetName() : TEXT("nullptr"));
-    }
+
     // 숨는 오브젝트 액터
     TempActors.Empty();
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), AInteractHideObject::StaticClass(), TempActors);
@@ -165,11 +147,6 @@ void UTPTSaveGameManager::InitializeSaveTargets()
         if (Actor)
         {
             AInteractHideObject* HideObject = Cast<AInteractHideObject>(Actor);
-            //USaveIDComponent* SaveIDComp = HideObject->FindComponentByClass<USaveIDComponent>();
-            //if (!IsValid(SaveIDComp))
-            //{
-            //    continue;
-            //}
             FName HideObjectID = HideObject->GetFName();
 
             if (HideObjectActorsMap.Contains(HideObjectID))
@@ -193,12 +170,8 @@ void UTPTSaveGameManager::InitializeSaveTargets()
         if (Actor)
         {
             ABoxObject* Box = Cast<ABoxObject>(Actor);
-            //USaveIDComponent* SaveIDComp = Box->FindComponentByClass<USaveIDComponent>();
-            //if (!IsValid(SaveIDComp))
-            //{
-            //    continue;
-            //}
             FName BoxID = Box->GetFName();
+            TPT_LOG(SaveGameLog, Warning, TEXT("ABoxObject Initialized: %s"), *BoxID.ToString())
 
             if (ItemBoxActorsMap.Contains(BoxID))
             {
@@ -221,11 +194,6 @@ void UTPTSaveGameManager::InitializeSaveTargets()
         if (Actor)
         {
             AAIBaseCharacter* AI = Cast<AAIBaseCharacter>(Actor);
-            //USaveIDComponent* SaveIDComp = AI->FindComponentByClass<USaveIDComponent>();
-            //if (!IsValid(SaveIDComp))
-            //{
-            //    continue;
-            //}
             FName AIID = AI->GetFName();
 
             if (AIActorsMap.Contains(AIID))
@@ -373,19 +341,12 @@ void UTPTSaveGameManager::TempSaveByID(const FName ObjectID, const bool bIsExist
     {
 	    return;
     }
-    for (const auto& KVP : ItemActorsMap)
-    {
-        TPT_LOG(SaveGameLog, Warning, TEXT("ItemActorsMap: Key=%s, Value=%s"), *KVP.Key.ToString(), IsValid(KVP.Value) ? *KVP.Value->GetName() : TEXT("nullptr"));
-    }
-
-    TPT_LOG(SaveGameLog, Warning, TEXT("Current Object ID : %s"), *ObjectID.ToString());
 
     // 문 액터에서 매칭되는 ObjectID가 있으면 상태 업데이트
     if (DoorActorsMap.Contains(ObjectID))
     {
         AActor** DoorActor = DoorActorsMap.Find(ObjectID);
         ADoor* Door = Cast<ADoor>(*DoorActor);
-        TPT_LOG(SaveGameLog, Warning, TEXT("DoorActor : %s"), *Door->GetFName().ToString());
 
         if (Door)
         {
@@ -403,14 +364,9 @@ void UTPTSaveGameManager::TempSaveByID(const FName ObjectID, const bool bIsExist
     {
         AActor** ItemActor = ItemActorsMap.Find(ObjectID);
         AItemObject* Item = Cast<AItemObject>(*ItemActor);
-        TPT_LOG(SaveGameLog, Warning, TEXT("66DataFragment : %s"), *Item->GetFName().ToString());
-        if (Cast<ADataFragment>(Item))
-        {
-            TPT_LOG(SaveGameLog, Warning, TEXT("44DataFragment : %s"), *ObjectID.ToString())
-        }
+
         if (Item)
         {
-            TPT_LOG(SaveGameLog, Warning, TEXT("55DataFragment : %s"), *ObjectID.ToString())
             GameSaveGame->ItemStates[ObjectID] = bIsExist;
             return;
         }
@@ -437,6 +393,8 @@ void UTPTSaveGameManager::TempSaveByID(const FName ObjectID, const bool bIsExist
         {
             bool bIsOpened = Box->bIsActived;
             GameSaveGame->ItemBoxStates[ObjectID] = bIsOpened;
+            TPT_LOG(SaveGameLog, Warning, TEXT("ABoxObject : %s bIsOpened : %d "), *ObjectID.ToString(), bIsOpened);
+
             return;
         }
     }
@@ -519,6 +477,7 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
             }
             Door->bIsAllTriggered = DoorState.bIsUnLocked;
             Door->bIsActived = DoorState.bIsOpen;
+            Door->AreAllTriggerActived();
             Door->OnRep_bIsActived();
         }
     }
@@ -580,6 +539,8 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
             {
                 Box->SetActive(bIsOpened);
                 Box->InitBoxOpen(bIsOpened);
+
+                TPT_LOG(SaveGameLog, Warning, TEXT("ABoxObject : %s bIsOpened : %d "), *BoxID.ToString(), bIsOpened);
             }
         }
     }

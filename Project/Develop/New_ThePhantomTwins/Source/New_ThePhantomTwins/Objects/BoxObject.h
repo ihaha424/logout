@@ -22,6 +22,8 @@ public:
 	virtual void SetActive(bool bIsActive) override;
 	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
 
+	virtual void OnRep_bIsActived() override;
+
 	// 모든 클라이언트에게 복제되는 함수들 추가
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_ApplyEffect(const APawn* Interactor);

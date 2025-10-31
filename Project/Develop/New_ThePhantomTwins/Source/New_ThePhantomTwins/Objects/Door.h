@@ -83,11 +83,13 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Door", ReplicatedUsing = OnRep_bKeyUsed)  
 	bool bKeyUsed = false;
-	UPROPERTY(VisibleAnywhere, Replicated, BlueprintReadWrite, Category = "Door")
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_bIsAllTriggered, BlueprintReadWrite, Category = "Door")
 	bool bIsAllTriggered = false;
 
 	UFUNCTION()
 	virtual void OnRep_bKeyUsed();
+	UFUNCTION()
+	virtual void OnRep_bIsAllTriggered();
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void CheckAllTriggered();

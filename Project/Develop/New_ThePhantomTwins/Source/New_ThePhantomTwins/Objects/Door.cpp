@@ -172,6 +172,7 @@ bool ADoor::AreAllTriggerActived_Implementation()
 	// 활성화된 trigger 수를 세기 위한 변수
 	if (bIsAllTriggered)
 	{
+		OnDoorLockStateChanged();
 		return true;
 	}
 	int32 triggerActive = 0;
@@ -217,6 +218,7 @@ bool ADoor::AreAllTriggerActived_Implementation()
 		else
 		{
 			bIsAllTriggered = false;
+			OnDoorLockStateChanged();
 			return false;
 		}
 	}
@@ -263,4 +265,10 @@ void ADoor::OnRep_bKeyUsed()
 		LockWidgetComp->SetVisibility(false);
 		OnDoorLockStateChanged();
 	}
+}
+
+void ADoor::OnRep_bIsAllTriggered()
+{
+	CheckAllTriggered();
+	OnDoorLockStateChanged();
 }
