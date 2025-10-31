@@ -17,27 +17,13 @@ class NEW_THEPHANTOMTWINS_API UPhantomTwinsInstance : public UGameInstance
 	GENERATED_BODY()
 public:
 	virtual void Init() override;
-	void InitSound();
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
-    USoundMix* DuckSoundMix;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
-    USoundClass* MasterClass;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
-    USoundClass* MusicClass;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
-    USoundClass* SFXClass;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
-    USoundClass* CharacterVoiceClass;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
-    USoundClass* EnemyVoiceClass;
-
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SettingSystem | Sound")
+    TMap<FName, USoundClass*> SoundClassList;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SettingSystem | Sound")
+    USoundMix* BaseSoundMix;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogManager")
 	TObjectPtr<UDialogManager> DialogManager;
 
