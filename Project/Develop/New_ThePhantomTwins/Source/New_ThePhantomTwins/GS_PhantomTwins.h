@@ -27,7 +27,7 @@ public:
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category = "BossSpawn")
 	float	GameTime = 0.f;
 	UPROPERTY(ReplicatedUsing = OnRep_CollectedItemCount, VisibleAnywhere, BlueprintReadWrite, Category = "BossSpawn")
-	int		CoreCount = 0;
+	int		DataFragmentCount = 0;
 	UPROPERTY(ReplicatedUsing = OnRep_BossSpawned, BlueprintReadOnly, Category = "BossSpawn")
 	bool	bBossSpawned = false;
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "BossSpawn")
@@ -51,10 +51,6 @@ public:
 	//~ Begin Restart
 	UPROPERTY(BlueprintAssignable)
 	FOnClickedRestart OnClickedRestartChanged;
-
-	UFUNCTION(Server, Reliable)
-	void C2S_SetCharacterClickedRestart(bool bIsClicked, bool bIsHost);
-	void C2S_SetCharacterClickedRestart_Implementation(bool bIsClicked, bool bIsHost);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_SetCharacterClickedRestart(bool bIsClicked, bool bIsHost);
@@ -92,10 +88,6 @@ public:
 
 	UPROPERTY(Replicated = true)
 	FName WidgetTitleName;
-
-	UFUNCTION(Server, Reliable)
-	void C2S_SetCharacterAgreeWithGameStop(int32 bIsClicked, bool bIsHost);
-	void C2S_SetCharacterAgreeWithGameStop_Implementation(int32 bIsClicked, bool bIsHost);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_SetCharacterAgreeWithGameStop(int32 Select, bool bIsHost);

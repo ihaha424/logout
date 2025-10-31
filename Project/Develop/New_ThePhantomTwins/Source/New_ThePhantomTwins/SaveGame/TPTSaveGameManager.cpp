@@ -45,6 +45,8 @@ void UTPTSaveGameManager::ReInitialize()
     bActorsInitialized = false;
     bPlayerInitialized = false;
 
+	SetRestartPoint(nullptr);
+
     DoorActorsMap.Reset();
     ItemActorsMap.Reset();
     HideObjectActorsMap.Reset();
@@ -436,8 +438,9 @@ void UTPTSaveGameManager::SetRestartPoint(const ADataFragment* DataFragment)
 {
     if (!DataFragment)
     {
-        TPT_LOG(SaveGameLog, Error, TEXT("no DataFragment"));
-            return;
+		GameSaveGame->HostPlayerStart = FTransform::Identity;
+		GameSaveGame->ClientPlayerStart = FTransform::Identity;
+    	return;
     }
 
     GameSaveGame->HostPlayerStart = DataFragment->HostPlayerLocation->GetComponentTransform();

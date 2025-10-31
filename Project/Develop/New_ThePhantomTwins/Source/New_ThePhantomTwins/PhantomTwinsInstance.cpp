@@ -9,6 +9,7 @@
 #include "Log/TPTLog.h"
 #include "Kismet/GameplayStatics.h"
 #include "DialogManager/DialogManager.h"
+#include "SaveGame/TPTSaveGameManager.h"
 
 void UPhantomTwinsInstance::Init()
 {
@@ -27,6 +28,7 @@ void UPhantomTwinsInstance::Init()
 	DialogManager = NewObject<UDialogManager>(this);
 
 	DialogManager->Initialize(Initialize);
+	GetSubsystem<UTPTSaveGameManager>();
 }
 
 void UPhantomTwinsInstance::InitSound()

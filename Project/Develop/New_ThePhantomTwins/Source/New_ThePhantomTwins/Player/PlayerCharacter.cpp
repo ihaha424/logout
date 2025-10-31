@@ -413,7 +413,6 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 		SetHP(HealthPoint);
 		SetMP(MentalPoint);
 	}
-
 }
 
 void APlayerCharacter::DroneWidgetOnOff(bool Visibility)

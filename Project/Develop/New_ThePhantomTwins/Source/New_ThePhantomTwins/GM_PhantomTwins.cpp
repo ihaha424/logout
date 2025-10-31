@@ -41,7 +41,7 @@ void AGM_PhantomTwins::BeginPlay()
         ItemChangedHandle = GS->OnCollectedItemCountChanged().AddUObject(
             this, &AGM_PhantomTwins::OnItemCountChanged);
 
-        if (GS->CoreCount >= RequiredItemCount)
+        if (GS->DataFragmentCount >= RequiredItemCount)
         {
             RequestBossSpawn();
         }
