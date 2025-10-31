@@ -9,6 +9,7 @@
 #include "Player/PS_Player.h"
 #include "CM_LogOut.h"
 #include "GS_PhantomTwins.h"
+#include "GM_PhantomTwins.h"
 #include "Player/PlayerCharacter.h"
 #include "OutGame/HubMap/GS_HubMap.h"
 #include "SaveGame/TPTSaveGameManager.h"
@@ -138,5 +139,18 @@ void APC_Player::Client_SetUIInputMode_Implementation(bool bUIOnly)
 		FInputModeGameOnly GameInputMode;
 		SetInputMode(GameInputMode);
 		bShowMouseCursor = false;
+	}
+}
+
+void APC_Player::C2S_SoloLogOut_Implementation(const FName LevelName, bool bAbsolute, bool bIsListen)
+{
+	if (!HasAuthority()) return;
+
+	// GameMode를 갖고와서 GM에 있는 SeverToLevel 호출
+	AGM_PhantomTwins* GM = Cast<AGM_PhantomTwins>(GetWorld()->GetAuthGameMode());
+
+	if (GM)
+	{
+		GM->SeverToLevel(LevelName, bAbsolute, bIsListen);
 	}
 }
