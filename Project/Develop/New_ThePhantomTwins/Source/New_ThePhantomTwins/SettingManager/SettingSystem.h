@@ -27,7 +27,11 @@ public:
 	void ResolutionInitialize();
 
 	UFUNCTION(BlueprintCallable)
-	void SetSoundParamsOverride(FName ClassName, float Volume = 1.0f, float Pitch = 1.0f, float FadeInTime = 1.0f);
+	void SetResolution(FIntPoint Resolution);
+	UFUNCTION(BlueprintCallable)
+	void SetScreenMode(EWindowMode::Type Mode);
+	UFUNCTION(BlueprintCallable)
+	void SetSoundParamsOverride(FName ClassName, float Volume = 3.0f, float Pitch = 1.0f, float FadeInTime = 1.0f);
 protected:
 
     UPROPERTY()

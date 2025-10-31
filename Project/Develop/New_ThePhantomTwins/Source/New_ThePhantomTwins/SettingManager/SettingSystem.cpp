@@ -63,6 +63,33 @@ void USettingSystem::GraphicsInitialize()
 	// TODO : 그래픽 초기 설정
 }
 
+void USettingSystem::SetResolution(FIntPoint Resolution)
+{
+	if (UGameUserSettings* Settings = GEngine->GetGameUserSettings())
+	{
+		Settings->SetScreenResolution(Resolution);
+		Settings->SetFullscreenMode(EWindowMode::Windowed);
+		Settings->ApplySettings(false);
+		Settings->SaveSettings();
+	}
+}
+
+void USettingSystem::SetScreenMode(EWindowMode::Type Mode)
+{
+	if (UGameUserSettings* Settings = GEngine->GetGameUserSettings())
+	{
+		if (Mode == EWindowMode::Fullscreen)
+		{
+			FIntPoint DesktopRes = Settings->GetDesktopResolution();
+			Settings->SetScreenResolution(DesktopRes);
+		}
+
+		Settings->SetFullscreenMode(Mode);
+		Settings->ApplySettings(false);
+		Settings->SaveSettings();
+	}
+}
+
 void USettingSystem::ResolutionInitialize()
 {
 	// 전체화면 모드 적용
