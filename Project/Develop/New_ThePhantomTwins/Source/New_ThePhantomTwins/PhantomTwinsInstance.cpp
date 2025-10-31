@@ -19,6 +19,7 @@ void UPhantomTwinsInstance::Init()
 
 	SubSystem->SetSoundSoundMix(BaseSoundMix);
 	for (auto It = SoundClassList.CreateIterator(); It; ++It)
+	{
 		SubSystem->AddSoundClassList(It.Value(), It.Key());
 	}
 	SubSystem->VolumeInitialize();
