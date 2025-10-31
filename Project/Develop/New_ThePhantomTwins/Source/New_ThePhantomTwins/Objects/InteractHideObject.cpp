@@ -92,6 +92,7 @@ void AInteractHideObject::S2A_OnDestroy_Implementation()
 	{
 		// 플레이어 Hide 태그 제거
 		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+		ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 	}
 
 	// 로컬 컨트롤러에서만 입력/카메라 제어
@@ -315,6 +316,7 @@ void AInteractHideObject::EnterObject(const APawn* Interactor)
 	{
 		// 플레이어 Hide 태그 추가
 		ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+		ASC->AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 	}
 
 	bIsActived = true;
@@ -353,6 +355,7 @@ void AInteractHideObject::ExitObject()
 		{
 			// 플레이어 Hide 태그 제거
 			ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+			ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 		}
 
 		FVector NewLocation = OutPosBox->GetComponentLocation();

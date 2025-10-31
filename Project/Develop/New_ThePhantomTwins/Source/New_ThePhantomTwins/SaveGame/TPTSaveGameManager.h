@@ -25,10 +25,10 @@ public:
 
     UFUNCTION()
     void SaveUpdate();
-    UFUNCTION()
-    void BeginWorldRestoreSequence(UWorld* World);
+
     UFUNCTION()
     void InitializeSaveTargets();
+
     UFUNCTION(BlueprintCallable)
 	void TempSaveByID(const FName ObjectID, const bool bIsExist);
 
@@ -43,9 +43,6 @@ public:
     UFUNCTION()
 	void ApplyActorSaveGame();
 	void InitializeSavePlayer();
-
-    void OnActorSpawned(AActor* Spawned);
-    void RegisterReadyTarget(AActor* Spawned);
 
 	UFUNCTION()
 	void ApplyAuthorityPlayerSaveGame(APlayerController* PC);

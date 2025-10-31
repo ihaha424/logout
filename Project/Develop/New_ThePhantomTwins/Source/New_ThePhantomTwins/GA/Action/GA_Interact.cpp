@@ -3,6 +3,7 @@
 
 #include "GA/Action/GA_Interact.h"
 
+#include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -30,7 +31,7 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 	Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
 	NULLCHECK_CODE_RETURN_LOG(Character, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
-
+	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
 	TargetActor = Cast<AActor>(Character->GetFocusTrace()->GetFocusedActor());
 	NULLCHECK_CODE_RETURN_LOG(TargetActor, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false);, );
 
@@ -52,7 +53,10 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 		else
 		{
 			CurrentPlayingMontage = InteractMontage;
-			PlayInteractMontageTask->ReadyForActivation();
+			if (!ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
+			{
+				PlayInteractMontageTask->ReadyForActivation();
+			}
 		}
 	}
 	else

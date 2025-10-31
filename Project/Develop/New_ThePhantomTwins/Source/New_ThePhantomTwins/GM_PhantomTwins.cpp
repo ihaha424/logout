@@ -58,6 +58,7 @@ void AGM_PhantomTwins::DelayedInitializeSaveTargets()
 {
     UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
 	SaveGameManager->InitializeSaveTargets();
+    SaveGameManager->SaveUpdate();
     SaveGameManager->ApplyActorSaveGame();
 }
 
