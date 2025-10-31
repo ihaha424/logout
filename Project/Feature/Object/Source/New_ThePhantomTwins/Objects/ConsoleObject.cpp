@@ -23,12 +23,6 @@ AConsoleObject::AConsoleObject() : AInteractableObject()
 {
 	bReplicates = true;
 
-	// player 체크 할 trigger
-	//SafeZoneTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("SafeZoneTriggerComponent"));
-	//SafeZoneTrigger->SetCollisionProfileName(TEXT("OverlapAll"));
-	//SafeZoneTrigger->SetGenerateOverlapEvents(true);
-	//SafeZoneTrigger->SetupAttachment(RootSceneComp);
-
 	// Lock Widget
 	LockWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("LockWidget"));
 	LockWidgetComp->SetupAttachment(RootComponent);
@@ -45,12 +39,6 @@ AConsoleObject::AConsoleObject() : AInteractableObject()
 void AConsoleObject::BeginPlay()
 {
 	Super::BeginPlay();
-
-	//if (SafeZoneTrigger)
-	//{
-	//	SafeZoneTrigger->OnComponentBeginOverlap.AddDynamic(this, &AConsoleObject::OnTriggerBeginOverlap);
-	//	SafeZoneTrigger->OnComponentEndOverlap.AddDynamic(this, &AConsoleObject::OnTriggerEndOverlap);
-	//}
 
 	if (LockWidgetComp)
 	{
@@ -87,7 +75,6 @@ void AConsoleObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AConsoleObject, LevelDataFragments);
-	//DOREPLIFETIME(AConsoleObject, InteractPlayers);
 	DOREPLIFETIME(AConsoleObject, bIsCollectionCompleted);
 }
 
@@ -95,14 +82,14 @@ bool AConsoleObject::CanInteract_Implementation(const APawn* Interactor, bool bI
 {
 	if (!Interactor->IsLocallyControlled()) return bIsDetected;
 
-	UpdateCollectionCompletionState();
-
 	// 거리가 멀어져 감지되지 않은 경우
 	if (!bIsDetected)
 	{
 		SetWidgetVisible(false);
 		return false;
 	}
+
+	UpdateCollectionCompletionState();
 
 	// Interactor가 APlayerCharacter 인 경우에만 위젯을 띄어라
 	const APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(const_cast<APawn*>(Interactor));
@@ -203,11 +190,12 @@ void AConsoleObject::SetWidgetVisible(bool bVisible)
 		ShowOverlayOutline(!bIsActived);
 	}
 
-	if (!bVisible || bIsActived)
+	if (!bVisible)
 	{
 		// 감지 안 되었거나 명시적으로 숨길 때는 둘 다 숨김
 		InteractWidgetComp->SetVisibility(false);
 		LockWidgetComp->SetVisibility(false);
+		return;
 	}
 
 	// 위젯 가시성 결정:
@@ -224,44 +212,6 @@ void AConsoleObject::SetWidgetVisible(bool bVisible)
 		LockWidgetComp->SetVisibility(false);
 	}
 }
-
-//void AConsoleObject::OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-//{
-//	// 1. APlayerCharacter인지 체크
-//	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(OtherActor);
-//	if (!PlayerChar) return;
-//
-//	// 이미 들어와 있다면 무시
-//	if (!InteractPlayers.Contains(PlayerChar))
-//	{
-//		InteractPlayers.Add(PlayerChar);
-//	}
-//}
-//
-//void AConsoleObject::OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-//{
-//	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(OtherActor);
-//	NULLCHECK_RETURN_LOG(PlayerChar, ObjectLog, Error, );
-//
-//	if (InteractPlayers.Contains(PlayerChar))
-//	{
-//		InteractPlayers.Remove(PlayerChar);
-//	}
-//
-//	APlayerController* InteractorPC = Cast<APlayerController>(PlayerChar->GetController());
-//	NULLCHECK_RETURN_LOG(InteractorPC, ObjectLog, Error, );
-//	APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
-//	NULLCHECK_RETURN_LOG(PS, ObjectLog, Error, );
-//	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
-//	NULLCHECK_RETURN_LOG(ASC, ObjectLog, Error, );
-//
-//	// 플레이어에 LogOutReady 태그가 있다면
-//	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LogOutReady))
-//	{
-//		// LogOutReady 태그 제거
-//		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LogOutReady);
-//	}
-//}
 
 void AConsoleObject::UpdateCollectionCompletionState()
 {
@@ -461,9 +411,4 @@ int32 AConsoleObject::CheckLevelPlayers()
 	}
 
 	return InteractPlayers;
-}
-
-void AConsoleObject::OnRep_bIsActived()
-{
-
 }

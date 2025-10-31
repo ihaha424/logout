@@ -22,6 +22,4 @@ protected:
 
 public:
 	virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
-
-
 };

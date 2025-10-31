@@ -28,14 +28,6 @@ public:
 
 	virtual void SetWidgetVisible(bool bVisible) override;
 
-	//UFUNCTION()
- //   void OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
-
- //   UFUNCTION()
- //   void OnTriggerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	virtual void OnRep_bIsActived() override;
-
 protected:
 	// LevelDataFragments 개수와 현재 수집 개수를 비교하여 bIsCollectionCompleted 를 설정
 	UFUNCTION()
@@ -68,8 +60,6 @@ protected:
     void S2A_ResetConsoleState();
     void S2A_ResetConsoleState_Implementation();
 
-
-
 private:
 	void ShowAndAutoRemoveWaitWidgets(class APC_Player* PC_Player);
 
@@ -82,23 +72,9 @@ private:
 	int32 CheckLevelPlayers();
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | Door")
-	TObjectPtr<class ADoor> ConnectedDoor;
-
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | Hide")
-	//TObjectPtr<class UBoxComponent> SafeZoneTrigger;
-
 	// 현재 레벨에 존재하는 LevelDataFragments
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated)
 	TArray<TObjectPtr<class ADataFragment>> LevelDataFragments;
-
-	// 트리거 안에 있는 플레이어 추적	(추가, 삭제는 Overlap될때 함)
-	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated)
-	//TArray<TObjectPtr<class APlayerCharacter>> InteractPlayers;
-
-	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated)
-	//int32 InteractPlayers;
-
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ConsoleObject", Replicated)
 	bool bIsCollectionCompleted = false;
