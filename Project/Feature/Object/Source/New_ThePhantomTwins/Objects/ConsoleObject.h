@@ -79,6 +79,8 @@ private:
 	// 모든 플레이어의 LogOutReady 태그 제거
 	void ClearAllLogOutReadyTags();
 
+	int32 CheckLevelPlayers();
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConsoleObject | Door")
 	TObjectPtr<class ADoor> ConnectedDoor;
@@ -93,6 +95,10 @@ protected:
 	// 트리거 안에 있는 플레이어 추적	(추가, 삭제는 Overlap될때 함)
 	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated)
 	//TArray<TObjectPtr<class APlayerCharacter>> InteractPlayers;
+
+	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Replicated)
+	//int32 InteractPlayers;
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ConsoleObject", Replicated)
 	bool bIsCollectionCompleted = false;

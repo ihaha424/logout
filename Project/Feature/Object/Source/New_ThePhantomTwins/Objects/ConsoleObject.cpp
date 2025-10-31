@@ -143,7 +143,7 @@ void AConsoleObject::OnInteractServer_Implementation(const APawn* Interactor)
 	// --- 변경된 검사: 맵 전체에서 LogOutReady 태그를 가진 플레이어 수를 센다
 	int32 NumReady = CountPlayersWithLogOutReadyTag();
 
-	if (NumReady >= 2)
+	if (NumReady >= CheckLevelPlayers())
 	{
 		// 이미 다른 플레이어(혹은 적어도 2명 이상)가 상호작용 상태라면 즉시 진엔딩 실행
 		// 위젯 숨기고 타이머 정리
@@ -301,7 +301,7 @@ void AConsoleObject::CheckEndingConditionByPlayerState(APS_Player* InteractorPla
 	// 맵 전체에서 LogOutReady 태그 가진 플레이어 수 확인
 	int32 NumReady = CountPlayersWithLogOutReadyTag();
 
-	if (NumReady >= 2)
+	if (NumReady >= CheckLevelPlayers())
 	{
 		// 둘 이상이면 진엔딩
 		PlayTrueEnding();
@@ -442,6 +442,25 @@ void AConsoleObject::ClearAllLogOutReadyTags()
 			ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_LogOutReady);
 		}
 	}
+}
+
+int32 AConsoleObject::CheckLevelPlayers()
+{
+	//	레벨에 존재하는 플레이어들 찾아서 배열에 추가(중복된 플레이어면 넘어감)
+	int32 InteractPlayers = 0;
+	TArray<AActor*> FoundPlayers;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerCharacter::StaticClass(), FoundPlayers);
+
+	for (AActor* Actor : FoundPlayers)
+	{
+		APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(Actor);
+		if (PlayerChar)
+		{
+			InteractPlayers++;
+		}
+	}
+
+	return InteractPlayers;
 }
 
 void AConsoleObject::OnRep_bIsActived()
