@@ -22,4 +22,11 @@ protected:
 
 public:
 	virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "SoloEndingPortal")
+	void ShowSoloPortalActor(bool bVisible);
+
+	UFUNCTION(BlueprintCallable, Category = "SoloEndingPortal")
+	void SetSoloPortalCollision(bool bActived);
 };

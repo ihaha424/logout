@@ -76,6 +76,7 @@ void AConsoleObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 	DOREPLIFETIME(AConsoleObject, LevelDataFragments);
 	DOREPLIFETIME(AConsoleObject, bIsCollectionCompleted);
+	DOREPLIFETIME(AConsoleObject, AllowedInteractor);
 }
 
 bool AConsoleObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
@@ -427,4 +428,29 @@ int32 AConsoleObject::CheckLevelPlayers()
 	}
 
 	return InteractPlayers;
+}
+
+void AConsoleObject::OnRep_AllowedInteractor()
+{
+
+}
+
+void AConsoleObject::S2A_SetSoloPortalForInteractor_Implementation(APawn* Interactor)
+{
+	// 예: 이 액터가 포탈이라면 BoxComp가 있다고 가정
+	if (!BoxComp) return;
+
+	bool bLocalIsInteractor = (Interactor && Interactor->IsLocallyControlled());
+
+	// 시각: 오직 상호작용한 플레이어에게만 보임
+	SetActorHiddenInGame(!bLocalIsInteractor); // 또는 BoxComp/메쉬별로 제어
+
+	// 로컬 클라이언트에서의 물리/트레이스용 콜리전 제어
+	BoxComp->SetCollisionEnabled(bLocalIsInteractor ? ECollisionEnabled::QueryOnly : ECollisionEnabled::NoCollision);
+
+	// 필요 시 인터랙트 위젯도 여기서 로컬별로 켜고 끔
+	if (WaitingPlayerWidgetComp)
+	{
+		WaitingPlayerWidgetComp->SetVisibility(bLocalIsInteractor);
+	}
 }
