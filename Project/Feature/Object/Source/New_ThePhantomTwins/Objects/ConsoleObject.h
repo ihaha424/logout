@@ -52,8 +52,12 @@ protected:
 	void PlayTrueEnding();
 
 	// 1인 탈출 : 1인 엔딩 실행(BlueprintImplementableEvent)
-	UFUNCTION(BlueprintImplementableEvent, Category = "Wait5Seconds")
+	UFUNCTION(BlueprintImplementableEvent, Category = "SoloLogOut")
 	void PlaySoloEnding(const APawn* Interactor);
+
+	// 솔로 포탈 콜리젼 키기 함수
+	UFUNCTION(BlueprintImplementableEvent, Category = "SoloLogOut")
+	void SetSoloPortalCollisionFlag(bool bActived);
 
 	// 상태 리셋 함수 추가
     UFUNCTION(NetMulticast, Reliable)

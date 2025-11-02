@@ -267,7 +267,11 @@ void AConsoleObject::CheckEndingConditionByPlayerState(APS_Player* InteractorPla
 
 		// 멀티캐스트로 모든 클라이언트에게 알리고, 각 클라이언트는 자기인지 검사 후 로컬 엔딩 실행
 		S2A_InvokePlaySoloEnding(InteractorPawn);
-		// Collision 키기 그냥 함수
+		
+		// TODO: Collision 키기 그냥 함수
+		SetSoloPortalCollisionFlag(true);
+
+		// TODO: 현재 자신이 clinet에 의한건지 host에 의한건지 bool? 로 파악
 		
 		// 솔로 엔딩 후 상태 리셋 (다시 상호작용 가능하도록)
 		S2A_ResetConsoleState();
@@ -287,6 +291,7 @@ void AConsoleObject::S2A_InvokePlaySoloEnding_Implementation(APawn* Interactor)
 	{
 		if (Interactor->IsLocallyControlled())
 		{
+		// TODO: 비쥬얼만 콜리션 X
 			PlaySoloEnding(Interactor);
 		}
 	}
