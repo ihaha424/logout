@@ -338,9 +338,7 @@ void AAIBaseCharacter::AttackCollisionBeginOverlap(UPrimitiveComponent* Overlapp
         return;
 
     ACharacter* Char = Cast<ACharacter>(OtherActor);
-    NULLCHECK_RETURN_LOG(Char, AILog, Log, );
-
-    if (OtherComp != Char->GetCapsuleComponent())
+    if (!Char || OtherComp != Char->GetCapsuleComponent())
     {
         return;
     }
