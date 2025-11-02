@@ -267,7 +267,8 @@ void AConsoleObject::CheckEndingConditionByPlayerState(APS_Player* InteractorPla
 
 		// 멀티캐스트로 모든 클라이언트에게 알리고, 각 클라이언트는 자기인지 검사 후 로컬 엔딩 실행
 		S2A_InvokePlaySoloEnding(InteractorPawn);
-
+		// Collision 키기 그냥 함수
+		
 		// 솔로 엔딩 후 상태 리셋 (다시 상호작용 가능하도록)
 		S2A_ResetConsoleState();
 	}
@@ -281,13 +282,23 @@ void AConsoleObject::S2A_InvokePlaySoloEnding_Implementation(APawn* Interactor)
 	if (!Interactor)
 		return;
 
-
-	// Interactor의 Controller가 로컬 PlayerController인지 확인
-	APlayerController* InteractorPC = Cast<APlayerController>(Interactor->GetController());
-	if (InteractorPC && InteractorPC->IsLocalPlayerController())
+	// 서버에서는 항상 실행
+	if (HasAuthority())
 	{
-		PlaySoloEnding(Interactor);
+		if (Interactor->IsLocallyControlled())
+		{
+			PlaySoloEnding(Interactor);
+		}
 	}
+	else
+	{
+		// 클라이언트에서는 자기 Pawn인지 확인 후 실행
+		if (Interactor->IsLocallyControlled())
+		{
+			PlaySoloEnding(Interactor);
+		}
+	}
+
 }
 
 void AConsoleObject::S2A_ResetConsoleState_Implementation()
