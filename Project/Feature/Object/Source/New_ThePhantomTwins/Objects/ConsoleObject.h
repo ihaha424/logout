@@ -108,4 +108,8 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_SetSoloPortalForInteractor(APawn* Interactor);
 	void S2A_SetSoloPortalForInteractor_Implementation(APawn* Interactor);
+
+	// 솔로포탈 생성되어야하는 플레이어가 누군지 SoloPortal에게 알림
+	UFUNCTION(BlueprintImplementableEvent, Category = "ConsoleObject")
+	void NotifySoloPortalOfInteractor(APawn* Interactor);
 };

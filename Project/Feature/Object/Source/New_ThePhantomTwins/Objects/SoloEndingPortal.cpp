@@ -2,6 +2,7 @@
 
 
 #include "SoloEndingPortal.h"
+#include "Net/UnrealNetwork.h"
 #include "player/PC_Player.h"
 #include "player/PlayerCharacter.h"
 #include "Components/BoxComponent.h"
@@ -16,9 +17,21 @@ void ASoloEndingPortal::BeginPlay()
 	Super::BeginPlay();
 }
 
+void ASoloEndingPortal::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ASoloEndingPortal, AllowedInteractor);
+}
+
 void ASoloEndingPortal::OnInteractClient_Implementation(const APawn* Interactor)
 {
 	SetWidgetVisible(false);
+
+	if (AllowedInteractor != Interactor)
+	{
+		return;
+	}
 
 	APC_Player* PC_Player = Cast<APC_Player>(Interactor->GetController());
 	NULLCHECK_RETURN_LOG(PC_Player, ObjectLog, Error, );
@@ -56,5 +69,10 @@ void ASoloEndingPortal::SetSoloPortalCollision(bool bActived)
 	{
 		BoxComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+}
+
+void ASoloEndingPortal::OnRep_AllowedInteractor()
+{
+
 }
 

@@ -9,7 +9,6 @@
 #include "player/PC_Player.h"
 #include "player/PS_Player.h"
 #include "Log/TPTLog.h"
-#include "Door.h"
 #include "Components/DecalComponent.h"
 #include "Objects/DataFragment.h"
 #include "Kismet/GameplayStatics.h"
@@ -273,6 +272,7 @@ void AConsoleObject::CheckEndingConditionByPlayerState(APS_Player* InteractorPla
 		SetSoloPortalCollisionFlag(true);
 
 		// TODO: 현재 자신이 clinet에 의한건지 host에 의한건지 bool? 로 파악
+		NotifySoloPortalOfInteractor(InteractorPawn);
 		
 		// 솔로 엔딩 후 상태 리셋 (다시 상호작용 가능하도록)
 		S2A_ResetConsoleState();
