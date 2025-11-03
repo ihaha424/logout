@@ -93,14 +93,8 @@ void AGM_PhantomTwins::HandleStartingNewPlayer_Implementation(APlayerController*
     const FTransform StartPoint = SaveGameManager->GetRestartPoint(bIsHost);
     if (StartPoint.Equals(FTransform::Identity, 1e-3f))
     {
-        return Super::HandleStartingNewPlayer_Implementation(NewPlayer);
-    }
-
-    const float Tol = 1e-3f;
-    if (StartPoint.Equals(FTransform::Identity, Tol))
-    {
         Super::HandleStartingNewPlayer_Implementation(NewPlayer);
-        return;
+    	return; 
     }
 
     RestartPlayerAtTransform(NewPlayer, StartPoint);
