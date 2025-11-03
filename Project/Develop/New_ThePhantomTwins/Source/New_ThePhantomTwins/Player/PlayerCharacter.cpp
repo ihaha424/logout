@@ -653,10 +653,8 @@ void APlayerCharacter::InputPressed(int32 InputID)
 	FGameplayTag ConfusedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd;
 	if (!ASC->HasMatchingGameplayTag(DownedTag) && !ASC->HasMatchingGameplayTag(ConfusedTag) && InputID == InputNum)
 	{
-		if (PlayerHUDWidget)
-		{
-			PlayerHUDWidget->VisibleStamina(true);
-		}
+		NULLCHECK_RETURN_LOG(PlayerHUDWidget, PlayerLog, Warning, );
+		PlayerHUDWidget->VisibleStamina(true);
 	}
 }
 
@@ -674,7 +672,7 @@ void APlayerCharacter::InputSKillPressed(int32 InputID, int32 SkillNumber)
 void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
 {
 	SelectedSlotNumber = SlotNumber;
-
+	NULLCHECK_RETURN_LOG(PlayerHUDWidget, PlayerLog, Warning, );
 	PlayerHUDWidget->VisibleInventory(true);
 
 	// 5초 뒤에 인벤토리(UI) 비활성화
