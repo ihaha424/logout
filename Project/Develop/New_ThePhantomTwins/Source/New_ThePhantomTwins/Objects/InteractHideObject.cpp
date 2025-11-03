@@ -134,8 +134,10 @@ bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bo
 		if (Interactor->IsLocallyControlled())
 		{
 			SetWidgetVisible(false);
-			PlayHideUnable(Interactor);
+			//PlayHideUnable(Interactor);
 		}
+
+		S2A_PlayHideUnable(Interactor);
 
 		return false;
 	}
@@ -163,7 +165,6 @@ void AInteractHideObject::OnInteractServer_Implementation(const APawn* Interacto
 	if (!HasAuthority()) return;
 
 	//TPT_LOG(ObjectLog, Log, TEXT("InteractHideObject::OnInteract Server"));
-	PlayHideInSound(Interactor, true);
 
 	CamLogicServer(Interactor);
 }
@@ -175,8 +176,6 @@ void AInteractHideObject::OnInteractClient_Implementation(const APawn* Interacto
 	if (!Interactor->IsLocallyControlled()) return;
 
 	//TPT_LOG(ObjectLog, Log, TEXT("InteractHideObject::OnInteract Client"));
-
-	PlayHideInSound(Interactor, true);
 
 	SetWidgetVisible(false);
 
@@ -203,6 +202,11 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 		SetViewTarget(InteractorPC, this);
 
 		EnableVignetteEffect(true);
+
+		if (Interactor->IsLocallyControlled())
+		{
+			PlayHideInSound(Interactor, true);
+		}
 
 		if (HideTagGE)
 		{
@@ -233,9 +237,12 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
 		SetViewTarget(InteractorPC, PlayerActor);
 
-		EnableVignetteEffect(false);
+		if (Interactor->IsLocallyControlled())
+		{
+			PlayHideInSound(Interactor, false);
+		}
 
-		PlayHideInSound(Interactor, false);
+		EnableVignetteEffect(false);
 
 		if (HideTagGE)
 		{
@@ -265,6 +272,8 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 		SetViewTarget(InteractorPC, this);
 
 		EnableVignetteEffect(true);
+
+		PlayHideInSound(Interactor, true);
 
 		if (HideTagGE)
 		{
@@ -416,6 +425,14 @@ void AInteractHideObject::PlayHideInSound(const APawn* Interactor, bool Visible)
 			ActiveAudioComponent->Stop();
 			ActiveAudioComponent = nullptr;
 		}
+	}
+}
+
+void AInteractHideObject::S2A_PlayHideUnable_Implementation(const APawn* Interactor)
+{
+	if (Interactor->IsLocallyControlled() && HidePlayer != Interactor)
+	{
+		PlayHideUnable(Interactor);
 	}
 }
 

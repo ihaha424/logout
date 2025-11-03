@@ -53,6 +53,10 @@ protected:
 	void PlayHideInSound(const APawn* Interactor, bool Visible);
 
 	UFUNCTION(NetMulticast, Reliable)
+	void S2A_PlayHideUnable(const APawn* Interactor);
+	void S2A_PlayHideUnable_Implementation(const APawn* Interactor);
+
+	UFUNCTION(NetMulticast, Reliable)
 	void S2A_PlayEffect(FVector EffectLocation);
 	void S2A_PlayEffect_Implementation(FVector EffectLocation);
 
