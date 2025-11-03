@@ -217,7 +217,7 @@ void UTPTSaveGameManager::InitializeSavePlayer()
 
     PlayerSaveGames[0]->InventorySlots.Init(FItemSlot(), 5);
     PlayerSaveGames[1]->InventorySlots.Init(FItemSlot(), 5);
-
+     
     SetRestartPoint(nullptr);
     bPlayerInitialized = true;
 }

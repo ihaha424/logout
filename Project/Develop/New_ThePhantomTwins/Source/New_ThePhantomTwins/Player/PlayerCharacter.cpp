@@ -653,7 +653,10 @@ void APlayerCharacter::InputPressed(int32 InputID)
 	FGameplayTag ConfusedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd;
 	if (!ASC->HasMatchingGameplayTag(DownedTag) && !ASC->HasMatchingGameplayTag(ConfusedTag) && InputID == InputNum)
 	{
-		PlayerHUDWidget->VisibleStamina(true);
+		if (PlayerHUDWidget)
+		{
+			PlayerHUDWidget->VisibleStamina(true);
+		}
 	}
 }
 

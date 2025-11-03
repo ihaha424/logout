@@ -66,6 +66,7 @@ void AGM_PhantomTwins::PostLogin(APlayerController* NewPlayer)
 {
     UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
     SaveGameManager->InitializeSavePlayer();
+
     Super::PostLogin(NewPlayer);
     TotalPlayerCount++;
 }
@@ -89,6 +90,7 @@ void AGM_PhantomTwins::HandleStartingNewPlayer_Implementation(APlayerController*
 {
     const bool bIsHost = NewPlayer->IsLocalController();
     UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+
     const FTransform StartPoint = SaveGameManager->GetRestartPoint(bIsHost);
     if (StartPoint.Equals(FTransform::Identity, 1e-3f))
     {
