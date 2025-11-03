@@ -96,6 +96,13 @@ void AAIBaseCharacter::BeginPlay()
     }
 }
 
+void AAIBaseCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    GetWorld()->GetTimerManager().ClearTimer(CombatRangeInActorTimerHandle);
+
+    Super::EndPlay(EndPlayReason);
+}
+
 void AAIBaseCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);

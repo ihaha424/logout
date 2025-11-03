@@ -18,6 +18,8 @@ public:
 
 	virtual EBTNodeResult::Type Execute_Task(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	virtual FString GetStaticDescription() const override;
+	virtual EBTNodeResult::Type AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+	virtual void OnInstanceDestroyed(UBehaviorTreeComponent& OwnerComp) override;
 
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector RespawnLocationKey;
@@ -25,6 +27,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Respawn")
 	float RespawnDelay = 5.f;
 
+	UPROPERTY()
+	FTimerHandle RespawnTimerHandle;
 private:
 	void CompleteRespawn(ACharacter* Character, UBehaviorTreeComponent* OwnerComp, FVector Location, UAIPerceptionComponent* Perception);
 };

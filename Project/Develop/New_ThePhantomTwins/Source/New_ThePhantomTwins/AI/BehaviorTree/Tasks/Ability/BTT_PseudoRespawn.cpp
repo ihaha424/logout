@@ -16,6 +16,7 @@
 UBTT_PseudoRespawn::UBTT_PseudoRespawn()
 {
     NodeName = TEXT("PseudoRespawn");
+    bCreateNodeInstance = true;
 }
 
 EBTNodeResult::Type UBTT_PseudoRespawn::Execute_Task(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -39,8 +40,6 @@ EBTNodeResult::Type UBTT_PseudoRespawn::Execute_Task(UBehaviorTreeComponent& Own
 
     FTimerDelegate RespawnDelegate = FTimerDelegate::CreateUObject(
         this, &UBTT_PseudoRespawn::CompleteRespawn, Character, &OwnerComp, RespawnLocation, Perception);
-
-    FTimerHandle RespawnTimerHandle;
 
     Character->GetWorld()->GetTimerManager().SetTimer(
         RespawnTimerHandle,
@@ -73,4 +72,18 @@ void UBTT_PseudoRespawn::CompleteRespawn(ACharacter* Character, UBehaviorTreeCom
     }
 
     FinishLatentTask(*OwnerComp, EBTNodeResult::Succeeded);
+}
+
+EBTNodeResult::Type UBTT_PseudoRespawn::AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+{
+    if (UWorld* W = OwnerComp.GetWorld())
+        W->GetTimerManager().ClearTimer(RespawnTimerHandle);
+    return EBTNodeResult::Aborted;
+}
+
+void UBTT_PseudoRespawn::OnInstanceDestroyed(UBehaviorTreeComponent& OwnerComp)
+{
+    if (UWorld* W = OwnerComp.GetWorld())
+        W->GetTimerManager().ClearTimer(RespawnTimerHandle);
+    Super::OnInstanceDestroyed(OwnerComp);
 }
