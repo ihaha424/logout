@@ -56,7 +56,10 @@ void UTravelManagerSubsystem::TravelToLevel(const FString& TargetMap, TSubclassO
 
     default:
         // Standalone or PIE
-        UGameplayStatics::OpenLevel(World, FName(*LoadingMap));
+        if (bServerTravel)
+            UGameplayStatics::OpenLevel(World, FName(*LoadingMap), true, TEXT("listen"));
+        else
+            UGameplayStatics::OpenLevel(World, FName(*LoadingMap));
         break;
     }
 }
