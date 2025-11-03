@@ -300,9 +300,7 @@ void AGM_PhantomTwins::SeverToLevel(const FName LevelName, bool bAbsolute, bool 
     APlayerController* PC = GetWorld()->GetFirstPlayerController();
     if (!PC->HasAuthority()) return;
 
-    //FString LevelPathWithListen = bIsListen ? LevelName.ToString() + TEXT("?listen") : LevelName.ToString();
-    FString LevelPathWithListen = bIsListen ? (TEXT("Game/Maps/%s?listen"), *LevelName.ToString()) : LevelName.ToString();
+    FString LevelPathWithListen = bIsListen ? LevelName.ToString() + TEXT("?listen") : LevelName.ToString();
 
-    TPT_LOG(GameRuleLog, Log, TEXT("LevelPathWithListen: %s"), *LevelPathWithListen);
     GetWorld()->ServerTravel(LevelPathWithListen, bAbsolute);
 }
