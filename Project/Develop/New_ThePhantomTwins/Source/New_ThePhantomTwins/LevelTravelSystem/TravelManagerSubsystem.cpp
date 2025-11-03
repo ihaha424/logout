@@ -97,10 +97,11 @@ void UTravelManagerSubsystem::OnLoadingLevelReady()
     }
 
     // ---- 4) 새 맵 진입 후 FadeOut ----
-    if (World->GetNetMode() != NM_DedicatedServer)
-    {
-        FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UTravelManagerSubsystem::HandlePostLoadMap);
-    }
+    // EndPlayTravelLevel(FadeOut)은 직접 원하는 타이밍에 호출 해주는 것.
+    //if (World->GetNetMode() != NM_DedicatedServer)
+    //{
+    //    FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UTravelManagerSubsystem::HandlePostLoadMap);
+    //}
 }
 
 bool UTravelManagerSubsystem::GetCachedTargetMap(TSoftObjectPtr<UWorld>& TargetWorld)

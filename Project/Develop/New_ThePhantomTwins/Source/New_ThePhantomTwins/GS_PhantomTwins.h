@@ -23,6 +23,13 @@ class NEW_THEPHANTOMTWINS_API AGS_PhantomTwins : public AGameStateBase
 {
 	GENERATED_BODY()
 public:
+	//~ Begin PlayerReady
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category = "PlayerReady")
+	int32	MaxPlayerReady = 2;
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category = "PlayerReady")
+	int32	CurPlayerReady = 0;
+	//~ End PlayerReady
+
 	//~ Begin BossSpawn
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite, Category = "BossSpawn")
 	float	GameTime = 0.f;
