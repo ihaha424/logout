@@ -27,6 +27,12 @@ void UNoiseComponent::OnComponentDestroyed(bool bDestroyingHierarchy)
 	}
 }
 
+void UNoiseComponent::EndPlay(EEndPlayReason::Type Reason)
+{
+	GetWorld()->GetTimerManager().ClearTimer(NoiseTimerHandle);
+	Super::EndPlay(Reason);
+}
+
 void UNoiseComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

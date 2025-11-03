@@ -56,6 +56,16 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
     DOREPLIFETIME(UInventoryComponent, QuestionBoxText);
 }
 
+void UInventoryComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    GetWorld()->GetTimerManager().ClearTimer(VisibleInventoryTimerHandle);
+    GetWorld()->GetTimerManager().ClearTimer(VisibleInventoryTimerHandle);
+    GetWorld()->GetTimerManager().ClearTimer(QuestionBoxTimerHandle);
+    GetWorld()->GetTimerManager().ClearTimer(CanUseKeyTimerHandle);
+
+	Super::EndPlay(EndPlayReason);
+}
+
 // Public API
 
 void UInventoryComponent::AddItem(EItemType eItemType)
@@ -559,18 +569,17 @@ bool UInventoryComponent::CanUseKey()
 
     AActor* TargetActor = Cast<AActor>(OwnerPlayer->GetFocusTrace()->GetFocusedActor());
 
-    auto ShowCannotUseWidget = [PC]()
+    auto ShowCannotUseWidget = [PC, this]()
         {
             PC->SetWidget(TEXT("CannotUseItem"), true, EMessageTargetType::LocalClient);
 
-            FTimerHandle TimerHandle;
             FTimerDelegate TimerDel;
             TimerDel.BindLambda([PC]()
                 {
                     PC->SetWidget(TEXT("CannotUseItem"), false, EMessageTargetType::LocalClient);
                 });
 
-            PC->GetWorldTimerManager().SetTimer(TimerHandle, TimerDel, 2.0f, false);
+            PC->GetWorldTimerManager().SetTimer(CanUseKeyTimerHandle, TimerDel, 2.0f, false);
         };
 
     if (!TargetActor || !TargetActor->ActorHasTag(TEXT("KeyInteract")))

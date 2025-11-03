@@ -170,6 +170,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 void APlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	GetWorldTimerManager().ClearTimer(VisibleStaminaTimerHandle);
+	GetWorldTimerManager().ClearTimer(VisibleInventoryTimerHandle);
 	Super::EndPlay(EndPlayReason);
 }
 

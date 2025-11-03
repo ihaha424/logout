@@ -31,13 +31,6 @@ public:
     void VisibleStamina(bool bVisible);
 
 
-/* ClearItem */ 
-    // 현재 클리어 아이템 갯수 변경
-    UFUNCTION(BlueprintCallable, Category = "UI | ClearItem")
-    void UpdateClearItem(const int32 CurrentClearItem);
-    FDelegateHandle ItemChangedHandle;
-
-
 /* Skill */
     UFUNCTION(BlueprintCallable, Category = "UI | Skill")
     void SetActiveSkillIcon(UTexture2D* ActiveSkillIcon);
@@ -85,10 +78,6 @@ protected:
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<class UPlayerStaminaWidget> PlayerStaminaWidget;
 
-// ClearItem
-    UPROPERTY(meta = (BindWidget))
-    TObjectPtr<class UClearItemCounterWidget> ClearItemCounterWidget;
-
 // Skill
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<class UPlayerSkillWidget> PlayerSkillWidget;
@@ -96,8 +85,5 @@ protected:
 // Inventory
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<class UInventoryWidget> InventoryWidget;
-
-public:
-    int32 ClearItemCount = 0;
 
 };
