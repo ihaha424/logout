@@ -38,6 +38,7 @@ UTPTSaveGameManager::UTPTSaveGameManager()
 
     bActorsInitialized = false;
     bPlayerInitialized = false;
+    SaveUpdate();
 }
 
 void UTPTSaveGameManager::ReInitialize()
