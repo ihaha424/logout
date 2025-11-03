@@ -20,12 +20,17 @@ UGA_ThrowItem::UGA_ThrowItem()
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 }
 
-void UGA_ThrowItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-                                    const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+void UGA_ThrowItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	CancelAimItemAbility();
+	UAbilityTask_PlayMontageAndWait* PlayThrowItemMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("ThrowItemMontage"), ThrowItemMontage, 1.0f);
+	PlayThrowItemMontageTask->OnCompleted.AddDynamic(this, &ThisClass::OnMontageComplete);
+	PlayThrowItemMontageTask->OnCancelled.AddDynamic(this, &ThisClass::OnMontageComplete);
+	PlayThrowItemMontageTask->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageComplete);
+
+	PlayThrowItemMontageTask->ReadyForActivation();
 
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 	if (ASC)
@@ -42,14 +47,8 @@ void UGA_ThrowItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 		{
 			ItemType = static_cast<EItemType>((int32)TriggerEventData->EventMagnitude);
 		}
-
 		SpawnThrowableItem(ItemType);
 	}
-	UAbilityTask_PlayMontageAndWait* PlayThrowItemMontageeTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("ThrowItemMontage"), ThrowItemMontage, 1.0f);
-	PlayThrowItemMontageeTask->OnCompleted.AddDynamic(this, &ThisClass::OnMontageComplete);
-	PlayThrowItemMontageeTask->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageComplete);
-
-	PlayThrowItemMontageeTask->ReadyForActivation();
 }
 
 void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)

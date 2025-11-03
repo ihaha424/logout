@@ -39,6 +39,8 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	PlayInteractMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("InteractMontage"), InteractMontage, 1.0f);
 	PlayInteractMontageTask->OnCompleted.AddDynamic(this, &UGA_Interact::OnMontageComplete);
 	PlayInteractMontageTask->OnInterrupted.AddDynamic(this, &UGA_Interact::OnMontageComplete);
+	PlayInteractMontageTask->OnCancelled.AddDynamic(this, &UGA_Interact::OnMontageComplete);
+
 	// 회복 상호작용
 	PlayRecoveryMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("RecoveryMontage"), RecoveryMontage, 1.0f);
 

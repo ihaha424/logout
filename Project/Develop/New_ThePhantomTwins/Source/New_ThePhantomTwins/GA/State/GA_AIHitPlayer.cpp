@@ -16,7 +16,7 @@
 UGA_AIHitPlayer::UGA_AIHitPlayer()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 
 	FGameplayTagContainer DefaultTags;
 	DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit);
@@ -50,6 +50,8 @@ void UGA_AIHitPlayer::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 
 	HitMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("HitMontage"), HitMontage, 1.0f);
 	HitMontageTask->OnCompleted.AddDynamic(this, &ThisClass::OnMontageComplete);
+	HitMontageTask->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageComplete);
+	HitMontageTask->OnCancelled.AddDynamic(this, &ThisClass::OnMontageComplete);
 	HitMontageTask->ReadyForActivation();
 }
 

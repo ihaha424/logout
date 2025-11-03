@@ -4,12 +4,13 @@
 #include "GA_DrinkPotion.h"
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
 
 UGA_DrinkPotion::UGA_DrinkPotion()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 
 	FGameplayTagContainer DefaultTags;
 	DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_DrinkPotion);
@@ -21,7 +22,8 @@ void UGA_DrinkPotion::ActivateAbility(const FGameplayAbilitySpecHandle Handle,co
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	UAbilityTask_PlayMontageAndWait* PlayDrinkMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("DrinkMontage"), DrinkMontage, 1.0f);
 	PlayDrinkMontageTask->OnCompleted.AddDynamic(this, &ThisClass::OnMontageComplete);
-
+	PlayDrinkMontageTask->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageComplete);
+	PlayDrinkMontageTask->OnCancelled.AddDynamic(this, &ThisClass::OnMontageComplete);
 	PlayDrinkMontageTask->ReadyForActivation();
 }
 
