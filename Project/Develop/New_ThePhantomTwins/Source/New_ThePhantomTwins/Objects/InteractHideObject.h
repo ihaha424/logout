@@ -97,6 +97,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HideObject | SFX")
 	USoundBase* HideInPlayerSoundCue;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HideObject | SFX")
+	USoundBase* HideObjectDestroySoundCue;
+
 	UPROPERTY()
 	UAudioComponent* ActiveAudioComponent = nullptr;
 
