@@ -117,7 +117,7 @@ bool UTravelManagerSubsystem::GetCachedTargetMap(TSoftObjectPtr<UWorld>& TargetW
 
 void UTravelManagerSubsystem::HandlePostLoadMap(UWorld* World)
 {
-    if (!World) 
+    if (!IsValid(World)) 
         return;
     if (World->GetNetMode() == NM_DedicatedServer) 
         return;
