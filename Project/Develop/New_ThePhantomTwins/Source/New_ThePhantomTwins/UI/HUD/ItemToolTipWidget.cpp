@@ -23,7 +23,7 @@ void UItemToolTipWidget::SetItemName(EItemType eItemType)
         if (Row && Row->ItemType == eItemType)
         {
             // 이름 값을 FText로 변환해 widget에 표시
-            ItemName->SetText(FText::FromName(RowName));
+            ItemName->SetText(Row->ItemName);
             return; // 해당 아이템 타입을 찾았으므로 루프 종료
         }
     }
