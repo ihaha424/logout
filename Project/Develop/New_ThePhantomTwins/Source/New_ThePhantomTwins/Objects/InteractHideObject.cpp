@@ -87,11 +87,6 @@ void AInteractHideObject::S2A_OnDestroy_Implementation()
 	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
 	if (!ASC) return;
 
-	if (GetWorld() && HideObjectDestroySoundCue)
-	{
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), HideObjectDestroySoundCue, HidePlayer->GetActorLocation());
-	}
-
 	// 플레이어에 Hide 태그가 있다면
 	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
 	{
