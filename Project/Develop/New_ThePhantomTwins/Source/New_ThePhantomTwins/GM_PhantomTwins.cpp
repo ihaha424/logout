@@ -66,7 +66,7 @@ void AGM_PhantomTwins::PostLogin(APlayerController* NewPlayer)
 {
     UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
     SaveGameManager->InitializeSavePlayer();
-
+    SaveGameManager->SetRestartPoint(nullptr);
     Super::PostLogin(NewPlayer);
     TotalPlayerCount++;
 }
