@@ -373,6 +373,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drone")
 	TSubclassOf<UUserWidget> DroneWidgetClass;
 
+	// Ending Console ¿ß¡¨
+	UPROPERTY(EditDefaultsOnly, Category = "Console")
+	TSubclassOf<UUserWidget> CloseWait5Sec_Class;
+	UPROPERTY(EditDefaultsOnly, Category = "Console")
+	TSubclassOf<UUserWidget> FarWait5Sec_Class;
+	UPROPERTY(EditDefaultsOnly, Category = "Console")
+	TSubclassOf<UUserWidget> AskSoloLogOutClass;
+
+
 	// ¿ÁΩ√¿€øÎ ¿ß¡¨
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 	TSubclassOf<UUserWidget> GameOverWidgetClass;

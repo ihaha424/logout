@@ -1116,6 +1116,11 @@ void APlayerCharacter::EnsureGameStart_Implementation()
 		{
 			TPT_LOG(PlayerLog, Error, TEXT("InitHUDWidget: DroneUserWidget is null"));
 		}
+
+		//콘솔오브젝트
+		PlayerController->RegisterWidget(TEXT("CloseWait5Sec"), CreateWidget<UUserWidget>(GetWorld(), CloseWait5Sec_Class));
+		PlayerController->RegisterWidget(TEXT("FarWait5Sec"), CreateWidget<UUserWidget>(GetWorld(), FarWait5Sec_Class));
+		PlayerController->RegisterWidget(TEXT("AskSoloLogOut"), CreateWidget<UUserWidget>(GetWorld(), AskSoloLogOutClass));
 	}
 }
 

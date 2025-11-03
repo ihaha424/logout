@@ -26,6 +26,7 @@ TPT_TAG_GEN(Character, State, AIHit, "Ai is Hit player ")
 TPT_TAG_GEN(Character, State, Hide, "Character Hide ")
 TPT_TAG_GEN(Character, State, OpenTrapBox, "Character open TrapBox ")
 TPT_TAG_GEN(Character, State, HitDuration, "Character has Hit Duration ")
+TPT_TAG_GEN(Character, State, LogOutReady, "Character LogOutReady")
 
 // Skilling State
 TPT_TAG_GEN(Character, State, SkillCoolDown, "Character's skill is CoolDowning")
