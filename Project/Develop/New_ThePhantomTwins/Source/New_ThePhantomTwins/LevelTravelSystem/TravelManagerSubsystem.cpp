@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "LevelTravelSystem/TravelManagerSubsystem.h"
@@ -34,7 +34,7 @@ void UTravelManagerSubsystem::TravelToLevel(const FString& TargetMap, TSubclassO
         }
     }
 
-    // ---- 2) LoadingLevel ÀÌµ¿ ----
+    // ---- 2) LoadingLevel ì´ë™ ----
     const FString LoadingMap = LoadingMapPath;
 
     switch (World->GetNetMode())
@@ -69,7 +69,7 @@ void UTravelManagerSubsystem::OnLoadingLevelReady()
 
     UE_LOG(LogTravelManagerSubsystem, Log, TEXT("OnLoadingLevelReady: Mode=%d, Map=%s"), (int32)World->GetNetMode(), *CachedTargetMap);
 
-    // ---- 3) ½ÇÁ¦ ÀÌµ¿ ----
+    // ---- 3) ì‹¤ì œ ì´ë™ ----
     switch (World->GetNetMode())
     {
     case NM_ListenServer:
@@ -96,8 +96,7 @@ void UTravelManagerSubsystem::OnLoadingLevelReady()
         break;
     }
 
-    // ---- 4) »õ ¸Ê ÁøÀÔ ÈÄ FadeOut ----
-    // TODO: »õ ¸Ê ÁøÀÔ ÈÄ·Î ¹Ù²Ù¾î¾ßÇÔ. 2ÃÊÈÄ°¡ ¾Æ´Ï¶ó
+    // ---- 4) ìƒˆ ë§µ ì§„ìž… í›„ FadeOut ----
     if (World->GetNetMode() != NM_DedicatedServer)
     {
         FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UTravelManagerSubsystem::HandlePostLoadMap);
@@ -118,17 +117,32 @@ bool UTravelManagerSubsystem::GetCachedTargetMap(TSoftObjectPtr<UWorld>& TargetW
 
 void UTravelManagerSubsystem::HandlePostLoadMap(UWorld* World)
 {
-    if (!World)
+    if (!World) 
+        return;
+    if (World->GetNetMode() == NM_DedicatedServer) 
+        return;
+    if (!CachedWidgetClass) 
+        return;
+    if (bPostLoadEndPlayTravelLevel) 
         return;
 
-    if (!bPostLoadEndPlayTravelLevel && CachedWidgetClass)
-    {
-        bPostLoadEndPlayTravelLevel = true;
-        if (UUserWidget* Widget = CreateWidget<UUserWidget>(World, CachedWidgetClass))
+    bPostLoadEndPlayTravelLevel = true;
+
+    // 1í”„ë ˆìž„ ë’¤ì— ì‹¤í–‰ â€” UMG/World ì´ˆê¸°í™” ì™„ë£Œ í›„ ì•ˆì „í•˜ê²Œ ìœ„ì ¯ ìƒì„±
+    FTimerHandle TempHandle;
+    World->GetTimerManager().SetTimer(
+        TempHandle,
+        [this]()
         {
+            if (!GetGameInstance() || !CachedWidgetClass) return;
+            UUserWidget* Widget = CreateWidget<UUserWidget>(GetGameInstance(), CachedWidgetClass);
+            if (!Widget) 
+                return;
+
             Widget->AddToViewport();
             if (Widget->GetClass()->ImplementsInterface(UTravelWidgetInterface::StaticClass()))
                 ITravelWidgetInterface::Execute_EndPlayTravelLevel(Widget);
-        }
-    }
+        },
+        0.01f, false
+    );
 }
