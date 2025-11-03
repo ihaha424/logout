@@ -10,6 +10,7 @@
 
 ASoloEndingPortal::ASoloEndingPortal() : AInteractableObject()
 {
+	bReplicates = true;
 }
 
 void ASoloEndingPortal::BeginPlay()
