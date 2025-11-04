@@ -4,8 +4,6 @@
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "../Player/PS_Player.h"
-#include "../Player/PlayerCharacter.h"
-#include "SaveGame/SaveIDComponent.h"
 #include "SaveGame/TPTSaveGameManager.h"
 
 AInventoryItem::AInventoryItem()

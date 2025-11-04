@@ -196,9 +196,10 @@ void UGA_AimItem::EndAbility(const FGameplayAbilitySpecHandle Handle,const FGame
 
 void UGA_AimItem::OnMontageInterrupted()
 {
-	TPT_LOG(GALog, Log, TEXT("UGA_AimItem: Holding Item Montage Interrupted."));
-    UAbilityTask_PlayMontageAndWait* RetryTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("HoldingItemMontage"), HoldingItemMontage, 1.0f);
-    RetryTask->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageInterrupted);
-    RetryTask->OnCancelled.AddDynamic(this, &ThisClass::OnMontageInterrupted);
-    RetryTask->ReadyForActivation();
+    EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, false);
+	//TPT_LOG(GALog, Log, TEXT("UGA_AimItem: Holding Item Montage Interrupted."));
+ //   UAbilityTask_PlayMontageAndWait* RetryTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("HoldingItemMontage"), HoldingItemMontage, 1.0f);
+ //   RetryTask->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageInterrupted);
+ //   RetryTask->OnCancelled.AddDynamic(this, &ThisClass::OnMontageInterrupted);
+ //   RetryTask->ReadyForActivation();
 }

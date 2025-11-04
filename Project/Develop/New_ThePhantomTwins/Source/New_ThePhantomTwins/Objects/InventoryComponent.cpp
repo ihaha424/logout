@@ -58,14 +58,15 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 void UInventoryComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-    GetWorld()->GetTimerManager().ClearTimer(VisibleInventoryTimerHandle);
-    GetWorld()->GetTimerManager().ClearTimer(VisibleInventoryTimerHandle);
-    GetWorld()->GetTimerManager().ClearTimer(QuestionBoxTimerHandle);
-    GetWorld()->GetTimerManager().ClearTimer(CanUseKeyTimerHandle);
-
+    if (IsValid(GetWorld()))
+    {
+	    GetWorld()->GetTimerManager().ClearTimer(ChoiceItemTimerHandle);
+    	GetWorld()->GetTimerManager().ClearTimer(VisibleInventoryTimerHandle);
+    	GetWorld()->GetTimerManager().ClearTimer(QuestionBoxTimerHandle);
+    	GetWorld()->GetTimerManager().ClearTimer(CanUseKeyTimerHandle);
+    }
 	Super::EndPlay(EndPlayReason);
 }
-
 // Public API
 
 void UInventoryComponent::AddItem(EItemType eItemType)
@@ -414,8 +415,12 @@ void UInventoryComponent::SetTextQuestionBoxWidget(const FText& Text)
 
 void UInventoryComponent::ShowQuestionBoxWidget(bool bVisible)
 {
-    if (!QuestionBoxTextWidget) return;
-
+    if (!QuestionBoxTextWidget)
+    {
+		//TPT_LOG(ObjectLog, Warning, TEXT("QuestionBoxTextWidget is null!"));
+	    return;
+    }
+	//TPT_LOG(ObjectLog, Log, TEXT("ShowQuestionBoxWidget : %s"), bVisible ? TEXT("Visible") : TEXT("Hidden"));
     QuestionBoxTextWidget->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 }
 

@@ -29,7 +29,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "InteractableObject")
 	virtual void SetWidgetVisible(bool bVisible);
 
-
 	UFUNCTION(BlueprintCallable, Category = "InteractableObject")
 	void ShowOverlayOutline(bool bVisible);
 	UFUNCTION(BlueprintCallable)
