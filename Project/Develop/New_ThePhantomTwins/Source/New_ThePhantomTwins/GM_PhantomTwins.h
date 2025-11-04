@@ -73,6 +73,9 @@ public:
 
     UFUNCTION()
     void NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 ClientSelect);
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+    void PlayerTravel(FName DestinationLevel);
+    void PlayerTravel_Implementation(FName DestinationLevel);
     void ShowResumeCountUI();
 
     FName DestinationLevelName;

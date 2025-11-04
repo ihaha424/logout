@@ -135,21 +135,16 @@ void AGM_PhantomTwins::NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 Cli
     if (HostSelect == 1 && ClientSelect == 1) 
     {
         UGameplayStatics::SetGamePaused(GetWorld(), false);
-		// 그냥  타이머를 넣으니까 멀티캐스트가 안됨. 안되는게 아니라 타이머가 끝나기 전에 트래블이 동시에 일어나기 때문에 안되는 거였음....
-    	FTimerHandle TimerHandle;
-        GetWorldTimerManager().SetTimer(TimerHandle, [this]()
-            {
-                ShowLoadingScene();
-                SeverToLevel(DestinationLevelName, false);
-            },
-            1.f,
-            false
-        );
+    	PlayerTravel(DestinationLevelName);
     }
     else if ((HostSelect != 0 && ClientSelect != 0) && (HostSelect == 2 || ClientSelect == 2))
     {
         ShowResumeCountUI();
     }
+}
+
+void AGM_PhantomTwins::PlayerTravel_Implementation(FName DestinationLevel)
+{
 }
 
 void AGM_PhantomTwins::ShowResumeCountUI()
