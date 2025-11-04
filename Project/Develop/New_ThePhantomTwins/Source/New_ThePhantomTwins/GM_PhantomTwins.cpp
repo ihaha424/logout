@@ -215,11 +215,11 @@ void AGM_PhantomTwins::NotifyPlayerClickRestart(bool bIsHostClicked, bool bIsCli
 
     if (HostClick + ClientClick >= TotalPlayerCount)
     {
-        RestartWithDelay(1.f);
+        RestartThisLevel();
     }
 }
 
-void AGM_PhantomTwins::RestartWithDelay(float Delay)
+void AGM_PhantomTwins::RestartThisLevel()
 {
 
     FString PackageName = GetWorld()->GetOutermost()->GetName();

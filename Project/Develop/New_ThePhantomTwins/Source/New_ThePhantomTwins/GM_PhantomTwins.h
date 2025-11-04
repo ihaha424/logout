@@ -38,7 +38,7 @@ public:
 
     UFUNCTION(BlueprintCallable)
     void ShowLoadingScene();
-	void RestartWithDelay(float Delay);
+	void RestartThisLevel();
 
     UFUNCTION(BlueprintCallable)
 	void ResumePlay();
