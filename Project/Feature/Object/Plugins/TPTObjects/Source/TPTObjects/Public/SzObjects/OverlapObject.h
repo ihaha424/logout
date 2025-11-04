@@ -42,13 +42,13 @@ public:
     UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "OverlapObject")
 	void ReceiveEndOverlap(AActor* Interactor);
 
-	// Deactivate 로직을 블루프린트에서 구현
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "OverlapObject")
-	void Deactivate(float DisableDuration);
-
 	// Activate 로직을 블루프린트에서 구현
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "OverlapObject")
 	void Activate();
+
+	// Deactivate 로직을 블루프린트에서 구현
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "OverlapObject")
+	void Deactivate(float DisableDuration);
 
 
 public:
