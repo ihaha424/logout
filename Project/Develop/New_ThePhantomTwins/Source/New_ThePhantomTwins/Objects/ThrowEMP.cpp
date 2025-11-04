@@ -10,7 +10,7 @@
 #include "player/PlayerCharacter.h"
 #include "AI/Character/AIBaseCharacter.h"
 #include "AI/AIEventReceiver.h"
-#include "SzObjects/OverlapObject.h"
+#include "Objects/GlitchTrap.h"
 #include "Log/TPTLog.h"
 
 AThrowEMP::AThrowEMP()
@@ -264,7 +264,7 @@ void AThrowEMP::DisableGlitchTrap()
         GetActorLocation(),              // SpherePos - 구의 중심 위치
         GlitchTrapDisableRadius,         // SphereRadius - 구의 반경
         ObjectTypes,                     
-        AOverlapObject::StaticClass(),  // ActorClassFilter - AOverlapObject 클래스만 필터링
+        AGlitchTrap::StaticClass(),  // ActorClassFilter - AOverlapObject 클래스만 필터링
         ActorsToIgnore,                 // ActorsToIgnore - 무시할 액터들
         OverlappingGlitchTraps          // OutActors - 결과를 담을 배열
     );
@@ -274,11 +274,11 @@ void AThrowEMP::DisableGlitchTrap()
 
     for (AActor* OverlapActor : OverlappingGlitchTraps)
     {
-        AOverlapObject* GlitchTrap = Cast<AOverlapObject>(OverlapActor);
+        AGlitchTrap* GlitchTrap = Cast<AGlitchTrap>(OverlapActor);
         if (GlitchTrap && GlitchTrap->Tags.Contains(FName("GlitchTrap")))
         {
             GlitchTrap->bEnableEffectAndCue = false;
-            GlitchTrap->Deactivate(GlitchTrapDisableDuration);
+            GlitchTrap->DeactivateMentalDamage(GlitchTrapDisableDuration);
 
             // 일정 시간 뒤 다시 true로 복원
             FTimerHandle TimerHandle;
@@ -289,7 +289,7 @@ void AThrowEMP::DisableGlitchTrap()
                     if (GlitchTrap)
                     {
                         GlitchTrap->bEnableEffectAndCue = true;
-                        GlitchTrap->Activate();
+                        GlitchTrap->ActivateMentalDamage();
                         //TPT_LOG(GALog, Log, TEXT("GlitchTrap re-enabled: %s"), *GlitchTrap->GetName());
                     }
                 },
