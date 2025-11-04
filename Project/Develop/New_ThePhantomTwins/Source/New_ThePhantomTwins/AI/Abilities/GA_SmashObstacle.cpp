@@ -100,7 +100,7 @@ void UGA_SmashObstacle::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted,
     EndAbility(Handle, ActorInfo, ActivationInfo, true, bInterrupted);
 }
 
-void UGA_SmashObstacle::OnCompleteCallback()
+void UGA_SmashObstacle::OnCompleteCallback_Implementation()
 {
     bool bReplicateEndAbility = true; // 서버에서 실행되는 어빌리티는 클라이언트에게도 복제되어야 한다.
     bool bWasCancelled = false; // 몽타주가 끝나면 취소되지 않았으므로 false로 설정한다.
