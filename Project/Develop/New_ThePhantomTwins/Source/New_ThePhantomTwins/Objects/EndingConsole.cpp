@@ -378,6 +378,8 @@ void AEndingConsole::ShowAndAutoRemoveWaitWidgets(class APC_Player* PC_Player)
 		{
 			if (PC_Player)
 			{
+				if (!PC_Player->GetWidget(TEXT("CloseWait5Sec"))) return;
+
 				PC_Player->SetWidget(TEXT("CloseWait5Sec"), false, EMessageTargetType::LocalClient);
 				PC_Player->SetWidget(TEXT("FarWait5Sec"), false, EMessageTargetType::AllExceptSelf);
 			}
