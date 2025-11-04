@@ -102,7 +102,7 @@ bool AEndingConsole::CanInteract_Implementation(const APawn* Interactor, bool bI
 
 void AEndingConsole::OnInteractServer_Implementation(const APawn* Interactor)
 {
-	UKismetSystemLibrary::PrintString(this, TEXT("AConsoleObject :: OnInteractServer"));
+	//UKismetSystemLibrary::PrintString(this, TEXT("AConsoleObject :: OnInteractServer"));
 
 	UpdateCollectionCompletionState();
 
@@ -160,22 +160,22 @@ void AEndingConsole::OnInteractServer_Implementation(const APawn* Interactor)
 
 void AEndingConsole::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	UKismetSystemLibrary::PrintString(this, TEXT("AConsoleObject :: OnInteractClient"));
+	//UKismetSystemLibrary::PrintString(this, TEXT("AConsoleObject :: OnInteractClient"));
 
 	SetWidgetVisible(false);
 
 	if (!bIsCollectionCompleted) return;
 
-	if (APC_Player* PC_Player = Cast<APC_Player>(Interactor->GetController()))
-	{
-		// 팝업 위젯 (5초 뒤 자동 제거)
-		if (!bIsActived)
-		{
-			ShowAndAutoRemoveWaitWidgets(PC_Player);
-		}
+	APC_Player* PC_Player = Cast<APC_Player>(Interactor->GetController());
+	NULLCHECK_RETURN_LOG(PC_Player, ObjectLog, Error, );
 
-		bIsActived = true;
+	// 팝업 위젯 (5초 뒤 자동 제거)
+	if (!bIsActived)
+	{
+		ShowAndAutoRemoveWaitWidgets(PC_Player);
 	}
+
+	bIsActived = true;
 
 }
 
@@ -239,7 +239,7 @@ void AEndingConsole::S2A_ShowWaitingPlayerWidget_Implementation(bool bVisible)
 
 void AEndingConsole::CheckEndingConditionByPlayerState(APS_Player* InteractorPlayerState)
 {
-	UKismetSystemLibrary::PrintString(this, TEXT("CheckEndingConditionByPlayerState called (server)"));
+	//UKismetSystemLibrary::PrintString(this, TEXT("CheckEndingConditionByPlayerState called (server)"));
 
 	// 서버에서만 실행되어야 함
 	if (!HasAuthority()) return;
@@ -330,6 +330,30 @@ void AEndingConsole::S2A_ResetConsoleState_Implementation()
 void AEndingConsole::ShowAndAutoRemoveWaitWidgets(class APC_Player* PC_Player)
 {
 	if (!PC_Player) return;
+
+	// 게임 안의 플레이어가 2명이상인지 체크.
+	// 1명이면 return
+
+	// 방법 A: GameState의 PlayerArray 기준으로 카운트
+	AGameStateBase* GSBase = GetWorld()->GetGameState();
+	int32 NumPlayers = 0;
+	if (GSBase)
+	{
+		// PlayerArray에 들어있는 플레이어수 기준으로 계산
+		NumPlayers = GSBase->PlayerArray.Num();
+	}
+	else
+	{
+		UE_LOG(ObjectLog, Warning, TEXT("ShowAndAutoRemoveWaitWidgets: GameState is null; falling back to PlayerController count"));
+		// 방법 B: PlayerController 수로 카운트
+		NumPlayers = GetWorld()->GetNumPlayerControllers();
+	}
+
+	if (NumPlayers < 2)
+	{
+		UE_LOG(ObjectLog, Log, TEXT("ShowAndAutoRemoveWaitWidgets: Not enough players (%d) - skipping widget"), NumPlayers);
+		return;
+	}
 
 	// 위젯 표시
 	PC_Player->SetWidget(TEXT("CloseWait5Sec"), true, EMessageTargetType::LocalClient);
