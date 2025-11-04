@@ -15,6 +15,8 @@ void AGM_HubMap::ExitGame(const FName LevelName)
 		{
 			if (APlayerController* OtherPC = It->Get())
 			{
+				if (PC == OtherPC)
+					continue;
 				OtherPC->ClientTravel(LevelName.ToString(), TRAVEL_Absolute);
 			}
 		}

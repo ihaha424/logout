@@ -10,6 +10,12 @@ AGlitchTrap::AGlitchTrap() : AOverlapObject()
 	ObjectTag = FName("GlitchTrap");
 }
 
+void AGlitchTrap::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+    Super::EndPlay(EndPlayReason);
+}
+
 
 void AGlitchTrap::ActivateMentalDamage()
 {
@@ -115,4 +121,13 @@ void AGlitchTrap::DeactivateMentalDamage(float DisableDuration)
     }
 
     Deactivate(DisableDuration);
+
+    // 일정 시간 뒤 다시 true로 복원
+    GetWorld()->GetTimerManager().SetTimer(
+        TimerHandle,
+        this,
+        &AGlitchTrap::ActivateMentalDamage,
+        DisableDuration,
+        false
+    );
 }
