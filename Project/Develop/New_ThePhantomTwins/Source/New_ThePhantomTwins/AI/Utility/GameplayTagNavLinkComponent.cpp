@@ -31,7 +31,6 @@ void UGameplayTagNavLinkComponent::BeginPlay()
     SetLinkData(LinkStartPos, LinkEndPos, ENavLinkDirection::BothWays);
     SetMoveReachedLink(this, &UGameplayTagNavLinkComponent::HandleSmartLinkReached);
 }
-
 void UGameplayTagNavLinkComponent::HandleSmartLinkReached(UNavLinkCustomComponent* LinkComp, UObject* PathingAgent, const FVector& DestPoint)
 {
     AActor* MovingActor = nullptr;

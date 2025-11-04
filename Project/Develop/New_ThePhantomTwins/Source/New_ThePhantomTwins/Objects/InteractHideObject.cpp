@@ -2,7 +2,6 @@
 #include "InteractHideObject.h"
 #include "Net/UnrealNetwork.h"
 #include "Camera/CameraComponent.h"
-#include "NiagaraComponent.h" 
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "../Player/PlayerCharacter.h"
@@ -13,17 +12,14 @@
 
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
-#include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISense_Hearing.h"
-#include "Perception/AISenseConfig_Hearing.h"
 #include "AbilitySystemComponent.h"
 #include "GameplayEffect.h"
 
 #include "Components/StaticMeshComponent.h"
-#include "SaveGame/SaveIDComponent.h"
-#include "SaveGame/TPTSaveGameManager.h"
 #include "Tags/TPTGameplayTags.h"
 
 #include "Kismet/GameplayStatics.h"
@@ -330,6 +326,9 @@ void AInteractHideObject::EnterObject(const APawn* Interactor)
 
 	bIsActived = true;
 	HidePlayer = const_cast<APawn*>(Interactor);
+	ACharacter* Char = Cast<ACharacter>(HidePlayer);
+	UCapsuleComponent* Capsule = Char->GetCapsuleComponent();
+	Capsule->SetCollisionObjectType(ECC_WorldDynamic);
 
 	FVector playerLocation = { HidePlayer->GetActorLocation().X, HidePlayer->GetActorLocation().Y, 0 };
 	S2A_PlayEffect(playerLocation);
@@ -366,6 +365,10 @@ void AInteractHideObject::ExitObject()
 			ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 			ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 		}
+
+		ACharacter* Char = Cast<ACharacter>(HidePlayer);
+		UCapsuleComponent* Capsule = Char->GetCapsuleComponent();
+		Capsule->SetCollisionObjectType(ECC_Pawn);
 
 		FVector NewLocation = OutPosBox->GetComponentLocation();
 		FRotator NewRotation = OutPosBox->GetComponentRotation();
