@@ -47,10 +47,5 @@ void UGA_EMP::OnTraceResultCallback(const FGameplayAbilityTargetDataHandle& Targ
 			ApplyGameplayEffectSpecToOwner(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, BuffEffectSpecHandle); // 자신에게 거는거라서 당연히 타겟정보는 필요없다.
 		}
 	}
-
-
-
-
-
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }

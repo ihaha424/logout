@@ -57,7 +57,7 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
     {
         // 투척 아이템인 경우 스폰 및 부착
         HeldItemComp->SpawnAndAttachHeldItem(ChoiceItemType);
-        TPT_LOG(GALog, Log, TEXT("투척 아이템 (%d) 손에 부착 완료"), static_cast<int32>(ChoiceItemType));
+        //TPT_LOG(GALog, Log, TEXT("투척 아이템 (%d) 손에 부착 완료"), static_cast<int32>(ChoiceItemType));
 
     	FGameplayEventData EventData;
         EventData.EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_AimItem;
@@ -69,7 +69,7 @@ void UGA_HoldItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
     else
     {
         HeldItemComp->DestroyHeldItem();
-        TPT_LOG(GALog, Log, TEXT("투척 아이템이 아니므로 손에 있는 아이템 제거"));
+        //TPT_LOG(GALog, Log, TEXT("투척 아이템이 아니므로 손에 있는 아이템 제거"));
     }
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
