@@ -7,6 +7,8 @@
 #include "Tags/TPTGameplayTags.h"
 #include "AI/Character/AIBaseCharacter.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "AIController.h"
+#include "Navigation/PathFollowingComponent.h"
 
 #include "Log/TPTLog.h"
 
@@ -76,6 +78,16 @@ void UGA_SmashObstacle::EndAbility(const FGameplayAbilitySpecHandle Handle, cons
     {
         MyASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Action_SmashObstacle);
         MyASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_AIState_PerformingAction);
+    }
+
+    if (OwnerPawn)
+    {
+        AAIController* AIController = Cast<AAIController>(OwnerPawn->GetController());
+        if (AIController)
+        {
+            EPathFollowingStatus::Type Status = AIController->GetPathFollowingComponent()->GetStatus();
+            AIController->StopMovement();
+        }
     }
     bActiveAbility = false;
     Target = nullptr;

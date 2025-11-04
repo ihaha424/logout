@@ -99,14 +99,6 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HasAuthority())
-	{
-		if (IsLocallyControlled())
-		{
-			SetSelectSkill(PS);
-		}
-	}
-
 	NULLCHECK_RETURN_LOG(InteractWidget, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(DownedWidget, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(InteractWidgetClass, PlayerLog, Error, );
@@ -120,37 +112,7 @@ void APlayerCharacter::BeginPlay()
 	DownedWidget->SetWidget(Down);
 	DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 
-	DroneMesh = FindComponentByTag<USkeletalMeshComponent>(TEXT("DroneMesh"));
-	if (DroneMesh)
-	{
-		DroneWidget->AttachToComponent(DroneMesh, FAttachmentTransformRules::KeepRelativeTransform);
-		TPT_LOG(PlayerLog, Log, TEXT("Attach Complete! : %s"), *DroneWidget->GetAttachParent()->GetName());
-	}
-
-	UUserWidget* Drone = CreateWidget(GetWorld(), DroneWidgetClass);
-	DroneWidget->SetWidget(Drone);
-	DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
-	DroneWidget->SetCastShadow(false);
-
-	if (Drone)
-	{
-		DroneUserWidget = Cast<UDroneStatWidget>(Drone);
-	}
-
 	FocusTrace->SetIsReplicated(true);
-
-	if (IsLocallyControlled())
-	{
-		if (DroneUserWidget)
-		{
-			SetHP(HealthPoint);
-			SetMP(MentalPoint);
-		}
-		else
-		{
-			TPT_LOG(HUDLog, Error, TEXT("InitHUDWidget: DroneUserWidget is null"));
-		}
-	}
 
 	InitPostProcessComponent();
 
@@ -208,6 +170,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 void APlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	GetWorldTimerManager().ClearTimer(VisibleStaminaTimerHandle);
+	GetWorldTimerManager().ClearTimer(VisibleInventoryTimerHandle);
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -249,8 +212,6 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	InitHUDWidget(AttributeSet);
 	UPlayerAnimInstance* AnimInstance = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	AnimInstance->InitializeWithAbilitySystem(ASC);
-
-	SetSelectSkill(PS);
 
 	InitPostProcessComponent();
 	UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
@@ -350,11 +311,13 @@ void APlayerCharacter::InitPostProcessComponent()
 	NULLCHECK_RETURN_LOG(DownedVignette, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(Confused3rdVignette, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(TrapVignette, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(MentalAttackVignette, PlayerLog, Error, );
 
 	UMaterialInstanceDynamic* HitMID = UMaterialInstanceDynamic::Create(HitVignette, this);
 	UMaterialInstanceDynamic* LowHPMID = UMaterialInstanceDynamic::Create(DownedVignette, this);
 	UMaterialInstanceDynamic* Confused3rdMID = UMaterialInstanceDynamic::Create(Confused3rdVignette, this);
 	UMaterialInstanceDynamic* TrapMID = UMaterialInstanceDynamic::Create(TrapVignette, this);
+	UMaterialInstanceDynamic* MentalAttackMID = UMaterialInstanceDynamic::Create(MentalAttackVignette, this);
 
 	HitBlendable.Object = HitMID;
 	HitBlendable.Weight = 0.0f;
@@ -368,22 +331,26 @@ void APlayerCharacter::InitPostProcessComponent()
 	TrapBlendable.Object = TrapMID;
 	TrapBlendable.Weight = 0.0f;
 
+	MentalAttackBlendable.Object = MentalAttackMID;
+	MentalAttackBlendable.Weight = 0.0f;
+
 	PostProcessComp->Settings.WeightedBlendables.Array.Add(HitBlendable);
 	PostProcessComp->Settings.WeightedBlendables.Array.Add(DownedBlendable);
 	PostProcessComp->Settings.WeightedBlendables.Array.Add(TrapBlendable);
 	PostProcessComp->Settings.WeightedBlendables.Array.Add(Confused3rdBlendable);
+	PostProcessComp->Settings.WeightedBlendables.Array.Add(MentalAttackBlendable);
 }
 
 void APlayerCharacter::SetHP(int32 value)
 {
-	NULLCHECK_RETURN_LOG(DroneUserWidget, HUDLog, Error, );
+	NULLCHECK_RETURN_LOG(DroneUserWidget, PlayerLog, Error, );
 	//TPT_LOG(HUDLog, Log, TEXT("HP : %d"), value);
 	DroneUserWidget->SetHP(value);
 }
 
 void APlayerCharacter::SetMP(int32 value)
 {
-	NULLCHECK_RETURN_LOG(DroneUserWidget, HUDLog, Error, );
+	NULLCHECK_RETURN_LOG(DroneUserWidget, PlayerLog, Error, );
 	//TPT_LOG(HUDLog, Log, TEXT("MP : %d"), value);
 	DroneUserWidget->SetMP(value);
 }
@@ -395,35 +362,9 @@ void APlayerCharacter::SettingPostProcessComponentBlendable(EVignetteType Type, 
 	if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 0)
 		return;
 
-	FPostProcessSettings NewSettings;
-	NewSettings = PostProcessComp->Settings;
-
-	switch (Type)
-	{
-	case EVignetteType::HitVignette:
-		NewSettings.WeightedBlendables.Array[0].Object = HitBlendable.Object;
-		NewSettings.WeightedBlendables.Array[0].Weight = Weight;
-		break;
-	case EVignetteType::DownedVignette:
-		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 1) return;
-		NewSettings.WeightedBlendables.Array[1].Object = DownedBlendable.Object;
-		NewSettings.WeightedBlendables.Array[1].Weight = Weight;
-		break;
-	case EVignetteType::TrapVignette:
-		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 2) return;
-		NewSettings.WeightedBlendables.Array[2].Object = TrapBlendable.Object;
-		NewSettings.WeightedBlendables.Array[2].Weight = Weight;
-		break;
-	case EVignetteType::Confused3rdVignette:
-		if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 3) return;
-		NewSettings.WeightedBlendables.Array[3].Object = Confused3rdBlendable.Object;
-		NewSettings.WeightedBlendables.Array[3].Weight = Weight;
-		break;
-	default:
-		break;
-	}
-
-	PostProcessComp->Settings = NewSettings;
+	const int32 index = static_cast<int32>(Type) - 1;
+	if (!PostProcessComp->Settings.WeightedBlendables.Array.IsValidIndex(index)) return;
+	PostProcessComp->AddOrUpdateBlendable(PostProcessComp->Settings.WeightedBlendables.Array[index].Object, Weight);
 }
 
 void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
@@ -473,7 +414,6 @@ void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
 		SetHP(HealthPoint);
 		SetMP(MentalPoint);
 	}
-
 }
 
 void APlayerCharacter::DroneWidgetOnOff(bool Visibility)
@@ -576,8 +516,10 @@ void APlayerCharacter::OnAbilityFailed(const UGameplayAbility* Ability, const FG
 
 void APlayerCharacter::ExecuteAbilityByTag(FGameplayTag InputTag)
 {
-	ASC->AddLooseGameplayTag(InputTag);// 로컬에게 비네팅 적용 됨. 다운드 애니메이션 적용 안됨. 서버에선 엎어짐. 서버에만 태그가 붙음.(당연함)
-	ASC->AddReplicatedLooseGameplayTag(InputTag);// 리플리케이트로 붙이면 서버에서는 아무것도 적용안됨. 로컬에서는 다 됨. 태그도 로컬에만 존재함.
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Warning, );
+
+	ASC->AddLooseGameplayTag(InputTag); // 로컬에게 비네팅 적용 됨. 다운드 애니메이션 적용 안됨. 서버에선 엎어짐. 서버에만 태그가 붙음.(당연함)
+	ASC->AddReplicatedLooseGameplayTag(InputTag); // 리플리케이트로 붙이면 서버에서는 아무것도 적용안됨. 로컬에서는 다 됨. 태그도 로컬에만 존재함.
 
 	bool bActivated = ASC->TryActivateAbilitiesByTag(FGameplayTagContainer(InputTag));
 	if(!bActivated)
@@ -711,6 +653,7 @@ void APlayerCharacter::InputPressed(int32 InputID)
 	FGameplayTag ConfusedTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd;
 	if (!ASC->HasMatchingGameplayTag(DownedTag) && !ASC->HasMatchingGameplayTag(ConfusedTag) && InputID == InputNum)
 	{
+		NULLCHECK_RETURN_LOG(PlayerHUDWidget, PlayerLog, Warning, );
 		PlayerHUDWidget->VisibleStamina(true);
 	}
 }
@@ -729,7 +672,7 @@ void APlayerCharacter::InputSKillPressed(int32 InputID, int32 SkillNumber)
 void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
 {
 	SelectedSlotNumber = SlotNumber;
-
+	NULLCHECK_RETURN_LOG(PlayerHUDWidget, PlayerLog, Warning, );
 	PlayerHUDWidget->VisibleInventory(true);
 
 	// 5초 뒤에 인벤토리(UI) 비활성화
@@ -783,15 +726,17 @@ void APlayerCharacter::InputESC(const FInputActionValue& Value)
 void APlayerCharacter::InputTab(const FInputActionValue& Value)
 {
 	NULLCHECK_RETURN_LOG(DroneWidget, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(DroneUserWidget, PlayerLog, Error, );
+
 	if (!IsLocallyControlled()) return;
 
 	if (DroneWidget->GetUserWidgetObject()->GetVisibility() == ESlateVisibility::Visible)
 	{
-		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+		DroneUserWidget->CloseAnimation(this);
 	}
 	else if (DroneWidget->GetUserWidgetObject()->GetVisibility() == ESlateVisibility::Hidden)
 	{
-		DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+		DroneUserWidget->OpenAnimation(this);
 	}
 }
 
@@ -1113,38 +1058,70 @@ void APlayerCharacter::EnsureSetting(EnsureCreateElement Element)
 
 void APlayerCharacter::EnsureGameStart_Implementation()
 {
-	AUIManagerPlayerController* PC = Cast<AUIManagerPlayerController>(GetController());
-	if (!PC)
-		return;
+	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(DroneWidget, PlayerLog, Error, );
+	NULLCHECK_RETURN_LOG(DroneWidgetClass, PlayerLog, Error, );
 
-	PC->SetWidget(TEXT("PlayerHUDWidget"), true, EMessageTargetType::LocalClient);
+	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
+	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
+
+	SetSelectSkill(PS);
+
+	PlayerController->SetWidget(TEXT("PlayerHUDWidget"), true, EMessageTargetType::LocalClient);
+
+	DroneMesh = FindComponentByTag<USkeletalMeshComponent>(TEXT("DroneMesh"));
+	if (DroneMesh)
+	{
+		DroneWidget->AttachToComponent(DroneMesh, FAttachmentTransformRules::KeepRelativeTransform);
+		TPT_LOG(PlayerLog, Log, TEXT("Attach Complete! : %s"), *DroneWidget->GetAttachParent()->GetName());
+	}
+
+	UUserWidget* Drone = CreateWidget(GetWorld(), DroneWidgetClass);
+	DroneWidget->SetWidget(Drone);
+	DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	DroneWidget->SetCastShadow(false);
+
+	if (Drone)
+	{
+		DroneUserWidget = Cast<UDroneStatWidget>(Drone);
+	}
 
 	if (IsLocallyControlled())
 	{
 		//NULLCHECK_RETURN_LOG(RecoveryWidgetClass, PlayerLog, Error, );
-		PC->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
+		PlayerController->RegisterWidget(TEXT("RecoveryGauge"), CreateWidget<UUserWidget>(GetWorld(), RecoveryWidgetClass));
 		//NULLCHECK_RETURN_LOG(KeyWidgetClass, PlayerLog, Error, );
-		PC->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
+		PlayerController->RegisterWidget(TEXT("WASD"), CreateWidget<UUserWidget>(GetWorld(), KeyWidgetClass));
 		//NULLCHECK_RETURN_LOG(CannotUseItemWidgetClass, PlayerLog, Error, );
-		PC->RegisterWidget(TEXT("CannotUseItem"), CreateWidget<UUserWidget>(GetWorld(), CannotUseItemWidgetClass));
+		PlayerController->RegisterWidget(TEXT("CannotUseItem"), CreateWidget<UUserWidget>(GetWorld(), CannotUseItemWidgetClass));
 		//NULLCHECK_RETURN_LOG(GameOverWidgetClass, PlayerLog, Error, );
-		PC->RegisterWidget(TEXT("GameOver"), CreateWidget(GetWorld(), GameOverWidgetClass));
+		PlayerController->RegisterWidget(TEXT("GameOver"), CreateWidget(GetWorld(), GameOverWidgetClass));
 		//NULLCHECK_RETURN_LOG(LoadingWidgetClass, PlayerLog, Error, );
 		//PC->RegisterWidget(TEXT("Loading"), CreateWidget(GetWorld(), LoadingWidgetClass));
 		//NULLCHECK_RETURN_LOG(ESCWidgetClass, PlayerLog, Error, );
-		PC->RegisterWidget(TEXT("ESC"), CreateWidget(GetWorld(), ESCWidgetClass));
+		PlayerController->RegisterWidget(TEXT("ESC"), CreateWidget(GetWorld(), ESCWidgetClass));
 		//NULLCHECK_RETURN_LOG(GameStopWidgetClass, PlayerLog, Error, );
-		PC->RegisterWidget(TEXT("GameStop"), CreateWidget(GetWorld(), GameStopWidgetClass));
+		PlayerController->RegisterWidget(TEXT("GameStop"), CreateWidget(GetWorld(), GameStopWidgetClass));
 		//NULLCHECK_RETURN_LOG(ResumeCountWidgetClass, PlayerLog, Error, );
-		PC->RegisterWidget(TEXT("ResumeCount"), CreateWidget(GetWorld(), ResumeCountWidgetClass));
+		PlayerController->RegisterWidget(TEXT("ResumeCount"), CreateWidget(GetWorld(), ResumeCountWidgetClass));
+
+		if (DroneUserWidget)
+		{
+			SetHP(AttributeSet->GetMaxHP());
+			SetMP(AttributeSet->GetMaxMentalPoint());
+		}
+		else
+		{
+			TPT_LOG(PlayerLog, Error, TEXT("InitHUDWidget: DroneUserWidget is null"));
+		}
 
 		//콘솔오브젝트
-		PC->RegisterWidget(TEXT("Wait5Seconds_InteractO"), CreateWidget<UUserWidget>(GetWorld(), Wait5Seconds_InteractO_Class));
-		PC->RegisterWidget(TEXT("Wait5Seconds_InteractX"), CreateWidget<UUserWidget>(GetWorld(), Wait5Seconds_InteractX_Class));
-		PC->RegisterWidget(TEXT("AskExit"), CreateWidget<UUserWidget>(GetWorld(), AskExitClass));
-		PC->RegisterWidget(TEXT("SoloLogout"), CreateWidget<UUserWidget>(GetWorld(), SoloLogoutClass));
+		PlayerController->RegisterWidget(TEXT("CloseWait5Sec"), CreateWidget<UUserWidget>(GetWorld(), CloseWait5Sec_Class));
+		PlayerController->RegisterWidget(TEXT("FarWait5Sec"), CreateWidget<UUserWidget>(GetWorld(), FarWait5Sec_Class));
+		PlayerController->RegisterWidget(TEXT("AskSoloLogOut"), CreateWidget<UUserWidget>(GetWorld(), AskSoloLogOutClass));
 	}
-
 }
 
 void APlayerCharacter::RemoveHeldItemMesh()
@@ -1191,6 +1168,8 @@ void APlayerCharacter::S2A_RemoveHeldItemMesh_Implementation()
 
 void APlayerCharacter::S2A_OnDownedWidget_Implementation(bool Visible)
 {
+	NULLCHECK_RETURN_LOG(DownedWidget, PlayerLog, Warning, );
+
 	if (Visible)
 	{
 		DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
@@ -1204,9 +1183,6 @@ void APlayerCharacter::S2A_OnDownedWidget_Implementation(bool Visible)
 void APlayerCharacter::GivePassiveSkillBySkillType(ESkillType Type)
 {
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
-	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
-
-	TPT_LOG(PlayerLog, Log, TEXT("Give Skill"));
 
 	FGameplayEventData Payload;
 	Payload.EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_Skill_StarterKit;
@@ -1297,7 +1273,7 @@ void APlayerCharacter::UpdateSprintCooldownCount()
 		}
 	}
 	
-	CooldownTotal -= 5;
+	CooldownTotal -= SkillCoolTime_Q;
 
 	//if (HasAuthority())
 		//TPT_LOG(LogTemp, Error, TEXT("SprintTotal: %.2f| SprintStartTime: %.2f| CooldownTotal: %.2f| CooldownStartTime: %.2f|"), SprintTotal, SprintStartTime, CooldownTotal, CooldownStartTime);
@@ -1362,7 +1338,7 @@ void APlayerCharacter::UpdateAuraCooldownCount()
 		}
 	}
 
-	CooldownTotal -= 20;
+	CooldownTotal -= SkillCoolTime_E;
 
 	//if (HasAuthority())
 		//TPT_LOG(LogTemp, Error, TEXT("AuraTotal: %.2f| AuraStartTime: %.2f| CooldownTotal: %.2f| CooldownStartTime: %.2f|"), SprintTotal, SprintStartTime, CooldownTotal, CooldownStartTime);

@@ -21,6 +21,7 @@ public:
 	                        const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags,
 	                        FGameplayTagContainer* OptionalRelevantTags) const override;
     virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility) override;
+    virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled);
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
     virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 
@@ -47,6 +48,7 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Scan Effect")
     TSubclassOf<AActor> ScanEffectActorClass;
 
+    UPROPERTY()
     TArray<AActor*> UnlimitedObjects;
 
     AActor* OtherPlayer = nullptr;
@@ -55,11 +57,19 @@ protected:
     FTimerHandle ScanTimerHandle;
 
     // 현재 Aura가 적용된 대상들
+    UPROPERTY()
     TSet<TWeakObjectPtr<AActor>> CurrentAuraTargets;
 
 	AActor* OwnerActor = nullptr;
 
+    UPROPERTY()
     TSet<TWeakObjectPtr<AActor>> NewTargets;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SFX")
+	USoundBase* SoundCue;
+
+	UPROPERTY()
+	UAudioComponent* ActiveAudioComponent = nullptr;
 
     // === Configurable Variables ===
 

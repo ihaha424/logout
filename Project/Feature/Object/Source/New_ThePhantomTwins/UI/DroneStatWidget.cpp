@@ -18,10 +18,13 @@ void UDroneStatWidget::NativeConstruct()
     {
         ItemChangedHandle = GS->OnCollectedItemCountChanged().AddUObject(
             this, &UDroneStatWidget::SetClearItemCount);
+		SetClearItemCount(GS->DataFragmentCount);
     }
-
+    else
+    {
+        SetClearItemCount(0);
+    }
     SetMaxClearItem();
-    SetClearItemCount(0);
 }
 
 void UDroneStatWidget::NativeDestruct()

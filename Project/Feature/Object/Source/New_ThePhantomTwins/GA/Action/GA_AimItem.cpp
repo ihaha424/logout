@@ -21,14 +21,13 @@ UGA_AimItem::UGA_AimItem()
     SetAssetTags(DefaultTags);
 }
 
-void UGA_AimItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-                                  const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+void UGA_AimItem::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	PlayHoldingItemMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("HoldingItemMontage"), HoldingItemMontage, 1.0f);
-	PlayHoldingItemMontageTask->ReadyForActivation();
     PlayHoldingItemMontageTask->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageInterrupted);
-    // 중간에 방해를 받으면 다시 재생되도록 하기. 커스텀할수있다고는 하다...
+    PlayHoldingItemMontageTask->OnCancelled.AddDynamic(this, &ThisClass::OnMontageInterrupted);
+	PlayHoldingItemMontageTask->ReadyForActivation();
 
     EItemType ItemType = EItemType::None;
     if (TriggerEventData)
@@ -167,10 +166,7 @@ void UGA_AimItem::UpdateParabola()
 	}
 }
 
-void UGA_AimItem::EndAbility(const FGameplayAbilitySpecHandle Handle,
-    const FGameplayAbilityActorInfo* ActorInfo,
-    const FGameplayAbilityActivationInfo ActivationInfo,
-    bool bReplicateEndAbility, bool bWasCancelled)
+void UGA_AimItem::EndAbility(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo,const FGameplayAbilityActivationInfo ActivationInfo,bool bReplicateEndAbility, bool bWasCancelled)
 {
 	GetWorld()->GetTimerManager().ClearTimer(UpdateTimerHandle);
 
@@ -187,7 +183,6 @@ void UGA_AimItem::EndAbility(const FGameplayAbilitySpecHandle Handle,
                 SplineMeshes[i]->DestroyComponent();
             }
         }
-
         SplineMeshes.Empty();
     }
 
@@ -196,11 +191,14 @@ void UGA_AimItem::EndAbility(const FGameplayAbilitySpecHandle Handle,
         SplineComp->DestroyComponent();
         SplineComp = nullptr;
 	}
-
     Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UGA_AimItem::OnMontageInterrupted()
 {
-    PlayHoldingItemMontageTask->ReadyForActivation();
+	TPT_LOG(GALog, Log, TEXT("UGA_AimItem: Holding Item Montage Interrupted."));
+    UAbilityTask_PlayMontageAndWait* RetryTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("HoldingItemMontage"), HoldingItemMontage, 1.0f);
+    RetryTask->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageInterrupted);
+    RetryTask->OnCancelled.AddDynamic(this, &ThisClass::OnMontageInterrupted);
+    RetryTask->ReadyForActivation();
 }

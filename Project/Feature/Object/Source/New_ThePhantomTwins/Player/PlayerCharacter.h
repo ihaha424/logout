@@ -114,6 +114,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	float RecoveryTime = 5.0f;
 
+	// 스킬 관련 변수
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill")
+	float SkillCoolTime_E = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill")
+	float SkillCoolTime_Q = 0.f;
+
 	UFUNCTION()
 	void InitPostProcessComponent();
 
@@ -352,15 +358,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> CannotUseItemWidgetClass;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Console")
-	TSubclassOf<UUserWidget> Wait5Seconds_InteractO_Class;
-	UPROPERTY(EditDefaultsOnly, Category = "Console")
-	TSubclassOf<UUserWidget> Wait5Seconds_InteractX_Class;
-	UPROPERTY(EditDefaultsOnly, Category = "Console")
-	TSubclassOf<UUserWidget> AskExitClass;
-	UPROPERTY(EditDefaultsOnly, Category = "Console")
-	TSubclassOf<UUserWidget> SoloLogoutClass;
-
 	// 상호작용 위젯
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	TObjectPtr<UWidgetComponent> InteractWidget;
@@ -375,6 +372,15 @@ protected:
 	TSubclassOf<UUserWidget> DownWidgetClass;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drone")
 	TSubclassOf<UUserWidget> DroneWidgetClass;
+
+	// Ending Console 위젯
+	UPROPERTY(EditDefaultsOnly, Category = "Console")
+	TSubclassOf<UUserWidget> CloseWait5Sec_Class;
+	UPROPERTY(EditDefaultsOnly, Category = "Console")
+	TSubclassOf<UUserWidget> FarWait5Sec_Class;
+	UPROPERTY(EditDefaultsOnly, Category = "Console")
+	TSubclassOf<UUserWidget> AskSoloLogOutClass;
+
 
 	// 재시작용 위젯
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")

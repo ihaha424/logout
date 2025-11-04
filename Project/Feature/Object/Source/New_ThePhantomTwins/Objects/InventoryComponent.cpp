@@ -56,6 +56,16 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
     DOREPLIFETIME(UInventoryComponent, QuestionBoxText);
 }
 
+void UInventoryComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    GetWorld()->GetTimerManager().ClearTimer(VisibleInventoryTimerHandle);
+    GetWorld()->GetTimerManager().ClearTimer(VisibleInventoryTimerHandle);
+    GetWorld()->GetTimerManager().ClearTimer(QuestionBoxTimerHandle);
+    GetWorld()->GetTimerManager().ClearTimer(CanUseKeyTimerHandle);
+
+	Super::EndPlay(EndPlayReason);
+}
+
 // Public API
 
 void UInventoryComponent::AddItem(EItemType eItemType)
@@ -416,7 +426,7 @@ void UInventoryComponent::ShowQuestionBoxResult(const FText& Text, float Duratio
     SetTextQuestionBoxWidget(Text);
     ShowQuestionBoxWidget(true);
 
-    TPT_LOG(ObjectLog, Log, TEXT("ShowQuestionBoxWidget : 룰렛 위젯 활성화"));
+    //TPT_LOG(ObjectLog, Log, TEXT("ShowQuestionBoxWidget : 룰렛 위젯 활성화"));
 
     // 인벤토리용 핸들과 혼용 금지
     GetWorld()->GetTimerManager().ClearTimer(QuestionBoxTimerHandle);
@@ -428,7 +438,7 @@ void UInventoryComponent::ShowQuestionBoxResult(const FText& Text, float Duratio
             {
                 bQuestionBoxWidgetActived = false;
                 ShowQuestionBoxWidget(false);
-                TPT_LOG(ObjectLog, Log, TEXT("ShowQuestionBoxWidget : 룰렛 위젯 비활성화"));
+                //TPT_LOG(ObjectLog, Log, TEXT("ShowQuestionBoxWidget : 룰렛 위젯 비활성화"));
             }),
         Duration,
         false
@@ -559,23 +569,22 @@ bool UInventoryComponent::CanUseKey()
 
     AActor* TargetActor = Cast<AActor>(OwnerPlayer->GetFocusTrace()->GetFocusedActor());
 
-    auto ShowCannotUseWidget = [PC]()
+    auto ShowCannotUseWidget = [PC, this]()
         {
             PC->SetWidget(TEXT("CannotUseItem"), true, EMessageTargetType::LocalClient);
 
-            FTimerHandle TimerHandle;
             FTimerDelegate TimerDel;
             TimerDel.BindLambda([PC]()
                 {
                     PC->SetWidget(TEXT("CannotUseItem"), false, EMessageTargetType::LocalClient);
                 });
 
-            PC->GetWorldTimerManager().SetTimer(TimerHandle, TimerDel, 2.0f, false);
+            PC->GetWorldTimerManager().SetTimer(CanUseKeyTimerHandle, TimerDel, 2.0f, false);
         };
 
     if (!TargetActor || !TargetActor->ActorHasTag(TEXT("KeyInteract")))
     {
-        TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 불가 - 태그 없음"));
+        //TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 불가 - 태그 없음"));
         ShowCannotUseWidget();
         return false;
     }
@@ -583,12 +592,12 @@ bool UInventoryComponent::CanUseKey()
     ADoor* TargetDoor = Cast<ADoor>(TargetActor);
     if (TargetDoor && TargetDoor->bKeyUsed)
     {
-        TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 불가 - 이미 사용됨"));
+        //TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 불가 - 이미 사용됨"));
         ShowCannotUseWidget();
         return false;
     }
 
-    TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 가능"));
+    //TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 가능"));
     return true;
 }
 
@@ -612,6 +621,14 @@ void UInventoryComponent::PlayItemSound(FItemDataTable* ItemData)
 
 void UInventoryComponent::PlayItemSound(EItemType ItemType)
 {
+    APS_Player* PS = Cast<APS_Player>(GetOwner());
+    if (!PS) return;
+
+    APC_Player* PC = Cast<APC_Player>(PS->GetPlayerController());
+    if (!PC) return;
+
+    if (!PC->IsLocalPlayerController()) return;
+
     if (!ItemAbilityTable || !GetOwner()) return;
 
     FItemDataTable* ItemData = GetItemAbilityData(ItemType);
@@ -622,5 +639,15 @@ void UInventoryComponent::PlayItemSound(EItemType ItemType)
 
 void UInventoryComponent::S2C_PlayItemSound_Implementation(EItemType ItemType)
 {
-    PlayItemSound(ItemType); // 로컬에서 재생
+    APS_Player* PS = Cast<APS_Player>(GetOwner());
+    if (!PS) return;
+
+    APC_Player* PC = Cast<APC_Player>(PS->GetPlayerController());
+    if (!PC) return;
+
+
+    if (PC->IsLocalPlayerController())
+    {
+        PlayItemSound(ItemType); // 로컬에서 재생
+    }
 }

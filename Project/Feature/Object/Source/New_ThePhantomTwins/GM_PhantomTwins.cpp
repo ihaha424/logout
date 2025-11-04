@@ -2,10 +2,9 @@
 
 
 #include "GM_PhantomTwins.h"
+
 #include "GS_PhantomTwins.h"
-#include "PhantomTwinsInstance.h"
 #include "AI/Utility/BossSpawner.h"
-#include "Blueprint/UserWidget.h"
 #include "GameFramework/PlayerState.h"
 #include "SaveGame/TPTSaveGameHelperLibrary.h"
 
@@ -24,7 +23,6 @@ void AGM_PhantomTwins::BeginPlay()
     Super::BeginPlay();
 
     if (!HasAuthority()) return;
-
     if (TimeLimitSeconds > 0.f)
     {
         GetWorldTimerManager().SetTimer(
@@ -43,7 +41,7 @@ void AGM_PhantomTwins::BeginPlay()
         ItemChangedHandle = GS->OnCollectedItemCountChanged().AddUObject(
             this, &AGM_PhantomTwins::OnItemCountChanged);
 
-        if (GS->CoreCount >= RequiredItemCount)
+        if (GS->DataFragmentCount >= RequiredItemCount)
         {
             RequestBossSpawn();
         }
@@ -51,14 +49,16 @@ void AGM_PhantomTwins::BeginPlay()
         GS->OnClickedGameStopChanged.AddDynamic(this, &ThisClass::NotifyPlayerClickedGameStop);
         GS->OnClickedAgreeWithGameStopChanged.AddDynamic(this, &ThisClass::NotifyPlayerAgreeWithGameStop);
     }
+
     FTimerHandle TimerHandle;
-    GetWorldTimerManager().SetTimer(TimerHandle,this, &ThisClass::DelayedInitializeSaveTargets, 0.1f, false);
+    GetWorldTimerManager().SetTimer(TimerHandle, this, &ThisClass::DelayedInitializeSaveTargets, 0.1f, false);
 }
 
 void AGM_PhantomTwins::DelayedInitializeSaveTargets()
 {
     UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
 	SaveGameManager->InitializeSaveTargets();
+    SaveGameManager->SaveUpdate();
     SaveGameManager->ApplyActorSaveGame();
 }
 
@@ -86,13 +86,22 @@ void AGM_PhantomTwins::EndPlay(const EEndPlayReason::Type EndPlayReason)
     Super::EndPlay(EndPlayReason);
 }
 
-AActor* AGM_PhantomTwins::ChoosePlayerStart_Implementation(AController* Player)
+void AGM_PhantomTwins::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
 {
+    const bool bIsHost = NewPlayer->IsLocalController();
+    UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
 
-	return Super::ChoosePlayerStart_Implementation(Player);
+    const FTransform StartPoint = SaveGameManager->GetRestartPoint(bIsHost);
+    if (StartPoint.Equals(FTransform::Identity, 1e-3f))
+    {
+        Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+    	return; 
+    }
+
+    RestartPlayerAtTransform(NewPlayer, StartPoint);
 }
 
-void AGM_PhantomTwins::NotifyPlayerClickedGameStop(FName LevelName,FName PrintingName)
+void AGM_PhantomTwins::NotifyPlayerClickedGameStop(FName LevelName)
 {
     DestinationLevelName = LevelName;
     ShowGameStopUI();
@@ -212,18 +221,13 @@ void AGM_PhantomTwins::NotifyPlayerClickRestart(bool bIsHostClicked, bool bIsCli
 
 void AGM_PhantomTwins::RestartWithDelay(float Delay)
 {
-    //UGameplayStatics::SetGamePaused(GetWorld(), false);
-    //FTimerHandle TimerHandle;
-    //GetWorldTimerManager().SetTimer(TimerHandle, [this]()
-    //    {
-            FString PackageName = GetWorld()->GetOutermost()->GetName();
-            FString CleanPath = FPackageName::GetLongPackagePath(PackageName);
-            FString MapBaseName = FPackageName::GetShortName(PackageName);
 
-            FString TravelURL = CleanPath + TEXT("/") + MapBaseName + TEXT("?listen");
-            GetWorld()->ServerTravel(TravelURL, false);
+    FString PackageName = GetWorld()->GetOutermost()->GetName();
+    FString CleanPath = FPackageName::GetLongPackagePath(PackageName);
+    FString MapBaseName = FPackageName::GetShortName(PackageName);
 
-     //   }, Delay, false);
+    FString TravelURL = CleanPath + TEXT("/") + MapBaseName + TEXT("?listen");
+    GetWorld()->ServerTravel(TravelURL, false);
 }
 
 void AGM_PhantomTwins::OnItemCountChanged(int32 NewCount)
@@ -285,12 +289,13 @@ void AGM_PhantomTwins::ShowLoadingScene()
 
 void AGM_PhantomTwins::SeverToLevel(const FName LevelName, bool bAbsolute, bool bIsListen)
 {
+    UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+    SaveGameManager->ReInitialize();
+
     APlayerController* PC = GetWorld()->GetFirstPlayerController();
     if (!PC->HasAuthority()) return;
 
-    //FString LevelPathWithListen = bIsListen ? LevelName.ToString() + TEXT("?listen") : LevelName.ToString();
-    FString LevelPathWithListen = bIsListen ? (TEXT("Game/Maps/%s?listen"), *LevelName.ToString()) : LevelName.ToString();
+    FString LevelPathWithListen = bIsListen ? LevelName.ToString() + TEXT("?listen") : LevelName.ToString();
 
-    TPT_LOG(GameRuleLog, Log, TEXT("LevelPathWithListen: %s"), *LevelPathWithListen);
     GetWorld()->ServerTravel(LevelPathWithListen, bAbsolute);
 }

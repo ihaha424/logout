@@ -21,5 +21,7 @@ TPT_TAG_GEN(Item, CoreEnergy, "Object : Item - CoreEnergy")
 TPT_TAG_GEN(Item, ThrowNoiseBomb, "Object : Throw - NoiseBomb")
 TPT_TAG_GEN(Item, ThrowEMP, "Object : Throw - EMP")
 
+TPT_TAG_GEN(Item, UsePack, "Object : UseItem - Heal & Mental Pack")
+TPT_TAG_GEN(Item, UseCoreEnergy, "Object : UseItem - Core Energy")
 
 TPT_TAG_GEN(Item, MentalBeacon, "Object : Overlap - MentalBeacon")

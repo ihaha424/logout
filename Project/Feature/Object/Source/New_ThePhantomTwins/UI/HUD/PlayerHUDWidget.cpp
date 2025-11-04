@@ -17,23 +17,10 @@
 void UPlayerHUDWidget::NativeConstruct()
 {
     Super::NativeConstruct();
-
-    if (AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>())
-    {
-        ItemChangedHandle = GS->OnCollectedItemCountChanged().AddUObject(
-            this, &UPlayerHUDWidget::UpdateClearItem);
-        UpdateClearItem(GS->CoreCount);
-    }
 }
 
 void UPlayerHUDWidget::NativeDestruct()
 {
-    if (AGS_PhantomTwins* GS = GetWorld()->GetGameState<AGS_PhantomTwins>())
-    {
-        if (ItemChangedHandle.IsValid())
-            GS->OnCollectedItemCountChanged().Remove(ItemChangedHandle);
-    }
-
     Super::NativeDestruct();
 }
 
@@ -59,8 +46,8 @@ void UPlayerHUDWidget::InitializeWidgets(int32 HP/*=200*/, int32 Mental/*=100*/,
 void UPlayerHUDWidget::UpdateStamina(const int32 Stamina)
 {
     if (PlayerStaminaWidget)
-    {
         PlayerStaminaWidget->SetStamina(Stamina);
+    {
     }
 }
 
@@ -78,17 +65,6 @@ void UPlayerHUDWidget::VisibleStamina(bool bVisible)
         }
     }
 }
-
-
-/* ClearItem */
-void UPlayerHUDWidget::UpdateClearItem(const int32 CurrentClearItem)
-{
-    if (ClearItemCounterWidget)
-    {
-        ClearItemCounterWidget->SetClearItemCount(CurrentClearItem);
-    }
-}
-
 
 /* Skill */
 void UPlayerHUDWidget::SetActiveSkillIcon(UTexture2D* ActiveSkillIcon)

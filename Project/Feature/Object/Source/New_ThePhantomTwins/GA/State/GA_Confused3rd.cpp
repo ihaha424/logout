@@ -29,7 +29,6 @@ void UGA_Confused3rd::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 	ASC->RegisterGameplayTagEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd).AddUObject(this, &UGA_Confused3rd::OffSound);
 
 	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
-
 	if (Character && Character->IsLocallyControlled())
 	{
 		if (USoundBase* Sound = SoundCue1st) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함
@@ -40,7 +39,6 @@ void UGA_Confused3rd::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 		{
 			ActiveAudioComponent2nd = UGameplayStatics::SpawnSoundAttached(Sound, Character->GetRootComponent());
 		}
-
 		Character->SetFadeVFX(EVignetteType::Confused3rdVignette, 0);
 	}
 }

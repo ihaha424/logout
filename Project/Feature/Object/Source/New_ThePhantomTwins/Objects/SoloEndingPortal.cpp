@@ -36,7 +36,7 @@ void ASoloEndingPortal::OnInteractClient_Implementation(const APawn* Interactor)
 
 	APC_Player* PC_Player = Cast<APC_Player>(Interactor->GetController());
 	NULLCHECK_RETURN_LOG(PC_Player, ObjectLog, Error, );
-	PC_Player->SetWidget(TEXT("SoloLogout"), true, EMessageTargetType::LocalClient);
+	PC_Player->SetWidget(TEXT("AskSoloLogOut"), true, EMessageTargetType::LocalClient);
 
 	// 마우스 커서 표시
 	PC_Player->bShowMouseCursor = true;

@@ -46,6 +46,7 @@ struct FItemDataTable : public FTableRowBase
 public:
     FItemDataTable()
         : ItemType(EItemType::None)
+		, ItemName(FText::GetEmpty())
         , Description(FText::GetEmpty())
         , ItemIcon(nullptr)
         , ItemMesh(nullptr)
@@ -59,6 +60,10 @@ public:
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     EItemType ItemType;
+
+    // 아이템 이름
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FText ItemName;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FText Description;

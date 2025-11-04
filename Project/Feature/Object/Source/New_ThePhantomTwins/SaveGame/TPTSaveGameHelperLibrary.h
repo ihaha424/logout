@@ -19,13 +19,29 @@ class NEW_THEPHANTOMTWINS_API UTPTSaveGameHelperLibrary : public UBlueprintFunct
 {
 	GENERATED_BODY()
 public:
+	UFUNCTION(BlueprintCallable, Category = "TPT|SaveGame",
+		meta = (DeterminesOutputType = "SaveGameClass"))
+	static USaveGame* GetSaveGameData_BP(TSubclassOf<USaveGame> SaveGameClass,
+		const FString& SlotName = TEXT("MainSlot"),
+		int32 UserIndex = 0,
+		bool bCreateIfMissing = true
+	);
+
+	UFUNCTION(BlueprintCallable, Category = "TPT|SaveGame")
+	static bool SetSaveGameData_BP(USaveGame* Data,
+		const FString& SlotName = TEXT("MainSlot"),
+		int32 UserIndex = 0
+	);
+
 	template<TPTSaveGameConcept T>
-	static void SetSaveGameData(T* Data, const FString& SlotName = "MainSlot", int32 Slot = 0)
+	static bool SetSaveGameData(T* Data, const FString& SlotName = "MainSlot", int32 Slot = 0)
 	{
 		if (!UGameplayStatics::SaveGameToSlot(Data, FString(T::StaticClass()->GetName() + SlotName), Slot))
 		{
 			UE_LOG(LogTPTSaveGame, Warning, TEXT("TPTSaveGame set Fail."));
+			return false;
 		}
+		return true;
 	}
 
 	template<TPTSaveGameConcept T>

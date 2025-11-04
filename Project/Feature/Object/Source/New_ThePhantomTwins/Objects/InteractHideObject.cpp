@@ -26,7 +26,9 @@
 #include "SaveGame/TPTSaveGameManager.h"
 #include "Tags/TPTGameplayTags.h"
 
-
+#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
+#include "Player/FocusTraceComponent.h"
 
 AInteractHideObject::AInteractHideObject() : AInteractableObject()
 {
@@ -90,6 +92,7 @@ void AInteractHideObject::S2A_OnDestroy_Implementation()
 	{
 		// 플레이어 Hide 태그 제거
 		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+		ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 	}
 
 	// 로컬 컨트롤러에서만 입력/카메라 제어
@@ -131,8 +134,10 @@ bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bo
 		if (Interactor->IsLocallyControlled())
 		{
 			SetWidgetVisible(false);
-			PlayHideUnable(Interactor);
+			//PlayHideUnable(Interactor);
 		}
+
+		S2A_PlayHideUnable(Interactor);
 
 		return false;
 	}
@@ -198,6 +203,11 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 
 		EnableVignetteEffect(true);
 
+		if (Interactor->IsLocallyControlled())
+		{
+			PlayHideInSound(Interactor, true);
+		}
+
 		if (HideTagGE)
 		{
 			FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
@@ -216,11 +226,21 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 
 		ExitObject();
 
+		if (const APlayerCharacter* Player = Cast<APlayerCharacter>(Interactor))
+		{
+			Player->GetFocusTrace()->SetStartOfsset(100.0f);
+		}
+
 		// 클라이언트에게 입력 활성화 명령 전달
 		SetInputState(InteractorPC, false);
 
 		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
 		SetViewTarget(InteractorPC, PlayerActor);
+
+		if (Interactor->IsLocallyControlled())
+		{
+			PlayHideInSound(Interactor, false);
+		}
 
 		EnableVignetteEffect(false);
 
@@ -253,6 +273,8 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 
 		EnableVignetteEffect(true);
 
+		PlayHideInSound(Interactor, true);
+
 		if (HideTagGE)
 		{
 			FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
@@ -276,6 +298,8 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 		// 플레이어 옷장 반대방향으로 바라보게 하기
 		FRotator NewRotation = OutPosBox->GetComponentRotation();
 		InteractorPC->SetControlRotation(NewRotation);
+
+		PlayHideInSound(Interactor, false);
 
 		EnableVignetteEffect(false);
 
@@ -301,6 +325,7 @@ void AInteractHideObject::EnterObject(const APawn* Interactor)
 	{
 		// 플레이어 Hide 태그 추가
 		ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+		ASC->AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 	}
 
 	bIsActived = true;
@@ -312,6 +337,11 @@ void AInteractHideObject::EnterObject(const APawn* Interactor)
 	// 플레이어 위치가 InPosBox로 변경
 	if (InPosBox && HidePlayer)
 	{
+		if (const APlayerCharacter* Player = Cast<APlayerCharacter>(Interactor))
+		{
+			Player->GetFocusTrace()->SetStartOfsset(0.0f);
+		}
+
 		FVector NewLocation = InPosBox->GetComponentLocation();
 		FRotator NewRotation = InPosBox->GetComponentRotation();
 		HidePlayer->SetActorLocationAndRotation(NewLocation, NewRotation);
@@ -334,10 +364,8 @@ void AInteractHideObject::ExitObject()
 		{
 			// 플레이어 Hide 태그 제거
 			ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+			ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 		}
-
-
-
 
 		FVector NewLocation = OutPosBox->GetComponentLocation();
 		FRotator NewRotation = OutPosBox->GetComponentRotation();
@@ -376,6 +404,35 @@ void AInteractHideObject::SetViewTarget(APlayerController* InteractorPC, AActor*
 
 		//TPT_LOG(ObjectLog, Log, TEXT("Client: SetViewTarget called with actor: %s"),
 		//	*NewViewTarget->GetName());
+	}
+}
+
+void AInteractHideObject::PlayHideInSound(const APawn* Interactor, bool Visible)
+{
+	if (!HideInPlayerSoundCue) return;
+
+	if (Visible)
+	{
+		if (!ActiveAudioComponent) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함
+		{
+			ActiveAudioComponent = UGameplayStatics::SpawnSoundAttached(HideInPlayerSoundCue, Interactor->GetRootComponent());
+		}
+	}
+	else
+	{
+		if (ActiveAudioComponent) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함
+		{
+			ActiveAudioComponent->Stop();
+			ActiveAudioComponent = nullptr;
+		}
+	}
+}
+
+void AInteractHideObject::S2A_PlayHideUnable_Implementation(const APawn* Interactor)
+{
+	if (Interactor->IsLocallyControlled() && HidePlayer != Interactor)
+	{
+		PlayHideUnable(Interactor);
 	}
 }
 

@@ -26,13 +26,14 @@ void AGS_PhantomTwins::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
     DOREPLIFETIME(AGS_PhantomTwins, GameTime);
-    DOREPLIFETIME(AGS_PhantomTwins, CoreCount);
+    DOREPLIFETIME(AGS_PhantomTwins, DataFragmentCount);
     DOREPLIFETIME(AGS_PhantomTwins, bBossSpawned);
     DOREPLIFETIME(AGS_PhantomTwins, BossActor);
     DOREPLIFETIME(AGS_PhantomTwins, bIsHostClickedRestart);
     DOREPLIFETIME(AGS_PhantomTwins, bIsClientClickedRestart);
     DOREPLIFETIME(AGS_PhantomTwins, DestinationLevelName);
     DOREPLIFETIME(AGS_PhantomTwins, PrintingMapName);
+    DOREPLIFETIME(AGS_PhantomTwins, WidgetTitleName);
     DOREPLIFETIME(AGS_PhantomTwins, HostSelect);
     DOREPLIFETIME(AGS_PhantomTwins, ClientSelect);
 }
@@ -41,10 +42,10 @@ void AGS_PhantomTwins::AddCollectedItem(AActor* DataFragment, int32 Delta)
 {
     if (!HasAuthority()) return;
 
-    CoreCount = FMath::Max(0, CoreCount + Delta);
+    DataFragmentCount = FMath::Max(0, DataFragmentCount + Delta);
 
-    CollectedItemCountChanged.Broadcast(CoreCount);
-    DynamicCollectedItemCountChanged.Broadcast(CoreCount);
+    CollectedItemCountChanged.Broadcast(DataFragmentCount);
+    DynamicCollectedItemCountChanged.Broadcast(DataFragmentCount);
     DataFragmentChanged.Broadcast(DataFragment);
 }
 
@@ -56,22 +57,6 @@ void AGS_PhantomTwins::MarkBossSpawned(AActor* InBoss)
     BossActor = InBoss;
 
     GameTime = GetServerWorldTimeSeconds();
-}
-
-void AGS_PhantomTwins::C2S_SetCharacterClickedRestart_Implementation(bool bIsClicked, bool bIsHost)
-{
-    if (!HasAuthority()) return;
-
-    if (bIsHost)
-    {
-	    bIsHostClickedRestart = bIsClicked;
-    }
-    else
-    {
-	    bIsClientClickedRestart = bIsClicked;
-    }
-    OnClickedRestartChanged.Broadcast(bIsHostClickedRestart, bIsClientClickedRestart);
-	S2A_SetCharacterClickedRestart(bIsClicked, bIsHost);
 }
 
 void AGS_PhantomTwins::S2A_SetCharacterClickedRestart_Implementation(bool bIsClicked, bool bIsHost)
@@ -87,32 +72,12 @@ void AGS_PhantomTwins::S2A_SetCharacterClickedRestart_Implementation(bool bIsCli
     OnClickedRestartChanged.Broadcast(bIsHostClickedRestart, bIsClientClickedRestart);
 }
 
-void AGS_PhantomTwins::SetCharacterClickedGameStop(FName LevelName, FName PrintingName)
+void AGS_PhantomTwins::S2A_SetCharacterClickedGameStop_Implementation(FName LevelName, FName PrintingName, FName WidgetTitle)
 {
     DestinationLevelName = LevelName;
     PrintingMapName = PrintingName;
-    OnClickedGameStopChanged.Broadcast(DestinationLevelName, PrintingMapName);
-}
-
-void AGS_PhantomTwins::OnRep_SetCharacterClickedGameStop()
-{
-    OnClickedGameStopChanged.Broadcast(DestinationLevelName, PrintingMapName);
-}
-
-void AGS_PhantomTwins::C2S_SetCharacterAgreeWithGameStop_Implementation(int32 Select, bool bIsHost)
-{
-    if (!HasAuthority()) return;
-
-    if (bIsHost)
-    {
-        HostSelect = Select;
-    }
-    else
-    {
-        ClientSelect = Select;
-    }
-    OnClickedAgreeWithGameStopChanged.Broadcast(HostSelect, ClientSelect);
-	S2A_SetCharacterAgreeWithGameStop(Select, bIsHost);
+    this->WidgetTitleName = WidgetTitle;
+    OnClickedGameStopChanged.Broadcast(DestinationLevelName);
 }
 
 void AGS_PhantomTwins::S2A_SetCharacterAgreeWithGameStop_Implementation(int32 Select, bool bIsHost)
@@ -138,6 +103,6 @@ void AGS_PhantomTwins::OnRep_BossSpawned()
 
 void AGS_PhantomTwins::OnRep_CollectedItemCount()
 {
-    CollectedItemCountChanged.Broadcast(CoreCount);
-    DynamicCollectedItemCountChanged.Broadcast(CoreCount);
+    CollectedItemCountChanged.Broadcast(DataFragmentCount);
+    DynamicCollectedItemCountChanged.Broadcast(DataFragmentCount);
 }

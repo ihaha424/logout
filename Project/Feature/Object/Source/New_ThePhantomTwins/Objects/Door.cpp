@@ -6,7 +6,6 @@
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "../Player/PlayerCharacter.h"
-#include "../Log/TPTLog.h"
 #include "SaveGame/SaveIDComponent.h"
 #include "SaveGame/TPTSaveGameManager.h"
 
@@ -39,6 +38,8 @@ void ADoor::BeginPlay()
 	{
 		MinRequiredCount = RequiredList.Num();
 	}
+
+	AreAllTriggerActived();
 }
 
 void ADoor::SetWidgetVisible(bool bVisible)
@@ -56,7 +57,7 @@ void ADoor::SetWidgetVisible(bool bVisible)
 	}
 
 	// bVisible == true이고 트리거들이 활성화되지 않은 경우 → LockWidget
-	if (!AreAllTriggerActived())
+	if (!bIsAllTriggered)
 	{
 		InteractWidgetComp->SetVisibility(false);
 		LockWidgetComp->SetVisibility(true);
@@ -103,14 +104,11 @@ bool ADoor::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected
 void ADoor::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	// 모든 트리거가 활성화 되지 않으면 return
-	if (!AreAllTriggerActived())
+	if (!bIsAllTriggered)
 	{
 		return;
 	}
 
-
-	UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-	SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
 	// Interactor가 APlayerCharacter 타입이 아니면 동작하지 않음 (문 닫기에만 해당)
 	const APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(const_cast<APawn*>(Interactor));
 
@@ -129,12 +127,14 @@ void ADoor::OnInteractServer_Implementation(const APawn* Interactor)
 		{
 			S2A_CloseDoor();
 		}
+		UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+		SaveGameManager->TempSaveByID(GetFName(), true);
 	}
 }
 
 void ADoor::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	if (AreAllTriggerActived())
+	if (bIsAllTriggered)
 	{
 		InteractWidgetComp->SetVisibility(false);
 		LockWidgetComp->SetVisibility(false);
@@ -154,13 +154,13 @@ bool ADoor::CanBeDestroyed_Implementation(const APawn* Interactor)
 void ADoor::CheckAndUpdateDoorState()
 {
 	// 모든 트리거가 활성화되었고 문이 아직 열리지 않았다면
-	if (AreAllTriggerActived() && !bIsActived)
+	if (bIsAllTriggered && !bIsActived)
 	{
 		bIsActived = true;
 		S2A_OpenDoor();
 	}
 	// 트리거가 비활성화되었고 문이 열려있다면
-	else if (!AreAllTriggerActived() && bIsActived)
+	else if (!bIsAllTriggered && bIsActived)
 	{
 		bIsActived = false;
 		S2A_CloseDoor();
@@ -172,6 +172,7 @@ bool ADoor::AreAllTriggerActived_Implementation()
 	// 활성화된 trigger 수를 세기 위한 변수
 	if (bIsAllTriggered)
 	{
+		OnDoorLockStateChanged();
 		return true;
 	}
 	int32 triggerActive = 0;
@@ -190,9 +191,15 @@ bool ADoor::AreAllTriggerActived_Implementation()
 	if (triggerActive >= MinRequiredCount)
 	{
 		bIsAllTriggered = true;
-		UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-		SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
 
+		if (MinRequiredCount > 0)
+		{
+			UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+			SaveGameManager->TempSaveByID(GetFName(), true);
+		}
+
+		CheckAllTriggered();
+		OnDoorLockStateChanged();
 		return true;
 	}
 	else
@@ -202,12 +209,16 @@ bool ADoor::AreAllTriggerActived_Implementation()
 		{
 			bIsAllTriggered = true;
 			UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-			SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, true);
+			SaveGameManager->TempSaveByID(GetFName(), true);
+
+			CheckAllTriggered();
+			OnDoorLockStateChanged();
 			return true;
 		}
 		else
 		{
 			bIsAllTriggered = false;
+			OnDoorLockStateChanged();
 			return false;
 		}
 	}
@@ -215,7 +226,7 @@ bool ADoor::AreAllTriggerActived_Implementation()
 
 void ADoor::OnRep_bIsActived()
 {
-	if (AreAllTriggerActived())
+	if (bIsAllTriggered)
 	{
 		if (bIsActived)
 		{
@@ -242,26 +253,22 @@ void ADoor::S2A_CloseDoor_Implementation()
 
 void ADoor::OnRep_bKeyUsed()
 {
-	if (!AreAllTriggerActived())
+	if (!bIsAllTriggered)
 	{
 		InteractWidgetComp->SetVisibility(false);
 		LockWidgetComp->SetVisibility(true);
+		OnDoorLockStateChanged();
 	}
 	else // 트리거들이 활성화된 경우 → NearWidget
 	{
 		InteractWidgetComp->SetVisibility(true);
 		LockWidgetComp->SetVisibility(false);
+		OnDoorLockStateChanged();
 	}
 }
 
-void ADoor::OnRep_CheckAllTriggered()
+void ADoor::OnRep_bIsAllTriggered()
 {
-	if (!AreAllTriggerActived())
-	{
-		bIsAllTriggered = false;
-	}
-	if (AreAllTriggerActived())
-	{
-		bIsAllTriggered = true;
-	}
+	CheckAllTriggered();
+	OnDoorLockStateChanged();
 }

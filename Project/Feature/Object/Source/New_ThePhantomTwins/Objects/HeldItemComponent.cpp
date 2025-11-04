@@ -81,13 +81,13 @@ UStaticMesh* UHeldItemComponent::GetItemStaticMesh(EItemType ItemType) const
             }
             else
             {
-                TPT_LOG(GALog, Warning, TEXT("GetItemStaticMesh: %s 행의 ItemMesh가 null입니다"), *RowName.ToString());
+                //TPT_LOG(GALog, Warning, TEXT("GetItemStaticMesh: %s 행의 ItemMesh가 null입니다"), *RowName.ToString());
                 return nullptr;
             }
         }
     }
 
-    TPT_LOG(GALog, Warning, TEXT("GetItemStaticMesh: ItemType %d에 해당하는 데이터를 찾을 수 없습니다"), static_cast<int32>(ItemType));
+    //TPT_LOG(GALog, Warning, TEXT("GetItemStaticMesh: ItemType %d에 해당하는 데이터를 찾을 수 없습니다"), static_cast<int32>(ItemType));
     return nullptr;
 }
 

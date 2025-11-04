@@ -149,7 +149,8 @@ void AAIBaseController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
             const float CurrentTime = GetWorld()->GetTimeSeconds();
             const float Score = GetStimulusStrength(Stimulus.Tag);
             const float Old = BB->GetValueAsFloat(TEXT("HearingSum"));
-            BB->SetValueAsFloat(TEXT("Priority"), Priority);
+
+            BB->SetValueAsInt(TEXT("Priority"), Priority);
             BB->SetValueAsFloat(TEXT("HearingSum"), Old + Score);
             BB->SetValueAsFloat(TEXT("LastHearingTime"), CurrentTime);
             BB->SetValueAsVector(TEXT("StimulusLocation"), Stimulus.StimulusLocation);

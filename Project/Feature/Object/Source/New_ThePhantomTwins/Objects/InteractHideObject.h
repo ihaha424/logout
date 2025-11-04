@@ -46,8 +46,15 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "HideObject")
 	void SetViewTarget(APlayerController* InteractorPC, AActor* NewViewTarget); // 카메라 전환을 위한 함수
 
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void PlayHideUnable(const APawn* Interactor);
+
+	UFUNCTION(BlueprintCallable)
+	void PlayHideInSound(const APawn* Interactor, bool Visible);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_PlayHideUnable(const APawn* Interactor);
+	void S2A_PlayHideUnable_Implementation(const APawn* Interactor);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_PlayEffect(FVector EffectLocation);
@@ -87,4 +94,18 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Effects")
 	TSubclassOf<UGameplayEffect> HideTagGE;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HideObject | SFX")
+	USoundBase* HideUnableSoundCue;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HideObject | SFX")
+	USoundBase* HideInPlayerSoundCue;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HideObject | SFX")
+	USoundBase* HideObjectDestroySoundCue;
+
+	UPROPERTY()
+	UAudioComponent* ActiveAudioComponent = nullptr;
+
+	bool bIsActiveAudio = false;
 };

@@ -34,6 +34,13 @@ void UGA_MentalRecovery::ActivateAbility(const FGameplayAbilitySpecHandle Handle
     }
 }
 
+void UGA_MentalRecovery::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+    GetWorld()->GetTimerManager().ClearTimer(HealTimerHandle);
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
 void UGA_MentalRecovery::HealTick()
 {
     TArray<AActor*> Players;

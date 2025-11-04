@@ -59,6 +59,16 @@ void AThrowEMP::BeginPlay()
     }
 }
 
+void AThrowEMP::EndPlay(EEndPlayReason::Type Reason)
+{
+    if (GetWorld())
+    {
+        GetWorld()->GetTimerManager().ClearTimer(DestroyTimer);
+    }
+
+	Super::EndPlay(Reason);
+}
+
 void AThrowEMP::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
     // 자기 자신이나 소유자와의 충돌은 무시
@@ -137,7 +147,6 @@ void AThrowEMP::ExplodeAndMakeNoise()
     DisableGlitchTrap();
 
     // 일정 시간 후 액터 파괴 (소음이 끝난 후)
-    FTimerHandle DestroyTimer;
     if (GetWorld())
     {
         GetWorld()->GetTimerManager().SetTimer(DestroyTimer, [this]()
@@ -269,6 +278,7 @@ void AThrowEMP::DisableGlitchTrap()
         if (GlitchTrap && GlitchTrap->Tags.Contains(FName("GlitchTrap")))
         {
             GlitchTrap->bEnableEffectAndCue = false;
+            GlitchTrap->Deactivate(GlitchTrapDisableDuration);
 
             // 일정 시간 뒤 다시 true로 복원
             FTimerHandle TimerHandle;
@@ -279,6 +289,7 @@ void AThrowEMP::DisableGlitchTrap()
                     if (GlitchTrap)
                     {
                         GlitchTrap->bEnableEffectAndCue = true;
+                        GlitchTrap->Activate();
                         //TPT_LOG(GALog, Log, TEXT("GlitchTrap re-enabled: %s"), *GlitchTrap->GetName());
                     }
                 },

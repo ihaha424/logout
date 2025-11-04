@@ -181,6 +181,10 @@ inline void UBTS_AIStimulusMonitor::DetermineStateTransition(
 
 
     case EAIBaseState::Stun:
+        if (BB->GetValueAsBool(DieKey.SelectedKeyName))
+        {
+            NextState = EAIBaseState::Die;
+        }
         break;
     default:
         TPT_LOG(AILog, Warning, TEXT("State: Failed."));

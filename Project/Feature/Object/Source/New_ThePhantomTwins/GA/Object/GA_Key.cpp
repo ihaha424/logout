@@ -33,7 +33,7 @@ void UGA_Key::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	{
 		KeyInteractActor->bKeyUsed = true;
 		bUseKey = true;
-		TPT_LOG(GALog, Log, TEXT("asdasd"));
+		KeyInteractActor->AreAllTriggerActived();
 	}
 
 	// TargetActor 정보 출력

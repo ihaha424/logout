@@ -21,7 +21,7 @@ public:
 	virtual void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility) override;
 	virtual void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
-	
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo,const FGameplayAbilityActivationInfo ActivationInfo,bool bReplicateEndAbility, bool bWasCancelled) override;
 	// NetWork
 	UFUNCTION(Server, Reliable)
 	void C2S_Interact(UObject* interact, AActor* Owner);
@@ -30,6 +30,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void OnMontageComplete();
 	void InteractExecute();
+	void ClearAllTimers();
 
 	UPROPERTY()
 	APlayerCharacter* Character = nullptr;
@@ -59,4 +60,9 @@ public:
 	UAbilityTask_PlayMontageAndWait* PlayRecoveryMontageTask = nullptr;
 	UPROPERTY()
 	UAnimMontage* CurrentPlayingMontage = nullptr;
+
+	UPROPERTY(EditAnywhere)
+	float Distance = 100.f;
+
+	bool bEnding = false;
 };

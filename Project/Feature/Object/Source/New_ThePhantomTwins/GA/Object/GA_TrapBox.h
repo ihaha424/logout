@@ -18,15 +18,12 @@ public:
 	UGA_TrapBox();
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	UFUNCTION()
+	void OnDelayFinished();
 
 	UFUNCTION()
 	void OnMontageComplete();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
-	TObjectPtr<UAnimMontage> UseTrapBoxMontage;
-
-private:
-	TObjectPtr<class APlayerCharacter> Character = nullptr;
-	TObjectPtr<AActor> TargetActor = nullptr;
-	
+	TObjectPtr<UAnimMontage> OpenTrapBoxMontage;
 };

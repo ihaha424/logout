@@ -16,9 +16,9 @@ class NEW_THEPHANTOMTWINS_API UTPTLocalPlayerSaveGame : public ULocalPlayerSaveG
 	GENERATED_BODY()
 public:
     // 플레이어 인벤토리 (아이템 ID, 수량)
-    UPROPERTY()
+    UPROPERTY(BlueprintReadWrite)
     TArray<FItemSlot> InventorySlots;
 
-    UPROPERTY()
+    UPROPERTY(BlueprintReadWrite)
     int32 CoreEnergy;
 };

@@ -18,6 +18,7 @@ public:
 
 public:
     virtual void BeginPlay() override;
+    virtual void EndPlay(EEndPlayReason::Type Reason) override;
 
     // 폭발/충돌 처리
     UFUNCTION()
@@ -39,6 +40,7 @@ private:
     void DisableGlitchTrap();
 
 public:
+    FTimerHandle DestroyTimer;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components") 
     TObjectPtr<class USphereComponent> CollisionComponent;
 

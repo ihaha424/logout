@@ -1,9 +1,11 @@
+// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Wait5SecondsWidget.h"
+
+#include "Wait5Sec.h"
 #include "Components/ProgressBar.h"
 #include "Log/TPTLog.h"
 
-void UWait5SecondsWidget::NativeConstruct()
+void UWait5Sec::NativeConstruct()
 {
     Super::NativeConstruct();
 
@@ -11,7 +13,7 @@ void UWait5SecondsWidget::NativeConstruct()
     RemainingTime = MaxTime;
 }
 
-void UWait5SecondsWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+void UWait5Sec::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
     Super::NativeTick(MyGeometry, InDeltaTime);
 
@@ -27,8 +29,9 @@ void UWait5SecondsWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaT
     }
 }
 
-void UWait5SecondsWidget::SetTime(int32 time)
+void UWait5Sec::SetTime(int32 time)
 {
     // 목표값만 세팅
     RemainingTime = FMath::Clamp(static_cast<float>(time), 0.0f, MaxTime);
 }
+

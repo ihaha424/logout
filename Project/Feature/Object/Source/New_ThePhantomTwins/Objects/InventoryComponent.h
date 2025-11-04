@@ -31,6 +31,7 @@ protected:
     virtual void InitializeComponent() override;
     virtual void BeginPlay() override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:
     // Public API
@@ -102,6 +103,7 @@ private:
     FTimerHandle ChoiceItemTimerHandle;
     FTimerHandle VisibleInventoryTimerHandle;
     FTimerHandle QuestionBoxTimerHandle;
+    FTimerHandle CanUseKeyTimerHandle;
 
     // Server RPCs
     UFUNCTION(Server, Reliable)

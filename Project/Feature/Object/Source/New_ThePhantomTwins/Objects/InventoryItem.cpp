@@ -121,7 +121,7 @@ void AInventoryItem::OnInteractServer_Implementation(const APawn* Interactor)
     }
 
     UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
-    SaveGameManager->TempSaveByID(FindComponentByClass<USaveIDComponent>()->SaveId, false);
+    SaveGameManager->TempSaveByID(GetFName(), false);
 
 	DestroyItem();
 }

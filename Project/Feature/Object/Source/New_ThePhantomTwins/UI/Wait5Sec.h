@@ -1,14 +1,17 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Wait5SecondsWidget.generated.h"
+#include "Wait5Sec.generated.h"
+
 
 UCLASS()
-class NEW_THEPHANTOMTWINS_API UWait5SecondsWidget : public UUserWidget
+class NEW_THEPHANTOMTWINS_API UWait5Sec : public UUserWidget
 {
-    GENERATED_BODY()
-    
+	GENERATED_BODY()
+
 protected:
     virtual void NativeConstruct() override;
     virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
@@ -30,8 +33,5 @@ protected:
     float RemainingTime = 5.0f;
     float TimeInterpSpeed = 0.5f; // 보간 속도
     bool bIsCounting = false; // 카운트다운 진행중 여부
-
-    // 카운트다운이 끝났을 때 블루프린트로 후처리할 수 있게 이벤트 제공
-    //UFUNCTION(BlueprintImplementableEvent, Category = "Wait5Seconds")
-    //void OnCountdownFinished();
+	
 };

@@ -21,6 +21,9 @@ struct FDoorState
 	bool bIsUnLocked;
 
 	UPROPERTY(BlueprintReadWrite)
+	bool bIsOpen;
+
+	UPROPERTY(BlueprintReadWrite)
 	bool bIsExist;
 };
 
@@ -29,34 +32,32 @@ class NEW_THEPHANTOMTWINS_API UTPTSaveGame : public USaveGame
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	FIdentifyCharacterData IdentifyCharacterData;
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	FIdentifyMapData IdentifyMapData;
-	// 데이터 조각을 획득한 플레이어의 위치
-	UPROPERTY()
-	FVector PlayerLocation = FVector::ZeroVector;
-	UPROPERTY()
-	FRotator PlayerRotation = FRotator::ZeroRotator;
 
-	UPROPERTY()
-	int32 DataFragmentNum = 0;
+	UPROPERTY(BlueprintReadWrite)
+	FTransform HostPlayerStart;
+	UPROPERTY(BlueprintReadWrite)
+	FTransform ClientPlayerStart;
+
 	// 숨는 오브젝트 상태 (오브젝트 ID → 존재여부)
-	UPROPERTY()
-	TMap<FGuid, bool> HideObjectStates;
+	UPROPERTY(BlueprintReadWrite)
+	TMap<FName, bool> HideObjectStates;
 	// 문 상태 (문 ID → 잠김여부, 존재여부)
-	UPROPERTY()
-	TMap<FGuid, FDoorState> DoorStates;
+	UPROPERTY(BlueprintReadWrite)
+	TMap<FName, FDoorState> DoorStates;
 	// 아이템 박스 존재 상태 (아이템박스 ID → 열림여부)
-	UPROPERTY()
-	TMap<FGuid, bool> ItemBoxStates;
+	UPROPERTY(BlueprintReadWrite)
+	TMap<FName, bool> ItemBoxStates;
 	// 맵 내 아이템 존재여부 (아이템 ID → 존재여부)
-	UPROPERTY()
-	TMap<FGuid, bool> ItemStates;
+	UPROPERTY(BlueprintReadWrite)
+	TMap<FName, bool> ItemStates;
 	// AI 스폰 상태 (AI ID → 존재여부)
-	UPROPERTY()
-	TMap<FGuid, bool> AIStates;
+	UPROPERTY(BlueprintReadWrite)
+	TMap<FName, bool> AIStates;
 	// 스캐너 상태(스캐너 ID → 활성화여부)
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	bool ScannerStates = false;
 };

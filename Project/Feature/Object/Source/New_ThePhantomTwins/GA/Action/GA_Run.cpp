@@ -123,6 +123,9 @@ void UGA_Run::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGame
 
 void UGA_Run::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
+	if (bIsCancelling) return;
+	bIsCancelling = true;
+
 	if (!ActorInfo)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[UGA_Run::CancelAbility] ActorInfo is NULL. Ability cleanup skipped."));
@@ -154,21 +157,30 @@ void UGA_Run::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGame
 		return;
 	}
 
-	if (MyASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Confused3rd))
-	{
-		Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
-		return;
-	}
-
-	// 스피드 재정의 GE 부여 & 재정의된 스피드 적용
-	APlayerCharacter* Character = Cast<APlayerCharacter>(GAActorInfo->AvatarActor.Get());
-	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
-	float WalkSpeed = Character->WalkSpeed;
-	SetSpeed(WalkSpeed, GAActorInfo);
-
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 }
+void UGA_Run::EndAbility(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo,const FGameplayAbilityActivationInfo ActivationInfo,bool bReplicateEndAbility, bool bWasCancelled)
+{
 
+	// 다음 틱에서 속도 복구/GE 적용
+	if (UWorld* W = GetWorld())
+	{
+		FTimerHandle Th;
+		TWeakObjectPtr<UGA_Run> Self = this;
+		W->GetTimerManager().SetTimer(Th, FTimerDelegate::CreateLambda([Self]()
+			{
+				if (!Self.IsValid()) return;
+
+				const FGameplayAbilityActorInfo* Info = Self->GetCurrentActorInfo();
+				APlayerCharacter* Character = Info ? Cast<APlayerCharacter>(Info->AvatarActor.Get()) : nullptr;
+				if (!Character) return;
+
+				Self->SetSpeed(Character->WalkSpeed, Info); // GE 적용은 여기서
+				Self->bIsCancelling = false; // 가드 해제
+			}), 0.01f, false);
+	}
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
 void UGA_Run::StaminaDrain()
 {
 	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
@@ -255,7 +267,7 @@ void UGA_Run::OffSound(const FGameplayTag Tag, int32 TagCount)
 	APlayerCharacter* Character = Cast<APlayerCharacter>(GAActorInfo->AvatarActor.Get());
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
 
-	NULLCHECK_RETURN_LOG(DrainAudioComponent, GALog, Warning, );
+	if (!DrainAudioComponent) return;
 
 	if (!bHasDownedTag)
 	{

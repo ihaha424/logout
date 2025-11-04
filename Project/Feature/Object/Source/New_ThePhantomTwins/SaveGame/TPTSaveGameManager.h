@@ -7,6 +7,7 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "TPTSaveGameManager.generated.h"
 
+class ADataFragment;
 class UGameplayEffect;
 struct FDoorState;
 class UTPTLocalPlayerSaveGame;
@@ -18,23 +19,26 @@ class NEW_THEPHANTOMTWINS_API UTPTSaveGameManager : public UGameInstanceSubsyste
 	GENERATED_BODY()
 public:
     UTPTSaveGameManager();
-    virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+
+    void ReInitialize();
     virtual void Deinitialize() override;
 
     UFUNCTION()
     void SaveUpdate();
-    // 게임 시작 시 모든 저장 대상 액터 정보 초기화하는 함수
+
     UFUNCTION()
     void InitializeSaveTargets();
-    // 상태 변화 발생 시 Guid로 임시 저장함수 호출
+
     UFUNCTION(BlueprintCallable)
-	void TempSaveByID(const FGuid& ObjectID, const bool bIsExist);
+	void TempSaveByID(const FName ObjectID, const bool bIsExist);
 
     UFUNCTION()
     void TempSavePlayer(const APlayerController* PC);
 
 	UFUNCTION()
-    void SaveRestartPoint(const FVector& PlayerLocation, const FRotator& PlayerRotation);
+    void SetRestartPoint(const ADataFragment* DataFragment);
+	UFUNCTION()
+    FTransform GetRestartPoint(const bool bIsHost);
 
     UFUNCTION()
 	void ApplyActorSaveGame();
@@ -50,17 +54,20 @@ public:
     TSubclassOf<UGameplayEffect> CoreEnergyEffect;
 private:
     UPROPERTY()
+    UWorld* CurrentWorld = nullptr;
+
+    UPROPERTY()
     TArray<UTPTLocalPlayerSaveGame*> PlayerSaveGames;
     UPROPERTY()
     UTPTSaveGame* GameSaveGame;
     UPROPERTY()
-    TMap<FGuid, AActor*> DoorActorsMap;
+    TMap<FName, AActor*> DoorActorsMap;
     UPROPERTY()
-    TMap<FGuid, AActor*> ItemActorsMap;
+    TMap<FName, AActor*> ItemActorsMap;
     UPROPERTY()
-    TMap<FGuid, AActor*> HideObjectActorsMap;
+    TMap<FName, AActor*> HideObjectActorsMap;
     UPROPERTY()
-    TMap<FGuid, AActor*> ItemBoxActorsMap;
+    TMap<FName, AActor*> ItemBoxActorsMap;
     UPROPERTY()
-    TMap<FGuid, AActor*> AIActorsMap;
+    TMap<FName, AActor*> AIActorsMap;
 };

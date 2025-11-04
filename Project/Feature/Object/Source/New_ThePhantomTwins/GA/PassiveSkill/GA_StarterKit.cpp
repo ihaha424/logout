@@ -12,7 +12,7 @@
 UGA_StarterKit::UGA_StarterKit()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor; 
-	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 }
 
 void UGA_StarterKit::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -27,6 +27,8 @@ void UGA_StarterKit::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 	NULLCHECK_CODE_RETURN_LOG(PS, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false); , );
 	UInventoryComponent* Inventory = PS->InventoryComp;
 	NULLCHECK_CODE_RETURN_LOG(Inventory, GALog, Warning, EndAbility(Handle, ActorInfo, ActivationInfo, true, false); , );
+
+	if (!Character->IsLocallyControlled()) return;
 
 	EItemType ItemType = EItemType::None;
 	if (TriggerEventData)
@@ -53,29 +55,6 @@ void UGA_StarterKit::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 	default:
 		break;
 	}
-
-	//// ∑£¥˝ Enum √£±‚
-	//int32 RandomNumber = FMath::RandRange(1, 6);
-
-	//// ¿Œ∫•≈‰∏Æø° ≈€ ¡§«ÿ¡¯ ∞≥ºˆ∏∏≈≠ ∫Œø©
-	//switch (RandomNumber)
-	//{
-	//case 1:	// ∆¯¡◊
-	//case 2:	// ƒ´∏ﬁ∂Û
-	//case 5:	// ≈∞
-	//	Inventory->AddItem(EItemType(RandomNumber));
-	//	break;
-	//case 3:	// »˙∆—
-	//case 4:	// ∏‡≈ª∆—
-	//case 6:	// µÂ∏µ≈©
-	//	for (int32 i = 0; i < 2; i++)
-	//	{
-	//		Inventory->AddItem(EItemType(RandomNumber));
-	//	}
-	//	break;
-	//default:
-	//	break;
-	//}
 
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }

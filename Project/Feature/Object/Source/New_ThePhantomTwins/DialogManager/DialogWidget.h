@@ -26,4 +26,7 @@ class NEW_THEPHANTOMTWINS_API IDialogWidget
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "DialogWidget")
 	void SetData(const FInstancedStruct& Row);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "DialogWidget")
+	void SetAnimation(bool OnOff);
 };

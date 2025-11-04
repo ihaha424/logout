@@ -62,7 +62,7 @@ void AUIManagerPlayerController::RegisterWidget(const FString& Key, UUserWidget*
 void AUIManagerPlayerController::UnregisterWidget(const FString& Key, UUserWidget* Widget)
 {
 	if (IsLocalController())
-		UIManager->RegisterUI(Key, Widget);
+		UIManager->UnregisterUI(Key, Widget);
 	else
 		UE_LOG(LogUIManager, Error, TEXT("AUIManagerPlayerController::UnregisterWidget: Player Controller is not LocalController."));
 }

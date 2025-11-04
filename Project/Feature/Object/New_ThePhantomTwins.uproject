@@ -14,8 +14,7 @@
 				"UMG",
 				"AIModule",
 				"NavigationSystem",
-				"CoreUObject",
-				"TPTObjects"
+				"CoreUObject"
 			]
 		}
 	],

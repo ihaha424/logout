@@ -58,7 +58,6 @@ void AThrowNoiseBomb::BeginPlay()
 
 void AThrowNoiseBomb::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-    UE_LOG(LogTemp, Warning, TEXT("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
     if (GetWorld())
     {
         GetWorld()->GetTimerManager().ClearTimer(GroundCheckTimer);

@@ -49,8 +49,8 @@ public:
 	void C2S_ClickedRestart_Implementation(const bool bIsClicked);
 
 	UFUNCTION(BlueprintCallable, Server, Reliable)
-	void C2S_ClickedGameStop(const FName LevelName, const FName MapName);
-	void C2S_ClickedGameStop_Implementation(const FName LevelName, const FName MapName);
+	void C2S_ClickedGameStop(const FName LevelName, const FName PrintingName, const FName WidgetTitleName);
+	void C2S_ClickedGameStop_Implementation(const FName LevelName, const FName PrintingName, const FName WidgetTitleName);
 
 	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void C2S_ClickedAgreeWithGameStop(const int32 SelectBtn);
@@ -59,7 +59,7 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Client_SetUIInputMode(bool bUIOnly);
 	void Client_SetUIInputMode_Implementation(bool bUIOnly);
-
+	
 	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void C2S_SoloLogOut(const FName LevelName, bool bAbsolute, bool bIsListen);
 	void C2S_SoloLogOut_Implementation(const FName LevelName, bool bAbsolute, bool bIsListen);

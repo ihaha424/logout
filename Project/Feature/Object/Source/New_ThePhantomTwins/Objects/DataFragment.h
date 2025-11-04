@@ -43,4 +43,16 @@ private:
 	// 위젯 표시 유지 시간
 	UPROPERTY(EditAnywhere, Category = "DataFragment | UI")
 	int32 WidgetDuration = 2;
+public:
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USceneComponent> RootLocation;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USceneComponent> HostPlayerLocation;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USceneComponent> ClientPlayerLocation;
+
+	UPROPERTY(EditAnywhere)
+	TArray<TObjectPtr<USceneComponent>> PlayersLocation;
 };

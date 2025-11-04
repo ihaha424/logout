@@ -7,6 +7,7 @@
 #include "Net/UnrealNetwork.h"
 #include "SaveGame/SaveIDComponent.h"
 #include "SaveGame/TPTSaveGameManager.h"
+#include "Tags/TPTGameplayTags.h"
 
 ABoxObject::ABoxObject() : AInteractableObject()
 {
@@ -37,25 +38,6 @@ void ABoxObject::SetActive(bool bIsActive)
 	Super::SetActive(bIsActive);
 }
 
-//AActor* ABoxObject::FindWarningActor()
-//{
-//	TArray<UChildActorComponent*> ChildActorComponents;
-//	GetComponents<UChildActorComponent>(ChildActorComponents);
-//
-//	for (UChildActorComponent* ChildActorComp : ChildActorComponents)
-//	{
-//		if (ChildActorComp && ChildActorComp->GetChildActor())
-//		{
-//			AActor* ChildActor = ChildActorComp->GetChildActor();
-//			if (WarningClass && ChildActor->GetClass() == WarningClass)
-//			{
-//				return ChildActor;
-//			}
-//		}
-//	}
-//	return nullptr;
-//}
-
 void ABoxObject::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	if (bIsActived) return;
@@ -69,6 +51,13 @@ void ABoxObject::OnInteractServer_Implementation(const APawn* Interactor)
 		S2A_ExecuteTrapBox(Interactor);
 		S2A_ShowWarning();
 	}
+}
+
+void ABoxObject::OnRep_bIsActived()
+{
+	Super::OnRep_bIsActived();
+
+	InitBoxOpen(bIsActived);
 }
 
 // 멀티캐스트 함수들 구현
@@ -144,9 +133,10 @@ void ABoxObject::ExecuteTrapBoxGA(const APawn* Interactor)
 	if (!TargetASC) return;
 
 	FGameplayEventData EventData;
+	EventData.EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_State_OpenTrapBox;
 	EventData.Instigator = Interactor;
 	EventData.Target = Interactor;
+	EventData.OptionalObject = this;
 
-	FGameplayAbilitySpec AbilitySpec(UGA_TrapBox::StaticClass(), 1);
-	TargetASC->GiveAbilityAndActivateOnce(AbilitySpec, &EventData);
+	TargetASC->HandleGameplayEvent(FTPTGameplayTags::Get().TPTGameplay_Character_State_OpenTrapBox, &EventData);
 }
