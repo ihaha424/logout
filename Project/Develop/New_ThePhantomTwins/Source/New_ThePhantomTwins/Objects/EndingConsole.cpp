@@ -68,6 +68,13 @@ void AEndingConsole::BeginPlay()
 	}
 }
 
+void AEndingConsole::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	GetWorld()->GetTimerManager().ClearTimer(Wait5SecTimerHandle);
+
+	Super::EndPlay(EndPlayReason);
+}
+
 void AEndingConsole::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -330,6 +337,10 @@ void AEndingConsole::S2A_ResetConsoleState_Implementation()
 void AEndingConsole::ShowAndAutoRemoveWaitWidgets(class APC_Player* PC_Player)
 {
 	if (!PC_Player) return;
+
+	if (!PC_Player->GetWidget(TEXT("CloseWait5Sec"))) return;
+	//if (!PC_Player->GetWidget(TEXT("FarWait5Sec"))) return;
+
 
 	// 게임 안의 플레이어가 2명이상인지 체크.
 	// 1명이면 return
