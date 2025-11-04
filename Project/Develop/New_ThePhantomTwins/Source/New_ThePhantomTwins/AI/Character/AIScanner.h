@@ -51,7 +51,7 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Scanner")
 	void SetBerserkerMode(const FGameplayTag Tag, int32 TagCount);
 	UFUNCTION(BlueprintImplementableEvent, Category = "Scanner")
-	void BerserkerModeEffect();
+	void BerserkerModeEffect(bool bActive);
 	virtual void ResetDataForCombatState_Implementation() override;
 	virtual void ResetDataForEscapeCombatState_Implementation() override;
 	//~ End Berserker Mode
