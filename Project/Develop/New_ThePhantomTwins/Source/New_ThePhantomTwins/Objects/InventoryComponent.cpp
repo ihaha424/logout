@@ -422,6 +422,7 @@ void UInventoryComponent::ShowQuestionBoxWidget(bool bVisible)
     }
 	//TPT_LOG(ObjectLog, Log, TEXT("ShowQuestionBoxWidget : %s"), bVisible ? TEXT("Visible") : TEXT("Hidden"));
     QuestionBoxTextWidget->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+    QuestionBoxTextWidget->PlayAnimation(QuestionBoxTextWidget->tooltip, /*StartAtTime*/0.f,/*NumLoops*/1, /*PlayMode*/EUMGSequencePlayMode::Forward,/*PlaybackSpeed*/1.f, /*bRestoreState*/false);
 }
 
 void UInventoryComponent::ShowQuestionBoxResult(const FText& Text, float Duration)

@@ -19,8 +19,9 @@ class NEW_THEPHANTOMTWINS_API UTPTSaveGameManager : public UGameInstanceSubsyste
 	GENERATED_BODY()
 public:
     UTPTSaveGameManager();
-
+    UFUNCTION(BlueprintCallable)
     void ReInitialize();
+
     virtual void Deinitialize() override;
 
     UFUNCTION()
