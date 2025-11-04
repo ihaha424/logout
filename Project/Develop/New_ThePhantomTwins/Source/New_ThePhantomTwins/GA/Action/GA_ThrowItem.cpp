@@ -100,7 +100,7 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 		LaunchVelocity = SpawnRotation.RotateVector(ThrowItemData->LaunchVelocity); // DT 값은 로컬 기준 저장 가정
 		bHaveVelocity = true;
 
-		TPT_LOG(GALog, Log, TEXT("UGA_ThrowItem: Using DT LaunchVelocity (local->world): %s"), *LaunchVelocity.ToString());
+		//TPT_LOG(GALog, Log, TEXT("UGA_ThrowItem: Using DT LaunchVelocity (local->world): %s"), *LaunchVelocity.ToString());
 	}
 	else
 	{
@@ -180,7 +180,7 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 
 				bHaveVelocity = true;
 
-				TPT_LOG(GALog, Log, TEXT("UGA_ThrowItem: Fixed-angle LaunchVelocity calculated. Angle %f deg, Speed %f, Velocity %s"), ThetaDeg, RequiredSpeed, *LaunchVelocity.ToString());
+				//TPT_LOG(GALog, Log, TEXT("UGA_ThrowItem: Fixed-angle LaunchVelocity calculated. Angle %f deg, Speed %f, Velocity %s"), ThetaDeg, RequiredSpeed, *LaunchVelocity.ToString());
 			}
 		}
 		else
@@ -189,7 +189,7 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 			const float FallbackSpeed = 1000.f;
 			LaunchVelocity = SpawnRotation.Vector() * FallbackSpeed;
 			bHaveVelocity = true;
-			TPT_LOG(GALog, Warning, TEXT("UGA_ThrowItem: World missing, using fallback LaunchVelocity: %s"), *LaunchVelocity.ToString());
+			//TPT_LOG(GALog, Warning, TEXT("UGA_ThrowItem: World missing, using fallback LaunchVelocity: %s"), *LaunchVelocity.ToString());
 		}
 	}
 
@@ -412,7 +412,7 @@ void UGA_ThrowItem::ApplyThrowItemDataSettings(UProjectileMovementComponent* Pro
 			float GravityScale = ThrowItemData->OverrideGravityZ / WorldGravityZ;
 			ProjectileComp->ProjectileGravityScale = GravityScale;
 		}
-		TPT_LOG(GALog, Log, TEXT("Applied custom gravity (DT %f) => ProjectileGravityScale %f"), ThrowItemData->OverrideGravityZ, ProjectileComp->ProjectileGravityScale);
+		//TPT_LOG(GALog, Log, TEXT("Applied custom gravity (DT %f) => ProjectileGravityScale %f"), ThrowItemData->OverrideGravityZ, ProjectileComp->ProjectileGravityScale);
 	}
 
 	// 추가 설정(바운스, 중첩 등)은 필요 시 ThrowItemDT에 필드를 추가하고 여기서 적용

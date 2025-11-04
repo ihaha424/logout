@@ -426,7 +426,7 @@ void UInventoryComponent::ShowQuestionBoxResult(const FText& Text, float Duratio
     SetTextQuestionBoxWidget(Text);
     ShowQuestionBoxWidget(true);
 
-    TPT_LOG(ObjectLog, Log, TEXT("ShowQuestionBoxWidget : 룰렛 위젯 활성화"));
+    //TPT_LOG(ObjectLog, Log, TEXT("ShowQuestionBoxWidget : 룰렛 위젯 활성화"));
 
     // 인벤토리용 핸들과 혼용 금지
     GetWorld()->GetTimerManager().ClearTimer(QuestionBoxTimerHandle);
@@ -438,7 +438,7 @@ void UInventoryComponent::ShowQuestionBoxResult(const FText& Text, float Duratio
             {
                 bQuestionBoxWidgetActived = false;
                 ShowQuestionBoxWidget(false);
-                TPT_LOG(ObjectLog, Log, TEXT("ShowQuestionBoxWidget : 룰렛 위젯 비활성화"));
+                //TPT_LOG(ObjectLog, Log, TEXT("ShowQuestionBoxWidget : 룰렛 위젯 비활성화"));
             }),
         Duration,
         false
@@ -584,7 +584,7 @@ bool UInventoryComponent::CanUseKey()
 
     if (!TargetActor || !TargetActor->ActorHasTag(TEXT("KeyInteract")))
     {
-        TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 불가 - 태그 없음"));
+        //TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 불가 - 태그 없음"));
         ShowCannotUseWidget();
         return false;
     }
@@ -592,12 +592,12 @@ bool UInventoryComponent::CanUseKey()
     ADoor* TargetDoor = Cast<ADoor>(TargetActor);
     if (TargetDoor && TargetDoor->bKeyUsed)
     {
-        TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 불가 - 이미 사용됨"));
+        //TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 불가 - 이미 사용됨"));
         ShowCannotUseWidget();
         return false;
     }
 
-    TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 가능"));
+    //TPT_LOG(ObjectLog, Log, TEXT("UInventoryComponent::CanUseKey() : 키 사용 가능"));
     return true;
 }
 
