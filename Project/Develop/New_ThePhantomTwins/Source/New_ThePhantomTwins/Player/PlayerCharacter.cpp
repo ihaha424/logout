@@ -673,22 +673,23 @@ void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
 {
 	SelectedSlotNumber = SlotNumber;
 	NULLCHECK_RETURN_LOG(PlayerHUDWidget, PlayerLog, Warning, );
-	PlayerHUDWidget->VisibleInventory(true);
 
-	// 5초 뒤에 인벤토리(UI) 비활성화
-	GetWorldTimerManager().ClearTimer(VisibleInventoryTimerHandle); // 중복 타이머 방지
-	GetWorld()->GetTimerManager().SetTimer(
-		VisibleInventoryTimerHandle,
-		FTimerDelegate::CreateWeakLambda(this, [this]()
-			{
-				if (PlayerHUDWidget)
-				{
-					PlayerHUDWidget->VisibleInventory(false);
-				}
-			}),
-		5.0f, // 초 단위
-		false // 반복 아님
-	);
+	//PlayerHUDWidget->VisibleInventory(true);
+
+	//// 5초 뒤에 인벤토리(UI) 비활성화
+	//GetWorldTimerManager().ClearTimer(VisibleInventoryTimerHandle); // 중복 타이머 방지
+	//GetWorld()->GetTimerManager().SetTimer(
+	//	VisibleInventoryTimerHandle,
+	//	FTimerDelegate::CreateWeakLambda(this, [this]()
+	//		{
+	//			if (PlayerHUDWidget)
+	//			{
+	//				PlayerHUDWidget->VisibleInventory(false);
+	//			}
+	//		}),
+	//	5.0f, // 초 단위
+	//	false // 반복 아님
+	//);
 
 	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Event_Character_HoldItem;
 	FGameplayEventData Payload;

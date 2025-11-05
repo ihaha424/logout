@@ -71,7 +71,7 @@ void UInventoryComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UInventoryComponent::AddItem(EItemType eItemType)
 {
-    VisibleInventory();
+    //VisibleInventory();
 
     if (GetOwnerRole() != ROLE_Authority)
     {
@@ -98,7 +98,7 @@ EItemType UInventoryComponent::UseItem(int32 SlotIndex)
         return EItemType::None;
     }
 
-    VisibleInventory();
+    //VisibleInventory();
 
     // --- HUD에서 outline/tooltips 를 즉시 제거 (클라이언트 쪽 UI)
     // SlotIndex는 1-based 이므로 0-based 인덱스로 변환
@@ -167,7 +167,7 @@ EItemType UInventoryComponent::ChoiceItem(int32 SlotIndex)
                     {
                         if (PlayerHUDWidget)
                         {
-                            PlayerHUDWidget->SetOutline(Index, false);
+                            //PlayerHUDWidget->SetOutline(Index, false);
                             PlayerHUDWidget->SetToolTips(false, InventorySlots[Index].ItemType);
                         }
                     }),
@@ -189,7 +189,7 @@ EItemType UInventoryComponent::ChoiceItem(int32 SlotIndex)
     if (selectedNum == -1 || selectedNum != SlotIndex)
     {
         ClearSelection(selectedNum);
-        VisibleInventory();
+        //VisibleInventory();
         selectedNum = SlotIndex;
         HighlightSlot(SlotIndex, true);
     }
@@ -214,7 +214,7 @@ bool UInventoryComponent::SetPlayerHUDWidget(UPlayerHUDWidget* HUDWidget)
 
 void UInventoryComponent::OnRep_InventorySlots()
 {
-    VisibleInventory();
+    //VisibleInventory();
     RefreshUIFromInventory();
 }
 

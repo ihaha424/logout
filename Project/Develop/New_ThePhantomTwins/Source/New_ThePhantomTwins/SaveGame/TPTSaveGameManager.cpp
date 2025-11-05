@@ -59,6 +59,10 @@ void UTPTSaveGameManager::ReInitialize()
 
 void UTPTSaveGameManager::Deinitialize()
 {
+	UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTSaveGame>(GameSaveGame);
+	UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLocalPlayerSaveGame>(PlayerSaveGames[0]);
+	UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLocalPlayerSaveGame>(PlayerSaveGames[1]);
+
     PlayerSaveGames.Reset();
     GameSaveGame = nullptr;
 

@@ -37,7 +37,7 @@ void UPlayerHUDWidget::InitializeWidgets(int32 HP/*=200*/, int32 Mental/*=100*/,
 
 /* Inventory */
     SetMaxInventorySlots(MaxInventorySlots);
-    VisibleInventory(false);
+    VisibleInventory(true);
 
 // Max Setting
     PlayerStaminaWidget->MaxStamina = Stamina;
