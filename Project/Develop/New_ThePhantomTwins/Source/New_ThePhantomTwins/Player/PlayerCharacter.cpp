@@ -114,7 +114,10 @@ void APlayerCharacter::BeginPlay()
 
 	FocusTrace->SetIsReplicated(true);
 
-	InitPostProcessComponent();
+	if (IsLocallyControlled())
+	{
+		InitPostProcessComponent();
+	}
 
 	// RecoveryGauge Time
 	Time = RecoveryTime;
@@ -213,7 +216,6 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	UPlayerAnimInstance* AnimInstance = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	AnimInstance->InitializeWithAbilitySystem(ASC);
 
-	InitPostProcessComponent();
 	UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
 	SaveGameManager->ApplyAuthorityPlayerSaveGame(PlayerController);
 
@@ -319,26 +321,41 @@ void APlayerCharacter::InitPostProcessComponent()
 	UMaterialInstanceDynamic* TrapMID = UMaterialInstanceDynamic::Create(TrapVignette, this);
 	UMaterialInstanceDynamic* MentalAttackMID = UMaterialInstanceDynamic::Create(MentalAttackVignette, this);
 
-	HitBlendable.Object = HitMID;
-	HitBlendable.Weight = 0.0f;
+	const int Weight = 0.f;
+	
+	MIDList.Add(HitMID);
+	MIDList.Add(LowHPMID);
+	MIDList.Add(Confused3rdMID);
+	MIDList.Add(TrapMID);
+	MIDList.Add(MentalAttackMID);
 
-	DownedBlendable.Object = LowHPMID;
-	DownedBlendable.Weight = 0.0f;
+	FWeightedBlendable InitialWeightBlendable;
+	InitialWeightBlendable.Object = HitMID;
+	InitialWeightBlendable.Weight = Weight;
+	//PostProcessComp->Settings.WeightedBlendables.Array.Add(InitialWeightBlendable);
+	PostProcessComp->AddOrUpdateBlendable(InitialWeightBlendable.Object, InitialWeightBlendable.Weight);
 
-	Confused3rdBlendable.Object = Confused3rdMID;
-	Confused3rdBlendable.Weight = 0.0f;
+	InitialWeightBlendable.Object = LowHPMID;
+	InitialWeightBlendable.Weight = Weight;
+	//PostProcessComp->Settings.WeightedBlendables.Array.Add(InitialWeightBlendable);
+	PostProcessComp->AddOrUpdateBlendable(InitialWeightBlendable.Object, InitialWeightBlendable.Weight);
 
-	TrapBlendable.Object = TrapMID;
-	TrapBlendable.Weight = 0.0f;
+	InitialWeightBlendable.Object = Confused3rdMID;
+	InitialWeightBlendable.Weight = Weight;
+	//PostProcessComp->Settings.WeightedBlendables.Array.Add(InitialWeightBlendable);
+	PostProcessComp->AddOrUpdateBlendable(InitialWeightBlendable.Object, InitialWeightBlendable.Weight);
 
-	MentalAttackBlendable.Object = MentalAttackMID;
-	MentalAttackBlendable.Weight = 0.0f;
+	InitialWeightBlendable.Object = TrapMID;
+	InitialWeightBlendable.Weight = Weight;
+	//PostProcessComp->Settings.WeightedBlendables.Array.Add(InitialWeightBlendable);
+	PostProcessComp->AddOrUpdateBlendable(InitialWeightBlendable.Object, InitialWeightBlendable.Weight);
 
-	PostProcessComp->Settings.WeightedBlendables.Array.Add(HitBlendable);
-	PostProcessComp->Settings.WeightedBlendables.Array.Add(DownedBlendable);
-	PostProcessComp->Settings.WeightedBlendables.Array.Add(TrapBlendable);
-	PostProcessComp->Settings.WeightedBlendables.Array.Add(Confused3rdBlendable);
-	PostProcessComp->Settings.WeightedBlendables.Array.Add(MentalAttackBlendable);
+	InitialWeightBlendable.Object = MentalAttackMID;
+	InitialWeightBlendable.Weight = Weight;
+	//PostProcessComp->Settings.WeightedBlendables.Array.Add(InitialWeightBlendable);
+	PostProcessComp->AddOrUpdateBlendable(InitialWeightBlendable.Object, InitialWeightBlendable.Weight);
+
+	PostProcessComp->BlendWeight = 1.f;
 }
 
 void APlayerCharacter::SetHP(int32 value)
@@ -360,11 +377,18 @@ void APlayerCharacter::SettingPostProcessComponentBlendable(EVignetteType Type, 
 	NULLCHECK_RETURN_LOG(PostProcessComp, PlayerLog, Warning, );
 
 	if (PostProcessComp->Settings.WeightedBlendables.Array.Num() <= 0)
+	{
 		return;
+	}
 
 	const int32 index = static_cast<int32>(Type) - 1;
-	if (!PostProcessComp->Settings.WeightedBlendables.Array.IsValidIndex(index)) return;
-	PostProcessComp->AddOrUpdateBlendable(PostProcessComp->Settings.WeightedBlendables.Array[index].Object, Weight);
+	const FName Opacity = FName("Opacity");
+	if (!PostProcessComp->Settings.WeightedBlendables.Array.IsValidIndex(index))
+	{
+		return;
+	}
+	MIDList[index]->SetScalarParameterValue(Opacity, Weight);
+	// PostProcessComp->AddOrUpdateBlendable(PostProcessComp->Settings.WeightedBlendables.Array[index].Object, Weight);
 }
 
 void APlayerCharacter::InitHUDWidget(const UPlayerAttributeSet* AttributeSet)
