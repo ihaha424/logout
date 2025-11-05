@@ -9,8 +9,8 @@
 UENUM(BlueprintType)
 enum class ECharacterType : uint8
 {
-	Sona    UMETA(DisplayName = "Sona"),
-	Tia     UMETA(DisplayName = "Tia"),
+	Dana    UMETA(DisplayName = "Dana"),
+	Bell     UMETA(DisplayName = "Bell"),
 	None	UMETA(DisplayName = "None")
 };
 
