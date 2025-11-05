@@ -35,7 +35,9 @@ enum class EItemType : uint8
     // 물음표박스
     QuestionBox,
     // 꽝
-    Miss
+    Miss,
+    // 코어에너지
+    CoreEnergy
 };
 
 // Item DataTable 구조체
