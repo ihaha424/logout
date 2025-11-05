@@ -38,10 +38,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float SphereRadius = 50.f;
 	UPROPERTY(ReplicatedUsing = OnRep_FocusedActor)
-	AActor* FocusedActor = nullptr;
-
-	UPROPERTY()
-    AActor* PrevActor = nullptr;
+	AActor* FocusedActor;
 protected:
     virtual void BeginPlay() override;
 
@@ -53,6 +50,10 @@ protected:
     bool bOnDebug = false;
 
 private:
+
+    UPROPERTY()
+    AActor* PrevActor = nullptr;
+
 	FVector Start;
 	FVector Direction;
 	ECollisionChannel CollisionType;
