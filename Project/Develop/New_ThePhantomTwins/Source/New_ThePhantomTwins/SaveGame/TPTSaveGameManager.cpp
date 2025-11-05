@@ -30,6 +30,7 @@ UTPTSaveGameManager::UTPTSaveGameManager()
     GameSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>("MainSlot",  0, true);
     PlayerSaveGames.Add(UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTLocalPlayerSaveGame>("MainSlot", 0, true));
     PlayerSaveGames.Add(UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTLocalPlayerSaveGame>("MainSlot",  0, true));
+
     static ConstructorHelpers::FClassFinder<UGameplayEffect> EffectClass(TEXT("/Game/ThePhantomTwins/Characters/Blueprints/GE/SetPlayerAttribute/BPGE_CoreEnergySet.BPGE_CoreEnergySet_C"));
     if (EffectClass.Succeeded())
     {
@@ -38,7 +39,6 @@ UTPTSaveGameManager::UTPTSaveGameManager()
 
     bActorsInitialized = false;
     bPlayerInitialized = false;
-    SaveUpdate();
 }
 
 void UTPTSaveGameManager::ReInitialize()
@@ -53,6 +53,8 @@ void UTPTSaveGameManager::ReInitialize()
     HideObjectActorsMap.Reset();
     ItemBoxActorsMap.Reset();
     AIActorsMap.Reset();
+
+    SaveUpdate();
 }
 
 void UTPTSaveGameManager::Deinitialize()

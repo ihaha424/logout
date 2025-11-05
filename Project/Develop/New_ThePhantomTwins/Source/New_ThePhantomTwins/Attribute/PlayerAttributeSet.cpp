@@ -280,7 +280,6 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	// 정신력이 MAX면 태그 삭제
 	if (GetMentalPoint() >= GetMaxMentalPoint() && Data.Target.HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalRecovery))
 	{
-		TPT_LOG(GALog, Log, TEXT("DELETE Tag : TPTGameplay_Character_Skill_MentalRecovery"));
 		Data.Target.RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalRecovery);
 		Data.Target.RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalRecovery);
 	}
@@ -288,7 +287,6 @@ void UPlayerAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffect
 	// 정신력이 MAX가 아니라면 거리별회복 GA 호출
 	if (GetMentalPoint() < GetMaxMentalPoint() && !bMentalPointNotMax)
 	{
-		TPT_LOG(GALog, Log, TEXT("bMentalPointNotMax"));
 		OnMentalPointNotMax.Broadcast(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalRecovery);
 	}
 	bMentalPointNotMax = GetMentalPoint() < GetMaxMentalPoint();
