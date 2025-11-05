@@ -33,9 +33,6 @@ void AGM_PhantomTwins::BeginPlay()
     if (AGS_PhantomTwins* GS = GetGameState<AGS_PhantomTwins>())
     {
         UTPTSaveGame* TPTLocalPlayerSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>();
-        if (TPTLocalPlayerSaveGame->IdentifyMapData.MapType == EMapType::None)
-            GS->SetMapData(EMapType::ST2);
-        else
             GS->SetMapData(TPTLocalPlayerSaveGame->IdentifyMapData.MapType);
 
         ItemChangedHandle = GS->OnCollectedItemCountChanged().AddUObject(
