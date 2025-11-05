@@ -66,6 +66,11 @@ void UFocusTraceComponent::OnRep_FocusedActor()
 
 	if (!Character->IsLocallyControlled()) return;
 
+	if (IsValid(PrevActor) && PrevActor != FocusedActor)
+	{
+		if (PrevActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
+			IInteract::Execute_CanInteract(PrevActor, Character, false);
+	}
 	if (IsValid(FocusedActor))
 	{
 		if (FocusedActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
