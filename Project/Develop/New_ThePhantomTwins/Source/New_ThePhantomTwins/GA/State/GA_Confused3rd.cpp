@@ -51,7 +51,7 @@ void UGA_Confused3rd::EndAbility(FGameplayAbilitySpecHandle Handle, const FGamep
 
 	if (ActorInfo && ActorInfo->IsLocallyControlled())
 	{
-		Character->SettingPostProcessComponentBlendable(EVignetteType::Confused3rdVignette, 0);
+		Character->SetFadeVFX(EVignetteType::Confused3rdVignette, 1);
 
 		if (ActiveAudioComponent1st)
 		{
