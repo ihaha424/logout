@@ -13,6 +13,7 @@
 #include "Player/PlayerCharacter.h"
 #include "OutGame/HubMap/GS_HubMap.h"
 #include "SaveGame/TPTSaveGameManager.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 APC_Player::APC_Player()
 {
@@ -144,15 +145,21 @@ void APC_Player::Client_SetUIInputMode_Implementation(bool bUIOnly)
 	}
 }
 
-void APC_Player::C2S_SoloLogOut_Implementation(const FName LevelName, bool bAbsolute, bool bIsListen)
+void APC_Player::C2S_SetMovement_Implementation(bool bMove)
 {
-	if (!HasAuthority()) return;
+	//if (!HasAuthority()) return;
 
-	// GameMode를 갖고와서 GM에 있는 SeverToLevel 호출
-	AGM_PhantomTwins* GM = Cast<AGM_PhantomTwins>(GetWorld()->GetAuthGameMode());
+	// 이동 멈추기 (CharacterMovementComponent 기준)
+	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(GetPawn());
+	if (!PlayerChar) return;
+	if (!PlayerChar->GetCharacterMovement()) return;
 
-	if (GM)
+	if (bMove)
 	{
-		GM->SeverToLevel(LevelName, bAbsolute, bIsListen);
+		PlayerChar->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	}
+	else
+	{
+		PlayerChar->GetCharacterMovement()->DisableMovement();
 	}
 }

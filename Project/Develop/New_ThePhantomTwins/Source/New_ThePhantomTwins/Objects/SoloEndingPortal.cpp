@@ -6,6 +6,7 @@
 #include "player/PC_Player.h"
 #include "player/PlayerCharacter.h"
 #include "Components/BoxComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Log/TPTLog.h"
 
 ASoloEndingPortal::ASoloEndingPortal() : AInteractableObject()
@@ -27,23 +28,29 @@ void ASoloEndingPortal::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 void ASoloEndingPortal::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	SetWidgetVisible(false);
+    SetWidgetVisible(false);
 
-	if (AllowedInteractor != Interactor)
-	{
-		return;
-	}
+    if (AllowedInteractor != Interactor)
+    {
+        return;
+    }
 
-	APC_Player* PC_Player = Cast<APC_Player>(Interactor->GetController());
-	NULLCHECK_RETURN_LOG(PC_Player, ObjectLog, Error, );
-	PC_Player->SetWidget(TEXT("AskSoloLogOut"), true, EMessageTargetType::LocalClient);
+    // 플레이어 컨트롤러 가져오기
+    APC_Player* PC_Player = Cast<APC_Player>(Interactor->GetController());
+    NULLCHECK_RETURN_LOG(PC_Player, ObjectLog, Error, );
 
-	// 마우스 커서 표시
-	PC_Player->bShowMouseCursor = true;
+	// 움직임 멈추기
+	PC_Player->C2S_SetMovement(false);
 
-	// 입력 모드를 UI Only로 설정
-	FInputModeUIOnly InputMode;
-	PC_Player->SetInputMode(InputMode);
+	// 로그아웃 위젯 띄우기
+    PC_Player->SetWidget(TEXT("AskSoloLogOut"), true, EMessageTargetType::LocalClient);
+
+    // 마우스 커서 표시
+    PC_Player->bShowMouseCursor = true;
+
+    // 입력 모드를 UI Only로 설정
+    FInputModeUIOnly InputMode;
+    PC_Player->SetInputMode(InputMode);
 }
 
 void ASoloEndingPortal::ShowSoloPortalActor(bool bVisible)

@@ -61,6 +61,6 @@ public:
 	void Client_SetUIInputMode_Implementation(bool bUIOnly);
 	
 	UFUNCTION(BlueprintCallable, Server, Reliable)
-	void C2S_SoloLogOut(const FName LevelName, bool bAbsolute, bool bIsListen);
-	void C2S_SoloLogOut_Implementation(const FName LevelName, bool bAbsolute, bool bIsListen);
+	void C2S_SetMovement(bool bMove);
+	void C2S_SetMovement_Implementation(bool bMove);
 };
