@@ -32,13 +32,19 @@ public:
     UFUNCTION()
     void OnRep_FocusedActor();
 
+    UFUNCTION()
+    void OnRep_PrevActor();
+
     void PerformTrace();
 
     // 라인의 두께
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
     float SphereRadius = 50.f;
 	UPROPERTY(ReplicatedUsing = OnRep_FocusedActor)
-	AActor* FocusedActor;
+	AActor* FocusedActor = nullptr;
+
+	UPROPERTY(ReplicatedUsing = OnRep_PrevActor)
+    AActor* PrevActor = nullptr;
 protected:
     virtual void BeginPlay() override;
 
@@ -50,10 +56,6 @@ protected:
     bool bOnDebug = false;
 
 private:
-
-    UPROPERTY()
-    AActor* PrevActor = nullptr;
-
 	FVector Start;
 	FVector Direction;
 	ECollisionChannel CollisionType;
