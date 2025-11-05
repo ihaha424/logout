@@ -1,5 +1,4 @@
-﻿
-#include "InteractHideObject.h"
+﻿#include "InteractHideObject.h"
 #include "Net/UnrealNetwork.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/World.h"
@@ -83,12 +82,9 @@ void AInteractHideObject::S2A_OnDestroy_Implementation()
 	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
 	if (!ASC) return;
 
-	// 플레이어에 Hide 태그가 있다면
 	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
 	{
-		// 플레이어 Hide 태그 제거
 		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
-		ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 	}
 
 	// 로컬 컨트롤러에서만 입력/카메라 제어
@@ -112,6 +108,23 @@ void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
 	{
 		return;
 	}
+	else
+	{
+		// 플레이어 컨트롤러 가져오기
+		APlayerController* InteractorPC = Cast<APlayerController>(HidePlayer->GetController());
+		if (!InteractorPC) return;
+
+		// PlayerState 가져옴
+		APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
+		if (!PS) return;
+
+		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+
+		if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
+		{
+			ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+		}
+	}
 
 	// 서버에서만 NetMulticast 호출
 	if (HasAuthority())
@@ -125,7 +138,7 @@ bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bo
 	bCanInteract = bIsDetected;
 
 	// 다른 사람이 이미 들어가 있을 때 return
-	if (HidePlayer && HidePlayer != Interactor) 
+	if (HidePlayer && HidePlayer != Interactor)
 	{
 		if (Interactor->IsLocallyControlled())
 		{
@@ -140,11 +153,6 @@ bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bo
 
 	if (!Interactor->IsLocallyControlled()) return bCanInteract;
 
-	//TPT_LOG(ObjectLog, Log,
-	//	TEXT("InteractHideObject::CanInteract - %s | %s | Role: %s"),
-	//	bCanInteract ? TEXT("true") : TEXT("false"),
-	//	*Interactor->GetName(),
-	//	*UEnum::GetValueAsString(GetLocalRole()));
 
 	const APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(const_cast<APawn*>(Interactor));
 	if (PlayerChar)
@@ -209,10 +217,20 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 			FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
 			EffectContext.AddSourceObject(this);
 
+			// 여기서 TPTGameplay_Character_State_Hide tag 붙여줌
 			FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(HideTagGE, 1.f, EffectContext);
 			if (SpecHandle.IsValid())
 			{
 				ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
+		}
+		else
+		{
+		
+			// 예외처리: HideTagGE가 없을 때는 직접 태그 추가
+			if (ASC)
+			{
+				ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 			}
 		}
 	}
@@ -282,6 +300,14 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 				ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 			}
 		}
+		else
+		{
+			// 예외처리: HideTagGE가 없을 때는 직접 태그 추가
+			if (ASC)
+			{
+				ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+			}
+		}
 	}
 	else
 	{
@@ -316,13 +342,6 @@ void AInteractHideObject::EnterObject(const APawn* Interactor)
 	APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
 	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
 
-	// 플레이어에 Hide 태그가 없다면
-	if (!ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
-	{
-		// 플레이어 Hide 태그 추가
-		ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
-		ASC->AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
-	}
 
 	bIsActived = true;
 	HidePlayer = const_cast<APawn*>(Interactor);
@@ -363,7 +382,6 @@ void AInteractHideObject::ExitObject()
 		{
 			// 플레이어 Hide 태그 제거
 			ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
-			ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 		}
 
 		ACharacter* Char = Cast<ACharacter>(HidePlayer);
@@ -466,3 +484,4 @@ void AInteractHideObject::EnableVignetteEffect(bool bEnable)
 		HideCameraComp->PostProcessSettings.RemoveBlendable(VignetteMaterial);
 	}
 }
+
