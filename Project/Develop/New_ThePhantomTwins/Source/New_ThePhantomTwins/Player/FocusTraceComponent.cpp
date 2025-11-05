@@ -80,20 +80,6 @@ void UFocusTraceComponent::OnRep_FocusedActor()
 	PrevActor = FocusedActor;
 }
 
-void UFocusTraceComponent::OnRep_PrevActor()
-{
-	APlayerCharacter* Character = Cast<APlayerCharacter>(GetOwner());
-	if (!Character) return;
-
-	if (!Character->IsLocallyControlled()) return;
-
-	if (IsValid(PrevActor) && PrevActor != FocusedActor)
-	{
-		if (PrevActor->GetClass()->ImplementsInterface(UInteract::StaticClass()))
-			IInteract::Execute_CanInteract(PrevActor, Character, false);
-	}
-}
-
 void UFocusTraceComponent::PerformTrace()
 {
     AActor* Owner = GetOwner();

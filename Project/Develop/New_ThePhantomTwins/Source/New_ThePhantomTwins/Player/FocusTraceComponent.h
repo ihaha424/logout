@@ -32,9 +32,6 @@ public:
     UFUNCTION()
     void OnRep_FocusedActor();
 
-    UFUNCTION()
-    void OnRep_PrevActor();
-
     void PerformTrace();
 
     // 라인의 두께
@@ -43,7 +40,7 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_FocusedActor)
 	AActor* FocusedActor = nullptr;
 
-	UPROPERTY(ReplicatedUsing = OnRep_PrevActor)
+	UPROPERTY()
     AActor* PrevActor = nullptr;
 protected:
     virtual void BeginPlay() override;
