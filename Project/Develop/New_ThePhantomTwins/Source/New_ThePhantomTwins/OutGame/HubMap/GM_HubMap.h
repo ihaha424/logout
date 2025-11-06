@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
+#include "UserCountGameMode.h"
 #include "GM_HubMap.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class NEW_THEPHANTOMTWINS_API AGM_HubMap : public AGameModeBase
+class NEW_THEPHANTOMTWINS_API AGM_HubMap : public AUserCountGameMode
 {
 	GENERATED_BODY()
 	

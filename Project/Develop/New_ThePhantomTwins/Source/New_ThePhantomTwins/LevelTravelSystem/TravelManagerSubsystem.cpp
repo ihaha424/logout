@@ -119,6 +119,21 @@ bool UTravelManagerSubsystem::GetCachedTargetMap(TSoftObjectPtr<UWorld>& TargetW
     return false;
 }
 
+int32 UTravelManagerSubsystem::GetUserCount()
+{
+    return UserCount;
+}
+
+void UTravelManagerSubsystem::PostLogin()
+{
+    UserCount++;
+}
+
+void UTravelManagerSubsystem::Logout()
+{
+    UserCount--;
+}
+
 void UTravelManagerSubsystem::HandlePostLoadMap(UWorld* World)
 {
     if (!IsValid(World)) 

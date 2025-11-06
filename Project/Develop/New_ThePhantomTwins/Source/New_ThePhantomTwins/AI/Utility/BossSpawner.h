@@ -21,6 +21,6 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = "Spawn")
 	void SpawnBossOnce();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Spawn")
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Spawn")
 	void SpawnBoss();
 };

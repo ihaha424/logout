@@ -3,13 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
+#include "UserCountGameMode.h"
 #include "GM_PhantomTwins.generated.h"
 
 class ABossSpawner;
 
 UCLASS()
-class NEW_THEPHANTOMTWINS_API AGM_PhantomTwins : public AGameModeBase
+class NEW_THEPHANTOMTWINS_API AGM_PhantomTwins : public AUserCountGameMode
 {
 	GENERATED_BODY()
 	

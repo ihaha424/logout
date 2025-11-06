@@ -28,12 +28,18 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FString LoadingMapPath = "Invalid";
 
+    UFUNCTION(BlueprintCallable)
+    int32 GetUserCount();
+    void PostLogin();
+    void Logout();
+           
 private:
     UFUNCTION()
     void HandlePostLoadMap(UWorld* World);
 
 
 private:
+    int32 UserCount = 0;
     FString CachedTargetMap;
     TSubclassOf<UUserWidget> CachedWidgetClass;
     bool bCachedServerTravel = true;

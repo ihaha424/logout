@@ -10,6 +10,8 @@
 #include "Tags/TPTGameplayTags.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
+#include "NavigationSystem.h"
+#include "NavigationPath.h"
 #include "Log/TPTLog.h"
 
 
@@ -47,6 +49,9 @@ void UGA_ScanCloestPlayer::ActivateAbility(const FGameplayAbilitySpecHandle Hand
         if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
             continue;
 
+        if (!IsReachable(GetWorld(), AI, Pawn->GetActorLocation()))
+            continue;
+
         float DistSq = thisActor->GetDistanceTo(Pawn);
 
         if (DistSq < Distance)
@@ -63,4 +68,15 @@ void UGA_ScanCloestPlayer::ActivateAbility(const FGameplayAbilitySpecHandle Hand
     }
 
     EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+}
+
+bool UGA_ScanCloestPlayer::IsReachable(UWorld* World, APawn* Pawn, const FVector& Goal, TSubclassOf<UNavigationQueryFilter> Filter)
+{
+    if (auto* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(World))
+    {
+        const FVector Start = Pawn->GetNavAgentLocation();
+        UNavigationPath* Path = NavSys->FindPathToLocationSynchronously(World, Start, Goal, Pawn, Filter);
+        return Path && Path->IsValid() && !Path->IsPartial();
+    }
+    return false;
 }

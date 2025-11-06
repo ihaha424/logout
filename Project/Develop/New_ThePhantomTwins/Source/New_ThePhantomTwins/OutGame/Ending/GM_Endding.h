@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
+#include "UserCountGameMode.h"
 #include "GM_Endding.generated.h"
 
 /**
  *
  */
 UCLASS()
-class NEW_THEPHANTOMTWINS_API AGM_Endding : public AGameModeBase
+class NEW_THEPHANTOMTWINS_API AGM_Endding : public AUserCountGameMode
 {
 	GENERATED_BODY()
 public:

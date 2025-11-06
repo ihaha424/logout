@@ -6,9 +6,8 @@
 #include "Abilities/GameplayAbility.h"
 #include "GA_ScanCloestPlayer.generated.h"
 
-/**
- * 
- */
+class UNavigationQueryFilter;
+
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UGA_ScanCloestPlayer : public UGameplayAbility
 {
@@ -21,4 +20,6 @@ public:
         const FGameplayAbilityActorInfo* ActorInfo,
         const FGameplayAbilityActivationInfo ActivationInfo,
         const FGameplayEventData* TriggerEventData) override;
+
+    bool IsReachable(UWorld* World, APawn* Pawn, const FVector& Goal, TSubclassOf<UNavigationQueryFilter> Filter = nullptr);
 };
