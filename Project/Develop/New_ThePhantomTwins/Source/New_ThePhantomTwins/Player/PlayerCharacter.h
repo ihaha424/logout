@@ -113,6 +113,8 @@ public:
 	float RecoveryPercent = 0.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	float RecoveryTime = 5.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Distance = 150.f;
 
 	// 스킬 관련 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill")

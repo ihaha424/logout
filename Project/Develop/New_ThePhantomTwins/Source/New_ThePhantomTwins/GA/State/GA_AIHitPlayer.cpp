@@ -76,23 +76,10 @@ void UGA_AIHitPlayer::OffSound(const FGameplayTag InputTag, int32 Count)
 
 void UGA_AIHitPlayer::OnMontageComplete()
 {
-	// VignetteEffectOff();
-
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 
 	ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit);
 	ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit);
 
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-}
-
-void UGA_AIHitPlayer::VignetteEffectOff()
-{
-	APlayerCharacter* Character = Cast<APlayerCharacter>(GetActorInfo().AvatarActor);
-	NULLCHECK_RETURN_LOG(Character, GALog, Error, );
-
-	if (Character->IsLocallyControlled())
-	{
-		Character->SetFadeVFX(EVignetteType::HitVignette, 1, 0.5f);
-	}
 }

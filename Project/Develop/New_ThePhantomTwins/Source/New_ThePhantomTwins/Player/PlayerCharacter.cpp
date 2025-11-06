@@ -260,6 +260,14 @@ bool APlayerCharacter::CanInteract_Implementation(const APawn* Interactor, bool 
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, false);
 	bool bIsTag = ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed);
 
+	if (Distance <= FVector::Dist(Interactor->GetActorLocation(), GetActorLocation()))
+	{
+		if (!Interactor->IsLocallyControlled())
+			return false;
+		InteractWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+		return false;
+	}
+
 	if (bIsTag && bIsDetected)
 	{
 		if (!Interactor->IsLocallyControlled())

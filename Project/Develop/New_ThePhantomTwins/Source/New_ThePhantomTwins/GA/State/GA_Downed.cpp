@@ -138,7 +138,11 @@ void UGA_Downed::OnDownedTagChanged(const FGameplayTag Tag, int32 TagCount)
 		Character->DownedWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
 		Character->GetSpringArm()->SocketOffset = DefaultSocketOffset;
 		Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		Character->SetFadeVFX(EVignetteType::DownedVignette,1);
+
+		if (Character->IsLocallyControlled())
+		{
+			Character->SetFadeVFX(EVignetteType::DownedVignette,1);
+		}
 
 		if (ActiveAudioComponent)
 		{
