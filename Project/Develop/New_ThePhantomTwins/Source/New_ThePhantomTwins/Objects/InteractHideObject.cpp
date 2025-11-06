@@ -24,6 +24,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Components/AudioComponent.h"
 #include "Player/FocusTraceComponent.h"
+#include "Components/WidgetComponent.h"
 
 AInteractHideObject::AInteractHideObject() : AInteractableObject()
 {
@@ -49,12 +50,28 @@ AInteractHideObject::AInteractHideObject() : AInteractableObject()
 
 	OutPosBox = CreateDefaultSubobject<UBoxComponent>(TEXT("OutPosBoxComp"));
 	OutPosBox->SetupAttachment(RootComponent);
+
+	// Lock
+	LockWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("LockWidget"));
+	LockWidgetComp->SetupAttachment(RootComponent);
+	LockWidgetComp->SetWidgetSpace(EWidgetSpace::Screen);
+	LockWidgetComp->SetDrawSize(FVector2D(10, 10));
+	LockWidgetComp->SetRelativeLocation(FVector(0, 0, 100));
+	LockWidgetComp->SetVisibility(false);
 }
 
 void AInteractHideObject::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (LockWidgetComp)
+	{
+		if (LockWidgetClass)
+		{
+			LockWidgetComp->SetWidgetClass(LockWidgetClass);
+			LockWidgetComp->SetVisibility(false);
+		}
+	}
 }
 
 void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

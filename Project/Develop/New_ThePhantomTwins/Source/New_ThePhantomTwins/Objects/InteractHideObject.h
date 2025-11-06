@@ -108,4 +108,12 @@ public:
 	UAudioComponent* ActiveAudioComponent = nullptr;
 
 	bool bIsActiveAudio = false;
+
+	
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")
+	TObjectPtr<class UWidgetComponent> LockWidgetComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")
+	TSubclassOf<class UUserWidget> LockWidgetClass;
 };
