@@ -40,7 +40,7 @@ void UGA_AIHitPlayer::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 			ActiveAudioComponent = UGameplayStatics::SpawnSoundAttached(Sound, Character->GetRootComponent());
 		}
 
-		Character->SetFadeVFX(EVignetteType::HitVignette, 0);
+		Character->SetFadeVFX(EVignetteType::HitVignette, 0, 0.5f);
 	}
 	FGameplayEffectSpecHandle SprintSpecHandle = MakeOutgoingGameplayEffectSpec(HitDurationEffect, 1.0f);
 	if (SprintSpecHandle.IsValid())
@@ -93,6 +93,6 @@ void UGA_AIHitPlayer::VignetteEffectOff()
 
 	if (Character->IsLocallyControlled())
 	{
-		Character->SetFadeVFX(EVignetteType::HitVignette, 1);
+		Character->SetFadeVFX(EVignetteType::HitVignette, 1, 0.5f);
 	}
 }
