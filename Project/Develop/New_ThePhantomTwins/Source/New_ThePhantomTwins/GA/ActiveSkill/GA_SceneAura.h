@@ -83,7 +83,7 @@ protected:
     float SenseRadius = 5000.f; 
 
     UPROPERTY(EditDefaultsOnly, Category="Aura")
-    float ScanInterval = 0.5f; 
+    float ScanInterval = 0.1f; 
 
     bool bHasCoolDownTag = false;
 private:
