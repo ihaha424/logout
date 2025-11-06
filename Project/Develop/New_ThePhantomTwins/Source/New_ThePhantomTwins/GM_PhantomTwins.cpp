@@ -98,6 +98,12 @@ void AGM_PhantomTwins::HandleStartingNewPlayer_Implementation(APlayerController*
     RestartPlayerAtTransform(NewPlayer, StartPoint);
 }
 
+void AGM_PhantomTwins::ReInitializeGameSave()
+{
+	UTPTSaveGameManager* SaveGameManager = GetGameInstance()->GetSubsystem<UTPTSaveGameManager>();
+	SaveGameManager->ReInitialize();
+}
+
 void AGM_PhantomTwins::NotifyPlayerClickedGameStop(FName LevelName)
 {
     DestinationLevelName = LevelName;

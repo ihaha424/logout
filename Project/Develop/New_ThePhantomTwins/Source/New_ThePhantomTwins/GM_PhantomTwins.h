@@ -23,7 +23,8 @@ public:
     //~ End AGameModeBase
     virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 
-
+    UFUNCTION(BlueprintCallable)
+    void ReInitializeGameSave();
 
 	// ~ Begin PlayerDied
 	void NotifyPlayerDied(bool isDead);
