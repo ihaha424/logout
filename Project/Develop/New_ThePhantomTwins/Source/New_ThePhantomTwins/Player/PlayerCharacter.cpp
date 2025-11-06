@@ -751,6 +751,7 @@ void APlayerCharacter::InputESC(const FInputActionValue& Value)
 	PC->SetWidget(TEXT("ESC"),	true, EMessageTargetType::LocalClient);
 	bIsShowingESC = true;
 	FInputModeUIOnly InputData;
+	PC->FlushPressedKeys();
 	PC->SetInputMode(InputData);
 	PC->bShowMouseCursor = true;
 }
