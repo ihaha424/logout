@@ -159,7 +159,7 @@ public:
 	void OnRep_RecoveryPercent();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetFadeVFX(EVignetteType Type, int32 StartValue, float DuringTime = 1.f);
+	void SetFadeVFX(EVignetteType Type, int32 StartValue, float DuringTime = 1.f, bool PingPong = false);
 
 	UFUNCTION()
 	void PlayerHUDStaminaSet(int32 value);
