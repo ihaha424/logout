@@ -62,9 +62,11 @@ void UTPTSaveGameManager::FullInitialize()
 {
     UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLevelSaveGame>();
     UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLocalPlayerSaveGame>();
-
     PlayerSaveGames.Reset();
-    LevelSaveGame = nullptr;
+
+    LevelSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTLevelSaveGame>("MainSlot", 0, true);
+    PlayerSaveGames.Add(UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTLocalPlayerSaveGame>("MainSlot", 0, true));
+    PlayerSaveGames.Add(UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTLocalPlayerSaveGame>("MainSlot", 0, true));
 
     DoorActorsMap.Reset();
     ItemActorsMap.Reset();
