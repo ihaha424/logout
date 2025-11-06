@@ -38,7 +38,10 @@ void UAnimNotify_WalkSound::Notify(USkeletalMeshComponent* MeshComp, UAnimSequen
 	}
 	else
 	{
-		UGameplayStatics::PlaySoundAtLocation(Actor, StepSoundByMap[EMapType::ST1].stepSound, Actor->GetActorLocation());
-		Actor->MakeNoise(Loundness, nullptr, Actor->GetActorLocation(), 0.f);
+		if (StepSoundByMap.Contains(EMapType::ST1))
+		{
+			UGameplayStatics::PlaySoundAtLocation(Actor, StepSoundByMap[EMapType::ST1].stepSound, Actor->GetActorLocation());
+			Actor->MakeNoise(Loundness, nullptr, Actor->GetActorLocation(), 0.f, StepSoundByMap[EMapType::ST1].Type);
+		}
 	}
 }
