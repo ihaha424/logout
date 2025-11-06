@@ -126,7 +126,6 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 	if (IsLocallyControlled() && PlayerController && FocusTrace)
 	{
 		FVector2D ViewportSize;

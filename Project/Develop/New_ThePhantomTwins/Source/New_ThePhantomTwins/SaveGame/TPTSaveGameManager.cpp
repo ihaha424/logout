@@ -46,7 +46,7 @@ void UTPTSaveGameManager::ReInitialize()
     bActorsInitialized = false;
     bPlayerInitialized = false;
 
-    UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTLevelSaveGame>(LevelSaveGame);
+    UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLevelSaveGame>(LevelSaveGame);
 	SetRestartPoint(nullptr);
 
     DoorActorsMap.Reset();
