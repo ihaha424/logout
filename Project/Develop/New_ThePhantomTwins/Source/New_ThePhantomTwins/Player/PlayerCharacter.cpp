@@ -780,7 +780,7 @@ void APlayerCharacter::InputMouseWheelUp(const FInputActionValue& Value)
 
 void APlayerCharacter::InputPressedUseItem(int32 InputID)
 {
-	if(ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
+	if(ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide) || ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
 	{
 		return;
 	}
