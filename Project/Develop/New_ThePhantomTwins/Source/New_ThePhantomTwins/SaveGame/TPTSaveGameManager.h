@@ -7,6 +7,7 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "TPTSaveGameManager.generated.h"
 
+class UTPTLevelSaveGame;
 class ADataFragment;
 class UGameplayEffect;
 struct FDoorState;
@@ -60,7 +61,8 @@ private:
     UPROPERTY()
     TArray<UTPTLocalPlayerSaveGame*> PlayerSaveGames;
     UPROPERTY()
-    UTPTSaveGame* GameSaveGame;
+    UTPTLevelSaveGame* LevelSaveGame;
+
     UPROPERTY()
     TMap<FName, AActor*> DoorActorsMap;
     UPROPERTY()
