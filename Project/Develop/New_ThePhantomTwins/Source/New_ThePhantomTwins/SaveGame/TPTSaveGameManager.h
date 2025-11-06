@@ -23,6 +23,9 @@ public:
     UFUNCTION(BlueprintCallable)
     void ReInitialize();
 
+    UFUNCTION(BlueprintCallable)
+    void FullInitialize();
+
     virtual void Deinitialize() override;
 
     UFUNCTION()

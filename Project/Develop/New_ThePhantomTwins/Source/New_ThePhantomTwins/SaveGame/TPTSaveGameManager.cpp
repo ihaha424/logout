@@ -46,7 +46,7 @@ void UTPTSaveGameManager::ReInitialize()
     bActorsInitialized = false;
     bPlayerInitialized = false;
 
-    UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLevelSaveGame>(LevelSaveGame);
+    UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLevelSaveGame>();
 	SetRestartPoint(nullptr);
 
     DoorActorsMap.Reset();
@@ -58,11 +58,25 @@ void UTPTSaveGameManager::ReInitialize()
     SaveUpdate();
 }
 
+void UTPTSaveGameManager::FullInitialize()
+{
+    UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLevelSaveGame>();
+    UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLocalPlayerSaveGame>();
+
+    PlayerSaveGames.Reset();
+    LevelSaveGame = nullptr;
+
+    DoorActorsMap.Reset();
+    ItemActorsMap.Reset();
+    HideObjectActorsMap.Reset();
+    ItemBoxActorsMap.Reset();
+    AIActorsMap.Reset();
+}
+
 void UTPTSaveGameManager::Deinitialize()
 {
-    UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLevelSaveGame>(LevelSaveGame);
-    UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLocalPlayerSaveGame>(PlayerSaveGames[0]);
-    UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLocalPlayerSaveGame>(PlayerSaveGames[1]);
+    UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLevelSaveGame>();
+    UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLocalPlayerSaveGame>();
 
     PlayerSaveGames.Reset();
     LevelSaveGame = nullptr;

@@ -46,17 +46,6 @@ public:
 	}
 
 	template<TPTSaveGameConcept T>
-	static bool DeleteSaveGameData(T* Data, const FString& SlotName = "MainSlot", int32 Slot = 0)
-	{
-		if (!UGameplayStatics::DeleteGameInSlot(FString(T::StaticClass()->GetName() + SlotName), Slot))
-		{
-			UE_LOG(LogTPTSaveGame, Warning, TEXT("TPTSaveGame delete Fail."));
-			return false;
-		}
-		return true;
-	}
-
-	template<TPTSaveGameConcept T>
 	static T* GetSaveGameData(const FString& SlotName = "MainSlot", int32 Slot = 0, bool bCreate = false)
 	{
 		T* SaveGameInstance = Cast<T>(UGameplayStatics::LoadGameFromSlot(FString(T::StaticClass()->GetName() + SlotName), Slot));
@@ -71,5 +60,16 @@ public:
 		}
 
 		return SaveGameInstance;
+	}
+
+	template<TPTSaveGameConcept T>
+	static bool DeleteSaveGameData(const FString& SlotName = "MainSlot", int32 Slot = 0)
+	{
+		if (!UGameplayStatics::DeleteGameInSlot(FString(T::StaticClass()->GetName() + SlotName), Slot))
+		{
+			UE_LOG(LogTPTSaveGame, Warning, TEXT("TPTSaveGame delete Fail."));
+			return false;
+		}
+		return true;
 	}
 };
