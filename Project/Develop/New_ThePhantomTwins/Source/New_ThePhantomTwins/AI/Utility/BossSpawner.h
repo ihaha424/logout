@@ -23,4 +23,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Spawn")
 	void SpawnBoss();
+
+	UFUNCTION()
+	void OnRep_SpawnBoss();
+
+	UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_SpawnBoss, Category = "Spawn")
+	bool bIsSpawn = false;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

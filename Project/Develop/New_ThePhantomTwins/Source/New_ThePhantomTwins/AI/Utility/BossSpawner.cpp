@@ -2,13 +2,14 @@
 
 
 #include "AI/Utility/BossSpawner.h"
+#include "Net/UnrealNetwork.h"
 #include "GM_PhantomTwins.h"
 #include "GS_PhantomTwins.h"
 
 ABossSpawner::ABossSpawner()
 {
 	PrimaryActorTick.bCanEverTick = false;
-
+    bReplicates = true;
 }
 
 void ABossSpawner::BeginPlay()
@@ -37,7 +38,20 @@ void ABossSpawner::SpawnBossOnce()
     if (!Boss) return;
 
     GS->MarkBossSpawned(Boss);
+    bIsSpawn = true;
+    OnRep_SpawnBoss();
+}
+
+void ABossSpawner::OnRep_SpawnBoss()
+{
     SpawnBoss();
+}
+
+void ABossSpawner::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(ABossSpawner, bIsSpawn);
 }
 
 
