@@ -64,81 +64,6 @@ void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(AInteractHideObject, HidePlayer);
 }
 
-void AInteractHideObject::S2A_OnDestroy_Implementation()
-{
-	if (!HidePlayer)
-	{
-		return;
-	}
-
-	// 플레이어 컨트롤러 가져오기
-	APlayerController* InteractorPC = Cast<APlayerController>(HidePlayer->GetController());
-	if (!InteractorPC) return;
-
-	// PlayerState 가져옴
-	APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
-	if (!PS) return;
-
-	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
-	if (!ASC) return;
-
-	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
-	{
-		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
-		ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
-	}
-
-	// 로컬 컨트롤러에서만 입력/카메라 제어
-	if (InteractorPC->IsLocalController())
-	{
-		// 클라이언트에게 입력 활성화 명령 전달
-		SetInputState(InteractorPC, false);
-
-		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
-		SetViewTarget(InteractorPC, HidePlayer);
-	}
-
-	// 플레이어 옷장 반대방향으로 바라보게 하기
-	FRotator NewRotation = OutPosBox->GetComponentRotation();
-	InteractorPC->SetControlRotation(NewRotation);
-}
-
-void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
-{
-	if (!HidePlayer)
-	{
-		return;
-	}
-	else
-	{
-		// 플레이어 컨트롤러 가져오기
-		APlayerController* InteractorPC = Cast<APlayerController>(HidePlayer->GetController());
-		if (!InteractorPC) return;
-
-		// PlayerState 가져옴
-		APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
-		if (!PS) return;
-
-		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
-
-		if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
-		{
-			ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
-			ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
-		}
-
-		ACharacter* Char = Cast<ACharacter>(HidePlayer);
-		UCapsuleComponent* Capsule = Char->GetCapsuleComponent();
-		Capsule->SetCollisionObjectType(ECC_Pawn);
-	}
-
-	// 서버에서만 NetMulticast 호출
-	if (HasAuthority())
-	{
-		S2A_OnDestroy();
-	}
-}
-
 bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
 	bCanInteract = bIsDetected;
@@ -190,6 +115,81 @@ void AInteractHideObject::OnInteractClient_Implementation(const APawn* Interacto
 	SetWidgetVisible(false);
 
 	CamLogicClient(Interactor);
+}
+
+void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
+{
+	if (!HidePlayer)
+	{
+		return;
+	}
+	else
+	{
+		// 플레이어 컨트롤러 가져오기
+		APlayerController* InteractorPC = Cast<APlayerController>(HidePlayer->GetController());
+		if (!InteractorPC) return;
+
+		// PlayerState 가져옴
+		APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
+		if (!PS) return;
+
+		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+
+		if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
+		{
+			ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+			ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+		}
+
+		ACharacter* Char = Cast<ACharacter>(HidePlayer);
+		UCapsuleComponent* Capsule = Char->GetCapsuleComponent();
+		Capsule->SetCollisionObjectType(ECC_Pawn);
+	}
+
+	// 서버에서만 NetMulticast 호출
+	if (HasAuthority())
+	{
+		S2A_OnDestroy();
+	}
+}
+
+void AInteractHideObject::S2A_OnDestroy_Implementation()
+{
+	if (!HidePlayer)
+	{
+		return;
+	}
+
+	// 플레이어 컨트롤러 가져오기
+	APlayerController* InteractorPC = Cast<APlayerController>(HidePlayer->GetController());
+	if (!InteractorPC) return;
+
+	// PlayerState 가져옴
+	APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
+	if (!PS) return;
+
+	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+	if (!ASC) return;
+
+	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
+	{
+		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+		ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+	}
+
+	// 로컬 컨트롤러에서만 입력/카메라 제어
+	if (InteractorPC->IsLocalController())
+	{
+		// 클라이언트에게 입력 활성화 명령 전달
+		SetInputState(InteractorPC, false);
+
+		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
+		SetViewTarget(InteractorPC, HidePlayer);
+	}
+
+	// 플레이어 옷장 반대방향으로 바라보게 하기
+	FRotator NewRotation = OutPosBox->GetComponentRotation();
+	InteractorPC->SetControlRotation(NewRotation);
 }
 
 void AInteractHideObject::CamLogicServer(const APawn* Interactor)
