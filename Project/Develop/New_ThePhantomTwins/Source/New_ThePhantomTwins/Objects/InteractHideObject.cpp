@@ -586,6 +586,11 @@ void AInteractHideObject::OnRep_SetWidget()
 			InteractWidgetComp->SetVisibility(true);
 			LockWidgetComp->SetVisibility(false);
 		}
+		else
+		{
+			InteractWidgetComp->SetVisibility(false);
+			LockWidgetComp->SetVisibility(false);
+		}
 	}
 	else
 	{
