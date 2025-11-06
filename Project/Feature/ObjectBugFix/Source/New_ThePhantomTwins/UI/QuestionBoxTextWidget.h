@@ -17,7 +17,10 @@ class NEW_THEPHANTOMTWINS_API UQuestionBoxTextWidget : public UUserWidget
 public:
 	void SetText(const FText& Text);
 
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* tooltip;
 protected:
+
 	// 바인딩된 텍스트 위젯
     UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> TextWidget;

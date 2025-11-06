@@ -9,6 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Player/PlayerCharacter.h"
 #include "Attribute/PlayerAttributeSet.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
 
@@ -16,6 +17,7 @@ UGA_Crouch::UGA_Crouch()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+
 	FGameplayTagContainer DefaultTags;
 	DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_InputTag_Player_Crouch);
 	SetAssetTags(DefaultTags);
@@ -27,6 +29,12 @@ void UGA_Crouch::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const 
 
 	APlayerCharacter* Character = Cast<APlayerCharacter>(ActorInfo->AvatarActor.Get());
 	NULLCHECK_RETURN_LOG(Character, GALog, Warning, );
+	USpringArmComponent* SpringArm = Character->FindComponentByClass<USpringArmComponent>();
+	if (SpringArm)
+	{
+		SpringArm->bEnableCameraLag = true;
+		SpringArm->CameraLagSpeed = 12.0f;           // 래그 추적 속도(높을수록 빨리 따라감)
+	}
 
 	Character->Crouch();
 }
@@ -38,6 +46,11 @@ void UGA_Crouch::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGame
 
 	Character->UnCrouch();
 
+	USpringArmComponent* SpringArm = Character->FindComponentByClass<USpringArmComponent>();
+	if (SpringArm)
+	{
+		SpringArm->bEnableCameraLag = false;
+	}
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 

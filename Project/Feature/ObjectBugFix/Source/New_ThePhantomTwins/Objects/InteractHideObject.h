@@ -22,6 +22,7 @@ protected:
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	void SetWidgetVisible(int32 bVisible);
 	virtual bool CanInteract_Implementation(const APawn* Interactor, bool bIsDetected) override;
 	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
 	virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
@@ -108,4 +109,12 @@ public:
 	UAudioComponent* ActiveAudioComponent = nullptr;
 
 	bool bIsActiveAudio = false;
+
+	
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")
+	TObjectPtr<class UWidgetComponent> LockWidgetComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractableObject | ObjectWidget")
+	TSubclassOf<class UUserWidget> LockWidgetClass;
 };

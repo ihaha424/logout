@@ -23,7 +23,8 @@ public:
     //~ End AGameModeBase
     virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 
-
+    UFUNCTION(BlueprintCallable)
+    void ReInitializeGameSave();
 
 	// ~ Begin PlayerDied
 	void NotifyPlayerDied(bool isDead);
@@ -38,7 +39,7 @@ public:
 
     UFUNCTION(BlueprintCallable)
     void ShowLoadingScene();
-	void RestartWithDelay(float Delay);
+	void RestartThisLevel();
 
     UFUNCTION(BlueprintCallable)
 	void ResumePlay();
@@ -73,6 +74,9 @@ public:
 
     UFUNCTION()
     void NotifyPlayerAgreeWithGameStop(int32 HostSelect, int32 ClientSelect);
+    UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+    void PlayerTravel(FName DestinationLevel);
+    void PlayerTravel_Implementation(FName DestinationLevel);
     void ShowResumeCountUI();
 
     FName DestinationLevelName;

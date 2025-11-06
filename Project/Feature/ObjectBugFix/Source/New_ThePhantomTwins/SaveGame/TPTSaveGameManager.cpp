@@ -27,9 +27,10 @@
 
 UTPTSaveGameManager::UTPTSaveGameManager()
 {
-    GameSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>("MainSlot",  0, true);
+    LevelSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTLevelSaveGame>("MainSlot",  0, true);
     PlayerSaveGames.Add(UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTLocalPlayerSaveGame>("MainSlot", 0, true));
     PlayerSaveGames.Add(UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTLocalPlayerSaveGame>("MainSlot",  0, true));
+
     static ConstructorHelpers::FClassFinder<UGameplayEffect> EffectClass(TEXT("/Game/ThePhantomTwins/Characters/Blueprints/GE/SetPlayerAttribute/BPGE_CoreEnergySet.BPGE_CoreEnergySet_C"));
     if (EffectClass.Succeeded())
     {
@@ -38,7 +39,6 @@ UTPTSaveGameManager::UTPTSaveGameManager()
 
     bActorsInitialized = false;
     bPlayerInitialized = false;
-    SaveUpdate();
 }
 
 void UTPTSaveGameManager::ReInitialize()
@@ -46,6 +46,7 @@ void UTPTSaveGameManager::ReInitialize()
     bActorsInitialized = false;
     bPlayerInitialized = false;
 
+    UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLevelSaveGame>(LevelSaveGame);
 	SetRestartPoint(nullptr);
 
     DoorActorsMap.Reset();
@@ -53,12 +54,18 @@ void UTPTSaveGameManager::ReInitialize()
     HideObjectActorsMap.Reset();
     ItemBoxActorsMap.Reset();
     AIActorsMap.Reset();
+
+    SaveUpdate();
 }
 
 void UTPTSaveGameManager::Deinitialize()
 {
+    UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLevelSaveGame>(LevelSaveGame);
+    UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLocalPlayerSaveGame>(PlayerSaveGames[0]);
+    UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLocalPlayerSaveGame>(PlayerSaveGames[1]);
+
     PlayerSaveGames.Reset();
-    GameSaveGame = nullptr;
+    LevelSaveGame = nullptr;
 
     DoorActorsMap.Reset();
     ItemActorsMap.Reset();
@@ -71,19 +78,19 @@ void UTPTSaveGameManager::Deinitialize()
 
 void UTPTSaveGameManager::SaveUpdate()
 {
-    UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTSaveGame>(GameSaveGame);
+    UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTLevelSaveGame>(LevelSaveGame);
     UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTLocalPlayerSaveGame>(PlayerSaveGames[0]);
     UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTLocalPlayerSaveGame>(PlayerSaveGames[1]);
 }
 
 void UTPTSaveGameManager::InitializeSaveTargets()
 {
-    if (!GameSaveGame)
+    if (!LevelSaveGame)
     {
         return;
     }
 
-	GameSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>("MainSlot", 0, false);
+    LevelSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTLevelSaveGame>("MainSlot", 0, false);
 
     TArray<AActor*> TempActors;
     // 문 액터
@@ -95,19 +102,19 @@ void UTPTSaveGameManager::InitializeSaveTargets()
             ADoor* Door = Cast<ADoor>(Actor);
             FName DoorID = Door->GetFName();
             TPT_LOG(SaveGameLog, Warning, TEXT("DataFragment : %s"), *DoorID.ToString())
-            if (DoorActorsMap.Contains(DoorID))
-            {
-                DoorActorsMap[DoorID] = Door;
-            }
- 
+                if (DoorActorsMap.Contains(DoorID))
+                {
+                    DoorActorsMap[DoorID] = Door;
+                }
+
             if (!bActorsInitialized)
             {
                 DoorActorsMap.Add(DoorID, Door);
-            	FDoorState DoorState;
-				DoorState.bIsOpen = Door->bIsActived;
-				DoorState.bIsUnLocked = Door->bIsAllTriggered;
-				DoorState.bIsExist = true;
-                GameSaveGame->DoorStates.FindOrAdd(DoorID, DoorState);
+                FDoorState DoorState;
+                DoorState.bIsOpen = Door->bIsActived;
+                DoorState.bIsUnLocked = Door->bIsAllTriggered;
+                DoorState.bIsExist = true;
+                LevelSaveGame->DoorStates.FindOrAdd(DoorID, DoorState);
             }
         }
     }
@@ -119,7 +126,7 @@ void UTPTSaveGameManager::InitializeSaveTargets()
     {
         if (Actor)
         {
-			AItemObject* Item = Cast<AItemObject>(Actor);
+            AItemObject* Item = Cast<AItemObject>(Actor);
             FName ItemID = Item->GetFName();
 
             if (ItemActorsMap.Contains(ItemID))
@@ -130,7 +137,7 @@ void UTPTSaveGameManager::InitializeSaveTargets()
             if (!bActorsInitialized)
             {
                 ItemActorsMap.Add(ItemID, Item);
-                GameSaveGame->ItemStates.FindOrAdd(ItemID, true);
+                LevelSaveGame->ItemStates.FindOrAdd(ItemID, true);
             }
         }
     }
@@ -151,10 +158,10 @@ void UTPTSaveGameManager::InitializeSaveTargets()
             }
 
             if (!bActorsInitialized)
-	        {
+            {
                 HideObjectActorsMap.Add(HideObjectID, HideObject);
-		        GameSaveGame->HideObjectStates.FindOrAdd(HideObjectID, true);
-	        }
+                LevelSaveGame->HideObjectStates.FindOrAdd(HideObjectID, true);
+            }
         }
     }
 
@@ -174,10 +181,10 @@ void UTPTSaveGameManager::InitializeSaveTargets()
             }
 
             if (!bActorsInitialized)
-	        {
+            {
                 ItemBoxActorsMap.Add(BoxID, Box);
-		        GameSaveGame->ItemBoxStates.FindOrAdd(BoxID, Box->bIsActived);
-	        }
+                LevelSaveGame->ItemBoxStates.FindOrAdd(BoxID, Box->bIsActived);
+            }
         }
     }
 
@@ -199,7 +206,7 @@ void UTPTSaveGameManager::InitializeSaveTargets()
             if (!bActorsInitialized)
             {
                 AIActorsMap.Add(AIID, AI);
-	            GameSaveGame->AIStates.FindOrAdd(AIID, true);
+                LevelSaveGame->AIStates.FindOrAdd(AIID, true);
             }
         }
     }
@@ -217,14 +224,14 @@ void UTPTSaveGameManager::InitializeSavePlayer()
 
     PlayerSaveGames[0]->InventorySlots.Init(FItemSlot(), 5);
     PlayerSaveGames[1]->InventorySlots.Init(FItemSlot(), 5);
-     
+
     SetRestartPoint(nullptr);
     bPlayerInitialized = true;
 }
 
 void UTPTSaveGameManager::TempSaveByID(const FName ObjectID, const bool bIsExist)
 {
-    if (!GameSaveGame)
+    if (!LevelSaveGame)
     {
         return;
     }
@@ -240,7 +247,7 @@ void UTPTSaveGameManager::TempSaveByID(const FName ObjectID, const bool bIsExist
             DoorState.bIsUnLocked = Door->bIsAllTriggered;
             DoorState.bIsOpen = Door->bIsActived;
             DoorState.bIsExist = bIsExist;
-            GameSaveGame->DoorStates[ObjectID] = DoorState;
+            LevelSaveGame->DoorStates[ObjectID] = DoorState;
             return;
         }
     }
@@ -253,7 +260,7 @@ void UTPTSaveGameManager::TempSaveByID(const FName ObjectID, const bool bIsExist
 
         if (Item)
         {
-            GameSaveGame->ItemStates[ObjectID] = bIsExist;
+            LevelSaveGame->ItemStates[ObjectID] = bIsExist;
             return;
         }
     }
@@ -265,7 +272,7 @@ void UTPTSaveGameManager::TempSaveByID(const FName ObjectID, const bool bIsExist
         AInteractHideObject* HideObj = Cast<AInteractHideObject>(*HideActor);
         if (HideObj)
         {
-            GameSaveGame->HideObjectStates[ObjectID] = bIsExist;
+            LevelSaveGame->HideObjectStates[ObjectID] = bIsExist;
             return;
         }
     }
@@ -278,7 +285,7 @@ void UTPTSaveGameManager::TempSaveByID(const FName ObjectID, const bool bIsExist
         if (Box)
         {
             bool bIsOpened = Box->bIsActived;
-            GameSaveGame->ItemBoxStates[ObjectID] = bIsOpened;
+            LevelSaveGame->ItemBoxStates[ObjectID] = bIsOpened;
 
             return;
         }
@@ -291,7 +298,7 @@ void UTPTSaveGameManager::TempSaveByID(const FName ObjectID, const bool bIsExist
         AAIBaseCharacter* AI = Cast<AAIBaseCharacter>(*AIActor);
         if (AI)
         {
-            GameSaveGame->AIStates[ObjectID] = bIsExist;
+            LevelSaveGame->AIStates[ObjectID] = bIsExist;
             return;
         }
     }
@@ -301,50 +308,50 @@ void UTPTSaveGameManager::TempSavePlayer(const APlayerController* PC)
 {
     APlayerCharacter* Player = Cast<APlayerCharacter>(PC->GetPawn());
     const UPlayerAttributeSet* AttributeSet = Player->GetAbilitySystemComponent()->GetSet<UPlayerAttributeSet>();
-	int32 CoreEnergy = AttributeSet->GetCoreEnergy();
+    int32 CoreEnergy = AttributeSet->GetCoreEnergy();
     APS_Player* PlayerPS = Cast<APS_Player>(Player->GetPlayerState());
     TArray<FItemSlot> InventorySlots = PlayerPS->InventoryComp->InventorySlots;
 
     if (PC->IsLocalController())
     {
-	    PlayerSaveGames[0]->CoreEnergy = CoreEnergy;
-    	PlayerSaveGames[0]->InventorySlots = InventorySlots;
+        PlayerSaveGames[0]->CoreEnergy = CoreEnergy;
+        PlayerSaveGames[0]->InventorySlots = InventorySlots;
     }
-	else
-	{
-		PlayerSaveGames[1]->CoreEnergy = CoreEnergy;
-		PlayerSaveGames[1]->InventorySlots = InventorySlots;
-	}
+    else
+    {
+        PlayerSaveGames[1]->CoreEnergy = CoreEnergy;
+        PlayerSaveGames[1]->InventorySlots = InventorySlots;
+    }
 }
 
 void UTPTSaveGameManager::SetRestartPoint(const ADataFragment* DataFragment)
 {
     if (!DataFragment)
     {
-		GameSaveGame->HostPlayerStart = FTransform::Identity;
-		GameSaveGame->ClientPlayerStart = FTransform::Identity;
-    	return;
+        LevelSaveGame->HostPlayerStart = FTransform::Identity;
+        LevelSaveGame->ClientPlayerStart = FTransform::Identity;
+        return;
     }
 
-    GameSaveGame->HostPlayerStart = DataFragment->HostPlayerLocation->GetComponentTransform();
-    GameSaveGame->ClientPlayerStart = DataFragment->ClientPlayerLocation->GetComponentTransform();
+    LevelSaveGame->HostPlayerStart = DataFragment->HostPlayerLocation->GetComponentTransform();
+    LevelSaveGame->ClientPlayerStart = DataFragment->ClientPlayerLocation->GetComponentTransform();
 }
 
 FTransform UTPTSaveGameManager::GetRestartPoint(const bool bIsHost)
 {
     if (bIsHost)
     {
-        return GameSaveGame->HostPlayerStart;
+        return LevelSaveGame->HostPlayerStart;
     }
-    return GameSaveGame->ClientPlayerStart;
+    return LevelSaveGame->ClientPlayerStart;
 }
 
 void UTPTSaveGameManager::ApplyActorSaveGame()
 {
-    GameSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>("MainSlot", 0, false);
+    LevelSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTLevelSaveGame>("MainSlot", 0, false);
 
     // 문 상태 적용
-    for (const auto& DoorPair : GameSaveGame->DoorStates)
+    for (const auto& DoorPair : LevelSaveGame->DoorStates)
     {
         FName DoorID = DoorPair.Key;
         FDoorState DoorState = DoorPair.Value;
@@ -358,7 +365,7 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
             }
             if (!DoorPair.Value.bIsExist)
             {
-				Door->Destroy();
+                Door->Destroy();
             }
             Door->bIsAllTriggered = DoorState.bIsUnLocked;
             Door->bIsActived = DoorState.bIsOpen;
@@ -368,7 +375,7 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
     }
 
     // 아이템 상태 적용
-    for (const auto& ItemPair : GameSaveGame->ItemStates)
+    for (const auto& ItemPair : LevelSaveGame->ItemStates)
     {
         FName ItemID = ItemPair.Key;
         bool bIsExist = ItemPair.Value;
@@ -388,7 +395,7 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
     }
 
     // 숨는 오브젝트 상태 적용
-    for (const auto& HidePair : GameSaveGame->HideObjectStates)
+    for (const auto& HidePair : LevelSaveGame->HideObjectStates)
     {
         FName HideID = HidePair.Key;
         bool bIsExist = HidePair.Value;
@@ -408,7 +415,7 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
     }
 
     // 아이템 박스 상태 적용
-    for (const auto& BoxPair : GameSaveGame->ItemBoxStates)
+    for (const auto& BoxPair : LevelSaveGame->ItemBoxStates)
     {
         FName BoxID = BoxPair.Key;
         bool bIsOpened = BoxPair.Value;
@@ -429,7 +436,7 @@ void UTPTSaveGameManager::ApplyActorSaveGame()
     }
 
     // AI 상태 적용
-    for (const auto& AIPair : GameSaveGame->AIStates)
+    for (const auto& AIPair : LevelSaveGame->AIStates)
     {
         FName AIID = AIPair.Key;
         bool bIsExist = AIPair.Value;

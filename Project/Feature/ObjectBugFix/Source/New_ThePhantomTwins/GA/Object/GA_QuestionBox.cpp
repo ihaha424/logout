@@ -3,14 +3,17 @@
 #include "Player/PS_Player.h"
 #include "Player/PC_Player.h"
 #include "Objects/InventoryComponent.h"
-#include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
-#include "Kismet/KismetSystemLibrary.h"
+#include "Tags/TPTGameplayTags.h"
 
 UGA_QuestionBox::UGA_QuestionBox()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+
+	FGameplayTagContainer DefaultTags;
+	DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_UseRandomBox);
+	SetAssetTags(DefaultTags);
 }
 
 void UGA_QuestionBox::ActivateAbility(
@@ -43,6 +46,7 @@ void UGA_QuestionBox::ActivateAbility(
 
 	if (PC && Selected)
 	{
+		//TPT_LOG(ObjectLog, Log, TEXT("Question Box Selected Item: %s, Quantity: %d"), *Selected->ItemName.ToString(), Selected->GenerateCount);
 		SetQuestionBoxWidget(Selected);
 		AddItemToInventory(Selected->ItemType, Selected->GenerateCount);
 	}

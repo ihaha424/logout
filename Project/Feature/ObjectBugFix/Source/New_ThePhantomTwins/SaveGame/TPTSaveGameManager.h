@@ -7,6 +7,7 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "TPTSaveGameManager.generated.h"
 
+class UTPTLevelSaveGame;
 class ADataFragment;
 class UGameplayEffect;
 struct FDoorState;
@@ -19,8 +20,9 @@ class NEW_THEPHANTOMTWINS_API UTPTSaveGameManager : public UGameInstanceSubsyste
 	GENERATED_BODY()
 public:
     UTPTSaveGameManager();
-
+    UFUNCTION(BlueprintCallable)
     void ReInitialize();
+
     virtual void Deinitialize() override;
 
     UFUNCTION()
@@ -59,7 +61,8 @@ private:
     UPROPERTY()
     TArray<UTPTLocalPlayerSaveGame*> PlayerSaveGames;
     UPROPERTY()
-    UTPTSaveGame* GameSaveGame;
+    UTPTLevelSaveGame* LevelSaveGame;
+
     UPROPERTY()
     TMap<FName, AActor*> DoorActorsMap;
     UPROPERTY()

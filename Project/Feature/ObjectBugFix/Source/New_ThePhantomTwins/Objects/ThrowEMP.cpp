@@ -277,25 +277,7 @@ void AThrowEMP::DisableGlitchTrap()
         AGlitchTrap* GlitchTrap = Cast<AGlitchTrap>(OverlapActor);
         if (GlitchTrap && GlitchTrap->Tags.Contains(FName("GlitchTrap")))
         {
-            GlitchTrap->bEnableEffectAndCue = false;
             GlitchTrap->DeactivateMentalDamage(GlitchTrapDisableDuration);
-
-            // 일정 시간 뒤 다시 true로 복원
-            FTimerHandle TimerHandle;
-            GetWorld()->GetTimerManager().SetTimer(
-                TimerHandle,
-                [GlitchTrap]()
-                {
-                    if (GlitchTrap)
-                    {
-                        GlitchTrap->bEnableEffectAndCue = true;
-                        GlitchTrap->ActivateMentalDamage();
-                        //TPT_LOG(GALog, Log, TEXT("GlitchTrap re-enabled: %s"), *GlitchTrap->GetName());
-                    }
-                },
-                GlitchTrapDisableDuration,
-                false
-            );
         }
     }
 }

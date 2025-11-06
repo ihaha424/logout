@@ -68,6 +68,18 @@ void AEndingConsole::BeginPlay()
 	}
 }
 
+void AEndingConsole::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(Wait5SecTimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(RemoveWidgetTimerHandle);
+		RemoveWidgetDelegate = nullptr;
+	}
+
+	Super::EndPlay(EndPlayReason);
+}
+
 void AEndingConsole::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -75,6 +87,7 @@ void AEndingConsole::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(AEndingConsole, LevelDataFragments);
 	DOREPLIFETIME(AEndingConsole, bIsCollectionCompleted);
 	DOREPLIFETIME(AEndingConsole, AllowedInteractor);
+	DOREPLIFETIME(AEndingConsole, FirstInteractPC);
 }
 
 bool AEndingConsole::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
@@ -102,7 +115,7 @@ bool AEndingConsole::CanInteract_Implementation(const APawn* Interactor, bool bI
 
 void AEndingConsole::OnInteractServer_Implementation(const APawn* Interactor)
 {
-	UKismetSystemLibrary::PrintString(this, TEXT("AConsoleObject :: OnInteractServer"));
+	//UKismetSystemLibrary::PrintString(this, TEXT("AConsoleObject :: OnInteractServer"));
 
 	UpdateCollectionCompletionState();
 
@@ -135,14 +148,21 @@ void AEndingConsole::OnInteractServer_Implementation(const APawn* Interactor)
 		// 위젯 숨기고 타이머 정리
 		S2A_ShowWaitingPlayerWidget(false);
 		GetWorld()->GetTimerManager().ClearTimer(Wait5SecTimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(RemoveWidgetTimerHandle);
+		RemoveWidgetDelegate = nullptr;
+		S2A_HiddenWaitWidgetsFromAllPlayers();
 
 		PlayTrueEnding();
+		FirstInteractPC = nullptr;
 	}
 	else
 	{
 		// 아무도 상호작용하지 않았다면(첫 상호작용자라면)
 		// 서버에서 5초 후 엔딩 체크 (PlayerState 기반으로 안전하게 처리)
+		FirstInteractPC = Cast<APC_Player>(InteractorPC);
 		GetWorld()->GetTimerManager().ClearTimer(Wait5SecTimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(RemoveWidgetTimerHandle);
+		RemoveWidgetDelegate = nullptr;
 
 		FTimerDelegate TimerDel;
 		// PlayerState (PS)를 저장하여 타이머 콜백에서 사용 — Pawn이 사라져도 PlayerState는 보통 유지됨
@@ -160,22 +180,22 @@ void AEndingConsole::OnInteractServer_Implementation(const APawn* Interactor)
 
 void AEndingConsole::OnInteractClient_Implementation(const APawn* Interactor)
 {
-	UKismetSystemLibrary::PrintString(this, TEXT("AConsoleObject :: OnInteractClient"));
+	//UKismetSystemLibrary::PrintString(this, TEXT("AConsoleObject :: OnInteractClient"));
 
 	SetWidgetVisible(false);
 
 	if (!bIsCollectionCompleted) return;
 
-	if (APC_Player* PC_Player = Cast<APC_Player>(Interactor->GetController()))
-	{
-		// 팝업 위젯 (5초 뒤 자동 제거)
-		if (!bIsActived)
-		{
-			ShowAndAutoRemoveWaitWidgets(PC_Player);
-		}
+	APC_Player* PC_Player = Cast<APC_Player>(Interactor->GetController());
+	NULLCHECK_RETURN_LOG(PC_Player, ObjectLog, Error, );
 
-		bIsActived = true;
+	// 팝업 위젯 (5초 뒤 자동 제거)
+	if (!bIsActived)
+	{
+		ShowAndAutoRemoveWaitWidgets(PC_Player);
 	}
+
+	bIsActived = true;
 
 }
 
@@ -239,7 +259,7 @@ void AEndingConsole::S2A_ShowWaitingPlayerWidget_Implementation(bool bVisible)
 
 void AEndingConsole::CheckEndingConditionByPlayerState(APS_Player* InteractorPlayerState)
 {
-	UKismetSystemLibrary::PrintString(this, TEXT("CheckEndingConditionByPlayerState called (server)"));
+	//UKismetSystemLibrary::PrintString(this, TEXT("CheckEndingConditionByPlayerState called (server)"));
 
 	// 서버에서만 실행되어야 함
 	if (!HasAuthority()) return;
@@ -252,6 +272,9 @@ void AEndingConsole::CheckEndingConditionByPlayerState(APS_Player* InteractorPla
 
 	if (NumReady >= CheckLevelPlayers())
 	{
+		// 모두가 준비된 상태라면 위젯 숨기기
+		S2A_HiddenWaitWidgetsFromAllPlayers();
+
 		// 둘 이상이면 진엔딩
 		PlayTrueEnding();
 	}
@@ -280,6 +303,8 @@ void AEndingConsole::CheckEndingConditionByPlayerState(APS_Player* InteractorPla
 
 	// 타이머는 이미 콜백이므로 필요시 정리 (안전장치)
 	GetWorld()->GetTimerManager().ClearTimer(Wait5SecTimerHandle);
+	GetWorld()->GetTimerManager().ClearTimer(RemoveWidgetTimerHandle);
+	RemoveWidgetDelegate = nullptr;
 }
 
 void AEndingConsole::S2A_InvokePlaySoloEnding_Implementation(APawn* Interactor)
@@ -313,6 +338,7 @@ void AEndingConsole::S2A_ResetConsoleState_Implementation()
 
 	// bIsActived를 false로 리셋
 	bIsActived = false;
+	FirstInteractPC = nullptr;
 
 	// 서버에서만 태그 제거 로직 실행
 	if (HasAuthority())
@@ -331,18 +357,45 @@ void AEndingConsole::ShowAndAutoRemoveWaitWidgets(class APC_Player* PC_Player)
 {
 	if (!PC_Player) return;
 
+	if (!PC_Player->GetWidget(TEXT("CloseWait5Sec"))) return;
+	//if (!PC_Player->GetWidget(TEXT("FarWait5Sec"))) return;
+
+
+	// 게임 안의 플레이어가 2명이상인지 체크.
+	// 1명이면 return
+
+	// 방법 A: GameState의 PlayerArray 기준으로 카운트
+	AGameStateBase* GSBase = GetWorld()->GetGameState();
+	int32 NumPlayers = 0;
+	if (GSBase)
+	{
+		// PlayerArray에 들어있는 플레이어수 기준으로 계산
+		NumPlayers = GSBase->PlayerArray.Num();
+	}
+	else
+	{
+		UE_LOG(ObjectLog, Warning, TEXT("ShowAndAutoRemoveWaitWidgets: GameState is null; falling back to PlayerController count"));
+		// 방법 B: PlayerController 수로 카운트
+		NumPlayers = GetWorld()->GetNumPlayerControllers();
+	}
+
+	if (NumPlayers < 2)
+	{
+		UE_LOG(ObjectLog, Log, TEXT("ShowAndAutoRemoveWaitWidgets: Not enough players (%d) - skipping widget"), NumPlayers);
+		return;
+	}
+
 	// 위젯 표시
 	PC_Player->SetWidget(TEXT("CloseWait5Sec"), true, EMessageTargetType::LocalClient);
 	PC_Player->SetWidget(TEXT("FarWait5Sec"), true, EMessageTargetType::AllExceptSelf);
 
 	// 5초 뒤 위젯 제거 (타이머 등록)
-	FTimerHandle RemoveWidgetTimerHandle;
-	FTimerDelegate RemoveWidgetDelegate;
-
 	RemoveWidgetDelegate.BindLambda([PC_Player]()
 		{
 			if (PC_Player)
 			{
+				if (!PC_Player->GetWidget(TEXT("CloseWait5Sec"))) return;
+
 				PC_Player->SetWidget(TEXT("CloseWait5Sec"), false, EMessageTargetType::LocalClient);
 				PC_Player->SetWidget(TEXT("FarWait5Sec"), false, EMessageTargetType::AllExceptSelf);
 			}
@@ -438,4 +491,13 @@ void AEndingConsole::OnRep_AllowedInteractor()
 void AEndingConsole::S2A_NotifySoloPortalOfInteractor_Implementation(APawn* Interactor)
 {
 	NotifySoloPortalOfInteractor(Interactor);
+}
+
+void AEndingConsole::S2A_HiddenWaitWidgetsFromAllPlayers_Implementation()
+{
+	if (!FirstInteractPC) return;
+
+	// CloseWait5Sec이 존재하면 안보이게 함
+	FirstInteractPC->SetWidget(TEXT("CloseWait5Sec"), false, EMessageTargetType::Multicast);
+	FirstInteractPC->SetWidget(TEXT("FarWait5Sec"), false, EMessageTargetType::Multicast);
 }

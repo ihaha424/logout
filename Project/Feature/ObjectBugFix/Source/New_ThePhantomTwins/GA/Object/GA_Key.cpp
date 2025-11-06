@@ -29,7 +29,7 @@ void UGA_Key::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 
 	// LeverActor의 태그가 KeyLever 라면 LeverActor->bIsActived = true; 를 해라.
 	ADoor* KeyInteractActor = Cast<ADoor>(TargetActor);
-	if (KeyInteractActor && KeyInteractActor->ActorHasTag(TEXT("KeyInteract")))
+	if (KeyInteractActor && !KeyInteractActor->bIsAllTriggered && KeyInteractActor->ActorHasTag(TEXT("KeyInteract")))
 	{
 		KeyInteractActor->bKeyUsed = true;
 		bUseKey = true;
@@ -50,8 +50,8 @@ void UGA_Key::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 
 void UGA_Key::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 	bUseKey = false;
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UGA_Key::OnMontageComplete()

@@ -17,6 +17,8 @@ class NEW_THEPHANTOMTWINS_API AGlitchTrap : public AOverlapObject
 public:
 	AGlitchTrap();
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;;
+
 public:
 	// Activate 로직을 블루프린트에서 구현
 	void ActivateMentalDamage();
@@ -27,4 +29,6 @@ public:
 	// 태그 변수 추가
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AGlitchTrap")
     FName ObjectTag;
+
+	FTimerHandle TimerHandle;
 };

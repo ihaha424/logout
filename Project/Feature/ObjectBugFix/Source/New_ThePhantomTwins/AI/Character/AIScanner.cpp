@@ -119,10 +119,12 @@ void AAIScanner::SetBerserkerMode(const FGameplayTag Tag, int32 TagCount)
 
     if (TagCount > 0)
     {
+        BerserkerModeEffect(true);
         AdditionalBerserkerSpeed = BerserkerSpeed;
     }
     else
     {
+        BerserkerModeEffect(false);
         AdditionalBerserkerSpeed = 0.f;
     }
     GetCharacterMovement()->MaxWalkSpeed = CurSpeed + AdditionalBerserkerSpeed;

@@ -80,6 +80,7 @@ void ADoor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimePro
 bool ADoor::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
 	if (!Interactor->IsLocallyControlled()) return bIsDetected;
+	// if (!Interactor->IsLocallyControlled()) return false;
 	// 거리가 멀어져 감지되지 않은 경우
 	if (!bIsDetected)
 	{
@@ -261,7 +262,8 @@ void ADoor::OnRep_bKeyUsed()
 	}
 	else // 트리거들이 활성화된 경우 → NearWidget
 	{
-		InteractWidgetComp->SetVisibility(true);
+		if(LockWidgetComp->IsWidgetVisible())
+			InteractWidgetComp->SetVisibility(true);
 		LockWidgetComp->SetVisibility(false);
 		OnDoorLockStateChanged();
 	}

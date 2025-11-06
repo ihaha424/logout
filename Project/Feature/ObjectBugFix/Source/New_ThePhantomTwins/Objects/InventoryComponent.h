@@ -100,9 +100,13 @@ protected:
 private:
     int32 selectedNum = -1;
 
+    UPROPERTY()
     FTimerHandle ChoiceItemTimerHandle;
+    UPROPERTY()
     FTimerHandle VisibleInventoryTimerHandle;
+    UPROPERTY()
     FTimerHandle QuestionBoxTimerHandle;
+    UPROPERTY()
     FTimerHandle CanUseKeyTimerHandle;
 
     // Server RPCs

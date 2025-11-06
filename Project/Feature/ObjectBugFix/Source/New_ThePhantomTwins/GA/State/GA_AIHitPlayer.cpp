@@ -40,7 +40,7 @@ void UGA_AIHitPlayer::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 			ActiveAudioComponent = UGameplayStatics::SpawnSoundAttached(Sound, Character->GetRootComponent());
 		}
 
-		Character->SetFadeVFX(EVignetteType::HitVignette, 0);
+		Character->SetFadeVFX(EVignetteType::HitVignette, 0, 0.5f, true);
 	}
 	FGameplayEffectSpecHandle SprintSpecHandle = MakeOutgoingGameplayEffectSpec(HitDurationEffect, 1.0f);
 	if (SprintSpecHandle.IsValid())
@@ -80,19 +80,6 @@ void UGA_AIHitPlayer::OnMontageComplete()
 
 	ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit);
 	ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit);
-	
-	VignetteEffectOff();
 
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-}
-
-void UGA_AIHitPlayer::VignetteEffectOff()
-{
-	APlayerCharacter* Character = Cast<APlayerCharacter>(GetActorInfo().AvatarActor);
-	NULLCHECK_RETURN_LOG(Character, GALog, Error, );
-
-	if (Character->IsLocallyControlled())
-	{
-		Character->SetFadeVFX(EVignetteType::HitVignette, 1);
-	}
 }

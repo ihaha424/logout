@@ -58,19 +58,20 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 void UInventoryComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-    GetWorld()->GetTimerManager().ClearTimer(VisibleInventoryTimerHandle);
-    GetWorld()->GetTimerManager().ClearTimer(VisibleInventoryTimerHandle);
-    GetWorld()->GetTimerManager().ClearTimer(QuestionBoxTimerHandle);
-    GetWorld()->GetTimerManager().ClearTimer(CanUseKeyTimerHandle);
-
+    if (IsValid(GetWorld()))
+    {
+	    GetWorld()->GetTimerManager().ClearTimer(ChoiceItemTimerHandle);
+    	GetWorld()->GetTimerManager().ClearTimer(VisibleInventoryTimerHandle);
+    	GetWorld()->GetTimerManager().ClearTimer(QuestionBoxTimerHandle);
+    	GetWorld()->GetTimerManager().ClearTimer(CanUseKeyTimerHandle);
+    }
 	Super::EndPlay(EndPlayReason);
 }
-
 // Public API
 
 void UInventoryComponent::AddItem(EItemType eItemType)
 {
-    VisibleInventory();
+    //VisibleInventory();
 
     if (GetOwnerRole() != ROLE_Authority)
     {
@@ -97,7 +98,7 @@ EItemType UInventoryComponent::UseItem(int32 SlotIndex)
         return EItemType::None;
     }
 
-    VisibleInventory();
+    //VisibleInventory();
 
     // --- HUD에서 outline/tooltips 를 즉시 제거 (클라이언트 쪽 UI)
     // SlotIndex는 1-based 이므로 0-based 인덱스로 변환
@@ -166,7 +167,7 @@ EItemType UInventoryComponent::ChoiceItem(int32 SlotIndex)
                     {
                         if (PlayerHUDWidget)
                         {
-                            PlayerHUDWidget->SetOutline(Index, false);
+                            //PlayerHUDWidget->SetOutline(Index, false);
                             PlayerHUDWidget->SetToolTips(false, InventorySlots[Index].ItemType);
                         }
                     }),
@@ -188,7 +189,7 @@ EItemType UInventoryComponent::ChoiceItem(int32 SlotIndex)
     if (selectedNum == -1 || selectedNum != SlotIndex)
     {
         ClearSelection(selectedNum);
-        VisibleInventory();
+        //VisibleInventory();
         selectedNum = SlotIndex;
         HighlightSlot(SlotIndex, true);
     }
@@ -213,7 +214,7 @@ bool UInventoryComponent::SetPlayerHUDWidget(UPlayerHUDWidget* HUDWidget)
 
 void UInventoryComponent::OnRep_InventorySlots()
 {
-    VisibleInventory();
+    //VisibleInventory();
     RefreshUIFromInventory();
 }
 
@@ -414,9 +415,14 @@ void UInventoryComponent::SetTextQuestionBoxWidget(const FText& Text)
 
 void UInventoryComponent::ShowQuestionBoxWidget(bool bVisible)
 {
-    if (!QuestionBoxTextWidget) return;
-
+    if (!QuestionBoxTextWidget)
+    {
+		//TPT_LOG(ObjectLog, Warning, TEXT("QuestionBoxTextWidget is null!"));
+	    return;
+    }
+	//TPT_LOG(ObjectLog, Log, TEXT("ShowQuestionBoxWidget : %s"), bVisible ? TEXT("Visible") : TEXT("Hidden"));
     QuestionBoxTextWidget->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+    QuestionBoxTextWidget->PlayAnimation(QuestionBoxTextWidget->tooltip, /*StartAtTime*/0.f,/*NumLoops*/1, /*PlayMode*/EUMGSequencePlayMode::Forward,/*PlaybackSpeed*/1.f, /*bRestoreState*/false);
 }
 
 void UInventoryComponent::ShowQuestionBoxResult(const FText& Text, float Duration)

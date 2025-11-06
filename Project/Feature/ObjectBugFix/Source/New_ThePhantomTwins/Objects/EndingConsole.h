@@ -19,6 +19,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -97,6 +98,8 @@ protected:
 
 	// 상호작용 후, 5초 기다리는 타이머
 	FTimerHandle Wait5SecTimerHandle;
+	FTimerHandle RemoveWidgetTimerHandle;
+	FTimerDelegate RemoveWidgetDelegate;
 
 protected:
     // 서버가 허용한 '상호작용 허용자' (복제하여 클라이언트에서 로컬 판별에 사용)
@@ -113,4 +116,11 @@ protected:
 	// 솔로포탈 생성되어야하는 플레이어가 누군지 SoloPortal에게 알림
 	UFUNCTION(BlueprintImplementableEvent, Category = "ConsoleObject")
 	void NotifySoloPortalOfInteractor(APawn* Interactor);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_HiddenWaitWidgetsFromAllPlayers();
+	void S2A_HiddenWaitWidgetsFromAllPlayers_Implementation();
+
+	UPROPERTY(Replicated)
+	TObjectPtr<class APC_Player> FirstInteractPC = nullptr;
 };

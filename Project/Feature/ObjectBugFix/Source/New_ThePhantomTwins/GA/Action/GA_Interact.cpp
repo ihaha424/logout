@@ -70,6 +70,7 @@ void UGA_Interact::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	{
 		//TPT_LOG(GALog, Error, TEXT("TEST__ ImplementsInterface"));
 		float Time = IHolding::Execute_GetTime(TargetActor);
+
 		IHolding::Execute_SetHoldingGaugeUI(TargetActor, Character, true);
 
 		if (SoundCue && (!ActiveAudioComponent || ActiveAudioComponent->IsPlaying())) // SoundCue는 클래스에 UPROPERTY로 선언되어 있어야 함

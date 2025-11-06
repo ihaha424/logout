@@ -113,6 +113,8 @@ public:
 	float RecoveryPercent = 0.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recovery")
 	float RecoveryTime = 5.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Distance = 150.f;
 
 	// 스킬 관련 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill")
@@ -136,16 +138,9 @@ public:
 	TObjectPtr<UMaterialInterface> Confused3rdVignette;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
 	TObjectPtr<UMaterialInterface> MentalAttackVignette;
-	UPROPERTY(BlueprintReadWrite)
-	FWeightedBlendable HitBlendable;
-	UPROPERTY(BlueprintReadWrite)
-	FWeightedBlendable DownedBlendable;
-	UPROPERTY(BlueprintReadWrite)
-	FWeightedBlendable Confused3rdBlendable;
-	UPROPERTY(BlueprintReadWrite)
-	FWeightedBlendable TrapBlendable;
-	UPROPERTY(BlueprintReadWrite)
-	FWeightedBlendable MentalAttackBlendable;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PostProcess")
+	TArray<TObjectPtr<UMaterialInstanceDynamic>> MIDList;
 
 	UFUNCTION(BlueprintCallable)
 	void SettingPostProcessComponentBlendable(EVignetteType Type, float Weight);
@@ -166,7 +161,7 @@ public:
 	void OnRep_RecoveryPercent();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SetFadeVFX(EVignetteType Type, int32 StartValue);
+	void SetFadeVFX(EVignetteType Type, int32 StartValue, float DuringTime = 1.f, bool PingPong = false);
 
 	UFUNCTION()
 	void PlayerHUDStaminaSet(int32 value);

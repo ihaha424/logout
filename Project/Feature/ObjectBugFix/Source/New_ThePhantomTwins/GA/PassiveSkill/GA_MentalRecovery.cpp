@@ -14,6 +14,10 @@ UGA_MentalRecovery::UGA_MentalRecovery()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor; 
     NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+
+    FGameplayTagContainer DefaultTags;
+    DefaultTags.AddTag(FTPTGameplayTags::Get().TPTGameplay_Character_Skill_MentalRecovery);
+    SetAssetTags(DefaultTags);
 }
 
 void UGA_MentalRecovery::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -50,6 +54,8 @@ void UGA_MentalRecovery::HealTick()
     NULLCHECK_RETURN_LOG(AvatarActor, GALog, Error, );
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), GetAvatarActorFromActorInfo()->GetClass(), Players);
 
+	TPT_LOG(GALog, Log, TEXT("UGA_MentalRecovery::HealTick - Players Num: %d"), Players.Num());
+
     if (Players.Num() == 2)
     {
         APlayerCharacter* SelfActor = Cast<APlayerCharacter>(GetAvatarActorFromActorInfo());
@@ -68,21 +74,16 @@ void UGA_MentalRecovery::HealTick()
         const auto* AttrSet = ASC->GetSet<UPlayerAttributeSet>();
         NULLCHECK_RETURN_LOG(AttrSet, GALog, Error, );
 
-        float CurrentMental = AttrSet->GetMentalPoint();
-        float MaxMental = AttrSet->GetMaxMentalPoint();
+        //float CurrentMental = AttrSet->GetMentalPoint();
+        //float MaxMental = AttrSet->GetMaxMentalPoint();
 
-        // 멘탈이 가득 찼으면 어빌리티 종료 전 타이머 클리어
-        if (CurrentMental >= MaxMental)
-        {
-            GetWorld()->GetTimerManager().ClearTimer(HealTimerHandle);
-            EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-            return;
-        }
 
         // 둘다 쫓기는 상태가 아니면 회복
         if (!ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIChasing)
         && !OtherASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIChasing))
         {
+
+            TPT_LOG(GALog, Log, TEXT("UGA_MentalRecovery:: HAS NOT TPTGameplay_Character_State_AIChasing"));
             float HealAmount = 0.f;
             if (Dist <= 300.f)
                 HealAmount = 5.f;

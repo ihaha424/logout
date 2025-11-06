@@ -1,5 +1,4 @@
-﻿
-#include "InteractHideObject.h"
+﻿#include "InteractHideObject.h"
 #include "Net/UnrealNetwork.h"
 #include "Camera/CameraComponent.h"
 #include "Engine/World.h"
@@ -25,6 +24,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Components/AudioComponent.h"
 #include "Player/FocusTraceComponent.h"
+#include "Components/WidgetComponent.h"
 
 AInteractHideObject::AInteractHideObject() : AInteractableObject()
 {
@@ -50,12 +50,28 @@ AInteractHideObject::AInteractHideObject() : AInteractableObject()
 
 	OutPosBox = CreateDefaultSubobject<UBoxComponent>(TEXT("OutPosBoxComp"));
 	OutPosBox->SetupAttachment(RootComponent);
+
+	// Lock
+	LockWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("LockWidget"));
+	LockWidgetComp->SetupAttachment(RootComponent);
+	LockWidgetComp->SetWidgetSpace(EWidgetSpace::Screen);
+	LockWidgetComp->SetDrawSize(FVector2D(10, 10));
+	LockWidgetComp->SetRelativeLocation(FVector(0, 0, 100));
+	LockWidgetComp->SetVisibility(false);
 }
 
 void AInteractHideObject::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (LockWidgetComp)
+	{
+		if (LockWidgetClass)
+		{
+			LockWidgetComp->SetWidgetClass(LockWidgetClass);
+			LockWidgetComp->SetVisibility(false);
+		}
+	}
 }
 
 void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -65,94 +81,87 @@ void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(AInteractHideObject, HidePlayer);
 }
 
-void AInteractHideObject::S2A_OnDestroy_Implementation()
+void AInteractHideObject::SetWidgetVisible(int32 bVisible)
 {
-	if (!HidePlayer)
+	// 0 : 아무 위젯도 안보임
+	// 1 : InteractWidget 보임
+	// 2 : LockWidget 보임
+
+	if (!InteractWidgetComp || !LockWidgetComp)
 	{
 		return;
 	}
 
-	// 플레이어 컨트롤러 가져오기
-	APlayerController* InteractorPC = Cast<APlayerController>(HidePlayer->GetController());
-	if (!InteractorPC) return;
-
-	// PlayerState 가져옴
-	APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
-	if (!PS) return;
-
-	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
-	if (!ASC) return;
-
-	// 플레이어에 Hide 태그가 있다면
-	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
+	switch (bVisible)
 	{
-		// 플레이어 Hide 태그 제거
-		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
-		ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
-	}
-
-	// 로컬 컨트롤러에서만 입력/카메라 제어
-	if (InteractorPC->IsLocalController())
-	{
-		// 클라이언트에게 입력 활성화 명령 전달
-		SetInputState(InteractorPC, false);
-
-		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
-		SetViewTarget(InteractorPC, HidePlayer);
-	}
-
-	// 플레이어 옷장 반대방향으로 바라보게 하기
-	FRotator NewRotation = OutPosBox->GetComponentRotation();
-	InteractorPC->SetControlRotation(NewRotation);
-}
-
-void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
-{
-	if (!HidePlayer)
-	{
+	case 0:		// 0 : 아무 위젯도 안보임
+		InteractWidgetComp->SetVisibility(false);
+		LockWidgetComp->SetVisibility(false);
 		return;
-	}
 
-	// 서버에서만 NetMulticast 호출
-	if (HasAuthority())
-	{
-		S2A_OnDestroy();
+	case 1:		// 1 : InteractWidget 보임
+		InteractWidgetComp->SetVisibility(true);
+		LockWidgetComp->SetVisibility(false);
+		return;
+
+	case 2:		// 2 : LockWidget 보임
+		InteractWidgetComp->SetVisibility(false);
+		LockWidgetComp->SetVisibility(true);
+		return;
+
+	default:
+		return;
 	}
 }
 
 bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
-	bCanInteract = bIsDetected;
+	//bCanInteract = bIsDetected;
 
-	// 다른 사람이 이미 들어가 있을 때 return
-	if (HidePlayer && HidePlayer != Interactor) 
+	if (!Interactor->IsLocallyControlled()) return bIsDetected;
+	SetWidgetVisible(0);
+
+	if (!bIsDetected)
 	{
-		if (Interactor->IsLocallyControlled())
-		{
-			SetWidgetVisible(false);
-			//PlayHideUnable(Interactor);
-		}
-
-		S2A_PlayHideUnable(Interactor);
-
+		SetWidgetVisible(0);
 		return false;
 	}
-
-	if (!Interactor->IsLocallyControlled()) return bCanInteract;
-
-	//TPT_LOG(ObjectLog, Log,
-	//	TEXT("InteractHideObject::CanInteract - %s | %s | Role: %s"),
-	//	bCanInteract ? TEXT("true") : TEXT("false"),
-	//	*Interactor->GetName(),
-	//	*UEnum::GetValueAsString(GetLocalRole()));
-
-	const APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(const_cast<APawn*>(Interactor));
-	if (PlayerChar)
+	else
 	{
-		SetWidgetVisible(bCanInteract);
-	}
 
-	return bCanInteract;
+		// Interactor는 플레이어 캐릭터여야 함
+		const APlayerCharacter* HidePlayerChar = Cast<APlayerCharacter>(const_cast<APawn*>(Interactor));
+
+		// 플레이어가 아니라면 모든 위젯 숨기고 상호작용 불가능
+		if (!HidePlayerChar)
+		{
+			SetWidgetVisible(0);
+			return false;
+		}
+		else
+		{
+			// 숨은 플레이어가 없음 : 상호작용 가능
+			if (!HidePlayer)
+			{
+				SetWidgetVisible(1);
+				return true;
+			}
+			else
+			{
+				// 자신이 이미 숨은 상태일 때  : 상호작용 가능
+				if (HidePlayer == HidePlayerChar)
+				{
+					SetWidgetVisible(0);
+					return true;
+				}
+				else
+				{   // 다른 사람이 이미 들어가 있을 때 : 상호작용 불가능
+					SetWidgetVisible(2);
+					return false;
+				}
+			}
+		}
+	}
 }
 
 void AInteractHideObject::OnInteractServer_Implementation(const APawn* Interactor)
@@ -176,6 +185,81 @@ void AInteractHideObject::OnInteractClient_Implementation(const APawn* Interacto
 	SetWidgetVisible(false);
 
 	CamLogicClient(Interactor);
+}
+
+void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
+{
+	if (!HidePlayer)
+	{
+		return;
+	}
+	else
+	{
+		// 플레이어 컨트롤러 가져오기
+		APlayerController* InteractorPC = Cast<APlayerController>(HidePlayer->GetController());
+		if (!InteractorPC) return;
+
+		// PlayerState 가져옴
+		APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
+		if (!PS) return;
+
+		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+
+		if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
+		{
+			ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+			ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+		}
+
+		ACharacter* Char = Cast<ACharacter>(HidePlayer);
+		UCapsuleComponent* Capsule = Char->GetCapsuleComponent();
+		Capsule->SetCollisionObjectType(ECC_Pawn);
+	}
+
+	// 서버에서만 NetMulticast 호출
+	if (HasAuthority())
+	{
+		S2A_OnDestroy();
+	}
+}
+
+void AInteractHideObject::S2A_OnDestroy_Implementation()
+{
+	if (!HidePlayer)
+	{
+		return;
+	}
+
+	// 플레이어 컨트롤러 가져오기
+	APlayerController* InteractorPC = Cast<APlayerController>(HidePlayer->GetController());
+	if (!InteractorPC) return;
+
+	// PlayerState 가져옴
+	APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
+	if (!PS) return;
+
+	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
+	if (!ASC) return;
+
+	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
+	{
+		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+		ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+	}
+
+	// 로컬 컨트롤러에서만 입력/카메라 제어
+	if (InteractorPC->IsLocalController())
+	{
+		// 클라이언트에게 입력 활성화 명령 전달
+		SetInputState(InteractorPC, false);
+
+		// 클라이언트에게 카메라 전환 명령 전달 (오브젝트 캠 -> 플레이어 캠)
+		SetViewTarget(InteractorPC, HidePlayer);
+	}
+
+	// 플레이어 옷장 반대방향으로 바라보게 하기
+	FRotator NewRotation = OutPosBox->GetComponentRotation();
+	InteractorPC->SetControlRotation(NewRotation);
 }
 
 void AInteractHideObject::CamLogicServer(const APawn* Interactor)
@@ -209,10 +293,20 @@ void AInteractHideObject::CamLogicServer(const APawn* Interactor)
 			FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
 			EffectContext.AddSourceObject(this);
 
+			// 여기서 TPTGameplay_Character_State_Hide tag 붙여줌
 			FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(HideTagGE, 1.f, EffectContext);
 			if (SpecHandle.IsValid())
 			{
 				ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
+		}
+		else
+		{
+		
+			// 예외처리: HideTagGE가 없을 때는 직접 태그 추가
+			if (ASC)
+			{
+				ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 			}
 		}
 	}
@@ -282,6 +376,14 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 				ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 			}
 		}
+		else
+		{
+			// 예외처리: HideTagGE가 없을 때는 직접 태그 추가
+			if (ASC)
+			{
+				ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+			}
+		}
 	}
 	else
 	{
@@ -316,13 +418,6 @@ void AInteractHideObject::EnterObject(const APawn* Interactor)
 	APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
 	UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
 
-	// 플레이어에 Hide 태그가 없다면
-	if (!ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
-	{
-		// 플레이어 Hide 태그 추가
-		ASC->AddLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
-		ASC->AddReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
-	}
 
 	bIsActived = true;
 	HidePlayer = const_cast<APawn*>(Interactor);
@@ -466,3 +561,4 @@ void AInteractHideObject::EnableVignetteEffect(bool bEnable)
 		HideCameraComp->PostProcessSettings.RemoveBlendable(VignetteMaterial);
 	}
 }
+

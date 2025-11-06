@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "TPTLevelSaveGame.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "SaveGame/TPTSaveGame.h"
@@ -12,7 +13,7 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogTPTSaveGame, Log, All);
 
 template<typename T>
-concept TPTSaveGameConcept = std::is_base_of_v<UTPTSaveGame, T> || std::is_base_of_v<UTPTLocalPlayerSaveGame, T>;
+concept TPTSaveGameConcept = std::is_base_of_v<UTPTSaveGame, T> || std::is_base_of_v<UTPTLevelSaveGame, T> || std::is_base_of_v<UTPTLocalPlayerSaveGame, T>;
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UTPTSaveGameHelperLibrary : public UBlueprintFunctionLibrary
@@ -39,6 +40,17 @@ public:
 		if (!UGameplayStatics::SaveGameToSlot(Data, FString(T::StaticClass()->GetName() + SlotName), Slot))
 		{
 			UE_LOG(LogTPTSaveGame, Warning, TEXT("TPTSaveGame set Fail."));
+			return false;
+		}
+		return true;
+	}
+
+	template<TPTSaveGameConcept T>
+	static bool DeleteSaveGameData(T* Data, const FString& SlotName = "MainSlot", int32 Slot = 0)
+	{
+		if (!UGameplayStatics::DeleteGameInSlot(FString(T::StaticClass()->GetName() + SlotName), Slot))
+		{
+			UE_LOG(LogTPTSaveGame, Warning, TEXT("TPTSaveGame delete Fail."));
 			return false;
 		}
 		return true;

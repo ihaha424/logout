@@ -32,8 +32,9 @@ public:
         const FGameplayAbilityActorInfo* ActorInfo,
         FGameplayAbilityActivationInfo ActivationInfo);
 
-    UFUNCTION()
+    UFUNCTION(BlueprintNativeEvent)
     void OnCompleteCallback();
+    void OnCompleteCallback_Implementation();
     UFUNCTION()
     void OnInterruptedCallback();
 

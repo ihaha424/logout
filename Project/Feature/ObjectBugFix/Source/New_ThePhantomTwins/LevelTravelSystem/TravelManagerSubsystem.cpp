@@ -40,11 +40,11 @@ void UTravelManagerSubsystem::TravelToLevel(const FString& TargetMap, TSubclassO
     switch (World->GetNetMode())
     {
     case NM_ListenServer:
-        UTravelBPLibrary::ServerTravel(World, LoadingMap, true, true);
+        UTravelBPLibrary::ServerTravel(World, LoadingMap, false, true);
         break;
 
     case NM_DedicatedServer:
-        UTravelBPLibrary::ServerTravel(World, LoadingMap, true, false);
+        UTravelBPLibrary::ServerTravel(World, LoadingMap, false, false);
         break;
 
     case NM_Client:
