@@ -22,6 +22,7 @@ protected:
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	void SetWidgetVisible(int32 bVisible);
 	virtual bool CanInteract_Implementation(const APawn* Interactor, bool bIsDetected) override;
 	virtual void OnInteractServer_Implementation(const APawn* Interactor) override;
 	virtual void OnInteractClient_Implementation(const APawn* Interactor) override;
@@ -67,6 +68,9 @@ protected:
 
 	void EnableVignetteEffect(bool bEnable);
 
+	UFUNCTION()
+	void OnRep_SetWidget();
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject")
 	TObjectPtr<class UBoxComponent> InPosBox;
@@ -89,8 +93,9 @@ public:
 	TObjectPtr<class UMaterialInterface> VignetteMaterial;
 
 	// 숨는 Player
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HideObject", Replicated)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "HideObject", ReplicatedUsing = OnRep_SetWidget)
 	TObjectPtr <APawn> HidePlayer = nullptr;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject | Effects")
 	TSubclassOf<UGameplayEffect> HideTagGE;

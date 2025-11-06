@@ -81,40 +81,100 @@ void AInteractHideObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(AInteractHideObject, HidePlayer);
 }
 
+void AInteractHideObject::SetWidgetVisible(int32 bVisible)
+{
+	// 0 : 아무 위젯도 안보임
+	// 1 : InteractWidget 보임
+	// 2 : LockWidget 보임
+
+	if (!InteractWidgetComp || !LockWidgetComp)
+	{
+		return;
+	}
+
+	switch (bVisible)
+	{
+	case 0:		// 0 : 아무 위젯도 안보임
+		InteractWidgetComp->SetVisibility(false);
+		LockWidgetComp->SetVisibility(false);
+		return;
+
+	case 1:		// 1 : InteractWidget 보임
+		InteractWidgetComp->SetVisibility(true);
+		LockWidgetComp->SetVisibility(false);
+		return;
+
+	case 2:		// 2 : LockWidget 보임
+		InteractWidgetComp->SetVisibility(false);
+		LockWidgetComp->SetVisibility(true);
+		return;
+
+	default:
+		return;
+	}
+}
+
 bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bool bIsDetected)
 {
-	bCanInteract = bIsDetected;
+	//bCanInteract = bIsDetected;
 
-	// 다른 사람이 이미 들어가 있을 때 return
-	if (HidePlayer && HidePlayer != Interactor)
+	if (!Interactor->IsLocallyControlled()) return bIsDetected;
+
+	if (!bIsDetected)
 	{
-		if (Interactor->IsLocallyControlled())
-		{
-			SetWidgetVisible(false);
-			//PlayHideUnable(Interactor);
-		}
-
-		//S2A_PlayHideUnable(Interactor);
-
+		SetWidgetVisible(0);
 		return false;
 	}
-
-	if (!Interactor->IsLocallyControlled()) return bCanInteract;
-
-
-	const APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(const_cast<APawn*>(Interactor));
-	if (PlayerChar)
+	else
 	{
-		SetWidgetVisible(bCanInteract);
-	}
 
-	return bCanInteract;
+		// Interactor는 플레이어 캐릭터여야 함
+		const APlayerCharacter* InteractPlayerChar = Cast<APlayerCharacter>(const_cast<APawn*>(Interactor));
+
+		// 플레이어가 아니라면 모든 위젯 숨기고 상호작용 불가능
+		if (!InteractPlayerChar)
+		{
+			SetWidgetVisible(0);
+			return false;
+		}
+		else
+		{
+			// 숨은 플레이어가 없음 : 상호작용 가능
+			if (!HidePlayer)
+			{
+				SetWidgetVisible(1);
+				return true;
+			}
+			else
+			{
+				// 자신이 이미 숨은 상태일 때  : 상호작용 가능
+				if (HidePlayer == InteractPlayerChar)
+				{
+					SetWidgetVisible(0);
+					return true;
+				}
+				else
+				{   // 다른 사람이 이미 들어가 있을 때 : 상호작용 불가능
+					SetWidgetVisible(2);
+					return true;
+				}
+			}
+		}
+	}
 }
 
 void AInteractHideObject::OnInteractServer_Implementation(const APawn* Interactor)
 {
 	// 서버에서 실행되는 코드
 	if (!HasAuthority()) return;
+
+	if (HidePlayer != Interactor && HidePlayer != nullptr)
+	{
+		PlayHideUnable(Interactor);
+		return;
+	}
+	
+
 
 	//TPT_LOG(ObjectLog, Log, TEXT("InteractHideObject::OnInteract Server"));
 
@@ -125,11 +185,17 @@ void AInteractHideObject::OnInteractClient_Implementation(const APawn* Interacto
 {
 	if (HasAuthority()) return;
 
+	if (HidePlayer != Interactor && HidePlayer != nullptr)
+	{
+		PlayHideUnable(Interactor);
+		return;
+	}
+
 	if (!Interactor->IsLocallyControlled()) return;
 
 	//TPT_LOG(ObjectLog, Log, TEXT("InteractHideObject::OnInteract Client"));
 
-	SetWidgetVisible(false);
+	SetWidgetVisible(0);
 
 	CamLogicClient(Interactor);
 }
@@ -389,6 +455,7 @@ void AInteractHideObject::EnterObject(const APawn* Interactor)
 
 		ShowOverlayOutline(false);
 	}
+	OnRep_SetWidget();
 }
 
 void AInteractHideObject::ExitObject()
@@ -425,6 +492,7 @@ void AInteractHideObject::ExitObject()
 
 	bIsActived = false;
 	HidePlayer = nullptr;
+	OnRep_SetWidget();
 }
 
 void AInteractHideObject::SetInputState(APlayerController* InteractorPC, bool bIgnoreInput)
@@ -506,6 +574,26 @@ void AInteractHideObject::EnableVignetteEffect(bool bEnable)
 	else
 	{
 		HideCameraComp->PostProcessSettings.RemoveBlendable(VignetteMaterial);
+	}
+}
+
+void AInteractHideObject::OnRep_SetWidget()
+{
+	if (nullptr == HidePlayer)
+	{
+		if (LockWidgetComp->IsWidgetVisible())
+		{
+			InteractWidgetComp->SetVisibility(true);
+			LockWidgetComp->SetVisibility(false);
+		}
+	}
+	else
+	{
+		if (InteractWidgetComp->IsWidgetVisible())
+		{
+			LockWidgetComp->SetVisibility(true);
+			InteractWidgetComp->SetVisibility(false);
+		}
 	}
 }
 
