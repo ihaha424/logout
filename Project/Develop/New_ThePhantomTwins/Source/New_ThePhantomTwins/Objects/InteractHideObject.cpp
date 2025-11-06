@@ -85,6 +85,7 @@ void AInteractHideObject::S2A_OnDestroy_Implementation()
 	if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
 	{
 		ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+		ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 	}
 
 	// 로컬 컨트롤러에서만 입력/카메라 제어
@@ -123,6 +124,7 @@ void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
 		if (ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide))
 		{
 			ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+			ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 		}
 	}
 
@@ -382,6 +384,7 @@ void AInteractHideObject::ExitObject()
 		{
 			// 플레이어 Hide 태그 제거
 			ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
+			ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 		}
 
 		ACharacter* Char = Cast<ACharacter>(HidePlayer);
