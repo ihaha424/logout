@@ -152,7 +152,7 @@ bool AInteractHideObject::CanInteract_Implementation(const APawn* Interactor, bo
 			//PlayHideUnable(Interactor);
 		}
 
-		S2A_PlayHideUnable(Interactor);
+		//S2A_PlayHideUnable(Interactor);
 
 		return false;
 	}
