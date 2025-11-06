@@ -73,6 +73,11 @@ void UTPTSaveGameManager::FullInitialize()
     HideObjectActorsMap.Reset();
     ItemBoxActorsMap.Reset();
     AIActorsMap.Reset();
+
+    bActorsInitialized = false;
+    bPlayerInitialized = false;
+
+    InitializeSavePlayer();
 }
 
 void UTPTSaveGameManager::Deinitialize()
