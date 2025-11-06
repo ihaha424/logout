@@ -76,12 +76,12 @@ void UGA_AIHitPlayer::OffSound(const FGameplayTag InputTag, int32 Count)
 
 void UGA_AIHitPlayer::OnMontageComplete()
 {
+	VignetteEffectOff();
+
 	UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo();
 
 	ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit);
 	ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_AIHit);
-	
-	VignetteEffectOff();
 
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
