@@ -126,6 +126,10 @@ void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
 			ASC->RemoveLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 			ASC->RemoveReplicatedLooseGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide);
 		}
+
+		ACharacter* Char = Cast<ACharacter>(HidePlayer);
+		UCapsuleComponent* Capsule = Char->GetCapsuleComponent();
+		Capsule->SetCollisionObjectType(ECC_Pawn);
 	}
 
 	// 서버에서만 NetMulticast 호출
