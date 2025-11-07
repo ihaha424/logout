@@ -71,6 +71,10 @@ protected:
 	UFUNCTION()
 	void OnRep_SetWidget();
 
+	UFUNCTION(Client, Reliable)
+	void S2C_HideSetWidget();
+	void S2C_HideSetWidget_Implementation();
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HideObject")
 	TObjectPtr<class UBoxComponent> InPosBox;

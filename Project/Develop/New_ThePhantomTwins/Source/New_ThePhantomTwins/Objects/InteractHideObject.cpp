@@ -455,15 +455,19 @@ void AInteractHideObject::EnterObject(const APawn* Interactor)
 
 		ShowOverlayOutline(false);
 	}
+
 	OnRep_SetWidget();
 }
 
 void AInteractHideObject::ExitObject()
 {
+	APawn* PrevClient = nullptr;
+
 	if (OutPosBox && HidePlayer)
 	{
 		// PlayerState 가져옴
 		APlayerController* InteractorPC = CastChecked<APlayerController>(HidePlayer->GetController());
+		PrevClient = HidePlayer;
 		APS_Player* PS = InteractorPC->GetPlayerState<APS_Player>();
 		UAbilitySystemComponent* ASC = PS->GetAbilitySystemComponent();
 
@@ -492,6 +496,15 @@ void AInteractHideObject::ExitObject()
 
 	bIsActived = false;
 	HidePlayer = nullptr;
+
+	if (IsValid(PrevClient) && !PrevClient->IsLocallyControlled())
+	{
+		if (HasAuthority())
+		{
+			S2C_HideSetWidget();
+			return;
+		}
+	}
 	OnRep_SetWidget();
 }
 
@@ -593,6 +606,8 @@ void AInteractHideObject::OnRep_SetWidget()
 		{
 			InteractWidgetComp->SetVisibility(false);
 			LockWidgetComp->SetVisibility(false);
+
+			// 여기!
 		}
 	}
 	else // HidePlayer가 존재하는데
@@ -605,5 +620,10 @@ void AInteractHideObject::OnRep_SetWidget()
 			InteractWidgetComp->SetVisibility(false);
 		}
 	}
+}
+
+void AInteractHideObject::S2C_HideSetWidget_Implementation()
+{
+	OnRep_SetWidget();
 }
 
