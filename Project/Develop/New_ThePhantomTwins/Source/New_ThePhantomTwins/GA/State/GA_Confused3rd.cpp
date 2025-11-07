@@ -9,7 +9,6 @@
 #include "Player/PlayerCharacter.h"
 #include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
-#include "Components/PostProcessComponent.h"
 
 UGA_Confused3rd::UGA_Confused3rd()
 {

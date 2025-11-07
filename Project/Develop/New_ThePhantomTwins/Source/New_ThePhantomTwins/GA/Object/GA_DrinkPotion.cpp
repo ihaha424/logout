@@ -4,7 +4,6 @@
 #include "GA_DrinkPotion.h"
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
 
 UGA_DrinkPotion::UGA_DrinkPotion()

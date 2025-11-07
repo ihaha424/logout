@@ -11,7 +11,6 @@
 #include "Tags/TPTGameplayTags.h"
 #include "Player/PlayerCharacter.h"
 #include "TimerManager.h"
-#include "Components/PostProcessComponent.h"
 
 UGA_AIHitPlayer::UGA_AIHitPlayer()
 {

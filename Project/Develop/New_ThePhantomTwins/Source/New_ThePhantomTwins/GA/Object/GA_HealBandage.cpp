@@ -4,7 +4,6 @@
 #include "GA_HealBandage.h"
 
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
-#include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
 
 UGA_HealBandage::UGA_HealBandage()

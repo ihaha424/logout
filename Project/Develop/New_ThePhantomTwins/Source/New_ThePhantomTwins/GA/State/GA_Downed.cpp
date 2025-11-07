@@ -12,13 +12,11 @@
 #include "Player/PS_Player.h"
 #include "Player/PC_Player.h"
 #include "Blueprint/UserWidget.h"
-#include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Objects/HeldItemComponent.h"
 #include "TimerManager.h"
-#include "Components/PostProcessComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/AudioComponent.h"
 

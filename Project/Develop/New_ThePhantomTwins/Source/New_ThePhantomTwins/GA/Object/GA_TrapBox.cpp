@@ -6,7 +6,6 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Player/PlayerCharacter.h"
 #include "Tags/TPTGameplayTags.h"
-#include "Log/TPTLog.h"
 
 UGA_TrapBox::UGA_TrapBox()
 {

@@ -5,7 +5,6 @@
 
 #include "AbilitySystemComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Components/SphereComponent.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "DrawDebugHelpers.h"

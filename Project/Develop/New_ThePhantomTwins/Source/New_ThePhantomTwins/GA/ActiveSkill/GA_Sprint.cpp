@@ -3,7 +3,6 @@
 
 #include "GA_Sprint.h"
 #include "AbilitySystemComponent.h"
-#include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/AudioComponent.h"
