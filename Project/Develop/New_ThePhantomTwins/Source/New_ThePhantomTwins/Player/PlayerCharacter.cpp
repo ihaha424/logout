@@ -211,7 +211,6 @@ void APlayerCharacter::PossessedBy(AController* NewController)
 	PlayerController = GetController<APC_Player>();
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 
-	InitHUDWidget(AttributeSet);
 	UPlayerAnimInstance* AnimInstance = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	AnimInstance->InitializeWithAbilitySystem(ASC);
 
@@ -249,7 +248,6 @@ void APlayerCharacter::OnRep_PlayerState()
 	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
 	BindAttributeDelegates(AttributeSet);
 
-	InitHUDWidget(AttributeSet);
 	UPlayerAnimInstance* AnimInstance = Cast<UPlayerAnimInstance>(GetMesh()->GetAnimInstance());
 	AnimInstance->InitializeWithAbilitySystem(ASC);
 	EnsureSetting(EnsureCreateElement::EnsurePlayerState);
@@ -1099,6 +1097,8 @@ void APlayerCharacter::EnsureGameStart_Implementation()
 
 	const UPlayerAttributeSet* AttributeSet = ASC->GetSet<UPlayerAttributeSet>();
 	NULLCHECK_RETURN_LOG(AttributeSet, PlayerLog, Error, );
+
+	InitHUDWidget(AttributeSet);
 
 	SetSelectSkill(PS);
 
