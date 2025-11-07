@@ -579,10 +579,13 @@ void AInteractHideObject::EnableVignetteEffect(bool bEnable)
 
 void AInteractHideObject::OnRep_SetWidget()
 {
+	// HidePlayer가 NULL 로 바뀌었는데
 	if (nullptr == HidePlayer)
 	{
+		// LOCK 위젯이 보인다
 		if (LockWidgetComp->IsWidgetVisible())
 		{
+			// Interact 위젯 활성화
 			InteractWidgetComp->SetVisibility(true);
 			LockWidgetComp->SetVisibility(false);
 		}
@@ -592,13 +595,20 @@ void AInteractHideObject::OnRep_SetWidget()
 			LockWidgetComp->SetVisibility(false);
 		}
 	}
-	else
-	{
+	else // HidePlayer가 존재하는데
+	{	
+		// Interact 위젯이 보인다
 		if (InteractWidgetComp->IsWidgetVisible())
 		{
+			// LOCK 위젯 활성화
 			LockWidgetComp->SetVisibility(true);
 			InteractWidgetComp->SetVisibility(false);
 		}
-	}
+		else
+		{
+			InteractWidgetComp->SetVisibility(false);
+			LockWidgetComp->SetVisibility(false);
+		}
+	}	// 일단 위젯 꺼버려.... 다시 CanInteract에서 보고 켜주지 않을까...
 }
 
