@@ -604,11 +604,6 @@ void AInteractHideObject::OnRep_SetWidget()
 			LockWidgetComp->SetVisibility(true);
 			InteractWidgetComp->SetVisibility(false);
 		}
-		else
-		{
-			InteractWidgetComp->SetVisibility(false);
-			LockWidgetComp->SetVisibility(false);
-		}
-	}	// 일단 위젯 꺼버려.... 다시 CanInteract에서 보고 켜주지 않을까...
+	}
 }
 
