@@ -23,7 +23,8 @@ public class New_ThePhantomTwins : ModuleRules
             "Sockets",
             "Networking",
             "Niagara",
-            "GeometryCache"
+            "GeometryCache",
+            "NetCore"
 
         });
 
