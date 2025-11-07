@@ -59,7 +59,7 @@ void UTravelManagerSubsystem::TravelToLevel(const FString& TargetMap, TSubclassO
         if (bServerTravel)
             UGameplayStatics::OpenLevel(World, FName(*LoadingMap), true, TEXT("listen"));
         else
-            UGameplayStatics::OpenLevel(World, FName(*LoadingMap));
+            UTravelBPLibrary::ClientTravel(UGameplayStatics::GetPlayerController(World, 0), LoadingMap, TRAVEL_Absolute);
         break;
     }
 }
