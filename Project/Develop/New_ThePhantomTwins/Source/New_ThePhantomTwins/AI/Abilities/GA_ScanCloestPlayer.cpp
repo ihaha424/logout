@@ -12,7 +12,6 @@
 #include "AbilitySystemGlobals.h"
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
-#include "Log/TPTLog.h"
 
 
 UGA_ScanCloestPlayer::UGA_ScanCloestPlayer()

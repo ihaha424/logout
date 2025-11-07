@@ -3,8 +3,6 @@
 #include "AIBaseAttributeSet.h"
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
-#include "Log/TPTLog.h"
-#include "Tags/TPTGameplayTags.h"
 
 UAIBaseAttributeSet::UAIBaseAttributeSet() {}
 

@@ -9,7 +9,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "Components/SpotLightComponent.h"
-#include "Engine/SpotLight.h"
 #include "Engine/OverlapResult.h"
 
 

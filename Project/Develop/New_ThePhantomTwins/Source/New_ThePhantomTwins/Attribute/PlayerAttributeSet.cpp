@@ -4,9 +4,7 @@
 #include "PlayerAttributeSet.h"
 #include "GameplayEffectExtension.h"
 #include "../Tags/TPTGameplayTags.h"
-#include "Log/TPTLog.h"
 #include "Net/UnrealNetwork.h"
-#include "Player/PS_Player.h"
 
 UPlayerAttributeSet::UPlayerAttributeSet() :
 	MaxHP(200),

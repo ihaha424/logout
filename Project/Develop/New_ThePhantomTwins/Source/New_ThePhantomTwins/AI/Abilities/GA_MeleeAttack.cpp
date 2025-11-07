@@ -2,7 +2,6 @@
 
 
 #include "GA_MeleeAttack.h"
-#include "GameFramework/Character.h"
 #include "AbilitySystemComponent.h"
 #include "Tags/TPTGameplayTags.h"
 #include "AI/Character/AIBaseCharacter.h"

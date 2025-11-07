@@ -3,7 +3,6 @@
 
 #include "AI/Abilities/GA_ScanPlayers.h"
 #include "Tags/TPTGameplayTags.h"
-#include "Log/TPTLog.h"
 
 
 UGA_ScanPlayers::UGA_ScanPlayers()

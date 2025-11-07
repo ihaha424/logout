@@ -12,8 +12,6 @@
 #include "AI/Controller/AIBaseController.h"
 #include "GameplayCueInterface.h"
 #include "BrainComponent.h"
-
-#include "../Attributes/AIBaseAttributeSet.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Log/TPTLog.h"
 

@@ -6,8 +6,6 @@
 #include "Perception/AISenseConfig_Hearing.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "Kismet/GameplayStatics.h"
-#include "GameFramework/Character.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 
@@ -16,7 +14,6 @@
 #include "../Attributes/AIBaseAttributeSet.h"
 #include "../Utility/SplineActor.h"
 #include "Tags/TPTGameplayTags.h"
-#include "Log/TPTLog.h"
 
 AAIBaseController::AAIBaseController()
 {

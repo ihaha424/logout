@@ -8,8 +8,6 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Decal/StickerLibrary.h"
 
-#include "Kismet/KismetSystemLibrary.h"
-
 int AStickerActor::SortOrder = 0;
 
 AStickerActor::AStickerActor()

@@ -7,8 +7,6 @@
 #include "SzInterface/Destroyable.h"
 #include "Log/TPTLog.h"
 
-#include "Kismet/KismetSystemLibrary.h"
-
 UBTD_CheckDistanceToTarget::UBTD_CheckDistanceToTarget()
 {
 	NodeName = TEXT("CheckDistanceToTarget");

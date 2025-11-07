@@ -2,7 +2,6 @@
 
 
 #include "AI/Abilities/GA_PlayMontage.h"
-#include "GameFramework/Character.h"
 #include "AbilitySystemComponent.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"

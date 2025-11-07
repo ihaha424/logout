@@ -5,9 +5,6 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "AIController.h"
-#include "GameplayTagContainer.h"
-#include "Log/TPTLog.h"
 
 
 UBTT_ApplyEffectByTarget::UBTT_ApplyEffectByTarget()

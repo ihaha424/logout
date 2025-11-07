@@ -4,7 +4,6 @@
 #include "AnimNotify/AnimNotify_WalkSound.h"
 #include "GS_PhantomTwins.h"
 #include "Kismet/GameplayStatics.h"
-#include "Log/TPTLog.h"
 
 FString UAnimNotify_WalkSound::GetNotifyName_Implementation() const
 {

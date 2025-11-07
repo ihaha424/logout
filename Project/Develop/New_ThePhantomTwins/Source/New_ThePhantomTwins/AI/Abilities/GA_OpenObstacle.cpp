@@ -5,7 +5,6 @@
 #include "SzInterface/Interact.h"
 #include "AbilitySystemComponent.h"
 #include "Tags/TPTGameplayTags.h"
-#include "Log/TPTLog.h"
 
 UGA_OpenObstacle::UGA_OpenObstacle()
 {

@@ -5,7 +5,6 @@
 #include "AbilitySystemComponent.h"
 #include "Tags/TPTGameplayTags.h"
 #include "AbilitySystemBlueprintLibrary.h"
-#include "Log/TPTLog.h"
 
 UGA_ChaseActor::UGA_ChaseActor()
 {

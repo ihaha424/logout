@@ -1,8 +1,6 @@
 ﻿#include "GA_ThrowItem.h"
 #include "Objects/ThrowNoiseBomb.h"
 #include "Objects/ThrowEMP.h"
-#include "Kismet/KismetMathLibrary.h"
-#include "Kismet/GameplayStatics.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Abilities/GameplayAbility.h"
 #include "Player/PlayerCharacter.h"

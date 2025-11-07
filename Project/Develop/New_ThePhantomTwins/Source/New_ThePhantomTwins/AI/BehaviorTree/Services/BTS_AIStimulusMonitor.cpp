@@ -3,9 +3,6 @@
 
 #include "BTS_AIStimulusMonitor.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "AbilitySystemComponent.h"
-#include "AbilitySystemGlobals.h"
-#include "Tags/TPTGameplayTags.h"
 #include "AI/Utility/AIHelperLibrary.h"
 #include "Log/TPTLog.h"
 

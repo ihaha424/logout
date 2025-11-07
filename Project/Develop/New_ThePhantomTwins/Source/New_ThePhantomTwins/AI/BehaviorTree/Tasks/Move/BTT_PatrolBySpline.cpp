@@ -4,7 +4,6 @@
 #include "BTT_PatrolBySpline.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "Behaviortree/Blackboardcomponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "AIController.h"
 
 #include "../../../Utility/SplineActor.h"

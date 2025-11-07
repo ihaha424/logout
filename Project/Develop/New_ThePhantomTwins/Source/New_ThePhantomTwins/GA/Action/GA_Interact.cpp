@@ -13,7 +13,6 @@
 #include "SzInterface/Interact.h"
 #include "SzInterface/Holding.h"
 #include "Tags/TPTGameplayTags.h"
-#include "Kismet/KismetSystemLibrary.h"
 
 UGA_Interact::UGA_Interact()
 {
