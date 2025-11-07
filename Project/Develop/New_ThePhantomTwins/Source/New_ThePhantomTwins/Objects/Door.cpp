@@ -6,7 +6,6 @@
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "../Player/PlayerCharacter.h"
-#include "SaveGame/SaveIDComponent.h"
 #include "SaveGame/TPTSaveGameManager.h"
 
 ADoor::ADoor() : AInteractableObject()

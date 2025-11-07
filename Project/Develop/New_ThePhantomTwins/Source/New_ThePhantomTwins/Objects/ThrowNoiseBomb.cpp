@@ -8,9 +8,7 @@
 #include "NiagaraComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "SzComponents/NoiseComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
-#include "Log/TPTLog.h"
 
 AThrowNoiseBomb::AThrowNoiseBomb()
 {

@@ -2,15 +2,12 @@
 #include "TriggerHideObject.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/BoxComponent.h"
-#include "../Log/TPTLog.h"
 
 //AI Perception
 #include "Components/SphereComponent.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
-#include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISense_Hearing.h"
-#include "Perception/AISenseConfig_Hearing.h"
 
 ATriggerHideObject::ATriggerHideObject() : ABaseObject()
 {

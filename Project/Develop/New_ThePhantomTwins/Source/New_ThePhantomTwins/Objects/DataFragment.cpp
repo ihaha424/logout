@@ -6,9 +6,7 @@
 #include "../Player/PlayerCharacter.h"
 #include "../UI/DataFragmentPickupWidget.h"
 #include "GS_PhantomTwins.h"
-#include "Kismet/GameplayStatics.h"
 #include "Log/TPTLog.h"
-#include "SaveGame/SaveIDComponent.h"
 #include "SaveGame/TPTSaveGameManager.h"
 
 ADataFragment::ADataFragment()

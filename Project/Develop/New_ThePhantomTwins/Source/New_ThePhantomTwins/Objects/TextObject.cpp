@@ -2,8 +2,6 @@
 
 
 #include "TextObject.h"
-#include "Net/UnrealNetwork.h"
-#include "Blueprint/UserWidget.h"
 
 ATextObject::ATextObject() : AInteractableObject()
 {

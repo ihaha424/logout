@@ -3,7 +3,6 @@
 
 #include "Wait5Sec.h"
 #include "Components/ProgressBar.h"
-#include "Log/TPTLog.h"
 
 void UWait5Sec::NativeConstruct()
 {

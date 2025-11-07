@@ -4,8 +4,6 @@
 #include "PhantomTwinsInstance.h"
 
 #include "Tags/TPTGameplayTags.h"
-#include "Log/TPTLog.h"
-#include "Kismet/GameplayStatics.h"
 #include "DialogManager/DialogManager.h"
 #include "SaveGame/TPTSaveGameManager.h"
 #include "SettingManager/SettingSystem.h"

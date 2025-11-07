@@ -5,7 +5,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/GameUserSettings.h"
 #include "AudioDevice.h"
-#include "PhantomTwinsInstance.h"
 
 void USettingSystem::Initialize(FSubsystemCollectionBase& Collection)
 {

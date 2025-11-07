@@ -2,7 +2,6 @@
 #include "GlitchTrap.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "Components/BoxComponent.h"
 
 AGlitchTrap::AGlitchTrap() : AOverlapObject()

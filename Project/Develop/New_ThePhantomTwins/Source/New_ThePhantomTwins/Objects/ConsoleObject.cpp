@@ -7,9 +7,7 @@
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "player/PlayerCharacter.h"
-#include "Log/TPTLog.h"
 #include "Door.h"
-#include "Components/DecalComponent.h"
 
 
 AConsoleObject::AConsoleObject() : AInteractableObject()

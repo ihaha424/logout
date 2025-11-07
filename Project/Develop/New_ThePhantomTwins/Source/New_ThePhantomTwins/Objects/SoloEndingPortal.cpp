@@ -4,9 +4,7 @@
 #include "SoloEndingPortal.h"
 #include "Net/UnrealNetwork.h"
 #include "player/PC_Player.h"
-#include "player/PlayerCharacter.h"
 #include "Components/BoxComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Log/TPTLog.h"
 
 ASoloEndingPortal::ASoloEndingPortal() : AInteractableObject()

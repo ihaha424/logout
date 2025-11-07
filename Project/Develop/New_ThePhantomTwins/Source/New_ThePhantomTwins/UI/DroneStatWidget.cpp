@@ -2,13 +2,10 @@
 
 #include "UI/DroneStatWidget.h"
 
-#include <string>
-
 #include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
 #include "Objects/DataFragment.h"
 #include "GS_PhantomTwins.h"
-#include "Log/TPTLog.h"
 
 void UDroneStatWidget::NativeConstruct()
 {

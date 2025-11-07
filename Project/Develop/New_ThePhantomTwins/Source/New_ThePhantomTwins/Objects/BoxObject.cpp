@@ -1,12 +1,8 @@
 #include "BoxObject.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
-#include "GA/Object/GA_TrapBox.h"
 #include "TimerManager.h"
 #include "Components/ChildActorComponent.h"
-#include "Net/UnrealNetwork.h"
-#include "SaveGame/SaveIDComponent.h"
-#include "SaveGame/TPTSaveGameManager.h"
 #include "Tags/TPTGameplayTags.h"
 
 ABoxObject::ABoxObject() : AInteractableObject()

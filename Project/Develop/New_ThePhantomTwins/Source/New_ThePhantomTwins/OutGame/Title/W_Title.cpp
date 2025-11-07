@@ -2,12 +2,10 @@
 
 
 #include "W_Title.h"
-#include "Components/EditableTextBox.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
 #include "../IPEncryption.h"
 
-#include "kismet/KismetSystemLibrary.h"
 void UW_Title::NativeConstruct()
 {
     Super::NativeConstruct();

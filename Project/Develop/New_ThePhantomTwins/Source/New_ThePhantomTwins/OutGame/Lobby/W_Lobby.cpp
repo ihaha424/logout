@@ -7,7 +7,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "GS_Lobby.h"
 #include "../../GM_PhantomTwins.h"
-#include "SaveGame/TPTSaveGameHelperLibrary.h"
 
 void UW_Lobby::NativeConstruct()
 {

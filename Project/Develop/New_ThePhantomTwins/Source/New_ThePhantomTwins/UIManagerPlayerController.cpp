@@ -2,7 +2,6 @@
 
 
 #include "UIManagerPlayerController.h"
-#include "Log/TPTLog.h"
 
 void AUIManagerPlayerController::PostInitializeComponents()
 {

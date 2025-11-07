@@ -2,20 +2,17 @@
 
 #include "EndingConsole.h"
 #include "Net/UnrealNetwork.h"
-#include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "player/PlayerCharacter.h"
 #include "player/PC_Player.h"
 #include "player/PS_Player.h"
 #include "Log/TPTLog.h"
-#include "Components/DecalComponent.h"
 #include "Objects/DataFragment.h"
 #include "Kismet/GameplayStatics.h"
 #include "GS_PhantomTwins.h"
 #include "AbilitySystemComponent.h"
 #include "Tags/TPTGameplayTags.h"
-#include "Kismet/KismetSystemLibrary.h"
 
 AEndingConsole::AEndingConsole() : AInteractableObject()
 {

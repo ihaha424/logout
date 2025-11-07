@@ -11,7 +11,6 @@
 #include "AI/Character/AIBaseCharacter.h"
 #include "AI/AIEventReceiver.h"
 #include "Objects/GlitchTrap.h"
-#include "Log/TPTLog.h"
 
 AThrowEMP::AThrowEMP()
 {

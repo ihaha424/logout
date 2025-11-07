@@ -8,7 +8,6 @@
 #include "Engine/Player.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
-#include "Decal/StickerLibrary.h"
 #include "GS_PhantomTwins.h"
 #include "Decal/StickerManager.h"
 #include "GameFramework/PlayerState.h"

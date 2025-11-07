@@ -7,7 +7,6 @@
 #include "New_ThePhantomTwins/Attribute/PlayerAttributeSet.h"
 #include "../Objects/InventoryComponent.h"
 #include "SaveGame/TPTSaveGameHelperLibrary.h"
-#include "Tags/TPTGameplayTags.h"
 #include "Player/PlayerCharacter.h"
 
 APS_Player::APS_Player()

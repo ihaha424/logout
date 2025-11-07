@@ -10,7 +10,6 @@
 #include "Components/BoxComponent.h"
 #include "SzInterface/Interact.h"
 #include "Net/UnrealNetwork.h"
-#include "Kismet/GameplayStatics.h"
 
 UFocusTraceComponent::UFocusTraceComponent()
 {

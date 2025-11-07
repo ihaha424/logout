@@ -2,15 +2,12 @@
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/World.h"
 
 #include "Player/PlayerCharacter.h"
-#include "Player/PS_Player.h"
 #include "Objects/InventoryComponent.h"
-#include "Log/TPTLog.h"
 
 
 UHeldItemComponent::UHeldItemComponent()
