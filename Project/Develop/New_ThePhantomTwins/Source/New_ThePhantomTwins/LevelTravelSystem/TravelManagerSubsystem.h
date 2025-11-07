@@ -25,6 +25,9 @@ public:
     UFUNCTION(BlueprintCallable)
     bool GetCachedTargetMap(TSoftObjectPtr<UWorld>& TargetWorld);
 
+    UFUNCTION(BlueprintCallable)
+    FString GetTargetMap();
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     FString LoadingMapPath = "Invalid";
 

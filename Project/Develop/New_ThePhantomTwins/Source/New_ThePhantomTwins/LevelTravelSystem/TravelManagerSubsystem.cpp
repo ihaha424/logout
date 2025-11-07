@@ -113,10 +113,15 @@ bool UTravelManagerSubsystem::GetCachedTargetMap(TSoftObjectPtr<UWorld>& TargetW
     {
         FSoftObjectPath Path(CachedTargetMap);
         TargetWorld = TSoftObjectPtr<UWorld>(Path);
-
-        return true;
+        if(TargetWorld.IsValid())
+            return true;
     }
     return false;
+}
+
+FString UTravelManagerSubsystem::GetTargetMap()
+{
+    return CachedTargetMap;
 }
 
 int32 UTravelManagerSubsystem::GetUserCount()

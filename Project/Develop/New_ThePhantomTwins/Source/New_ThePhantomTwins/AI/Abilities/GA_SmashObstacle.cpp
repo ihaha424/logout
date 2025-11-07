@@ -116,7 +116,7 @@ void UGA_SmashObstacle::OnCompleteCallback_Implementation()
         return;
     }
 
-    if (IsValid(OwnerPawn) && IsValid(Target))
+    if (IsValid(OwnerPawn) && IsValid(Target) && Target->GetClass()->ImplementsInterface(UDestroyable::StaticClass()))
     {
         IDestroyable::Execute_OnDestroy(Target, OwnerPawn);
     }
