@@ -42,6 +42,9 @@ EBTNodeResult::Type UBTT_Rush::Execute_Task(UBehaviorTreeComponent& OwnerComp, u
     NULLCHECK_RETURN_LOG(AIController, AILog, Warning, EBTNodeResult::Failed);
 
     AIBaseCharacter->SetAttackCollision(true);
+    AIBaseCharacter->GetAttackCollision().SetCollisionResponseToChannel(ECC_Visibility, ECR_Overlap);
+    AIBaseCharacter->GetAttackCollision().SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
+    AIBaseCharacter->GetAttackCollision().SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
     AIBaseCharacter->GetAttackCollision().OnComponentBeginOverlap.AddDynamic(this, &UBTT_Rush::OnHit);
 
     RushDirection = Target->GetActorLocation() - Pawn->GetActorLocation();
