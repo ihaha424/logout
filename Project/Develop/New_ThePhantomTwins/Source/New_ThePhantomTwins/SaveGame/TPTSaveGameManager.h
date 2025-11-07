@@ -55,6 +55,7 @@ public:
 
 	bool bActorsInitialized = false;
 	bool bPlayerInitialized = false;
+	bool bCanApplySaveGame = false;
 
     TSubclassOf<UGameplayEffect> CoreEnergyEffect;
 private:

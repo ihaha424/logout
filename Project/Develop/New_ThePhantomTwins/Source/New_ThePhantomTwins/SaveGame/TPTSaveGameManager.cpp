@@ -39,14 +39,18 @@ UTPTSaveGameManager::UTPTSaveGameManager()
 
     bActorsInitialized = false;
     bPlayerInitialized = false;
+    bCanApplySaveGame = false;
 }
 
 void UTPTSaveGameManager::ReInitialize()
 {
     bActorsInitialized = false;
     bPlayerInitialized = false;
+	bCanApplySaveGame = false;
 
     UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLevelSaveGame>();
+    UTPTSaveGameHelperLibrary::DeleteSaveGameData<UTPTLocalPlayerSaveGame>();
+
 	SetRestartPoint(nullptr);
 
     DoorActorsMap.Reset();
@@ -76,6 +80,7 @@ void UTPTSaveGameManager::FullInitialize()
 
     bActorsInitialized = false;
     bPlayerInitialized = false;
+    bCanApplySaveGame = false;
 
     InitializeSavePlayer();
 }
@@ -369,6 +374,12 @@ FTransform UTPTSaveGameManager::GetRestartPoint(const bool bIsHost)
 
 void UTPTSaveGameManager::ApplyActorSaveGame()
 {
+	if (!bCanApplySaveGame)
+	{
+        bCanApplySaveGame = true;
+		return;
+	}
+
     LevelSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTLevelSaveGame>("MainSlot", 0, false);
 
     // 문 상태 적용
