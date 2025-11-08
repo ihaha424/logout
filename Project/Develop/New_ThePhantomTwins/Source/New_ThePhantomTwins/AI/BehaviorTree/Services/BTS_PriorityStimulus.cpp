@@ -40,11 +40,18 @@ void UBTS_PriorityStimulus::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 	FPriorityStimulusStruct* PriorityStimulusStruct = (FPriorityStimulusStruct*)NodeMemory;
 	int32 Priority = BB->GetValueAsInt(PriorityKey.SelectedKeyName);
 	UObject* TargetActor = BB->GetValueAsObject(TargetActorKey.SelectedKeyName);
-	if (TargetActor == PriorityStimulusStruct->CurTargetActor)
+
+	if (TargetActor == nullptr)
 		return;
+	// UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("CurTargetActor: %s"), (PriorityStimulusStruct->CurTargetActor == nullptr ? *FString("Nullptr") : *PriorityStimulusStruct->CurTargetActor->GetName())));
+	// UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("TargetActor: %s"), (TargetActor == nullptr ? *FString("Nullptr") : *TargetActor->GetName())));
+	//if (TargetActor == PriorityStimulusStruct->CurTargetActor)
+	//	return;
 
 	if (Priority < PriorityStimulusStruct->CurPriority)
 	{
+		//UKismetSystemLibrary::PrintString(this, "Revaluation: High Prior");
+		//UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Priority: %d | PriorityStimulusStruct->CurPriority: %d"), Priority, PriorityStimulusStruct->CurPriority));
 		PriorityStimulusStruct->CurPriority = Priority;
 		PriorityStimulusStruct->CurTargetActor = TargetActor;
 		BB->SetValueAsBool(RevaluationKey.SelectedKeyName, true);
@@ -67,17 +74,25 @@ void UBTS_PriorityStimulus::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* N
 		const float CurDistance = FVector::Dist(MyLoc, TargetLoc);
 		TargetLoc = BB->GetValueAsVector(StimulusLocationKey.SelectedKeyName);
 		const float NewDistance = FVector::Dist(MyLoc, TargetLoc);
-		if (NewDistance < CurDistance)
+		const float Distance = NewDistance - CurDistance;
+		if (Distance < -ThresholdDistance)
 		{
+			//UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("Priority: %d | PriorityStimulusStruct->CurPriority: %d"), Priority, PriorityStimulusStruct->CurPriority));
+			//UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("CurDIstance: %f | NewDIstance: %f"), CurDistance, NewDistance));
+			//UKismetSystemLibrary::PrintString(this, "Revaluation");
 			PriorityStimulusStruct->CurPriority = Priority;
 			PriorityStimulusStruct->CurTargetActor = TargetActor;
 			BB->SetValueAsBool(RevaluationKey.SelectedKeyName, true);
 			return;
 		}
 	}
-	AAIController* AIController = OwnerComp.GetAIOwner();
-	FVector TargetLoc = BB->GetValueAsVector(StimulusLocationKey.SelectedKeyName);
-	AIController->MoveTo(TargetLoc);
+	//BB->SetValueAsObject(TargetActorKey.SelectedKeyName, PriorityStimulusStruct->CurTargetActor);
+	//BB->SetValueAsInt(PriorityKey.SelectedKeyName, PriorityStimulusStruct->CurPriority);
+
+
+	//AAIController* AIController = OwnerComp.GetAIOwner();
+	//FVector TargetLoc = BB->GetValueAsVector(StimulusLocationKey.SelectedKeyName);
+	//AIController->MoveTo(TargetLoc);
 }
 
 FString UBTS_PriorityStimulus::GetStaticDescription() const

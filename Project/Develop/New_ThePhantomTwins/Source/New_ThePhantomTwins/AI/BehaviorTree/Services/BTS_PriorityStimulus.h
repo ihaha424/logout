@@ -32,4 +32,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	FBlackboardKeySelector TargetActorKey;
 	//~ End Blackboard Key
+
+protected:
+	UPROPERTY(EditAnywhere, Category = "Blackboard")
+	float ThresholdDistance = 10.f;
 };

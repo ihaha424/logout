@@ -142,19 +142,31 @@ void AAIBaseController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
     {
         if (Stimulus.WasSuccessfullySensed())
         {
+            const int32 CurPriority = BB->GetValueAsInt(TEXT("Priority"));
             const int32 Priority = GetStimulusPriority(Stimulus.Tag);
+            if (CurPriority < Priority)
+                return;
             const float CurrentTime = GetWorld()->GetTimeSeconds();
             const float Score = GetStimulusStrength(Stimulus.Tag);
             const float Old = BB->GetValueAsFloat(TEXT("HearingSum"));
+            
 
             BB->SetValueAsInt(TEXT("Priority"), Priority);
             BB->SetValueAsFloat(TEXT("HearingSum"), Old + Score);
             BB->SetValueAsFloat(TEXT("LastHearingTime"), CurrentTime);
+            BB->SetValueAsObject(TEXT("TargetObjact"), Actor);
             BB->SetValueAsVector(TEXT("StimulusLocation"), Stimulus.StimulusLocation);
         }
         else
         {
+            TArray<AActor*> HeardNow;
+            PerceptionComponent->GetCurrentlyPerceivedActors(UAISense_Hearing::StaticClass(), HeardNow);
+            if (HeardNow.Num() <= 0)
+            {
+                BB->SetValueAsObject(TEXT("TargetObjact"), nullptr);
+                BB->SetValueAsInt(TEXT("Priority"), std::numeric_limits<int32>::max());
 
+            }
         }
     }
     

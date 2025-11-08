@@ -440,6 +440,7 @@ void AAIBaseCharacter::ResetDataForDefaultState_Implementation()
     const FVector InvalidLocation(FLT_MAX, FLT_MAX, FLT_MAX);
     BB->SetValueAsVector("StimulusLocation", InvalidLocation);
     BB->SetValueAsObject("TargetActor", nullptr);
+    BB->SetValueAsObject(TEXT("TargetObjact"), nullptr);
     BB->SetValueAsFloat("SightDuration", 0.f);
     BB->SetValueAsFloat("LastSightTime", -1.f);
     BB->SetValueAsFloat("HearingSum", 0.f);
@@ -516,6 +517,8 @@ void AAIBaseCharacter::ResetDataForEscapeCombatState_Implementation()
     BB->SetValueAsFloat("SightDuration", 0.f);
     BB->SetValueAsFloat("HearingSum", 0.f);
     BB->SetValueAsObject("TargetActor", nullptr);
+    BB->SetValueAsObject("TargetObjact", nullptr);
+    BB->SetValueAsInt("Priority", std::numeric_limits<int32>::max());
     CurSpeed = MoveSpeed;
     GetCharacterMovement()->MaxWalkSpeed = CurSpeed;
     SetAttackCollision(false);
