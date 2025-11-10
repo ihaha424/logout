@@ -43,6 +43,7 @@ private:
 
 private:
     int32 UserCount = 0;
+    int32 TravelUserCount = 0;
     FString CachedTargetMap;
     TSubclassOf<UUserWidget> CachedWidgetClass;
     bool bCachedServerTravel = true;

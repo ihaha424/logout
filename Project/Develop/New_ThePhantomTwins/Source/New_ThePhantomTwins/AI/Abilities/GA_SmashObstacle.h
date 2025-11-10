@@ -43,8 +43,10 @@ protected:
     TObjectPtr<UAnimMontage> AttackMontage;
 private:
     bool bActiveAbility = false;
-    AActor* Target = nullptr;
-    AAIBaseCharacter* OwnerPawn = nullptr;
+    UPROPERTY()
+    TObjectPtr<AActor> Target = nullptr;
+    UPROPERTY()
+    TObjectPtr<AAIBaseCharacter> OwnerPawn = nullptr;
     int32 CurCount = 0;
     int32 Count = 0;
 };

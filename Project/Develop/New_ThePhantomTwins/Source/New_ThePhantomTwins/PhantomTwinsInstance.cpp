@@ -26,4 +26,11 @@ void UPhantomTwinsInstance::Init()
 
 	DialogManager->Initialize(Initialize);
 	GetSubsystem<UTPTSaveGameManager>();
+
+	/*
+		FadeInOutInstance = CreateWidget<UFHFadeInOut>(this, FadeInOutWidgetClass);
+		FadeInOutInstance->SetVisibility(ESlateVisibility::Collapsed);
+
+		FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UFHGameInstance::ShowFadeWidget);
+	*/
 }
