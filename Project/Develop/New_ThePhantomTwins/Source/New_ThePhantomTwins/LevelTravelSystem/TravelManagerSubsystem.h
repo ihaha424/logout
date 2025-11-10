@@ -9,6 +9,7 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogTravelManagerSubsystem, Log, All);
 
 class ALevelTravelNetProxy;
+class UTravelWidgetInterface;
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UTravelManagerSubsystem : public UGameInstanceSubsystem
@@ -40,31 +41,36 @@ public:
     int32 GetUserCount();
     void PostLogin(APlayerController* NewPlayer);
     void Logout(AController* NewPlayer);
-
-    //UFUNCTION()
-    //void EnsureProxyOnServer(UWorld* World);
+    void CheckAllPlayerReady(APlayerController* NewPlayer);
+    void FinishTravel();
 
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<ALevelTravelNetProxy> ProxyClass;
-           
-    void CheckAllPlayerReady(APlayerController* NewPlayer);
-    void FinishTravel();
+    UFUNCTION(BlueprintCallable)
+    void SetTravelWidgetInterface(UUserWidget* UserWidget);
+    UFUNCTION(BlueprintCallable)
+    UUserWidget* GetTravelWidgetInterface();
 private:
     UPROPERTY()
     TMap<TWeakObjectPtr<APlayerController>, TWeakObjectPtr<ALevelTravelNetProxy>> PerPCProxy;
 
     void TravelToLoadingMap();
+    UFUNCTION()
     void HandlePostLoadMap(UWorld* World);
+    /*UFUNCTION()
+    void OnWorldCleanup(UWorld* World);*/
     bool ShouldHandleWorld(const UWorld* World);
     ALevelTravelNetProxy* SpawnOwnedProxyFor(APlayerController* PC, bool bAttachToPC);
 
 private:
+    UPROPERTY()
+    TObjectPtr<UUserWidget> TravelWidgetInterface;
     int32 EnsureUserCount = 0;
     int32 UserCount = 0;
     FString CachedTargetMap;
-    TSubclassOf<UUserWidget> CachedWidgetClass;
     bool bCachedServerTravel = true;
     bool bPostLoadEndPlayTravelLevel = false;
     bool bIsServerTravel = false;
     bool bIsTravel = false;
+    bool bIsTravelWidget = false;
 };

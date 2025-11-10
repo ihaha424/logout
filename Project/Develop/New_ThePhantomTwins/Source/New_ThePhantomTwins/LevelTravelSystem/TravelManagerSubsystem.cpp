@@ -16,10 +16,13 @@ void UTravelManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     Super::Initialize(Collection);
 
     ProxyClass = ALevelTravelNetProxy::StaticClass();
+    FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UTravelManagerSubsystem::HandlePostLoadMap);
+    //FWorldDelegates::OnPostWorldCleanup.AddUObject(this, &UTravelManagerSubsystem::OnWorldCleanup);
 }
 
 void UTravelManagerSubsystem::Deinitialize()
 {
+    FCoreUObjectDelegates::PostLoadMapWithWorld.RemoveAll(this);
     Super::Deinitialize();
 }
 
@@ -35,7 +38,6 @@ void UTravelManagerSubsystem::TravelToLevel(const FString& TargetMap, TSubclassO
         return;
 
     CachedTargetMap = TargetMap;
-    CachedWidgetClass = WidgetClass;
     bCachedServerTravel = bServerTravel;
     bPostLoadEndPlayTravelLevel = false;
     bIsServerTravel = bServerTravel;
@@ -45,11 +47,11 @@ void UTravelManagerSubsystem::TravelToLevel(const FString& TargetMap, TSubclassO
     // ---- 1) Fade In ----
     if (WidgetClass && World->GetNetMode() != NM_DedicatedServer)
     {
-        if (UUserWidget* Widget = CreateWidget<UUserWidget>(World, WidgetClass))
+        if (IsValid(TravelWidgetInterface))
         {
-            Widget->AddToViewport();
-            if (Widget->GetClass()->ImplementsInterface(UTravelWidgetInterface::StaticClass()))
-                ITravelWidgetInterface::Execute_BeginPlayTravelLevel(Widget);
+            TravelWidgetInterface->AddToViewport();
+            if (TravelWidgetInterface->GetClass()->ImplementsInterface(UTravelWidgetInterface::StaticClass()))
+                ITravelWidgetInterface::Execute_BeginPlayTravelLevel(TravelWidgetInterface);
         }
     }
 
@@ -60,10 +62,10 @@ void UTravelManagerSubsystem::TravelToLevel(const FString& TargetMap, TSubclassO
         ALevelTravelNetProxy* OwnedProxy = nullptr;
         for (TActorIterator<ALevelTravelNetProxy> It(World); It; ++It)
         {
-            if (IsValid(*It) && It->GetOwner() == PC) 
-            { 
-                OwnedProxy = *It; 
-                break; 
+            if (IsValid(*It) && It->GetOwner() == PC)
+            {
+                OwnedProxy = *It;
+                break;
             }
         }
         if (OwnedProxy)
@@ -82,7 +84,7 @@ void UTravelManagerSubsystem::TravelToLevel(const FString& TargetMap, TSubclassO
 void UTravelManagerSubsystem::OnLoadingLevelReady()
 {
     UWorld* World = GetWorld();
-    if (!World || CachedTargetMap.IsEmpty()) 
+    if (!World || CachedTargetMap.IsEmpty())
         return;
 
     UE_LOG(LogTravelManagerSubsystem, Log, TEXT("OnLoadingLevelReady: Mode=%d, Map=%s"), (int32)World->GetNetMode(), *CachedTargetMap);
@@ -114,6 +116,7 @@ void UTravelManagerSubsystem::OnLoadingLevelReady()
         break;
     }
 
+    bIsTravelWidget = true;
     // ---- 4) 새 맵 진입 후 FadeOut ----
     // EndPlayTravelLevel(FadeOut)은 직접 원하는 타이밍에 호출 해주는 것.
     //if (World->GetNetMode() != NM_DedicatedServer)
@@ -128,7 +131,7 @@ bool UTravelManagerSubsystem::GetCachedTargetMap(TSoftObjectPtr<UWorld>& TargetW
     {
         FSoftObjectPath Path(CachedTargetMap);
         TargetWorld = TSoftObjectPtr<UWorld>(Path);
-        if(TargetWorld.IsValid())
+        if (TargetWorld.IsValid())
             return true;
     }
     return false;
@@ -264,45 +267,49 @@ void UTravelManagerSubsystem::CheckAllPlayerReady(APlayerController* NewPlayer)
 
     if (EnsureUserCount == UserCount)
         TravelToLoadingMap();
-    // 서버면 준비 다 확인하고 TravelToLoadingMap();
 }
 
 void UTravelManagerSubsystem::FinishTravel()
 {
     bIsTravel = false;
     EnsureUserCount = 0;
+    if (IsValid(TravelWidgetInterface) && TravelWidgetInterface->GetClass()->ImplementsInterface(UTravelWidgetInterface::StaticClass()))
+    {
+        ITravelWidgetInterface::Execute_EndPlayTravelLevel(TravelWidgetInterface);
+    }
+}
+
+void UTravelManagerSubsystem::SetTravelWidgetInterface(UUserWidget* UserWidget)
+{
+    TravelWidgetInterface = UserWidget;
+}
+
+UUserWidget* UTravelManagerSubsystem::GetTravelWidgetInterface()
+{
+    if(IsValid(TravelWidgetInterface))
+        return nullptr;
+    if (TravelWidgetInterface->GetClass()->ImplementsInterface(UTravelWidgetInterface::StaticClass()))
+        return TravelWidgetInterface;
+    return nullptr;
 }
 
 void UTravelManagerSubsystem::HandlePostLoadMap(UWorld* World)
 {
-    if (!IsValid(World)) 
+    if (!IsValid(World))
         return;
-    if (World->GetNetMode() == NM_DedicatedServer) 
+    if (World->GetNetMode() == NM_DedicatedServer)
         return;
-    if (!CachedWidgetClass) 
+    if (!IsValid(TravelWidgetInterface))
         return;
-    if (bPostLoadEndPlayTravelLevel) 
+    if (bPostLoadEndPlayTravelLevel)
         return;
 
     bPostLoadEndPlayTravelLevel = true;
-
-    // 1프레임 뒤에 실행 — UMG/World 초기화 완료 후 안전하게 위젯 생성
-    FTimerHandle TempHandle;
-    World->GetTimerManager().SetTimer(
-        TempHandle,
-        [this]()
-        {
-            if (!GetGameInstance() || !CachedWidgetClass) return;
-            UUserWidget* Widget = CreateWidget<UUserWidget>(GetGameInstance(), CachedWidgetClass);
-            if (!Widget) 
-                return;
-
-            Widget->AddToViewport();
-            if (Widget->GetClass()->ImplementsInterface(UTravelWidgetInterface::StaticClass()))
-                ITravelWidgetInterface::Execute_EndPlayTravelLevel(Widget);
-        },
-        0.01f, false
-    );
+    if (bIsTravelWidget)
+    {
+        TravelWidgetInterface->AddToViewport();
+        bIsTravelWidget = false;
+    }
 }
 
 bool UTravelManagerSubsystem::ShouldHandleWorld(const UWorld* World)

@@ -10,6 +10,7 @@
 #include "PhantomTwinsInstance.generated.h"
 
 class UDialogManager;
+class UTravelWidgetInterface;
 
 UCLASS()
 class NEW_THEPHANTOMTWINS_API UPhantomTwinsInstance : public UGameInstance
@@ -29,4 +30,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TMap<TSubclassOf<UUserWidget>, TObjectPtr<UDataTable>> Initialize;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<UUserWidget> TravelWidgetInterfaceClass;
 };
