@@ -16,13 +16,13 @@ void UTravelManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     Super::Initialize(Collection);
 
     ProxyClass = ALevelTravelNetProxy::StaticClass();
-    // FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UTravelManagerSubsystem::HandlePostLoadMap);
+    FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UTravelManagerSubsystem::HandlePostLoadMap);
     //FWorldDelegates::OnPostWorldCleanup.AddUObject(this, &UTravelManagerSubsystem::OnWorldCleanup);
 }
 
 void UTravelManagerSubsystem::Deinitialize()
 {
-    // FCoreUObjectDelegates::PostLoadMapWithWorld.RemoveAll(this);
+    FCoreUObjectDelegates::PostLoadMapWithWorld.RemoveAll(this);
     Super::Deinitialize();
 }
 
@@ -308,6 +308,10 @@ void UTravelManagerSubsystem::HandlePostLoadMap(UWorld* World)
     if (bIsTravelWidget)
     {
         TravelWidgetInterface->AddToViewport();
+        if (TravelWidgetInterface->GetClass()->ImplementsInterface(UTravelWidgetInterface::StaticClass()))
+        {
+            ITravelWidgetInterface::Execute_EndPlayTravelLevel(TravelWidgetInterface);
+        }
         bIsTravelWidget = false;
     }
 }
