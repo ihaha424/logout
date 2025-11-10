@@ -9,7 +9,7 @@ void AUserCountGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
-	GetGameInstance()->GetSubsystem<UTravelManagerSubsystem>()->PostLogin();
+	GetGameInstance()->GetSubsystem<UTravelManagerSubsystem>()->PostLogin(NewPlayer);
 }
 
 void AUserCountGameMode::Logout(AController* Exiting)
@@ -35,7 +35,7 @@ void AUserCountGameMode::Logout(AController* Exiting)
 	UTravelManagerSubsystem* Sub = GI->GetSubsystem<UTravelManagerSubsystem>();
 	if (IsValid(Sub))
 	{
-		Sub->Logout();
+		Sub->Logout(Exiting);
 	}
 }
 

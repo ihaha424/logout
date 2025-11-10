@@ -7,6 +7,7 @@
 #include "DialogManager/DialogManager.h"
 #include "SaveGame/TPTSaveGameManager.h"
 #include "SettingManager/SettingSystem.h"
+#include "LevelTravelSystem/TravelManagerSubsystem.h"
 
 void UPhantomTwinsInstance::Init()
 {
@@ -14,6 +15,7 @@ void UPhantomTwinsInstance::Init()
 	FTPTGameplayTags::Get();
 
 	USettingSystem* SubSystem =	GetSubsystem<USettingSystem>();
+	UTravelManagerSubsystem* TravelManagerSubsystem = GetSubsystem<UTravelManagerSubsystem>();
 
 	SubSystem->SetSoundSoundMix(BaseSoundMix);
 	for (auto It = SoundClassList.CreateIterator(); It; ++It)
