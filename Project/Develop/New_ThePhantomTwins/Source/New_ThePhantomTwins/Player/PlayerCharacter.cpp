@@ -1145,7 +1145,7 @@ void APlayerCharacter::EnsureGameStart_Implementation()
 
 	UUserWidget* Drone = CreateWidget(GetWorld(), DroneWidgetClass);
 	DroneWidget->SetWidget(Drone);
-	DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+	DroneWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
 	DroneWidget->SetCastShadow(false);
 
 	if (Drone)
