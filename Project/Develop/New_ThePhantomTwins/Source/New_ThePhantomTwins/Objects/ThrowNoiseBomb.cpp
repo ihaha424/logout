@@ -131,14 +131,19 @@ void AThrowNoiseBomb::ExplodeAndMakeNoise()
 
     // 일정 시간 후 액터 파괴 (소음이 끝난 후)
     FTimerHandle DestroyTimer;
-    if (GetWorld())
+    if (UWorld* W = GetWorld())
     {
-        GetWorld()->GetTimerManager().SetTimer(DestroyTimer, [this]()
+        FTimerDelegate Del;
+        Del.BindWeakLambda(this, [this]()
             {
-                NoiseComponent->StopNoise();
+                if (IsValid(NoiseComponent)) 
+                { 
+                    NoiseComponent->StopNoise(); 
+                }
                 DestroyNoiseBomb();
-                Destroy();
-            }, NoiseDuration, false); // 소음이 충분히 지속된 후 파괴
+                Destroy(); // 여기서 파괴해도 람다 종료로 안전
+            });
+        W->GetTimerManager().SetTimer(DestroyTimer, Del, NoiseDuration, false);
     }
 }
 
