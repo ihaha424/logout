@@ -147,22 +147,18 @@ void UGA_Run::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGame
 	StaminaRegen();
 
 	//UKismetSystemLibrary::PrintString(this, TEXT("CancelAbility"));
-	//TPT_LOG(GALog, Log, TEXT("Fucking"));
-
-	// 다운드 되면 SetSpeed를 하지않아도 됨.
-	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
-	if (MyASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
-	{
-		Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
-		return;
-	}
 
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 }
 void UGA_Run::EndAbility(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo,const FGameplayAbilityActivationInfo ActivationInfo,bool bReplicateEndAbility, bool bWasCancelled)
 {
+	UAbilitySystemComponent* MyASC = GetAbilitySystemComponentFromActorInfo();
+	if (MyASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
+	{
+		Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+		return;
+	}
 
-	// 다음 틱에서 속도 복구/GE 적용
 	if (UWorld* W = GetWorld())
 	{
 		FTimerHandle Th;
