@@ -27,6 +27,9 @@ UTPTSaveGameManager::UTPTSaveGameManager()
     PlayerSaveGames.Add(UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTLocalPlayerSaveGame>("MainSlot", 0, true));
     PlayerSaveGames.Add(UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTLocalPlayerSaveGame>("MainSlot",  0, true));
 
+    UTPTSaveGame* InitialTPTSvaeGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>("MainSlot", 0, true);
+    UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTSaveGame>(InitialTPTSvaeGame);
+
     static ConstructorHelpers::FClassFinder<UGameplayEffect> EffectClass(TEXT("/Game/ThePhantomTwins/Characters/Blueprints/GE/SetPlayerAttribute/BPGE_CoreEnergySet.BPGE_CoreEnergySet_C"));
     if (EffectClass.Succeeded())
     {
@@ -67,6 +70,9 @@ void UTPTSaveGameManager::FullInitialize()
     LevelSaveGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTLevelSaveGame>("MainSlot", 0, true);
     PlayerSaveGames.Add(UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTLocalPlayerSaveGame>("MainSlot", 0, true));
     PlayerSaveGames.Add(UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTLocalPlayerSaveGame>("MainSlot", 0, true));
+
+    UTPTSaveGame* InitialTPTSvaeGame = UTPTSaveGameHelperLibrary::GetSaveGameData<UTPTSaveGame>("MainSlot", 0, true);
+    UTPTSaveGameHelperLibrary::SetSaveGameData<UTPTSaveGame>(InitialTPTSvaeGame);
 
     DoorActorsMap.Reset();
     ItemActorsMap.Reset();
