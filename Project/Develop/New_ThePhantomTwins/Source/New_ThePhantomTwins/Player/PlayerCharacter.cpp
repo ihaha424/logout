@@ -662,6 +662,8 @@ void APlayerCharacter::OnRecoveryCompleted()
 
 void APlayerCharacter::InputPressed(int32 InputID)
 {
+	if (bOnEsc) return;
+
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Warning, );
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
 	NULLCHECK_RETURN_LOG(Spec,PlayerLog, Warning,);
@@ -689,6 +691,8 @@ void APlayerCharacter::InputPressed(int32 InputID)
 
 void APlayerCharacter::InputSKillPressed(int32 InputID, int32 SkillNumber)
 {
+	if (bOnEsc) return;
+
 	FGameplayTag EventTag = FTPTGameplayTags::Get().TPTGameplay_Character_Skill_ActiveSkill;
 	FGameplayEventData Payload;
 	Payload.EventTag = EventTag;
@@ -700,6 +704,8 @@ void APlayerCharacter::InputSKillPressed(int32 InputID, int32 SkillNumber)
 
 void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
 {
+	if (bOnEsc) return;
+
 	SelectedSlotNumber = SlotNumber;
 	NULLCHECK_RETURN_LOG(PlayerHUDWidget, PlayerLog, Warning, );
 
@@ -731,6 +737,8 @@ void APlayerCharacter::InputPressedWithNum(int32 InputID, int32 SlotNumber)
 
 void APlayerCharacter::InputMouseWheelDown(const FInputActionValue& Value)
 {
+	if (bOnEsc) return;
+
 	SelectedSlotNumber++;
 
 	// 인벤토리 슬롯 개수 넘으면 처음으로
@@ -746,16 +754,30 @@ void APlayerCharacter::InputESC(const FInputActionValue& Value)
 {
 	APC_Player* PC = APC_Player::GetLocalPlayerController(this);
 
-	PC->SetWidget(TEXT("ESC"),	true, EMessageTargetType::LocalClient);
-	bIsShowingESC = true;
-	FInputModeUIOnly InputData;
-	PC->FlushPressedKeys();
-	PC->SetInputMode(InputData);
-	PC->bShowMouseCursor = true;
+	bOnEsc = !bOnEsc;
+
+	if (bOnEsc)
+	{
+		PC->SetWidget(TEXT("ESC"), true, EMessageTargetType::LocalClient);
+		FInputModeGameAndUI InputData;
+		PC->FlushPressedKeys();
+		PC->SetInputMode(InputData);
+		PC->bShowMouseCursor = true;
+	}
+	else
+	{
+		PC->SetWidget(TEXT("ESC"), false, EMessageTargetType::LocalClient);
+		FInputModeGameOnly InputData;
+		PC->FlushPressedKeys();
+		PC->SetInputMode(InputData);
+		PC->bShowMouseCursor = false;
+	}
 }
 
 void APlayerCharacter::InputTab(const FInputActionValue& Value)
 {
+	if (bOnEsc) return;
+
 	NULLCHECK_RETURN_LOG(DroneWidget, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(DroneUserWidget, PlayerLog, Error, );
 
@@ -773,6 +795,8 @@ void APlayerCharacter::InputTab(const FInputActionValue& Value)
 
 void APlayerCharacter::InputMouseWheelUp(const FInputActionValue& Value)
 {
+	if (bOnEsc) return;
+
 	SelectedSlotNumber--;
 
 	// 인벤토리 슬롯 개수보다 적으면 끝으로
@@ -786,6 +810,8 @@ void APlayerCharacter::InputMouseWheelUp(const FInputActionValue& Value)
 
 void APlayerCharacter::InputPressedUseItem(int32 InputID)
 {
+	if (bOnEsc) return;
+
 	if(ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Hide) || ASC->HasMatchingGameplayTag(FTPTGameplayTags::Get().TPTGameplay_Character_State_Downed))
 	{
 		return;
@@ -817,6 +843,8 @@ void APlayerCharacter::InputPressedUseItem(int32 InputID)
 
 void APlayerCharacter::InputReleased(int32 InputID)
 {
+	if (bOnEsc) return;
+
 	NULLCHECK_RETURN_LOG(ASC, PlayerLog, Error, );
 	FGameplayAbilitySpec* Spec = ASC->FindAbilitySpecFromInputID(InputID);
 	Spec->InputPressed = false;
@@ -866,6 +894,8 @@ void APlayerCharacter::C2S_SetFocusTrace_Implementation(const FVector& CameraLoc
 
 void APlayerCharacter::Move(const FInputActionValue& Value)
 {
+	if (bOnEsc) return;
+
 	NULLCHECK_RETURN_LOG(PS, PlayerLog, Error, );
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 
@@ -883,6 +913,8 @@ void APlayerCharacter::Move(const FInputActionValue& Value)
 
 void APlayerCharacter::Look(const FInputActionValue& Value)
 {
+	if (bOnEsc) return;
+
 	NULLCHECK_RETURN_LOG(PlayerController, PlayerLog, Error, );
 	float MouseSensitivity = 0.3f;
 	FVector2D LookAxisVector = Value.Get<FVector2D>() * MouseSensitivity;

@@ -151,6 +151,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drone")
 	USkeletalMeshComponent* DroneMesh = nullptr;
 
+	// ESC 키 상태
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+	bool bOnEsc = false;
 public:
 	// 위젯 설정
 	void InitHUDWidget(const UPlayerAttributeSet* AttributeSet);
@@ -418,7 +421,6 @@ protected:
 	// 세팅 보장
 	bool bEnsureSet[EnsureCreateElement::End];
 	bool bOnceTime = false;
-
 	
 private:
 	UPROPERTY()
