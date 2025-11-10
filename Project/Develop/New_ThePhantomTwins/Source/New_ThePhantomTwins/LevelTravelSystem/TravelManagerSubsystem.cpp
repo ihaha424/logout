@@ -16,13 +16,13 @@ void UTravelManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     Super::Initialize(Collection);
 
     ProxyClass = ALevelTravelNetProxy::StaticClass();
-    FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UTravelManagerSubsystem::HandlePostLoadMap);
+    // FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UTravelManagerSubsystem::HandlePostLoadMap);
     //FWorldDelegates::OnPostWorldCleanup.AddUObject(this, &UTravelManagerSubsystem::OnWorldCleanup);
 }
 
 void UTravelManagerSubsystem::Deinitialize()
 {
-    FCoreUObjectDelegates::PostLoadMapWithWorld.RemoveAll(this);
+    // FCoreUObjectDelegates::PostLoadMapWithWorld.RemoveAll(this);
     Super::Deinitialize();
 }
 
