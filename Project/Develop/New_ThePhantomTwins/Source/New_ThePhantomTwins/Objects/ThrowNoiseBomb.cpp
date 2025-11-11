@@ -89,6 +89,12 @@ void AThrowNoiseBomb::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActo
             CollisionComponent->SetPhysicsLinearVelocity(FVector::ZeroVector);
             CollisionComponent->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
 
+            // 소음폭탄이 표면 법선을 향하도록 회전 (바닥과 이쁘게 붙음)
+            FVector HitNormal = Hit.Normal;
+
+            FRotator SurfaceRotation = FRotationMatrix::MakeFromZ(HitNormal).Rotator();
+            SetActorRotation(SurfaceRotation);
+
             ExplodeAndMakeNoise();
         }
     }
