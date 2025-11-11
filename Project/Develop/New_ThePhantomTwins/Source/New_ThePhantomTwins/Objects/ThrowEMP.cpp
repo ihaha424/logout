@@ -76,23 +76,25 @@ void AThrowEMP::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPr
         //TPT_LOG(GALog, Log, TEXT("AThrowEMP OnHit!!!!!!!!!!!!!!!"));
 
         // ProjectileMovementComponent 비활성화
-        if (ProjectileMovementComponent)
-        {
-            ProjectileMovementComponent->StopMovementImmediately();
-            ProjectileMovementComponent->Deactivate();
-        }
+		if (ProjectileMovementComponent)
+		{
+			ProjectileMovementComponent->StopMovementImmediately();
+			ProjectileMovementComponent->Deactivate();
+		}
 
-        // 메시의 물리 시뮬레이션 활성화, 중력 적용
-		MeshComponent->SetSimulatePhysics(true);
-		MeshComponent->SetEnableGravity(true);
+		// 메시의 물리 시뮬레이션 활성화, 중력 적용
+	    MeshComponent->SetSimulatePhysics(true);
+	    MeshComponent->SetEnableGravity(true);
 
-        CollisionComponent->SetSimulatePhysics(true);
-        CollisionComponent->SetEnableGravity(true);
+		CollisionComponent->SetSimulatePhysics(true);
+		CollisionComponent->SetEnableGravity(true);
 
 
         // 바닥 판정 (예: 태그 "Ground")
         if (OtherActor->ActorHasTag(FName("Ground")))
         {
+           // TPT_LOG(ObjectLog, Log, TEXT("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
+
             MeshComponent->SetSimulatePhysics(false);
             MeshComponent->SetPhysicsLinearVelocity(FVector::ZeroVector);
             MeshComponent->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
@@ -127,7 +129,7 @@ void AThrowEMP::InvokeGameplayCue()
 
 void AThrowEMP::ExplodeAndMakeNoise()
 {
-    TPT_LOG(ObjectLog, Log, TEXT("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
+    //TPT_LOG(ObjectLog, Log, TEXT("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
 
     InvokeGameplayCue();
 

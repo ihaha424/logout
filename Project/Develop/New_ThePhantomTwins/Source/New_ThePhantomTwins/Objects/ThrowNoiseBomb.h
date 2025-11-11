@@ -17,7 +17,6 @@ public:
 
 public:
     virtual void BeginPlay() override;
-    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason);
 
     // 气惯/面倒 贸府
     UFUNCTION()
@@ -52,8 +51,4 @@ public:
 
     UPROPERTY(EditAnywhere, Category = "Noise", Meta=(Categories=GameplayCue))
 	FGameplayTag GameplayCueTag;
-
-private:
-    UPROPERTY()
-    FTimerHandle GroundCheckTimer;
 };

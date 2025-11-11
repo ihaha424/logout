@@ -54,23 +54,11 @@ void AThrowNoiseBomb::BeginPlay()
     }
 }
 
-void AThrowNoiseBomb::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-    if (GetWorld())
-    {
-        GetWorld()->GetTimerManager().ClearTimer(GroundCheckTimer);
-    }
-
-    Super::EndPlay(EndPlayReason);
-}
-
 void AThrowNoiseBomb::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
     // 자기 자신이나 소유자와의 충돌은 무시
     if (OtherActor && OtherActor != this && OtherActor != GetOwner())
     {
-        //TPT_LOG(GALog, Log, TEXT("AThrowEMP OnHit!!!!!!!!!!!!!!!"));
-
         // ProjectileMovementComponent 비활성화
         if (ProjectileMovementComponent)
         {
@@ -89,6 +77,8 @@ void AThrowNoiseBomb::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActo
         // 바닥 판정 (예: 태그 "Ground")
         if (OtherActor->ActorHasTag(FName("Ground")))
         {
+            TPT_LOG(ObjectLog, Log, TEXT("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
+
             MeshComponent->SetSimulatePhysics(false);
             MeshComponent->SetPhysicsLinearVelocity(FVector::ZeroVector);
             MeshComponent->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
@@ -123,7 +113,7 @@ void AThrowNoiseBomb::InvokeGameplayCue()
 
 void AThrowNoiseBomb::ExplodeAndMakeNoise()
 {
-    TPT_LOG(ObjectLog, Log, TEXT("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
+    TPT_LOG(ObjectLog, Log, TEXT("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"));
 
     InvokeGameplayCue();
 
