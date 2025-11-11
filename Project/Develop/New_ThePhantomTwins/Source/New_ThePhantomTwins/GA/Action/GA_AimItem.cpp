@@ -3,6 +3,7 @@
 
 #include "GA_AimItem.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Camera/CameraComponent.h"
 #include "Log/TPTLog.h"
 #include "Tags/TPTGameplayTags.h"
 #include "Components/SplineComponent.h"
@@ -98,7 +99,7 @@ void UGA_AimItem::UpdateParabola()
 		// 시작 위치 & 발사 방향
 		StartLocation = OwnerMeshComp->GetSocketLocation(TEXT("RightHand"));
 		//TPT_LOG(GALog, Warning, TEXT("%d, %d, %d"), StartLocation.X, StartLocation.Y, StartLocation.Z);
-		ForwardVector = OwnerActor->GetActorForwardVector();
+		ForwardVector = Character->GetCamera()->GetForwardVector();
 
 		// 포물선 설정
 		FPredictProjectilePathParams Params;

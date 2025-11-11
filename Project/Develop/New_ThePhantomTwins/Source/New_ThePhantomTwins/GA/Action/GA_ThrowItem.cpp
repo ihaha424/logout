@@ -79,7 +79,17 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 	FVector SpawnLocation = GetRightHandSocketLocation() + ThrowItemData->StartOffset;
 
 	// 방향
-	FVector Velocity = OwnerActor->GetActorForwardVector() * ThrowItemData->ThrowDistance;
+	FVector Velocity = FVector::ZeroVector;
+
+	APlayerCharacter* Player = Cast<APlayerCharacter>(OwnerActor);
+	if (Player)
+	{
+		Velocity = Player->GetCamera()->GetForwardVector() * ThrowItemData->ThrowDistance;
+	}
+	else
+	{
+		Velocity = OwnerActor->GetActorForwardVector() * ThrowItemData->ThrowDistance;
+	}
 
 	// Spawn 파라미터
 	FActorSpawnParameters SpawnParams;
