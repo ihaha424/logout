@@ -29,6 +29,7 @@ private:
 	float PositionY;
 
 	FTimerHandle MoveTimerHandle;
+	UPROPERTY(EditAnywhere, Category = "MoveLeft")
 	float MoveTotalTime = 0.5f;
 	float MoveElapsed = 0.f;
 	FVector MoveStart;
