@@ -18,7 +18,8 @@ void ABossSpawner::BeginPlay()
     if (!HasAuthority()) return;
 
     AGM_PhantomTwins* GM = GetWorld()->GetAuthGameMode<AGM_PhantomTwins>();
-    GM->PreferredSpawnActor = this;
+    if (GM)
+        GM->PreferredSpawnActor = this;
 }
 
 void ABossSpawner::SpawnBossOnce()
