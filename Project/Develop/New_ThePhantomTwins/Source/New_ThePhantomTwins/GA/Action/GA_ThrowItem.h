@@ -70,9 +70,6 @@ private:
 	/** Spawn the throwable corresponding to the item type */
 	void SpawnThrowableItem(EItemType ItemType);
 
-	/** Calculate target location based on ThrowItemData and start location */
-	FVector CalculateTargetLocation(const FThrowItemDT* ThrowItemData, const FVector& StartLocation) const;
-
 	/** Get right hand socket world location (uses avatar mesh) */
 	FVector GetRightHandSocketLocation() const;
 

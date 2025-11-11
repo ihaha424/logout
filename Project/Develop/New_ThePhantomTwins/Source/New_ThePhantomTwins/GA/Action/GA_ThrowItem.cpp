@@ -11,6 +11,7 @@
 #include "Log/TPTLog.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Components/SphereComponent.h"
 
 UGA_ThrowItem::UGA_ThrowItem()
 {
@@ -59,7 +60,7 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 	}
 
 	// 소유자 (OwnerActor는 보통 PlayerState로 설정되어 있을 수 있음)
-	AActor* OwnerActor = GetOwningActorFromActorInfo();
+	AActor* OwnerActor = GetAvatarActorFromActorInfo();
 	if (!OwnerActor)
 	{
 		TPT_LOG(GALog, Warning, TEXT("UGA_ThrowItem: No owning actor."));
@@ -76,120 +77,9 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 
 	// 시작 위치: Aim과 동일하게 RightHandSocket + DT StartOffset 사용
 	FVector SpawnLocation = GetRightHandSocketLocation() + ThrowItemData->StartOffset;
-	if (SpawnLocation.IsZero())
-	{
-		SpawnLocation = OwnerActor->GetActorLocation() + ThrowItemData->StartOffset;
-	}
 
-	// 목표 위치 계산 (카메라/컨트롤러/actor 순)
-	FVector TargetLocation = CalculateTargetLocation(ThrowItemData, SpawnLocation);
-
-	// SpawnRotation: 카메라 우선(UGA_AimItem과 동일)
-	FRotator SpawnRotation = GetThrowRotation(SpawnLocation, TargetLocation);
-
-	// LaunchVelocity 결정
-	FVector LaunchVelocity = FVector::ZeroVector;
-	bool bHaveVelocity = false;
-
-	// 1) DT에 LaunchVelocity가 있으면 그것을 '로컬(SpawnRotation 기준)' 벡터로 해석해서 월드속도로 변환
-	if (!ThrowItemData->LaunchVelocity.IsNearlyZero())
-	{
-		SpawnRotation = GetThrowRotation(SpawnLocation, TargetLocation);
-		LaunchVelocity = SpawnRotation.RotateVector(ThrowItemData->LaunchVelocity); // DT 값은 로컬 기준 저장 가정
-		bHaveVelocity = true;
-
-		//TPT_LOG(GALog, Log, TEXT("UGA_ThrowItem: Using DT LaunchVelocity (local->world): %s"), *LaunchVelocity.ToString());
-	}
-	else
-	{
-		// 2) DT에 LaunchVelocity가 없으면 '고정 발사 각도' 방식으로 속도 계산 (카메라 피치 무시 — 수평 거리 고정)
-		UWorld* World = GetWorld();
-		if (World)
-		{
-			// 목표 수평 거리: DT의 ThrowDistance 우선, 없으면 Spawn->Target 수평 거리 사용
-			float DesiredRange = ThrowItemData->ThrowDistance;
-			if (FMath::IsNearlyZero(DesiredRange))
-			{
-				FVector Delta = TargetLocation - SpawnLocation;
-				Delta.Z = 0.f;
-				DesiredRange = Delta.Size();
-				if (FMath::IsNearlyZero(DesiredRange))
-				{
-					DesiredRange = 1000.f; // 안전 fallback
-				}
-			}
-
-			// 중력 값 결정 (DT의 OverrideGravityZ가 있으면 사용, 없으면 월드 중력)
-			float GravityZ = 0.f;
-			if (!FMath::IsNearlyZero(ThrowItemData->OverrideGravityZ))
-			{
-				GravityZ = ThrowItemData->OverrideGravityZ;
-			}
-			else
-			{
-				GravityZ = World ? World->GetGravityZ() : -980.f;
-			}
-			float g = FMath::Abs(GravityZ);
-			if (g <= KINDA_SMALL_NUMBER)
-			{
-				g = 980.f; // 안전 fallback
-			}
-
-			// 각도 -> 라디안
-			float ThetaDeg = FixedLaunchAngleDegrees;
-			float ThetaRad = FMath::DegreesToRadians(ThetaDeg);
-
-			// sin(2θ) 검증
-			float Sin2Theta = FMath::Sin(2.f * ThetaRad);
-			if (FMath::Abs(Sin2Theta) < KINDA_SMALL_NUMBER)
-			{
-				// 각도가 불안정하면 fallback 사용
-				const float FallbackSpeed = 1000.f;
-				SpawnRotation = GetThrowRotation(SpawnLocation, TargetLocation);
-				LaunchVelocity = SpawnRotation.Vector() * FallbackSpeed;
-				bHaveVelocity = true;
-				TPT_LOG(GALog, Warning, TEXT("UGA_ThrowItem: Fixed-angle calc unstable (sin2θ ~ 0). Using fallback velocity: %s"), *LaunchVelocity.ToString());
-			}
-			else
-			{
-				// 초기 속도 크기 계산: v = sqrt(R * g / sin(2θ))
-				float RequiredSpeed = FMath::Sqrt(FMath::Max(0.f, DesiredRange * g / Sin2Theta));
-
-				// 수평 방향(방위각)만 사용 -> 카메라 피치 무시
-				FVector ToTarget = TargetLocation - SpawnLocation;
-				FVector DirXY = ToTarget;
-				DirXY.Z = 0.f;
-				if (DirXY.IsNearlyZero())
-				{
-					// 방향을 못구하면 액터의 forward 사용
-					DirXY = OwnerActor ? OwnerActor->GetActorForwardVector() : FVector::ForwardVector;
-					DirXY.Z = 0.f;
-				}
-				DirXY = DirXY.GetSafeNormal();
-
-				// Launch vector 구성: (cosθ * horizontal) + (sinθ * up) scaled by speed
-				float CosTheta = FMath::Cos(ThetaRad);
-				float SinTheta = FMath::Sin(ThetaRad);
-
-				LaunchVelocity = DirXY * (CosTheta * RequiredSpeed) + FVector::UpVector * (SinTheta * RequiredSpeed);
-
-				// SpawnRotation도 발사 방향으로 맞춤
-				SpawnRotation = LaunchVelocity.Rotation();
-
-				bHaveVelocity = true;
-
-				//TPT_LOG(GALog, Log, TEXT("UGA_ThrowItem: Fixed-angle LaunchVelocity calculated. Angle %f deg, Speed %f, Velocity %s"), ThetaDeg, RequiredSpeed, *LaunchVelocity.ToString());
-			}
-		}
-		else
-		{
-			// 월드가 없으면 fallback
-			const float FallbackSpeed = 1000.f;
-			LaunchVelocity = SpawnRotation.Vector() * FallbackSpeed;
-			bHaveVelocity = true;
-			//TPT_LOG(GALog, Warning, TEXT("UGA_ThrowItem: World missing, using fallback LaunchVelocity: %s"), *LaunchVelocity.ToString());
-		}
-	}
+	// 방향
+	FVector Velocity = OwnerActor->GetActorForwardVector() * ThrowItemData->ThrowDistance;
 
 	// Spawn 파라미터
 	FActorSpawnParameters SpawnParams;
@@ -222,28 +112,18 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 			// DT에 정의된 설정 적용 (중력 스케일 등)
 			ApplyThrowItemDataSettings(ProjectileMovementComponent, ThrowItemData);
 
-			// 초기 속도 적용
-			FVector InitialVelocity = LaunchVelocity;
-			if (!bHaveVelocity || InitialVelocity.IsNearlyZero())
-			{
-				InitialVelocity = SpawnRotation.Vector() * ProjectileMovementComponent->InitialSpeed;
-			}
-
 			// 속도/스피드 설정
-			ProjectileMovementComponent->Velocity = InitialVelocity;
-			const float SpeedMag = InitialVelocity.Size();
-			if (SpeedMag > KINDA_SMALL_NUMBER)
-			{
-				ProjectileMovementComponent->InitialSpeed = SpeedMag;
-				ProjectileMovementComponent->MaxSpeed = FMath::Max(ProjectileMovementComponent->MaxSpeed, SpeedMag);
-			}
+			ProjectileMovementComponent->Velocity = Velocity;
+			//const float SpeedMag = InitialVelocity.Size();
+			//if (SpeedMag > KINDA_SMALL_NUMBER)
+			//{
+			//	ProjectileMovementComponent->InitialSpeed = SpeedMag;
+			//	ProjectileMovementComponent->MaxSpeed = FMath::Max(ProjectileMovementComponent->MaxSpeed, SpeedMag);
+			//}
 
 			ProjectileMovementComponent->SetActive(true);
 			ProjectileMovementComponent->Activate(true);
 			ProjectileMovementComponent->UpdateComponentVelocity();
-
-			// 투사체 액터의 회전도 발사 방향으로 맞춤(모델 축에 따라 보정 필요시 추가)
-			ThrowActor->SetActorRotation(InitialVelocity.Rotation());
 
 			return true;
 		};
@@ -253,79 +133,27 @@ void UGA_ThrowItem::SpawnThrowableItem(EItemType ItemType)
 	{
 	case EItemType::NoiseBomb:
 	{
-		AThrowNoiseBomb* ThrowActor = World->SpawnActor<AThrowNoiseBomb>(NoiseBombClass, SpawnLocation, SpawnRotation, SpawnParams);
+		AThrowNoiseBomb* ThrowActor = World->SpawnActor<AThrowNoiseBomb>(NoiseBombClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
 		if (!SetupProjectile(ThrowActor))
 		{
 			TPT_LOG(GALog, Warning, TEXT("Failed to spawn or setup NoiseBomb actor."));
 		}
+		ThrowActor->CollisionComponent->IgnoreActorWhenMoving(OwnerActor, true);
 		break;
 	}
 	case EItemType::EMP:
 	{
-		AThrowEMP* ThrowActor = World->SpawnActor<AThrowEMP>(EMPClass, SpawnLocation, SpawnRotation, SpawnParams);
+		AThrowEMP* ThrowActor = World->SpawnActor<AThrowEMP>(EMPClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
 		if (!SetupProjectile(ThrowActor))
 		{
 			TPT_LOG(GALog, Warning, TEXT("Failed to spawn or setup EMP actor."));
 		}
+		ThrowActor->CollisionComponent->IgnoreActorWhenMoving(OwnerActor, true);
 		break;
 	}
 	default:
 		break;
 	}
-}
-
-
-FVector UGA_ThrowItem::CalculateTargetLocation(const FThrowItemDT* ThrowItemData, const FVector& StartLocation) const
-{
-	AActor* OwnerActor = GetOwningActorFromActorInfo();
-	if (!OwnerActor || !ThrowItemData)
-	{
-		return StartLocation + FVector::ForwardVector * (ThrowItemData ? ThrowItemData->ThrowDistance : 1000.0f);
-	}
-
-	FVector ViewDir = FVector::ZeroVector;
-
-	// OwnerActor가 PlayerState인 경우 Pawn 가져오기
-	APS_Player* PlayerState = Cast<APS_Player>(OwnerActor);
-	if (PlayerState)
-	{
-		APawn* Pawn = PlayerState->GetPawn();
-		if (Pawn)
-		{
-			// PlayerCharacter로 캐스트해서 카메라 찾기
-			const APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(Pawn);
-			if (PlayerChar)
-			{
-				UCameraComponent* CameraComp = PlayerChar->FindComponentByClass<UCameraComponent>();
-				if (CameraComp)
-				{
-					ViewDir = CameraComp->GetForwardVector();
-				}
-			}
-		}
-	}
-
-	// 카메라를 못 찾았으면 컨트롤러 회전 사용 (기존 방식)
-	if (ViewDir.IsNearlyZero())
-	{
-		if (PlayerState)
-		{
-			APawn* Pawn = PlayerState->GetPawn();
-			if (Pawn && Pawn->GetController())
-			{
-				FRotator ControlRot = Pawn->GetController()->GetControlRotation();
-				ViewDir = ControlRot.Vector();
-			}
-		}
-	}
-
-	// 그것도 안 되면 액터 Forward 방향
-	if (ViewDir.IsNearlyZero())
-	{
-		ViewDir = OwnerActor->GetActorForwardVector();
-	}
-
-	return StartLocation + ViewDir.GetSafeNormal() * ThrowItemData->ThrowDistance;
 }
 
 FVector UGA_ThrowItem::GetRightHandSocketLocation() const
@@ -349,34 +177,29 @@ FVector UGA_ThrowItem::GetRightHandSocketLocation() const
 
 FRotator UGA_ThrowItem::GetThrowRotation(const FVector& StartLocation, const FVector& TargetLocation) const
 {
-	AActor* OwnerActor = GetOwningActorFromActorInfo();
+	AActor* OwnerActor = GetAvatarActorFromActorInfo();
 	if (!OwnerActor)
 		return FRotator::ZeroRotator;
 
 	// OwnerActor가 PlayerState인 경우 Pawn 가져오기
-	APS_Player* PlayerState = Cast<APS_Player>(OwnerActor);
-	if (PlayerState)
+	const APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(OwnerActor);
+
+	if (PlayerChar)
 	{
-		APawn* Pawn = PlayerState->GetPawn();
-		if (Pawn)
-		{
-			const APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(Pawn);
-			if (PlayerChar)
-			{
-				UCameraComponent* CameraComp = PlayerChar->FindComponentByClass<UCameraComponent>();
-				if (CameraComp)
-				{
-					// 카메라의 회전값 반환
-					return CameraComp->GetComponentRotation();
-				}
-			}
-			// 카메라를 못 찾았으면 컨트롤러 회전 사용
-			if (Pawn->GetController())
-			{
-				return Pawn->GetController()->GetControlRotation();
-			}
+		UCameraComponent* CameraComp = PlayerChar->FindComponentByClass<UCameraComponent>();
+
+		if (CameraComp)
+		{// 카메라의 회전값 반환
+			return CameraComp->GetComponentRotation();
 		}
 	}
+
+	// 카메라를 못 찾았으면 컨트롤러 회전 사용
+	if (PlayerChar->GetController())
+	{
+		return PlayerChar->GetController()->GetControlRotation();
+	}
+
 	// 컨트롤러가 없으면 액터가 바라보는 방향으로 기본 반환
 	return OwnerActor->GetActorRotation();
 }

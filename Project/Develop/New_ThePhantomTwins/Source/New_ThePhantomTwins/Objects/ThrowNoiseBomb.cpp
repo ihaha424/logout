@@ -153,7 +153,7 @@ bool AThrowNoiseBomb::CanStickToActor(AActor* Actor)
         return false;
 
     // 붙을 수 있는 태그들만 화이트리스트로 지정
-    TArray<FName> StickableTags = {
+    const TArray<const FName> StickableTags = {
         TEXT("Wall"),
         TEXT("Ground"),
         TEXT("AttachableObject"),

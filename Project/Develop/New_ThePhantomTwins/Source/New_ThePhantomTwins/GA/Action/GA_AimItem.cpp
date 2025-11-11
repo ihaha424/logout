@@ -102,8 +102,8 @@ void UGA_AimItem::UpdateParabola()
 
 		// 포물선 설정
 		FPredictProjectilePathParams Params;
-		Params.StartLocation = StartLocation + Row->LaunchVelocity;     // 시작 위치
-		Params.LaunchVelocity = ForwardVector * 1000.f;                 // 발사 방향과 속도
+		Params.StartLocation = StartLocation + Row->StartOffset;     // 시작 위치
+		Params.LaunchVelocity = ForwardVector * Row->ThrowDistance;     // 발사 방향과 속도
 		Params.bTraceWithCollision = true;                              // 충돌 체크
 		Params.ProjectileRadius = Row->ProjectileRadius;                // 충돌 체크할 때 투사체 반경
 		Params.SimFrequency = 1000.f;		                            // 최대 시뮬레이션 시간
