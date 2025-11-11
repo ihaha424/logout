@@ -139,15 +139,17 @@ void UBTT_Rush::OnHit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, U
     ECollisionChannel OtherChannel = SweepResult.Component->GetCollisionObjectType();
     if (OtherChannel == ECC_Pawn || OtherChannel == ECC_WorldStatic || OtherChannel == ECC_WorldDynamic) // TODO: 플레이어 케릭터 또는 오브젝트로 변환햐여함.
     {
-        ACharacter* Target = Cast<ACharacter>(OtherActor);
-        if (Target && Target->GetClass()->ImplementsInterface(UDestroyable::StaticClass()))
+        AActor* TargetActor = Cast<AActor>(OtherActor);
+        if (TargetActor && TargetActor->GetClass()->ImplementsInterface(UDestroyable::StaticClass()))
         {
-            if (IDestroyable::Execute_CanBeDestroyed(Target, Cast<APawn>(thisActor)))
+            if (IDestroyable::Execute_CanBeDestroyed(TargetActor, Cast<APawn>(thisActor)))
             {
-                IDestroyable::Execute_OnDestroy(Target, Cast<APawn>(thisActor));
+                IDestroyable::Execute_OnDestroy(TargetActor, Cast<APawn>(thisActor));
             }
         }
-        else if (IsValid(Target) && OtherComp != Target->GetCapsuleComponent())
+
+        ACharacter* Target = Cast<ACharacter>(OtherActor);
+        if (IsValid(Target) && OtherComp != Target->GetCapsuleComponent())
         {
             return;
         }
