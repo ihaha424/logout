@@ -11,6 +11,7 @@
 #include "AI/Character/AIBaseCharacter.h"
 #include "AI/AIEventReceiver.h"
 #include "Objects/GlitchTrap.h"
+#include "Log/TPTLog.h"
 
 AThrowEMP::AThrowEMP()
 {
@@ -22,7 +23,6 @@ AThrowEMP::AThrowEMP()
     // 충돌 컴포넌트 (루트)
     CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComponent"));
     CollisionComponent->InitSphereRadius(10.0f);
-    //CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     CollisionComponent->SetCollisionProfileName(TEXT("Projectile"));
     CollisionComponent->SetNotifyRigidBodyCollision(true); // Hit 이벤트 생성
 
@@ -32,7 +32,7 @@ AThrowEMP::AThrowEMP()
     // 메시 컴포넌트 (충돌은 CollisionComponent가 담당)
     MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
     MeshComponent->SetupAttachment(CollisionComponent);
-    MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    //MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     MeshComponent->SetRelativeLocation(FVector::ZeroVector);
 
     MeshComponent->SetIsReplicated(true);
@@ -83,35 +83,25 @@ void AThrowEMP::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPr
         }
 
         // 메시의 물리 시뮬레이션 활성화, 중력 적용
-		if (MeshComponent)
-		{
-			MeshComponent->SetSimulatePhysics(true);
-			MeshComponent->SetEnableGravity(true);
+		MeshComponent->SetSimulatePhysics(true);
+		MeshComponent->SetEnableGravity(true);
 
-            // 바닥 판정 (예: 태그 "Ground")
-            if (OtherActor->ActorHasTag(FName("Ground")))
-            {
-                MeshComponent->SetSimulatePhysics(false);
-                MeshComponent->SetPhysicsLinearVelocity(FVector::ZeroVector);
-                MeshComponent->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
-            }
-		}
+        CollisionComponent->SetSimulatePhysics(true);
+        CollisionComponent->SetEnableGravity(true);
 
-        if (CollisionComponent)
+
+        // 바닥 판정 (예: 태그 "Ground")
+        if (OtherActor->ActorHasTag(FName("Ground")))
         {
-            CollisionComponent->SetSimulatePhysics(true);
-            CollisionComponent->SetEnableGravity(true);
+            MeshComponent->SetSimulatePhysics(false);
+            MeshComponent->SetPhysicsLinearVelocity(FVector::ZeroVector);
+            MeshComponent->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
 
+            CollisionComponent->SetSimulatePhysics(false);
+            CollisionComponent->SetPhysicsLinearVelocity(FVector::ZeroVector);
+            CollisionComponent->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
 
-            // 바닥 판정 (예: 태그 "Ground")
-            if (OtherActor->ActorHasTag(FName("Ground")))
-            {
-                CollisionComponent->SetSimulatePhysics(false);
-                CollisionComponent->SetPhysicsLinearVelocity(FVector::ZeroVector);
-                CollisionComponent->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
-
-                ExplodeAndMakeNoise();
-            }
+            ExplodeAndMakeNoise();
         }
     }
 }
@@ -137,6 +127,8 @@ void AThrowEMP::InvokeGameplayCue()
 
 void AThrowEMP::ExplodeAndMakeNoise()
 {
+    TPT_LOG(ObjectLog, Log, TEXT("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
+
     InvokeGameplayCue();
 
     // 1. 적에게 닿으면 5초간 스턴
