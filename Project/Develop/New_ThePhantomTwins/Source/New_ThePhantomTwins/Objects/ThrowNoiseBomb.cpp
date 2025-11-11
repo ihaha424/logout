@@ -59,6 +59,8 @@ void AThrowNoiseBomb::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActo
     // 자기 자신이나 소유자와의 충돌은 무시
     if (OtherActor && OtherActor != this && OtherActor != GetOwner())
     {
+        TPT_LOG(GALog, Log, TEXT("AThrowNoiseBomb OnHit!!!!!!!!!!!!!!!"));
+
         // ProjectileMovementComponent 비활성화
         if (ProjectileMovementComponent)
         {

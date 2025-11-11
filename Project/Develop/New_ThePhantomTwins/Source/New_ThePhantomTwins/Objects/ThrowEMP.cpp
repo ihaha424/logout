@@ -93,7 +93,7 @@ void AThrowEMP::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPr
         // 바닥 판정 (예: 태그 "Ground")
         if (OtherActor->ActorHasTag(FName("Ground")))
         {
-           // TPT_LOG(ObjectLog, Log, TEXT("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
+            TPT_LOG(ObjectLog, Log, TEXT("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
 
             MeshComponent->SetSimulatePhysics(false);
             MeshComponent->SetPhysicsLinearVelocity(FVector::ZeroVector);
@@ -129,7 +129,7 @@ void AThrowEMP::InvokeGameplayCue()
 
 void AThrowEMP::ExplodeAndMakeNoise()
 {
-    //TPT_LOG(ObjectLog, Log, TEXT("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
+    TPT_LOG(ObjectLog, Log, TEXT("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"));
 
     InvokeGameplayCue();
 
