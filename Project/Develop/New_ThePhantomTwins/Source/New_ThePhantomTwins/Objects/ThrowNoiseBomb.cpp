@@ -54,6 +54,16 @@ void AThrowNoiseBomb::BeginPlay()
     }
 }
 
+void AThrowNoiseBomb::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    if (GetWorld())
+    {
+        GetWorld()->GetTimerManager().ClearTimer(DestroyTimer);
+    }
+
+    Super::EndPlay(EndPlayReason);
+}
+
 void AThrowNoiseBomb::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
     // 자기 자신이나 소유자와의 충돌은 무시
@@ -133,7 +143,7 @@ void AThrowNoiseBomb::ExplodeAndMakeNoise()
     }
 
     // 일정 시간 후 액터 파괴 (소음이 끝난 후)
-    FTimerHandle DestroyTimer;
+    GetWorld()->GetTimerManager().ClearTimer(DestroyTimer);
     if (UWorld* W = GetWorld())
     {
         FTimerDelegate Del;
