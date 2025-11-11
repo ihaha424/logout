@@ -180,7 +180,7 @@ void AInteractHideObject::OnInteractServer_Implementation(const APawn* Interacto
     //   return;
     //}
 
-    TPT_LOG(ObjectLog, Log, TEXT("InteractHideObject::OnInteract Server"));
+    //TPT_LOG(ObjectLog, Log, TEXT("InteractHideObject::OnInteract Server"));
 
     if (nullptr == HidePlayer)
     {
@@ -225,11 +225,11 @@ void AInteractHideObject::OnInteractClient_Implementation(const APawn* Interacto
 {
     if (!Interactor->IsLocallyControlled()) return;
 
-    TPT_LOG(ObjectLog, Log, TEXT("InteractHideObject::OnInteract Client"));
+    //TPT_LOG(ObjectLog, Log, TEXT("InteractHideObject::OnInteract Client"));
 
     if (HidePlayer != Interactor && HidePlayer != nullptr)
     {
-        TPT_LOG(ObjectLog, Log, TEXT("Don't Try Hide!"));
+        //TPT_LOG(ObjectLog, Log, TEXT("Don't Try Hide!"));
         PlayHideUnable(Interactor);
         return;
     }
@@ -351,11 +351,11 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
 	/* if (!Interactor->IsLocallyControlled())
 		 return;*/
 
-    TPT_LOG(ObjectLog, Log, TEXT("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
+    //TPT_LOG(ObjectLog, Log, TEXT("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
 
     if (!bIsActived)
     {
-        TPT_LOG(ObjectLog, Log, TEXT("bIsActived == false, 플레이어 안으로 가는 로직"));
+        //TPT_LOG(ObjectLog, Log, TEXT("bIsActived == false, 플레이어 안으로 가는 로직"));
 
         // 클라이언트에게 입력 비활성화 명령 전달
         SetInputState(InteractorPC, true);
@@ -385,7 +385,7 @@ void AInteractHideObject::CamLogicClient(const APawn* Interactor)
     }
     else
     {
-        TPT_LOG(ObjectLog, Log, TEXT("bIsActived == true, 플레이어 밖으로 가는 로직"));
+        //TPT_LOG(ObjectLog, Log, TEXT("bIsActived == true, 플레이어 밖으로 가는 로직"));
 
 
         // 클라이언트에게 입력 활성화 명령 전달
@@ -478,8 +478,8 @@ void AInteractHideObject::SetInputState(APlayerController* InteractorPC, bool bI
         InteractorPC->SetIgnoreMoveInput(bIgnoreInput);
         InteractorPC->SetIgnoreLookInput(bIgnoreInput);
 
-        TPT_LOG(ObjectLog, Log, TEXT("Client: SetIgnoreInput called with value: %s"),
-           bIgnoreInput ? TEXT("True") : TEXT("False"));
+        //TPT_LOG(ObjectLog, Log, TEXT("Client: SetIgnoreInput called with value: %s"),
+        //   bIgnoreInput ? TEXT("True") : TEXT("False"));
     }
 }
 
