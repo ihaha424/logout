@@ -281,7 +281,7 @@ void AInteractHideObject::OnDestroy_Implementation(const APawn* Interactor)
     }
     else
     {
-        APlayerCharacter* Player = Cast<APlayerCharacter>(const_cast<APawn*>(Interactor));
+        APlayerCharacter* Player = Cast<APlayerCharacter>(HidePlayer);
         NULLCHECK_RETURN_LOG(Player, ObjectLog, Error, );
         UAbilitySystemComponent* ASC = Player->GetAbilitySystemComponent();
         NULLCHECK_RETURN_LOG(ASC, ObjectLog, Error, );
