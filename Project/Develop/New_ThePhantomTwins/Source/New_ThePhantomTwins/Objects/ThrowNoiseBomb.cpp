@@ -77,7 +77,7 @@ void AThrowNoiseBomb::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActo
 
 
         // 바닥 판정 (예: 태그 "Ground")
-        if (OtherActor->ActorHasTag(FName("Ground")))
+        if (OtherActor->ActorHasTag(FName("Ground")) || OtherActor->ActorHasTag(FName("AttachableObject")))
         {
             //TPT_LOG(ObjectLog, Log, TEXT("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
 

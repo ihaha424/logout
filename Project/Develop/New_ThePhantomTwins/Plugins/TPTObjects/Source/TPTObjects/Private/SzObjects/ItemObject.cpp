@@ -12,7 +12,7 @@ AItemObject::AItemObject() : AInteractableObject()
 {
 	bReplicates = true;
 
-	Tags.Remove(FName("AttachableObject"));
+	//Tags.Remove(FName("AttachableObject"));
 }
 
 void AItemObject::BeginPlay()

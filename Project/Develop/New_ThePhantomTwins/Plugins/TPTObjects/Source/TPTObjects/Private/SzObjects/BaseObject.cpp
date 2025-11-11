@@ -25,7 +25,7 @@ ABaseObject::ABaseObject()
 
     // "Interactable" 태그 추가
     Tags.Add(FName("Interactable"));
-    Tags.Add(FName("AttachableObject"));
+    //Tags.Add(FName("AttachableObject"));
 }
 
 void ABaseObject::BeginPlay()
