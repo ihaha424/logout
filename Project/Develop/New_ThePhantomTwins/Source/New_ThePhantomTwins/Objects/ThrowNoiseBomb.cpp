@@ -123,6 +123,7 @@ void AThrowNoiseBomb::ExplodeAndMakeNoise()
     if (NoiseComponent)
     {
         NoiseComponent->StartNoise();
+        PlayNoiseBombSound();
     }
 
     // 일정 시간 후 액터 파괴 (소음이 끝난 후)
@@ -136,6 +137,7 @@ void AThrowNoiseBomb::ExplodeAndMakeNoise()
                 { 
                     NoiseComponent->StopNoise(); 
                 }
+                StopNoiseBombSound();
                 DestroyNoiseBomb();
                 Destroy(); // 여기서 파괴해도 람다 종료로 안전
             });
