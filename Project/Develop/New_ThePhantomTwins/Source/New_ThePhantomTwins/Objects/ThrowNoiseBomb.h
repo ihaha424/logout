@@ -63,4 +63,7 @@ public:
     UPROPERTY()
     FTimerHandle DestroyTimer;
 
+    // 표면 회전값 저장용 멤버변수
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FRotator SurfaceRotation = FRotator::ZeroRotator;
 };
