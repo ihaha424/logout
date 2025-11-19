@@ -1,0 +1,37 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Blueprint/UserWidget.h"
+#include "Wait5Sec.generated.h"
+
+
+UCLASS()
+class NEW_THEPHANTOMTWINS_API UWait5Sec : public UUserWidget
+{
+	GENERATED_BODY()
+
+protected:
+    virtual void NativeConstruct() override;
+    virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
+public:
+    // 기존 함수 유지(필요하면 사용)
+    void SetTime(int32 time);
+
+public:
+    UPROPERTY()
+    float MaxTime = 5.0f;
+
+protected:
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<class UProgressBar> TimeBar;
+
+    // 표시용 값들
+    float DisplayTime = 5.0f; // 시작값을 최대치로
+    float RemainingTime = 5.0f;
+    float TimeInterpSpeed = 0.5f; // 보간 속도
+    bool bIsCounting = false; // 카운트다운 진행중 여부
+	
+};

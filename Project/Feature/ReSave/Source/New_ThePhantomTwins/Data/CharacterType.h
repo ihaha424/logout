@@ -1,0 +1,33 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Data/DT_Skill.h"
+#include "CharacterType.generated.h"
+
+UENUM(BlueprintType)
+enum class ECharacterType : uint8
+{
+	Dana    UMETA(DisplayName = "Dana"),
+	Bell     UMETA(DisplayName = "Bell"),
+	None	UMETA(DisplayName = "None")
+};
+
+USTRUCT(BlueprintType)
+struct NEW_THEPHANTOMTWINS_API FIdentifyCharacterData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	ECharacterType Host = ECharacterType::None;
+
+	UPROPERTY(BlueprintReadOnly)
+	ECharacterType Client = ECharacterType::None;
+
+	UPROPERTY(BlueprintReadOnly)
+	ESkillType HostSkill = ESkillType::NoneSkill;
+
+	UPROPERTY(BlueprintReadOnly)
+	ESkillType ClientSkill = ESkillType::NoneSkill;
+};
