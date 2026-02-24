@@ -1,4 +1,4 @@
-# 시나브로 (Sinabro)
+# LOG:OUT (팀 Sonatia)
 
 게임인재원 6기 졸업 팀 프로젝트
 
